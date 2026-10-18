@@ -1,0 +1,24 @@
+name: Verify content
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Playwright
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Build
+        run: |
+          chmod +x build.sh
+          ./build.sh
+      - name: Run self-check
+        run: python tests/verify.py
