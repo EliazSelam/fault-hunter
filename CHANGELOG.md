@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [1.1.0] — 2026-10-19
+
+- First live figure built with the Anatomy skill: a relay bench driven by a MOSFET, shown in questions Q21, Q64, Q65, Q66 and on the relay component page.
+- `figures/` with the build script, the vendored Anatomy kit (MIT) and `THIRD_PARTY_NOTICES.md`.
+- Self-check ignores embedded figure frames when scanning pages.
+
 ## [1.0.0] — 2026-10-18 — first public release
 
 Consolidates the development iterations below into the first public version.
