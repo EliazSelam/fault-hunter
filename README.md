@@ -18,7 +18,7 @@ The UI is in Hebrew, with technical terms in English.
 | Boards | How an electronic board is built and fails, a library of 7 real board types, a failure-analysis process, and an interactive test bench |
 | Systems | Door interlock, servo axis, vacuum table and the full machine, each in six steps: intro, normal operation, failure principles, worked example, guided practice, independent practice |
 | Technical test | 79 interview-style questions in 7 topics, with light and medium hints, step-by-step investigation mode, and 45 full solution schematics |
-| Live figures | An interactive isometric relay bench (built with the Anatomy skill): set the gate voltage and watch the MOSFET, coil, armature and lamp respond |
+| Live figures | Interactive isometric benches (built with the Anatomy skill): a relay driven by a MOSFET, and a line-scan camera on a conveyor showing encoder-vs-clock triggering |
 | Fault challenge | 37 realistic faults in 4 levels and 11 failure principles, scored by machine downtime |
 
 Every system starts by explaining what it is for, every term is explained on first appearance (225 glossary entries), and every value is tagged as an example, a model assumption, or equipment-dependent.

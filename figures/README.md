@@ -5,6 +5,7 @@ Interactive isometric figures built with the [Anatomy](https://github.com/wheres
 | Figure | Concept | Used in |
 |---|---|---|
 | `relay-bench/` | An MCU sets the MOSFET gate voltage, the MOSFET drives a relay coil with a flyback diode, the relay switches a lamp. Pull-in and drop-out hysteresis, and MOSFET heating in the partly-on region. | Questions Q21, Q64, Q65, Q66 and the relay component page |
+| `line-scan/` | A conveyor carries a round pad under a line-scan camera; an encoder on the roller counts travel. Switch the trigger source between encoder and clock, change the belt speed, and watch the captured image stay round (encoder) or stretch and squash (clock). | Questions Q34, Q38, Q58 and the line-scan component page |
 
 ## Rebuild
 
