@@ -315,7 +315,7 @@ draw();
 const body = k.plateHtml({
   fig: "Fig 1",
   title: "MOSFET drives a relay",
-  hint: "Move across to set V_G · ← →",
+  hint: "↔ V_G",
   readout: "V_G 0.00 V · I 0 mA · P_Q 0.00 W · NC · lamp off",
   keys: [
     { mark: "lit", label: "Armature: pulled down when the coil current is high enough" },

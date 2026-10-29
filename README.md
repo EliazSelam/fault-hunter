@@ -23,13 +23,13 @@ The UI is in Hebrew, with technical terms in English.
 | Boards | How electronic boards inside a machine are built and fail, with a library of 7 board types |
 | Technical test | 95 interview-style questions in 9 topics, with hints, step-by-step mode and 45 solution schematics |
 | Fault challenge | 48 faults in 4 levels and 11 failure principles, with a hint ladder for each |
-| Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, and a line-scan camera triggered by encoder or clock |
+| Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
 
 Every term is explained on first appearance (330 glossary entries and a 157-term lexicon), and every value is tagged as an example, a model assumption, or equipment-dependent.
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs five suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs six suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|
@@ -37,6 +37,7 @@ Every term is explained on first appearance (330 glossary entries and a 157-term
 | models | Every simulation re-implemented independently in Python from the physics: 1795 checks |
 | teach | 24 from-zero lessons: every term defined, every step complete |
 | scenarios | 48 faults: structure, efficient path, answer options |
+| figures | The three live figures, driven by keyboard: 1088 readouts checked against an independent implementation of their physics |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 
