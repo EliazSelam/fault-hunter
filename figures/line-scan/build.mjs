@@ -274,7 +274,7 @@ run();
 const body = k.plateHtml({
   fig: "Fig 2",
   title: "Line-scan: trigger from the encoder",
-  hint: "Move across to set speed · Enter toggles source",
+  hint: "↔ speed · Enter",
   readout: "trigger: ENCODER · speed 140 mm/s · line rate 20.0 kHz · 7.0 µm/line · round at any speed",
   keys: [
     { mark: "line", label: "Blue: the single line the camera reads under the lens" },

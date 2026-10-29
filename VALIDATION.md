@@ -35,6 +35,18 @@ Each simulation was re-implemented in Python from the physics (not copied from t
 
 `tests/verify.mjs` recomputes 102 numeric answers and formula examples, checks 32 logic sequences, and crawls 288 pages for broken values, and checks that every question has a topic. Every question in Q01–Q69 (except the digital-logic ones) and P01–P16, and every worked example in the from-zero layer, was also re-derived by hand. The digital-logic questions (Q04–Q10, Q70–Q79) are covered by the 32 logic checks (gate-level simulation of every latch, flip-flop and counter) and by the numeric checks.
 
+## 2b. Live figures (`tests/figures_audit.mjs`)
+
+Each figure is driven by keyboard with reduced motion, so every value jumps to its target, and each readout is compared with an implementation written in the test itself (not taken from the figure):
+
+| Figure | Reference | Checks |
+|---|---|---|
+| Relay bench | I = min(V/R, K(V_G − V_th)²), P = (V − I·R)·I, pull-in at 18 V and drop-out at 2.4 V on the coil, swept up and down | 400 |
+| Line-scan | rate = v / 7 µm; µm per line = 7 (encoder) or 7·v/140 (clock), both sources, speed 40–320 mm/s | 232 |
+| AOS laser | w(Δz), F₀ = 2E/(πw²), D = w√(2 ln(F₀/F_th)), depth = Nδ ln(F₀/F_th), and the removed / too narrow / too shallow state, over E 1–10 µJ × Δz 0–500 µm | 456 |
+
+The suite was checked against a deliberately wrong constant (F_th = 1.6 instead of 1.5 in the built figure) and failed as expected.
+
 ## 3. Corrections made
 
 | Where | Problem | Fix |

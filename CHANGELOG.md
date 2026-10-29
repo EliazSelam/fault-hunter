@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.1.0] — 2026-10-29
+
+- Third live figure: an AOS repair laser over a copper short. Pulse energy and defocus set the fluence and the crater, with the states "short removed", "too narrow" and "too shallow". Same model and constants as the laser simulation. Shown on the repair-laser page and in questions P04, P05, P06, P08.
+- New test suite `figures`: drives all three figures by keyboard and checks 1088 readouts against an independent implementation (relay hysteresis, line-scan for both trigger sources, the laser over an energy × defocus grid).
+- Each embedded figure has its own accessible title; shorter hints so they never overlap the readout.
+
 ## [2.0.0] — 2026-10-29
 
 A major upgrade that brings in a parallel line of work (teacher-level explanations, a lab, deep validation) and adds AOI and AOS for PCB manufacturing.
