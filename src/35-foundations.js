@@ -207,7 +207,7 @@ function boardSVG() {
   <circle cx="700" cy="98" r="3" class="fill-ink"/><circle cx="700" cy="164" r="3" class="fill-ink"/>`, 'Input board schematic');
 }
 /* Wrap left-to-right technical runs (values, part numbers) so they read correctly inside Hebrew text. */
-function bidi(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(/[A-Za-z0-9µΩØ⌖⏥↧⌴(][A-Za-z0-9µΩØ⌖⏥↧⌴°±×=.,:+\-−_\/~²⁴≈'"() ]*[A-Za-z0-9µΩ)%]|[A-Za-z0-9µΩ]/g, m => `<bdi>${m}</bdi>`)).join(''); }
+function bidi(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(/[A-Za-z0-9µΩØ⌖⏥↧⌴(Α-ω½√][A-Za-z0-9µΩØ⌖⏥↧⌴°±×=.,:+\-−_\/~²³⁴⁶⁰¹⁵⁷⁸⁹⁻≈·'"() Α-ω½√]*[A-Za-z0-9µΩ)%²³⁶Α-ω]|[A-Za-z0-9µΩΑ-ω]/g, m => `<bdi>${m}</bdi>`)).join(''); }
 function showB(tab) {
   active = null; tab = tab || 'atlas';
   const tabs = [['atlas', 'אטלס רכיבים'], ['grammar', 'דקדוק של סכמה'], ['decode', 'מפענחי ערכים'], ['quiz', 'חידון סמלים'], ['board', 'קריאת כרטיס אמיתי'], ['set', 'סט שרטוטים מלא'], ['mech', 'שרטוט מכני מאפס'], ['mdrill', 'קריאת שרטוט ייצור']];

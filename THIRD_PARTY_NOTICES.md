@@ -2,7 +2,7 @@
 
 ## Anatomy
 
-The interactive isometric figures in `figures/` (and their packed copy in `src/39k-anatomy-figures.js`) were built with **Anatomy**, an agent skill by Ryan (@wheresryan22): https://github.com/wheresryan22/anatomy — commit `1482e84`.
+The interactive isometric figures in `figures/` (and their packed copy in `src/42-anatomy.js`) were built with **Anatomy**, an agent skill by Ryan (@wheresryan22): https://github.com/wheresryan22/anatomy — commit `1482e84`.
 
 The kit files under `figures/vendor/anatomy/` are copied unchanged from that repository and are distributed under its MIT license:
 

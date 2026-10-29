@@ -10,7 +10,7 @@ import asyncio, pathlib, sys
 from playwright.async_api import async_playwright
 
 INDEX = (pathlib.Path(__file__).resolve().parent.parent / 'index.html').as_uri()
-BAD = "() => { const c = document.getElementById('content').cloneNode(true); c.querySelectorAll('iframe').forEach(f => f.remove()); return /NaN|undefined|\\[object/.test(c.innerHTML); }"
+BAD = "() => /NaN|undefined|\\[object/.test(document.getElementById('content').innerHTML)"
 
 async def main():
     problems = []

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>מהרכיב למכונה · ספר הדרכה לקריאת שרטוטים</title>
+<title>מהרכיב למכונה · ציד תקלות</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Hebrew:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -258,6 +258,7 @@ abbr.gl:hover,abbr.gl:focus-visible{background:var(--livetint)}
 .chain li::before{content:counter(c) ". ";color:var(--muted)}
 .chain li:not(:last-child)::after{content:"↓";position:absolute;bottom:-18px;right:20px;color:var(--live);font-weight:700}
 .chain li:last-child{border-color:var(--fault);background:var(--faulttint)}
+.chain.zchain li:last-child{border-color:var(--line);background:none}
 .path{list-style:none;padding:0;margin:8px 0 18px}
 .path li{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:14px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:12px 14px;margin:0 0 10px;background:var(--sheet)}
 .path .pn{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--sheet);display:grid;place-items:center;font-weight:700}
@@ -298,10 +299,50 @@ header.top{align-items:center}
 .tt tr.hi td{background:var(--livetint);font-weight:700;color:var(--ink)}
 .formulas{border:1.5px solid var(--ink);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
 .formulas>b{color:var(--ink)}.formulas table{margin:4px 0 0}
+footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
 .anatframe iframe{width:100%;border:0;display:block;min-height:420px;background:transparent}
-footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
+
+/* from-zero walkthrough */
+.zstory{background:var(--livetint);border-right:4px solid var(--live);border-radius:6px;padding:12px 16px;margin:6px 0 4px}
+.zstory p{margin:6px 0 0;font-size:16.5px;line-height:1.75}
+.zhint{font-size:14px;color:var(--muted)}
+details.zplain{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:10px 0;background:var(--tint)}
+details.zplain summary{cursor:pointer;font-weight:700}
+details.zplain p{margin:8px 0 0;line-height:1.75}
+details.zplain bdi,.hladder bdi,ol.mech bdi,#outcome bdi,#res bdi{white-space:nowrap}
+.hladder{margin:10px 0}.hladder ol{margin:8px 0 0;padding-inline-start:22px}.hladder li{margin:4px 0;line-height:1.6}
+.zk{display:inline-block;font-size:12.5px;padding:1px 8px;border-radius:999px;margin-inline-start:6px;border:1.5px solid var(--line)}
+.zk.znew{border-color:var(--live);background:var(--livetint);color:var(--ink);font-weight:600}.zk.zprev{border-color:var(--ink)}.zk.zoff{opacity:.45}
+ol.zbuild{list-style:none;padding:0;margin:0}
+.zstep{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:18px;align-items:start;border-top:1px solid var(--line);padding:16px 0}
+.zstep .ztext b{font-size:17px;color:var(--ink)}
+.zstep .ztext p{margin:8px 0 0;line-height:1.7}
+.zl{font-weight:700;color:var(--ink)}
+.zw{color:var(--fault)}.zw .zl{color:var(--fault)}
+.zdiag{margin:0}
+.zdiag .sn.off{opacity:.22}
+.zdiag .sn.prev rect{stroke:var(--ink);stroke-width:1.6}
+.zdiag .sn.new rect{stroke:var(--live);stroke-width:3.2;fill:var(--livetint)}
+@media (max-width:760px){.zstep{grid-template-columns:1fr}}
+
+/* teaching steps: what happens / why / what you sense */
+ol.tsteps{list-style:none;padding:0;margin:0}
+ol.tsteps>li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+ol.tsteps .tn{font:700 15px/30px var(--sans,inherit);width:30px;height:30px;text-align:center;border-radius:50%;background:var(--ink);color:var(--sheet)}
+ol.tsteps .tb p{margin:0 0 6px;line-height:1.7}
+ol.tsteps .ty{color:var(--ink)}
+ol.tsteps .ts{color:var(--live)}
+
+/* principles */
+.pri{display:grid;gap:12px}
+.pcard{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;border:1px solid var(--line);border-radius:8px;padding:14px 16px;background:var(--sheet)}
+.pcard h3{margin:2px 0 6px}
+.pcard p{margin:0 0 6px}
+.pnum{font:700 20px/40px inherit;width:40px;height:40px;text-align:center;border-radius:50%;background:var(--live);color:var(--sheet)}
+.pwhy{color:var(--muted)}
+.plinks .kind{cursor:pointer;background:none;margin:2px 0 2px 6px}
 </style>
 </head>
 <body>
@@ -309,21 +350,25 @@ footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 <header class="top">
   <div>
     <h1>מהרכיב למכונה</h1>
-    <p>מערכת לימוד ואתגר אינטראקטיבי: איך עובדים רכיבים, מערכות קטנות ומכונה שלמה, ואיך מוצאים תקלה לפני שהשעון של זמן ההשבתה רץ.</p>
+    <p>מערכת לימוד ואתגר אינטראקטיבי: איך עובדים רכיבים, מערכות ומכונות AOI ו-AOS לייצור לוחות, מה בודקים באינטגרציה וב-ATP, ואיך מוצאים תקלה לפני שהשעון של זמן ההשבתה רץ.</p>
   </div>
   <div class="hdrctl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="theme" id="themeBtn" type="button">מצב תצוגה</button></div>
 </header>
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
+  <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
+  <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>
+  <button role="tab" data-sheet="pcb" aria-selected="false">AOI ו-AOS<small>ייצור PCB</small></button>
   <button role="tab" data-sheet="b" aria-selected="false">יסודות<small>קריאת סכמה מאפס</small></button>
   <button role="tab" data-sheet="dig" aria-selected="false">לוגיקה ספרתית<small>פליפ-פלופים ומונים</small></button>
   <button role="tab" data-sheet="s1" aria-selected="false">רכיבים<small>חשמל, פניאומטיקה, מכניקה</small></button>
-  <button role="tab" data-sheet="opt" aria-selected="false">אופטיקה<small>מהאור לתמונה</small></button>
+  <button role="tab" data-sheet="opt" aria-selected="false">אופטיקה ולייזר<small>מהאור לתמונה ולתיקון</small></button>
+  <button role="tab" data-sheet="s2" aria-selected="false">מערכות<small>מאפס ועד תרגול</small></button>
+  <button role="tab" data-sheet="int" aria-selected="false">אינטגרציה<small>bring-up · ATP</small></button>
   <button role="tab" data-sheet="brd" aria-selected="false">כרטיסים<small>חקירה וחקר כשל</small></button>
-  <button role="tab" data-sheet="s2" aria-selected="false">מערכות<small>4 מערכות · 6 צעדים</small></button>
   <button role="tab" data-sheet="s3" aria-selected="false">מכונה משולבת<small>מחזור בדיקה מלא</small></button>
-  <button role="tab" data-sheet="qb" aria-selected="false">מבחן טכני<small>79 שאלות · עם רמזים</small></button>
-  <button role="tab" data-sheet="ch" aria-selected="false">ציד תקלות<small>האתגר · 37 תקלות</small></button>
+  <button role="tab" data-sheet="qb" aria-selected="false">מבחן טכני<small>שאלות · עם רמזים</small></button>
+  <button role="tab" data-sheet="ch" aria-selected="false">ציד תקלות<small>האתגר</small></button>
   <button role="tab" data-sheet="s4" aria-selected="false">תקנים ומקרא<small>שרטוט וחשמל</small></button>
   <button role="tab" data-sheet="s0" aria-selected="false">הכנה לראיון<small>System Integrator</small></button>
 </nav>
@@ -333,5 +378,5 @@ footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
   <div id="content"></div>
   <div class="titleblock" id="titleblock"></div>
 </main>
-<footer><b>מהרכיב למכונה</b> · נבנה על ידי Eliaz Selam. השרטוטים והערכים בספר מייצגים תכנון תעשייתי טיפוסי ונועדו ללימוד. הם אינם תיעוד של מכונה ספציפית. לפני עבודה על ציוד אמיתי, עובדים לפי הנוהל, השרטוט והתקן של היצרן.</footer>
+<footer><b>מהרכיב למכונה</b> · נבנה על ידי Eliaz Selam. השרטוטים, ארכיטקטורות המכונות והערכים בספר מייצגים תכנון תעשייתי טיפוסי ומבוססים על מקורות ציבוריים. הם נועדו ללימוד, ואינם תיעוד של מכונה ספציפית. ערכי סימולציה מסומנים כדוגמה או כהנחת מודל. לפני עבודה על ציוד אמיתי, עובדים לפי הנוהל, השרטוט והתקן של היצרן.</footer>
 </div>

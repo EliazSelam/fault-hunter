@@ -12,7 +12,7 @@ Interactive isometric figures built with the [Anatomy](https://github.com/wheres
 ```bash
 node figures/relay-bench/build.mjs            # dark page
 node figures/relay-bench/build.mjs --light    # light page
-node figures/embed.mjs                        # pack into src/39k-anatomy-figures.js
+node figures/embed.mjs                        # pack into src/42-anatomy.js
 ./build.sh                                    # rebuild the app
 ```
 

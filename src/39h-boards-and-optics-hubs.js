@@ -38,8 +38,8 @@ QB.push(
 
 /* ---- hub helpers ---- */
 function setTab(sheet) { document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet)); }
-const BRD_NAV = [['steps', 'הכרטיס בשישה צעדים', 'היכרות, פעולה תקינה, תרגול'], ['lib', 'ספריית כרטיסים', '7 כרטיסים אמיתיים'], ['fa', 'תהליך חקר כשל', 'שלבים וכלים'], ['bench', 'עמדת בדיקה', 'מדידות והזרקת תקלות'], ['q', 'שאלות: חקירת כרטיס', QB.filter(q => q.t === 'fa').length + ' שאלות'], ['ch', 'תקלות כרטיסים', 'תרגול עצמאי']];
-const OPT_IDS = ['linescan', 'strobe', 'lens', 'tilt', 'thermal'];
+const BRD_NAV = [['steps', 'הכרטיס שלב אחר שלב', 'היכרות, פעולה תקינה, תרגול'], ['lib', 'ספריית כרטיסים', '7 כרטיסים אמיתיים'], ['fa', 'תהליך חקר כשל', 'שלבים וכלים'], ['bench', 'עמדת בדיקה', 'מדידות והזרקת תקלות'], ['q', 'שאלות: חקירת כרטיס', QB.filter(q => q.t === 'fa').length + ' שאלות'], ['ch', 'תקלות כרטיסים', 'תרגול עצמאי']];
+const OPT_IDS = ['linescan', 'strobe', 'lens', 'tilt', 'thermal', 'fid', 'laser'];
 const OPT_NAV = [['ov', 'מבוא לאופטיקה', 'השרשרת מהאור לתמונה'], ...OPT_IDS.map(id => { const c = COMPONENTS.find(x => x.id === id); return [id, c.name, c.en]; }), ['q', 'שאלות אופטיקה', QB.filter(q => q.t === 'opt').length + ' שאלות'], ['ch', 'תקלות אופטיקה', 'תרגול עצמאי']];
 function hubNav(items, cur, fn) {
   const nav = document.createElement('nav'); nav.className = 'index'; nav.setAttribute('aria-label', 'ניווט');
@@ -121,7 +121,7 @@ function showOptics(sub) {
       <h3>סוגי תאורה</h3>${tbl(['תאורה', 'איך', 'מה רואים טוב'], [['bright field', 'האור מוחזר ישר לעדשה', 'מוליכים, פערים, ניגודיות בין חומרים'], ['dark field', 'האור בזווית, רק פיזור מגיע לעדשה', 'שריטות, חלקיקים, קצוות'], ['coaxial', 'מאירים ומצלמים מאותו כיוון', 'משטחים מבריקים ושטוחים'], ['diffuse', 'אור מפוזר מכל הכיוונים', 'משטחים מבריקים לא שטוחים, בלי סנוור']])}
       <h3>מהתסמין בתמונה לחשוד</h3>${tbl(['מה רואים בתמונה', 'חשוד ראשון', 'איפה ללמוד'], [['כל התמונה מטושטשת', 'פוקוס, גובה, התפשטות תרמית', 'עדשה · התפשטות תרמית'], ['טשטוש שגדל עם הזמן', 'חום מהתאורה או מהמצלמה', 'התפשטות תרמית · strobe'], ['צד אחד מטושטש', 'הטיה של המצלמה', 'יישור אופטי'], ['תמונה מתוחה בכיוון הסריקה', 'מקור טריגר או מחלק', 'מצלמת line-scan'], ['דחוסה רק במהירות גבוהה', 'קצב שורות מעל המקסימום', 'מצלמת line-scan'], ['שורות כהות אקראיות', 'סנכרון strobe, רעש בטריגר', 'strobe'], ['ירידה הדרגתית בבהירות', 'לכלוך, הזדקנות LED', 'strobe'], ['קצוות כהים קבועים', 'vignetting, תאורה לא אחידה', 'שאלה Q61'], ['אזורים לבנים "שרופים"', 'השתקפות ממשטח מבריק', 'שאלה Q62']])}`;
   } else if (sub === 'q') qList(B, 'opt', () => showOptics('q'));
-  else if (sub === 'ch') sList(B, s => ['L1-04', 'L1-08', 'L2-05', 'L2-07', 'L3-01', 'L3-02', 'L3-03'].includes(s.id));
+  else if (sub === 'ch') sList(B, s => ['L1-04', 'L1-08', 'L2-05', 'L2-07', 'L3-01', 'L3-02', 'L3-03', 'P-01', 'P-02', 'P-03', 'P-05', 'P-06', 'P-07', 'P-11'].includes(s.id));
   setTitle('אופטיקה', OPT_NAV.find(n => n[0] === sub)[1], 'ISO 10110 · EMVA 1288');
 }
 /* optics components render inside the optics hub; the components sheet no longer lists them */

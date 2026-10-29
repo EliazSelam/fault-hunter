@@ -73,7 +73,7 @@ SYSTEMS.push({
   lead: 'בקר PID, דרייבר PWM, מנוע, ballscrew ואנקודר. כוונון הבקר קובע אם הציר מגיע מהר, עם overshoot, או רועד. רעש באנקודר נכנס ישר ללולאה.',
   controls: [{ id: 'kp', label: 'Kp', min: 50, max: 2500, step: 10, val: 400, unit: '' },
   { id: 'kd', label: 'Kd', min: 0, max: 120, step: 1, val: 40, unit: '' },
-  { id: 'ki', label: 'Ki', min: 0, max: 2000, step: 10, val: 200, unit: '' },
+  { id: 'ki', label: 'Ki', min: 0, max: 2000, step: 10, val: 50, unit: '' },
   { id: 'nz', label: 'מיגון אנקודר', type: 'select', val: 'ok', opts: [['ok', 'מחובר'], ['off', 'לא מחובר']] }],
   render(s, stage, out) {
     const J = 1, b = 1, dt = 0.0005, T = 1.2, umax = 400; const r = rng(3);
@@ -97,8 +97,10 @@ SYSTEMS.push({
       `<text x="620" y="298" class="lblm" text-anchor="end">t [s] · 0 → 1.2 s</text>`;
     stage.innerHTML = SVG(640, 306, inner, 'Servo step response');
     const zeta = (b + s.kd) / (2 * Math.sqrt(J * s.kp)), wn = Math.sqrt(s.kp / J);
-    out.innerHTML = `Overshoot: <span class="${os > 0.1 ? 'bad' : 'num'}">${fmt(os * 100, 0)}%</span> · זמן התייצבות (±2%): <span class="num">${ts === null ? 'לא מתייצב' : fmt(ts * 1000, 0) + ' ms'}</span> · ζ ≈ <span class="num">${fmt(zeta, 2)}</span> · ω<sub>n</sub> ≈ <span class="num">${fmt(wn, 0)} rad/s</span>${sat ? ' · <span class="bad">רוויה בזרם</span>' : ''}<br>` +
+    out.innerHTML = `Overshoot: <span class="${os > 0.1 ? 'bad' : 'num'}">${fmt(os * 100, 0)}%</span> · זמן התייצבות (±2%): <span class="num">${ts === null ? 'לא מתייצב' : fmt(ts * 1000, 0) + ' ms'}</span> · ζ ≈ <span class="num">${fmt(zeta, 2)}</span> · ω<sub>n</sub> ≈ <span class="num">${fmt(wn, 0)} rad/s</span> (קירוב PD, בלי Ki)${sat ? ' · <span class="bad">רוויה בזרם</span>' : ''}<br>` +
       (s.nz === 'off' ? 'הרעש באנקודר נכנס לחישוב השגיאה ומוגבר דרך Kd: הפקודה למנוע קופצת, הציר רועד, והתמונה זזה. אין כוונון שמתקן חיבור מיגון.' :
+        ts === null && os < 0.05 ? '<span class="bad">לא נכנס לחלון ±2% בזמן הגרף:</span> הציר "זוחל" אל היעד. Ki גבוה ביחס ל-Kp יוצר קוטב איטי בלולאה, וזנב ארוך. הקטן Ki, או הגדל Kp ו-Kd יחד.' :
+        ts === null ? '<span class="bad">לא מתייצב:</span> הציר מתנדנד סביב היעד. הגדל Kd או הקטן Kp.' :
         zeta < 0.6 ? 'ζ נמוך: הציר מגיע מהר אבל חורג ומתנדנד. הגדל Kd או הקטן Kp.' : zeta > 1.5 ? 'ζ גבוה: יציב אבל איטי. הקטן Kd או הגדל Kp.' : 'כוונון מאוזן: התגובה מהירה עם חריגה קטנה. מערכת מסדר 2: ζ = (b + K<sub>d</sub>) / (2√(J·K<sub>p</sub>)).');
   },
   flow: ['הבקר מחשב פרופיל ושולח מיקום יעד בכל מחזור.', 'PID: שגיאה × Kp, אינטגרל השגיאה × Ki, מהירות × Kd.', 'הדרייבר הופך את הפקודה לזרם (PWM, לשונית "רכיבים"), הזרם למומנט.', 'ה-ballscrew הופך סיבוב לתנועה קווית.', 'האנקודר סוגר את הלולאה. הוא רואה את המנוע, לא את העגלה.'],

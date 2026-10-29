@@ -1,10 +1,10 @@
 # Contributing
 
-Edit files in `src/`, run `./build.sh`, then `python tests/verify.py`. A change is ready when the self-check passes.
+Edit files in `src/`, then run `tests/run_all.sh`. A change is ready when it prints `ALL SUITES PASSED`. A new file must also be added to `build.sh`.
 
 ## Adding a fault (challenge)
 
-Push an object to `SCN` (see `src/30-scenarios.js` and `src/39d-boards.js` for examples):
+Push an object to `SCN` (see `src/30-scenarios.js`, `src/39d-boards.js` and `src/50-pcb-aoi.js` for examples; the teaching layer for each fault lives in `src/64-scenario-teach.js`):
 
 ```js
 { id: 'L2-09', lvl: 2, area: 'אופטיקה', title: 'כותרת קצרה',
