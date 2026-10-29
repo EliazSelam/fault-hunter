@@ -177,7 +177,7 @@ const SYMHE = {
   'Integration test: Z drop 0.9 mm on E-stop': 'בדיקת אינטגרציה: ציר Z צנח 0.9 מ"מ בלחיצה על עצירת חירום',
   'Alarm: Vacuum not OK (B3) timeout': 'חיישן הוואקום B3 לא אישר אחיזה בזמן שהוקצב',
   'Following error X: peaks 18 µm (was 3)': 'שגיאת המיקום בציר X מגיעה ל-18 מיקרון (הייתה 3)',
-  'Alignment: scale error −3.1% along scan': 'יישור: המרחקים בכיוון הסריקה קצרים ב-3.1%',
+  'Alignment: scale error −3.8% along scan': 'יישור: המרחקים בכיוון הסריקה קצרים ב-3.8%',
   'Controller: unexpected reboot (brown-out)': 'הבקר עלה מחדש באופן לא צפוי, בגלל ירידת מתח',
   'Image QA: random dark lines': 'בקרת איכות תמונה: שורות כהות במקומות אקראיים',
   'False alarms rising over time': 'התראות השווא עולות עם הזמן',

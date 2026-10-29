@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.0.0] — 2026-10-29
+
+A major upgrade that brings in a parallel line of work (teacher-level explanations, a lab, deep validation) and adds AOI and AOS for PCB manufacturing.
+
+- **New tabs:** 12 principles, lab (multimeter, generator and oscilloscope, sensors), AOI and AOS in PCB manufacturing, and the integration process (first power-up, bring-up, ATP, field faults).
+- **From-zero layer:** 24 teacher-level lessons and a 157-term lexicon; every term a lesson uses is defined in that lesson.
+- **AOI and AOS:** an AOS machine in six steps, a repair-laser simulation, fiducial registration, 11 new faults (P-01 to P-11) and 16 new questions (P01 to P16).
+- **Fault teaching layer:** a plain explanation, a hint ladder and the mechanism for every fault.
+- **Validation:** `tests/run_all.sh` with five suites, including 1795 independent model checks in Python; CI now runs all of them. Corrections are listed in VALIDATION.md (for example the servo default Ki, the thermal comparison against ±DOF/2, Q25 and Q65).
+- Digital logic, the boards library, the live figures and all v1 questions are kept: 95 questions, 48 faults.
+- Figures are now packed into `src/42-anatomy.js` by `figures/embed.mjs`.
+
 ## [1.2.0] — 2026-10-21
 
 - Second live figure: a line-scan camera on a conveyor, showing why the trigger must come from the encoder and not a clock. Switch the source and the belt speed; the captured image stays round with the encoder and stretches or squashes with the clock. Shown in questions Q34, Q38, Q58 and on the line-scan component page.

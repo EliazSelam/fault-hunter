@@ -12,13 +12,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install Playwright
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
         run: |
           pip install -r tests/requirements.txt
-          python -m playwright install --with-deps chromium
-      - name: Build
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+      - name: Build and run every suite
         run: |
-          chmod +x build.sh
-          ./build.sh
-      - name: Run self-check
-        run: python tests/verify.py
+          chmod +x build.sh tests/run_all.sh
+          tests/run_all.sh

@@ -27,7 +27,7 @@ FIG.q76 = () => SVG(560, 110, `${dff_(40, 15)}${P_('M110 35H200')}${box_(200, 15
 Object.assign(AF, {
   Q63: () => drvFig({ sw: 'bjt', vm: '3.3V', rs: 'Rb 10k', rp: '10k', diode: 'ok', bad: true, notes: ['I_B ≈ 0.26 − 0.07 ≈ 0.19 mA', 'need I_C = 50 mA → I_B ≥ 2.5–5 mA', 'h_FE = 100 → I_C ≤ 19 mA: NOT saturated', 'fix: Rb ≈ 1k, or a logic-level MOSFET'] }),
   Q64: () => drvFig({ sw: 'fet', vm: '5V', rs: 'R1 1k', rp: 'R2 10k', diode: 'ok', notes: ['V_G = 5 × 10/11 ≈ 4.55 V', 'I_D = 24/480 = 50 mA', 'V_DS = I·R_DS(on) = 2.5 mV', 'P = I²·R_DS(on) = 0.125 mW'] }),
-  Q65: () => drvFig({ sw: 'fet', vm: '3.3V', rs: 'R1 1k', rp: 'R2 1k', diode: 'ok', bad: true, notes: ['V_G = 3.3 × 1/2 = 1.65 V', 'near V_th → partly on, hot', 'pull-down ≫ series R: 100Ω / 10k'] }),
+  Q65: () => drvFig({ sw: 'fet', vm: '3.3V', rs: 'R1 1k', rp: 'R2 1k', diode: 'ok', bad: true, notes: ['V_G = 3.3 × 1/2 = 1.65 V', 'near V_th → off or partly on', 'pull-down ≫ series R: 100Ω / 10k'] }),
   Q66: () => drvFig({ sw: 'fet', vm: '3.3V', rs: 'R2 100Ω', rp: 'R3 10k', diode: 'ok', notes: ['Q1 on:  V_D ≈ I·R_DS(on) ≈ 0 V', 'Q1 off: V_D = 24 V (no current in coil)', 'turn-off: V_D ≈ 24 + 0.7 = 24.7 V', 'no diode: spike until breakdown'] }),
   Q67: () => drvFig({ sw: 'fet', vm: '3.3V', rs: 'R2 100Ω', rp: 'R3 10k', diode: 'ok', led: true, notes: ['I_LED = (24 − 2)/2.2k = 10 mA', 'I_coil = 50 mA', 'I_D = 60 mA total'] }),
   Q68: () => optoFig(['I_F = (24 − 1.2)/4.7k ≈ 4.9 mA', 'CTR 50% → I_C up to ≈ 2.4 mA', 'needed: 3.3/10k = 0.33 mA', '→ transistor saturates: MCU reads 0']),
@@ -50,11 +50,11 @@ QB.push(
   steps: ['V_G = 5 × R2/(R1+R2) = 5 × 10/11 ≈ 4.55V.', '4.55V ≥ 4.5V: אפשר להשתמש ב-R_DS(on) מהדף.', 'I_D = 24V / 480Ω = 50mA.', 'V_DS = 0.05A × 0.05Ω = 2.5mV.', 'P = I² · R = 0.0025 × 0.05 = 0.125mW.'],
   trap: 'להשתמש ב-R_DS(on) שמוגדר ב-10V כשהמתח בפועל 4.55V.' },
 { id: 'Q65', t: 'drv', l: 2, title: 'מחלק חזק מדי ב-Gate', fig: 'q65',
-  q: 'מישהו "שיפר" את המעגל: R1 = 1kΩ ו-R2 = 1kΩ, MCU של 3.3V. ה-MOSFET מתחמם והממסר לא תמיד נמשך. למה?',
+  q: 'מישהו "שיפר" את המעגל: R1 = 1kΩ ו-R2 = 1kΩ, MCU של 3.3V. בחלק מהמכונות הממסר לא נמשך בכלל, ובאחרות הוא נמשך אבל ה-MOSFET חם. למה?',
   h: ['חשב את V_G.', 'השווה ל-V_th בדף הנתונים.'],
-  a: 'V_G = 3.3 × 1/2 = 1.65V, קרוב למתח הסף, ולכן ה-MOSFET נפתח רק חלקית. הנגד לאדמה צריך להיות גדול בהרבה מהנגד בטור (למשל 100Ω ו-10kΩ), כדי שכמעט כל המתח יגיע ל-Gate.',
+  a: 'V_G = 3.3 × 1/2 = 1.65V, באזור מתח הסף. ביחידות שבהן V_th גבוה מ-1.65V, ה-MOSFET כמעט סגור, והממסר לא נמשך. ביחידות עם V_th נמוך יותר הוא נפתח חלקית: R_DS גבוה, מפל מתח, והוא מתחמם. הפיזור של V_th בין יחידות מסביר למה התסמין שונה בין מכונות. הנגד לאדמה צריך להיות גדול בהרבה מהנגד בטור (למשל 100Ω ו-10kΩ), כדי שכמעט כל המתח יגיע ל-Gate.',
   why: 'הנגד לאדמה נועד רק להחזיק את ה-Gate ב-0 כשאין אות. אם הוא באותו סדר גודל של הנגד בטור, הוא "גונב" מהמתח.',
-  steps: ['V_G = 3.3 × R2/(R1+R2) = 1.65V.', 'V_th של MOSFET logic-level נמצא בדרך כלל באזור 1–2V: כאן הוא בקושי מתחיל להוליך.', 'פתוח חלקית = התנגדות גבוהה = חום.', 'יחס טוב: R2 ≫ R1. עם 100Ω ו-10kΩ: V_G ≈ 3.27V.'],
+  steps: ['V_G = 3.3 × R2/(R1+R2) = 1.65V.', 'V_th של MOSFET logic-level נמצא בדרך כלל באזור 1–2V: עם פיזור בין יחידות. כאן הוא בקושי מתחיל להוליך, או לא בכלל.', 'V_th מעל 1.65V: כמעט אין זרם, והממסר לא נמשך. V_th מתחת: פתוח חלקית = התנגדות גבוהה = חום.', 'יחס טוב: R2 ≫ R1. עם 100Ω ו-10kΩ: V_G ≈ 3.27V.'],
   trap: 'להוסיף עוד נגד במקביל ל-R2 "ליתר ביטחון".' },
 { id: 'Q66', t: 'drv', l: 2, title: 'המתח על ה-Drain בכל מצב', fig: 'q66',
   q: 'במעגל הממסר עם MOSFET ודיודה: מה המתח על ה-Drain כשה-MOSFET דולק, כשהוא כבוי, וברגע הכיבוי? ומה היה קורה בלי הדיודה?',
@@ -171,7 +171,7 @@ const FORM = {
   cyl: [['F = p · π · d² / 4', 'כוח הבוכנה (אידאלי, בלי חיכוך)', '0.6 MPa × 314 mm² ≈ 188 N']],
   screw: [['x = (θ / 2π) · lead', 'תנועה לפי זווית', ''], ['v = n · lead', 'מהירות קווית', '3000 rpm × 5 mm = 250 mm/s'], ['T = F · lead / (2π · η)', 'מומנט נדרש לכוח', '']],
   fits: [['C_max = D_max − d_min', 'מרווח מקסימלי', 'Ø6 H7/g6: 12 − (−12) = 24 µm'], ['C_min = D_min − d_max', 'מרווח מינימלי', '0 − (−4) = 4 µm']],
-  psu: [['R = ρ · ℓ / A', 'התנגדות הכבל (נחושת: ρ ≈ 0.0175 Ω·mm²/m)', '24 m, 0.5 mm² → 0.84 Ω'], ['V_load = V_psu − I · R', 'המתח בקצה', '4 A × 0.84 Ω ≈ 3.4 V מפל']],
+  psu: [['R = ρ · ℓ / A', 'התנגדות הכבל, ℓ = אורך הלוך וחזור (נחושת: ρ ≈ 0.0175 Ω·mm²/m)', '12 m × 2 = 24 m, 0.5 mm² → 0.84 Ω'], ['V_load = V_psu − I · R', 'המתח בקצה', '4 A × 0.84 Ω ≈ 3.4 V מפל']],
   brake: [['d = ½ · g · t²', 'נפילה חופשית בזמן בלי מומנט ובלי בלם (חסם עליון)', 't = 45 ms → ≈ 9.9 mm'], ['t_gap = t_brake,close − t_STO', 'החלון המסוכן', '']],
   'sys:interlock': [['I_coil = 24 V / R_coil', 'זרם הסליל', ''], ['t_stop = t_switch + t_relay + t_drive', 'זמן התגובה הכולל (מדפי הנתונים)', '']],
   'sys:servo': [['e = x_cmd − x_meas', 'שגיאת המיקום', ''], ['u = Kp·e + Ki·∫e dt + Kd·de/dt', 'חוק הבקרה PID', ''], ['Δx = lead / (4N)', 'רזולוציה', '0.5 µm']],
@@ -223,7 +223,7 @@ showSys = function (id, step) {
 function syncLabels() {
   const set = (k, t) => { const s = document.querySelector(`nav.sheets [data-sheet="${k}"] small`); if (s) s.textContent = t; };
   set('qb', QB.length + ' שאלות · עם רמזים'); set('ch', 'האתגר · ' + SCN.length + ' תקלות');
-  set('s2', Object.keys(SYSX).filter(k => k !== 'card').length + ' מערכות · 6 צעדים'); set('b', 'קריאת שרטוט מאפס');
+  set('s2', Object.keys(SYSX).filter(k => k !== 'card').length + ' מערכות · מאפס ועד תרגול'); set('b', 'קריאת שרטוט מאפס');
 }
 syncLabels();
 Object.entries({

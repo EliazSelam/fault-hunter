@@ -135,14 +135,14 @@ const SYSX = {
     guided: ['בגיליון "מכונה משולבת", הזרק "strobe הוגדר במצב רציף" והרץ מחזור. באיזה שלב זה נחשף?', 'הזרק "מיגון אנקודר X לא מחובר". למה השלבים הקודמים עברו בהצלחה?', 'הזרק "טריגר המצלמה הוגדר לפי זמן". למה הבעיה נחשפת דווקא ביישור?']
   }
 };
-const STEPS6 = [['intro', 'היכרות'], ['normal', 'פעולה תקינה'], ['prin', 'עקרונות כשל'], ['worked', 'תרחיש פתור'], ['guided', 'תרגול מודרך'], ['solo', 'תרגול עצמאי']];
+const STEPS6 = [['zero', 'מאפס'], ['intro', 'היכרות'], ['normal', 'פעולה תקינה'], ['prin', 'עקרונות כשל'], ['worked', 'תרחיש פתור'], ['guided', 'תרגול מודרך'], ['solo', 'תרגול עצמאי']];
 function sysDiagram(x) {
   const n = x.nodes.map(v => `<g class="sn" data-n="${v[1]}"><rect x="${v[2]}" y="${v[3]}" width="110" height="46" rx="6"/><text x="${v[2] + 55}" y="${v[3] + 20}" class="lblb" text-anchor="middle">${v[4]}</text><text x="${v[2] + 55}" y="${v[3] + 37}" class="lblm" text-anchor="middle">${v[5]}</text><circle cx="${v[2] + 6}" cy="${v[3] + 6}" r="10" class="fill-ink"/><text x="${v[2] + 6}" y="${v[3] + 10}" text-anchor="middle" style="fill:var(--sheet);font-size:11px;font-weight:600">${v[0]}</text></g>`).join('');
   const e = x.edges.map(d => `<path d="${d}" class="ink" marker-end="url(#ar)"/>`).join('') + x.dashed.map(d => `<path d="${d}" class="thin" stroke-dasharray="4 3"/>`).join('');
   return SVG(720, 270, ARROW + e + n, x.title);
 }
 function showSys(id, step) {
-  active = null; id = id || 'interlock'; step = step || 'intro';
+  active = null; id = id || 'interlock'; step = step || 'zero';
   const x = SYSX[id];
   content.innerHTML = `<h2>מערכות</h2><p class="lead">כל מערכת נלמדת באותו סדר: מה היא ולמה היא קיימת, איך היא עובדת כשהכול תקין, איך היא נכשלת, תרחיש פתור עד הסוף, ואז תרגול.</p>
     <div class="split"><nav class="index" aria-label="מערכות">${Object.entries(SYSX).map(([k, v]) => `<button type="button" data-s="${k}"${k === id ? ' aria-current="true"' : ''}>${v.title}</button>`).join('')}</nav>
@@ -153,7 +153,7 @@ function showSys(id, step) {
   content.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => showSys(id, b.dataset.st)));
   const B = $('#sxb'), i = STEPS6.findIndex(s => s[0] === step);
   const nav = content.querySelector('.stepnav');
-  nav.innerHTML = `${i > 0 ? `<button type="button" class="btn" data-go="${STEPS6[i - 1][0]}">→ ${STEPS6[i - 1][1]}</button>` : '<span></span>'}${i < 5 ? `<button type="button" class="btn primary" data-go="${STEPS6[i + 1][0]}">${STEPS6[i + 1][1]} ←</button>` : ''}`;
+  nav.innerHTML = `${i > 0 ? `<button type="button" class="btn" data-go="${STEPS6[i - 1][0]}">→ ${STEPS6[i - 1][1]}</button>` : '<span></span>'}${i < STEPS6.length - 1 ? `<button type="button" class="btn primary" data-go="${STEPS6[i + 1][0]}">${STEPS6[i + 1][1]} ←</button>` : ''}`;
   nav.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { showSys(id, b.dataset.go); window.scrollTo(0, 0); }));
   markVisit('s2:' + id + ':' + step);
   if (step === 'intro') {
@@ -199,17 +199,21 @@ function showPath() {
   active = null; const v = visits(), p = loadP();
   const sysDone = id => STEPS6.filter(s => v['s2:' + id + ':' + s[0]]).length;
   const stages = [
-    ['1', 'יסודות: קריאת שרטוט מאפס', 'סמלים של רכיבים בסכמה ואיך הם נראים בידיים, איך קוראים שרטוט מכני, וסט שרטוטים תעשייתי מלא.', 'b', null, ['atlas', 'grammar', 'board', 'set', 'mech'].filter(t => v['b:' + t]).length + '/5'],
-    ['2', 'לוגיקה ספרתית', 'latch, flip-flop מכל הסוגים, אוגרים, מונים ומחלקי תדר: סכמות בשערים, טבלאות אמת, נוסחאות ומעבדה חיה.', 'dig', null, DIG_NAV.filter(n => v['dig:' + n[0]]).length + '/' + DIG_NAV.length],
-    ['3', 'רכיבים', 'כל רכיב: למה צריך אותו, איפה פוגשים אותו, ואז סימולציה עם הזרקת תקלות.', 's1', 'pwm', COMPONENTS.filter(c => c.kind !== 'opt' && v['s1:' + c.id]).length + '/' + COMPONENTS.filter(c => c.kind !== 'opt').length],
-    ['4', 'אופטיקה', 'השרשרת מהאור לתמונה: מצלמה, תאורה, עדשה, יישור וחום. עם שאלות ותקלות משלה.', 'opt', null, COMPONENTS.filter(c => c.kind === 'opt' && v['s1:' + c.id]).length + '/' + COMPONENTS.filter(c => c.kind === 'opt').length],
-    ['5', 'מערכות', 'כל מערכת בשישה צעדים: היכרות, פעולה תקינה, עקרונות כשל, תרחיש פתור, תרגול מודרך, תרגול עצמאי.', 's2', 'interlock', ['interlock', 'servo', 'vac', 'machine'].map(sysDone).reduce((a, b) => a + b, 0) + '/24'],
-    ['6', 'כרטיסים: חקירה וחקר כשל', 'איך כרטיס בנוי ועובד, ספרייה של 7 כרטיסים אמיתיים, תהליך חקר כשל, עמדת בדיקה, שאלות ותקלות.', 'brd', null, sysDone('card') + '/6'],
-    ['7', 'המכונה המשולבת', 'מחזור בדיקה שלם, עם הזרקת תקלות ואבחון לפי מה שהמפעיל רואה.', 's3', null, v['s3'] ? 'נפתח' : 'לא נפתח'],
-    ['8', 'מבחן טכני', 'שאלות בסגנון מבחני ראיון: מעגלים, דיגיטלי, אנלוגי, דרייברים וממסרים עם סכמות מלאות, כרטיסים, אופטיקה ומנגנונים. עם רמזים, או צעד אחר צעד.', 'qb', null, Object.keys(qState()).length + '/' + QB.length],
-    ['9', 'ציד תקלות', SCN.length + ' תקלות. אפשר לסנן לפי רמה או לפי עיקרון כשל.', 'ch', null, Object.keys(p).length + '/' + SCN.length]];
+    ['0', '12 עקרונות', 'הרעיונות שחוזרים בכל המערכות. מי שמבין אותם מאבחן גם תקלה שלא ראה. ההתחלה המומלצת.', 'pri', null, v['pri'] ? 'נפתח' : 'לא נפתח'],
+    ['1', 'AOI ו-AOS בייצור PCB', 'מי הלקוח, איך נראה קו ייצור PCB, אילו פגמים מחפשים, ומה AOI ו-AOS עושות. ההקשר לכל השאר.', 'pcb', null, PCB_NAV.filter(n => v['pcb:' + n[0]]).length + '/' + PCB_NAV.length],
+    ['2', 'יסודות: קריאת שרטוט מאפס', 'סמלים, דקדוק של סכמה, סט שרטוטים תעשייתי עם הפניות, ושרטוט מכני.', 'b', null, ['atlas', 'grammar', 'board', 'set', 'mech'].filter(t => v['b:' + t]).length + '/5'],
+    ['2.2', 'לוגיקה ספרתית', 'latch, flip-flop מכל הסוגים, אוגרים, מונים ומחלקי תדר: סכמות בשערים, טבלאות אמת, נוסחאות ומעבדה חיה.', 'dig', null, DIG_NAV.filter(n => v['dig:' + n[0]]).length + '/' + DIG_NAV.length],
+    ['2.5', 'מעבדה: מכשירים וחיישנים', 'מולטימטר, מחולל, אוסילוסקופ וחיישנים, כסימולציות שאפשר לטעות בהן בלי לשרוף כלום.', 'lab', null, LAB_NAV.filter(n => v['lab:' + n[0]]).length + '/' + LAB_NAV.length],
+    ['3', 'רכיבים', 'ממסר, אנקודר, 4–20mA, פניאומטיקה, ballscrew, ספק ובלם: כל רכיב עם סימולציה והזרקת תקלות.', 's1', 'relay', COMPONENTS.filter(c => c.kind !== 'opt' && v['s1:' + c.id]).length + '/' + COMPONENTS.filter(c => c.kind !== 'opt').length],
+    ['4', 'אופטיקה ולייזר', 'מצלמת line-scan, strobe, עדשה, יישור, fiducials, ולייזר התיקון של AOS.', 'opt', null, COMPONENTS.filter(c => c.kind === 'opt' && v['s1:' + c.id]).length + '/' + COMPONENTS.filter(c => c.kind === 'opt').length],
+    ['5', 'מערכות, כולל AOS', 'interlock, ציר סרבו, שולחן ואקום, ראש סריקה של AOI ומכונת AOS. כל אחת מתחילה בהסבר מאפס, שלב אחר שלב, ואז היכרות, פעולה תקינה, כשלים ותרגול.', 's2', 'aos', ['interlock', 'servo', 'vac', 'machine', 'aos'].map(sysDone).reduce((a, b) => a + b, 0) + '/' + 5 * STEPS6.length],
+    ['6', 'תהליך אינטגרציה ו-ATP', 'מתתי-מערכות למכונה: הדלקה ראשונה, bring-up, כיול, ATP, ותקלה מהשטח.', 'int', null, INT_NAV.filter(n => v['int:' + n[0]]).length + '/' + INT_NAV.length],
+    ['7', 'כרטיסים בתוך המכונה', 'כרטיסי הבקרה והדרייברים במכונה הם PCBA: איך מאבחנים אותם ברמת מכונה.', 'brd', null, sysDone('card') + '/' + STEPS6.length],
+    ['8', 'המכונה המשולבת', 'מחזור בדיקה שלם, עם הזרקת תקלות ואבחון לפי מה שהמפעיל רואה.', 's3', null, v['s3'] ? 'נפתח' : 'לא נפתח'],
+    ['9', 'מבחן טכני', QB.length + ' שאלות: מעגלים, דיגיטלי, דרייברים, אופטיקה, מנגנונים, AOI ו-AOS, אינטגרציה ו-ATP. עם רמזים או צעד אחר צעד.', 'qb', null, Object.keys(qState()).length + '/' + QB.length],
+    ['10', 'ציד תקלות', SCN.length + ' תקלות, כולל ' + PSCN.length + ' תקלות AOI, AOS ואינטגרציה. סינון לפי רמה או לפי עיקרון כשל.', 'ch', null, Object.keys(p).length + '/' + SCN.length]];
   content.innerHTML = `<h2>מסלול הלימוד</h2><p class="lead">הספר בנוי מהמיקרו למאקרו. אין צורך לדעת מראש מה תפקידה של אף מערכת: כל מערכת נפתחת בהסבר מה היא ולמה היא קיימת, וכל מונח מוסבר בפעם הראשונה שהוא מופיע.</p>
-    <ol class="path">${stages.map(s => `<li><div class="pn">${s[0]}</div><div><b>${s[1]}</b><p>${s[2]}</p></div><div class="pp">${s[5]}</div><button type="button" class="btn${s[0] === '1' ? ' primary' : ''}" data-go="${s[3]}" data-arg="${s[4] || ''}">התחל</button></li>`).join('')}</ol>
+    <ol class="path">${stages.map(s => `<li><div class="pn">${s[0]}</div><div><b>${s[1]}</b><p>${s[2]}</p></div><div class="pp">${s[5]}</div><button type="button" class="btn${s[0] === '0' ? ' primary' : ''}" data-go="${s[3]}" data-arg="${s[4] || ''}">התחל</button></li>`).join('')}</ol>
     <h3 style="color:var(--ink)">איך משתמשים</h3>${ul(['מונח עם קו מנוקד הוסבר בסוגריים בהופעה הראשונה. לחיצה עליו פותחת הסבר מלא.', 'ערכים מסומנים לפי המקור שלהם: ' + Object.keys(KINDB).map(kb).join(' ') + '.', 'מכל תקלה באתגר יש קישור חזרה להסבר של המערכת שלה, ומשם אפשר לחזור לתרגול.'])}`;
   content.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(b.dataset.go, b.dataset.arg || undefined)));
   setTitle('מסלול', 'מהמיקרו למאקרו', 'IEC 61082-1');
@@ -221,25 +225,29 @@ function showCH2(arg) {
   const f = typeof arg === 'object' && arg ? arg : { lvl: arg === undefined ? 1 : +arg };
   const p = loadP(), st = stats(p);
   const sysName = s => { if (!s.sys) return ''; const [sh, k] = s.sys.split(':'); return sh === 's2' ? SYSX[k].title : sh === 's1' ? (COMPONENTS.find(c => c.id === k) || {}).name : 'יסודות'; };
-  const list = SCN.filter(s => f.pr ? s.pr === f.pr : f.sys ? s.sys === f.sys : s.lvl === f.lvl);
+  const list = SCN.filter(s => f.pi !== undefined ? s.pi === f.pi : f.pr ? s.pr === f.pr : f.sys ? s.sys === f.sys : s.lvl === f.lvl);
   content.innerHTML = `<h2>ציד תקלות</h2><p class="lead">${SCN.length} תקלות ריאליסטיות. כל בדיקה עולה דקות השבתה, טעות עולה 30 דקות, וחלק מהבדיקות מחזירות ממצא חריג שלא קשור לתקלה. מכל תקלה יש קישור להסבר של המערכת.</p>
     <div class="scorebar"><div><b>${st.n}/${SCN.length}</b><span>נפתרו</span></div><div><b>${st.avg}</b><span>ציון ממוצע</span></div><div><b>${st.down}</b><span>דקות השבתה</span></div><div><b>${st.rank}</b><span>דרגה</span></div></div>
     <p style="margin:0 0 6px;font-size:14px;color:var(--muted)">לפי רמה</p>
-    <div class="lvltabs">${[0, 1, 2, 3].map(l => `<button type="button" data-l="${l}" aria-selected="${!f.pr && f.lvl === l}">רמה ${l}<small>${LV[l]}</small></button>`).join('')}</div>
+    <div class="lvltabs">${[0, 1, 2, 3].map(l => `<button type="button" data-l="${l}" aria-selected="${!f.pr && f.pi === undefined && f.lvl === l}">רמה ${l}<small>${LV[l]}</small></button>`).join('')}</div>
     <p style="margin:0 0 6px;font-size:14px;color:var(--muted)">או לפי עיקרון כשל: אותו עיקרון, במערכות שונות</p>
     <div class="chips">${Object.entries(PRIN).map(([k, v]) => `<button type="button" data-pr="${k}" aria-pressed="${f.pr === k}">${v[0]} <small>${SCN.filter(s => s.pr === k).length}</small></button>`).join('')}</div>
+    <p style="margin:0 0 6px;font-size:14px;color:var(--muted)">או לפי אחד מ-12 העקרונות: איזה רעיון פותר את התקלה</p>
+    <div class="chips">${PRINCIPLES.map((v, i) => !SCN.some(s => s.pi === i) ? '' : `<button type="button" data-pi="${i}" aria-pressed="${f.pi === i}">${i + 1}. ${v[0]} <small>${SCN.filter(s => s.pi === i).length}</small></button>`).join('')}</div>
+    ${f.pi !== undefined ? `<div class="note"><b>${f.pi + 1}. ${PRINCIPLES[f.pi][0]}.</b> ${PRINCIPLES[f.pi][1]} ${PRINCIPLES[f.pi][2]}</div>` : ''}
     ${f.pr ? `<div class="note"><b>${PRIN[f.pr][0]}.</b> ${PRIN[f.pr][1]} <b>איך מזהים:</b> ${PRIN[f.pr][2]} <b>בדיקה ראשונה:</b> ${PRIN[f.pr][3]}</div>` : ''}
     <div class="cards">${list.map(s => { const r = p[s.id]; return `<button type="button" class="card${r ? ' done' : ''}" data-id="${s.id}"><span class="cid">${s.id} · ${sysName(s)}</span><b>${s.title}</b><span class="cst">${PRIN[s.pr] ? PRIN[s.pr][0] : ''}${r ? ' · ציון ' + r.score : ''}</span></button>`; }).join('')}</div>
     <div class="block" id="share"></div><p style="margin-top:18px;font-size:14px"><button type="button" class="linkbtn" id="resetP">איפוס ההתקדמות</button></p>`;
   content.querySelectorAll('[data-l]').forEach(b => b.addEventListener('click', () => showCH2(+b.dataset.l)));
   content.querySelectorAll('[data-pr]').forEach(b => b.addEventListener('click', () => showCH2({ pr: b.dataset.pr })));
+  content.querySelectorAll('[data-pi]').forEach(b => b.addEventListener('click', () => showCH2({ pi: +b.dataset.pi })));
   content.querySelectorAll('.card').forEach(b => b.addEventListener('click', () => playScn(b.dataset.id)));
-  $('#resetP').addEventListener('click', () => { if (confirm('למחוק את כל ההתקדמות?')) { saveP({}); showCH2(f.pr ? f : f.lvl); } });
+  $('#resetP').addEventListener('click', () => { if (confirm('למחוק את כל ההתקדמות?')) { saveP({}); showCH2(f.pr || f.pi !== undefined ? f : f.lvl); } });
   if (st.n >= 3) {
     const url = SITE_URL || (/^https?:/.test(location.protocol) ? location.href.split('#')[0] : '');
     const txt = `פתרתי ${st.n} מתוך ${SCN.length} תקלות באתגר "ציד תקלות" עם ציון ממוצע ${st.avg} ודרגת ${st.rank}. חושבים שתעשו פחות דקות השבתה?${url ? ' ' + url : ''}`;
     $('#share').innerHTML = `<h3>שתף את התוצאה</h3><textarea id="shareT" rows="3" readonly>${txt}</textarea><button type="button" class="btn" id="copyB">העתק</button> <span id="copied" aria-live="polite"></span>`;
     $('#copyB').addEventListener('click', () => { const t = $('#shareT'); t.select(); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.reject()).then(() => $('#copied').textContent = 'הועתק', () => { try { document.execCommand('copy'); $('#copied').textContent = 'הועתק'; } catch (e) { $('#copied').textContent = 'סמן והעתק ידנית'; } }); });
   }
-  setTitle('אתגר', 'ציד תקלות · ' + (f.pr ? PRIN[f.pr][0] : LV[f.lvl]), 'RCA');
+  setTitle('אתגר', 'ציד תקלות · ' + (f.pi !== undefined ? PRINCIPLES[f.pi][0] : f.pr ? PRIN[f.pr][0] : LV[f.lvl]), 'RCA');
 }

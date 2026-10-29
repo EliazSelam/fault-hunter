@@ -1,0 +1,33 @@
+# Fault Hunter: context for a new session
+
+## What this is
+The public version of Eliaz's interactive learning system for electro-mechanical and optical machines ("מהרכיב למכונה"), from a resistor to AOI and AOS machines for PCB manufacturing. MIT licensed, published on GitHub Pages.
+
+- Answer the user in Hebrew. UI text is Hebrew, technical terms in English. Repo docs and code comments are in English.
+- Repo: https://github.com/EliazSelam/fault-hunter (public), branch `main`. Site: https://eliazselam.github.io/fault-hunter/
+- **Public content only.** Nothing that identifies a specific employer, job opening or interview preparation, and no product names of a specific equipment maker. That material lives in a separate private repository and must not be copied here. Typical figures are described as "typical, from public manufacturer specifications".
+
+## What the user expects
+- **Teacher level, assume nothing.** Explain mechanisms, not labels. Every term a lesson uses is defined in that lesson.
+- **Principles over memorization, interactive over text.** Prefer a simulation, a hint or a question to another paragraph.
+- **Everything correct and validated.** A wrong number is worse than a missing one. Run the `fh-validate` skill (`.claude/skills/fh-validate/`) or `tests/run_all.sh` before any commit or publish, and quote the result.
+
+## Architecture
+- `src/` is concatenated by `build.sh`, in the order listed there, into one self-contained `index.html` (one `<script>`; all globals). A new file must be added to `build.sh`.
+- Key globals: `COMPONENTS`, `SYSTEMS`, `SYSX`, `SCN` (48 faults), `QB` (95 questions), `QT` (question topics: every question's `t` must exist here), `VERIFY`, `LEX`, `PRINCIPLES` (12), `PRIN`, `go(sheet, arg)`.
+- Some functions are reassigned in later files to add behaviour: `showS1`, `showSys`, `showInt`, `glossify`, `playScn`, `showQ`, `ansFig`. Read the later files before changing one.
+- Hebrew and formulas: wrap text that contains formulas or units in `bidi()` (in `src/35-foundations.js`).
+- Map of `src/`: 10–12 components (12 = repair laser and fiducials), 20 systems, faults in 30 + 38 + 39d + 50, questions in 39e + 39j + 50, 39i digital logic, 42 live figures (generated, see `figures/`), 50 PCB/AOI/AOS tab and integration process, 51–55 from-zero lessons and lexicon, 60–63 lab and the 12 principles, 64 fault teaching layer.
+
+## Build, test, ship
+```bash
+tests/run_all.sh        # must print ALL SUITES PASSED
+```
+Baseline: 102 text numbers, 32 logic checks, 288 pages crawled, 1795 model checks, 24 lessons, 48 scenarios, 0 failures. Keep `README.md` and `VALIDATION.md` in sync with these numbers.
+
+Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.md`, and an annotated git tag. Commit as `Eliaz Selam <eliaz.es1234@gmail.com>`. Never write a model name or ID into a commit or a file. The user pushes from his Mac.
+
+## Open items
+1. Review every fault's wrong options against its test results (no script can). VALIDATION.md §6.
+2. Add faults for the three principles that have none: 3 (the meter is part of the circuit), 7 (position, not time), 9 (hysteresis).
+3. Hand re-derivation of the digital-logic questions (currently covered by the logic checks only).

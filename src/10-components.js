@@ -36,8 +36,9 @@ COMPONENTS.push({
   ],
   render(s, stage, out) {
     const V = 24, R = 2, L = 1e-3, f = s.freq * 1000, D = s.duty / 100, T = 1 / f, N = 200, dt = T / N;
-    let i = D * V / R; const k = Math.exp(-R * dt / L);
-    for (let p = 0; p < 40; p++) for (let n = 0; n < N; n++) { const vs = n < D * N ? V : 0; i = vs / R + (i - vs / R) * k; }
+    /* start at the exact periodic steady state: i(0) = I_min = I_max · e^(−(1−D)T/τ), I_max = (V/R)(1 − e^(−DT/τ)) / (1 − e^(−T/τ)) */
+    const tau = L / R, Imax = V / R * (1 - Math.exp(-D * T / tau)) / (1 - Math.exp(-T / tau));
+    let i = Imax * Math.exp(-(1 - D) * T / tau); const k = Math.exp(-R * dt / L);
     const g = [], cur = []; let mn = 1e9, mx = -1e9;
     for (let p = 0; p < 2; p++) for (let n = 0; n < N; n++) {
       const t = (p * N + n) * dt; const vs = n < D * N ? V : 0; i = vs / R + (i - vs / R) * k;

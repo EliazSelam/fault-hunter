@@ -139,14 +139,14 @@ const SCN = [
   fix: ['התקנת המצמד הנכון. פילטר notch רק בהחלטת R&D, לא כעקיפה.', 'מק"ט מדויק בהוראת העבודה ובמחסן.'], learn: ['s2', 'servo'] },
 
 { id: 'L2-05', lvl: 2, area: 'אופטיקה', title: 'תמונה מתוחה רק במהירות גבוהה',
-  ctx: 'במתכון מהיר (240 mm/s) מרחקי ה-fiducials יוצאים קצרים ב-3%. במתכון רגיל הכול מדויק.',
-  sym: ['Alignment: scale error −3.1% along scan', 'רק מעל 200 mm/s'],
+  ctx: 'במתכון מהיר (240 mm/s) מרחקי ה-fiducials יוצאים קצרים בכ-4%. במתכון רגיל הכול מדויק.',
+  sym: ['Alignment: scale error −3.8% along scan', 'רק מעל כ-230 mm/s'],
   tests: [['מקור הטריגר', 2, 'אנקודר, מחלק נכון.', 0],
     ['קצב שורות מקסימלי בדף הנתונים של המצלמה', 3, '33 kHz. במהירות 240 mm/s ופיקסל 7 µm נדרש 34.3 kHz.', 1],
-    ['מונה טריגרים מול מונה שורות במצלמה', 10, 'המצלמה רשמה 3.1% פחות שורות ממספר הטריגרים.', 1],
+    ['מונה טריגרים מול מונה שורות במצלמה', 10, 'המצלמה רשמה 3.8% פחות שורות ממספר הטריגרים.', 1],
     ['פוקוס על מטרה', 10, 'תקין.', 0]],
   opts: ['קצב השורות הנדרש חורג ממקסימום המצלמה: שורות נופלות', 'טריגר לפי זמן', 'פוקוס', 'עדשה בהגדלה שגויה'], a: 0,
-  why: 'מעל 200 mm/s המצלמה לא מספיקה, ומפילה טריגרים. פחות שורות = תמונה דחוסה בדיוק באחוז השורות שנפלו.',
+  why: 'מעל 33 kHz × 7 µm ≈ 231 mm/s המצלמה לא מספיקה: היא מצלמת בקצב המרבי שלה ומדלגת על הטריגרים העודפים, 1 − 33/34.3 ≈ 3.8% מהם. פחות שורות = תמונה דחוסה בדיוק באחוז השורות שנפלו.',
   fix: ['הגבלת מהירות במתכון או שינוי רזולוציה לפי R&D.', 'בדיקת קצב שורות מול מהירות בכל מתכון חדש.'], learn: ['s1', 'linescan'] },
 
 { id: 'L2-06', lvl: 2, area: 'חשמל', title: 'ריסטים אקראיים בבקר',
@@ -263,7 +263,7 @@ const SCN = [
 { id: 'L3-08', lvl: 3, area: 'תחזוקה', title: 'זמן מחזור שגדל בהדרגה',
   ctx: 'זמן המחזור עלה מ-42 ל-49 שניות במשך חודש. אין התראות.',
   sym: ['Throughput −14%', 'הלקוח שואל למה'],
-  tests: [['זמני השלבים בלוג', 5, 'המתנה ל-Vacuum OK: 6.8 שניות. בבסיס: 0.9.', 1],
+  tests: [['זמני השלבים בלוג', 5, 'המתנה ל-Vacuum OK: 7.9 שניות. בבסיס: 0.9. ההפרש, 7 שניות, הוא כל העלייה בזמן המחזור.', 1],
     ['חורי השולחן', 10, 'חלק גדול מהחורים סתומים בשאריות.', 1],
     ['לחץ לונטורי', 3, '6 bar, תקין.', 0],
     ['פרופיל מהירות הצירים', 5, 'ללא שינוי.', 0]],
@@ -309,38 +309,48 @@ let FH_RET = null;
 function scnSysName(s) { const [sh, k] = s.sys.split(':'); return sh === 's2' ? SYSX[k].title : sh === 's1' ? (COMPONENTS.find(c => c.id === k) || {}).name : 'יסודות'; }
 function order(s) { let h = 0; for (const ch of s.id) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const r = rng(h + 11); const a = s.opts.map((_, i) => i); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 function playScn(id) {
-  const s = SCN.find(x => x.id === id); const used = new Set(); let down = 0, wrong = 0, solved = false;
+  const s = SCN.find(x => x.id === id); const used = new Set(); let down = 0, wrong = 0, solved = false, hintsUsed = 0;
   const par = s.tests.filter(t => t[3]).reduce((a, t) => a + t[1], 0);
   content.innerHTML = `<p style="margin:0"><button type="button" class="linkbtn" id="back">חזרה לרשימה</button></p>
     <h2 style="margin-top:6px">${s.title}</h2><p style="margin:0 0 10px;color:var(--muted)">${s.id} · ${s.area} · רמה ${s.lvl}</p>
-    ${s.exp ? `<div class="cols"><div class="note"><b>מה היה אמור לקרות</b><br>${s.exp}</div><div class="note warn"><b>מה קורה בפועל</b><br>${s.ctx}</div></div>` : `<p class="lead">${s.ctx}</p>`}
+    ${s.exp ? `<div class="cols"><div class="note"><b>מה היה אמור לקרות</b><br>${bidi(s.exp)}</div><div class="note warn"><b>מה קורה בפועל</b><br>${bidi(s.ctx)}</div></div>` : `<p class="lead">${bidi(s.ctx)}</p>`}
+    ${s.plain ? `<details class="zplain" open><summary>מאפס: מה צריך לדעת כדי להבין את התקלה</summary><p>${bidi(s.plain)}</p>${PRINCIPLES[s.pi] ? `<p class="zpri">העיקרון שעוזר כאן: <button type="button" class="linkbtn" id="priB">${s.pi + 1}. ${PRINCIPLES[s.pi][0]}</button></p>` : ''}</details>` : ''}
     ${s.sys ? `<p class="bgline">לא בטוח מה תפקיד המערכת? <button type="button" class="linkbtn" id="bgB">רקע: ${scnSysName(s)}</button> · סוג התקלה: <b>${PRIN[s.pr][0]}</b></p>` : ''}
     <div class="alarm">${s.sym.map(symLine).join('')}</div>
     <div class="clock">זמן השבתה עד עכשיו: <b id="down">0</b> דקות</div>
     <div class="cols"><div class="block"><h3>בדיקות אפשריות</h3><p style="margin:0 0 8px;font-size:14px;color:var(--muted)">לפני שלוחצים: איזו בדיקה תפריד בין שתי ההשערות הכי סבירות?</p>
       <div id="tests">${s.tests.map((t, i) => `<button type="button" class="test" data-i="${i}"><span>${t[0]}</span><small>${t[1]} דק׳</small></button>`).join('')}</div>
+      ${s.hints ? `<div class="hladder"><button type="button" class="btn" id="hintB">רמז (${s.hints.length} זמינים, −5 נקודות לכל רמז)</button><ol id="hints" aria-live="polite"></ol></div>` : ''}
       <div class="log" id="res" aria-live="polite" style="margin-top:10px"><p>עוד לא בוצעו בדיקות.</p></div></div>
     <div class="block"><h3>שורש הבעיה</h3><p style="margin:0 0 8px;font-size:14px;color:var(--muted)">טעות עולה 30 דקות: פירקת משהו שלא היה צריך.</p>
       <div class="quiz" id="opts">${order(s).map(i => `<button type="button" class="opt" data-k="${i}">${s.opts[i]}</button>`).join('')}</div><div id="outcome"></div></div></div>`;
   $('#back').addEventListener('click', () => go('ch', s.lvl));
   if ($('#bgB')) $('#bgB').addEventListener('click', () => { FH_RET = s.id; const [sh, k] = s.sys.split(':'); go(sh, k); });
+  if ($('#priB')) $('#priB').addEventListener('click', () => go('pri'));
+  if ($('#hintB')) $('#hintB').addEventListener('click', () => {
+    if (solved || hintsUsed >= s.hints.length) return;
+    $('#hints').insertAdjacentHTML('beforeend', `<li>${bidi(s.hints[hintsUsed++])}</li>`);
+    const left = s.hints.length - hintsUsed;
+    $('#hintB').textContent = left ? `רמז נוסף (${left} נותרו, −5 נקודות)` : 'אין רמזים נוספים'; $('#hintB').disabled = !left;
+  });
   const res = $('#res');
   content.querySelectorAll('.test').forEach(b => b.addEventListener('click', () => {
     const i = +b.dataset.i; if (used.has(i) || solved) return; used.add(i); b.classList.add('used'); b.disabled = true;
     down += s.tests[i][1]; $('#down').textContent = down;
     if (used.size === 1) res.innerHTML = '';
-    res.insertAdjacentHTML('beforeend', `<p><b>${s.tests[i][0]}:</b> ${s.tests[i][2]}</p>`); res.scrollTop = res.scrollHeight;
+    res.insertAdjacentHTML('beforeend', `<p><b>${bidi(s.tests[i][0])}:</b> ${bidi(s.tests[i][2])}</p>`); res.scrollTop = res.scrollHeight;
   }));
   content.querySelectorAll('#opts .opt').forEach(b => b.addEventListener('click', () => {
     if (solved || b.classList.contains('wrong')) return;
     const k = +b.dataset.k;
     if (k !== s.a) { wrong++; down += 30; $('#down').textContent = down; b.classList.add('wrong'); $('#outcome').innerHTML = '<p class="note warn">לא זה. אילו תוצאות שכבר ראית סותרות את ההשערה הזו?</p>'; return; }
     solved = true; b.classList.add('right');
-    const score = Math.max(10, Math.min(100, 100 - Math.max(0, down - par) - (used.size === 0 ? 20 : 0)));
+    const score = Math.max(10, Math.min(100, 100 - Math.max(0, down - par) - (used.size === 0 ? 20 : 0) - 5 * hintsUsed));
     const p = loadP(); const prev = p[s.id]; if (!prev || score > prev.score) { p[s.id] = { score, down }; saveP(p); }
     const learn = s.learn; const nxt = SCN[SCN.indexOf(s) + 1];
-    $('#outcome').innerHTML = `<div class="note"><b>נכון. ציון ${score}</b> · ${down} דקות השבתה (המסלול היעיל: ${par} דקות${used.size === 0 ? ' · ניחוש בלי בדיקה: −20' : ''})</div>
-      <h3>למה</h3><p>${s.why}</p><h3>תיקון (Corrective)</h3><p>${s.fix[0]}</p><h3>אימות שהתיקון הצליח</h3><p>${s.ver || 'מריצים שוב את מה שנכשל, ומוודאים שהתסמין נעלם.'}</p><h3>מניעה (Preventive)</h3><p>${s.fix[1]}</p>${s.pr ? `<p class="note">זו תקלה מסוג <b>${PRIN[s.pr][0]}</b>. ${PRIN[s.pr][2]} <button type="button" class="linkbtn" id="prB">תקלות מאותו סוג במערכות אחרות</button></p>` : ''}
+    $('#outcome').innerHTML = `<div class="note"><b>נכון. ציון ${score}</b> · ${down} דקות השבתה (המסלול היעיל: ${par} דקות${used.size === 0 ? ' · ניחוש בלי בדיקה: −20' : ''}${hintsUsed ? ' · רמזים: −' + 5 * hintsUsed : ''})</div>
+      ${s.mech ? `<h3>מה קרה, שלב אחר שלב</h3><ol class="tsteps mech">${s.mech.map((m, i) => `<li><span class="tn">${i + 1}</span><div class="tb"><p>${bidi(m)}</p></div></li>`).join('')}</ol>` : ''}
+      <h3>למה זה הפתרון</h3><p>${bidi(s.why)}</p><h3>תיקון (Corrective)</h3><p>${bidi(s.fix[0])}</p><h3>אימות שהתיקון הצליח</h3><p>${bidi(s.ver || 'מריצים שוב את מה שנכשל, ומוודאים שהתסמין נעלם.')}</p><h3>מניעה (Preventive)</h3><p>${bidi(s.fix[1])}</p>${s.pr ? `<p class="note">זו תקלה מסוג <b>${PRIN[s.pr][0]}</b>. ${PRIN[s.pr][2]} <button type="button" class="linkbtn" id="prB">תקלות מאותו סוג במערכות אחרות</button></p>` : ''}
       <p><button type="button" class="btn" id="learnB">ללמוד על זה בספר</button> ${nxt ? `<button type="button" class="btn primary" id="nextB">התקלה הבאה</button>` : ''}</p>`;
     $('#learnB').addEventListener('click', () => { FH_RET = s.id; go(learn[0], learn[1]); });
     if ($('#prB')) $('#prB').addEventListener('click', () => go('ch', { pr: s.pr }));
