@@ -53,7 +53,7 @@ Publishing: **Settings → Pages → Source: GitHub Actions**. Every push to `ma
 
 ## How it was built
 
-Curriculum design, content review and testing by Eliaz Selam. Built with Claude (Anatomy skill for the live figures) as an AI pair for code and drafting.
+Curriculum design, content review and testing by Eliaz Selam. Built with Claude as an AI pair for code and drafting, using the Anatomy skill for the live figures, and the Impeccable and Emil Kowalski design skills for the UI audit and motion review.
 
 Machine architectures, schematics and values are typical, based on public sources, and meant for learning. They are not documentation of any specific company's equipment. Before working on real equipment, follow the manufacturer's procedures, drawings and standards.
 

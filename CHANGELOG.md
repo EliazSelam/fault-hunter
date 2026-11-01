@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.2.0] — 2026-11-01
+
+A refinement pass guided by two design skills: Impeccable (Paul Bakaus, Apache 2.0) for the audit, and Emil Kowalski's design-engineering skill (MIT) for motion. No identity change: same palette, layout and content.
+
+- **Contrast:** secondary text and blue text now pass WCAG AA (4.5:1) on every surface in both themes. A darker warm grey for secondary text, and a separate text token for the blue, so graphics keep the original medium blue.
+- **Reading:** a 64ch measure for paragraphs and list items, `text-wrap: pretty` for body copy and `balance` for headings, so lines stay readable and paragraphs do not end on one word.
+- **Callouts:** notes, completed cards and story boxes use a hairline border in their own hue instead of a thick side stripe.
+- **Browser surfaces:** themed text selection and focus ring; a gutter on the tab strip so the first tab is not cut at the edge.
+- **Motion:** buttons give press feedback (scale 0.97, 140 ms, strong ease-out). Navigation and keyboard actions stay instant; reduced-motion users get no transitions.
+- Detector result over 22 pages at 1280 and 390 px: from about 400 findings to the ones kept on purpose (the approved cream background, nested cards in the foundations atlas, and labels inside scaled drawings).
+
 ## [2.1.0] — 2026-10-29
 
 - Third live figure: an AOS repair laser over a copper short. Pulse energy and defocus set the fluence and the crater, with the states "short removed", "too narrow" and "too shallow". Same model and constants as the laser simulation. Shown on the repair-laser page and in questions P04, P05, P06, P08.
