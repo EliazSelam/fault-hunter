@@ -2,6 +2,13 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.3.0] — 2026-11-01
+
+- **New tab: Motors.** How a motor turns, with the full DC derivation (V = I·R + Ke·ω, T = Kt·I, the speed-torque line, stall current and torque, maximum power at T_s/2); the five main types compared (brushed DC, BLDC, stepper, induction, AC servo); wiring and supply for each type, with diagrams; the parts between the supply and the motor and how each fails; a live DC motor simulation; three ready-made CircuitJS simulations (DC motor, three-phase motor, motor protection switch).
+- 8 new questions (M01–M08) and 17 numeric checks. The DC model was cross-checked in the CircuitJS DC motor element: steady-state current within 0.4% of the formula.
+- The figures suite also drives the motor simulation over a 48 × 31 grid of voltage and load (4176 new checks). It caught a floating-point edge case at the stall boundary, now fixed.
+- 34 new glossary terms (back-EMF, slip, synchronous speed, microstepping, contactor, star and delta, H-bridge, Hall sensor, single phasing, and more).
+
 ## [2.2.0] — 2026-11-01
 
 A refinement pass guided by two design skills: Impeccable (Paul Bakaus, Apache 2.0) for the audit, and Emil Kowalski's design-engineering skill (MIT) for motion. No identity change: same palette, layout and content.

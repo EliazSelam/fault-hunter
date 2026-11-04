@@ -45,6 +45,16 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
       near(num(r, /F₀ ([\d.]+)/), F0, 0.0051, tag + ' F0'); near(num(r, /D ([\d.]+) µm/), D, 0.051, tag + ' D'); near(num(r, /depth ([\d.]+)/), depth, 0.051, tag + ' depth'); same(r.endsWith(st), true, tag + ' state'); }
     await press('ArrowDown', 25); dz = 0; await press('ArrowRight', 1); E = Math.min(10, E + 0.5); } }
 
+/* 4. Motors tab, DC motor lab: V = I·R + K·ω, T = K·I, stall when T_L ≥ K·V/R (R = 2 Ω, K = 0.1) */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/mot/lab'); await pg.waitForTimeout(400);
+  for (let i = 1; i <= 48; i++) for (let j = 0; j <= 30; j++) {
+    const V = i * 0.5, TL = j * 0.05, tag = `motor V=${V} T=${TL.toFixed(2)}`;
+    const t = await pg.evaluate(([v, tl]) => { const a = document.getElementById('mv'); a.value = v; a.dispatchEvent(new Event('input')); const c = document.getElementById('mt'); c.value = tl; c.dispatchEvent(new Event('input')); return document.querySelector('#mlab .readout').textContent; }, [V, TL]);
+    const Ts = 0.1 * V / 2;
+    if (TL >= Ts - 1e-9) { same(t.includes('stall'), true, tag + ' stall'); near(num(t, /הזרם ([\d.]+) A/), V / 2, 0.051, tag + ' stall current'); }
+    else { const I = TL / 0.1, w = (V - 2 * I) / 0.1; same(t.includes('stall'), false, tag + ' running'); near(num(t, /ω = (\d+) rad/), w, 0.51, tag + ' ω'); near(num(t, /I = ([\d.]+) A/), I, 0.0051, tag + ' I'); near(num(t, /P מכני = ([\d.]+) W/), TL * w, 0.051, tag + ' P'); }
+  } }
+
 await b.close();
 console.log(`figures: ${n} checks`);
 if (problems.length) { console.log('PROBLEMS'); problems.slice(0, 40).forEach(p => console.log('  ' + p)); process.exit(1); }

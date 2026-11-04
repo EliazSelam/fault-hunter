@@ -17,11 +17,12 @@ The UI is in Hebrew, with technical terms in English.
 | Foundations | Reading drawings from zero: symbols, schematic grammar, decoders, a 4-page schematic set, mechanical drawing |
 | Digital logic | Latches and flip-flops of every type, registers, counters and frequency dividers, with a live lab |
 | Components | 17 components, including a repair laser and fiducial registration, each with a plain-language layer, formulas and a simulation with fault injection |
+| Motors | How a motor turns (full DC derivation: speed-torque line, stall, maximum power), the five main types compared, wiring and supply for each (DC with H-bridge, stepper driver, servo drive with STO, induction motor direct-on-line with contactor and overload), the parts in between, a live DC motor simulation, and three ready-made CircuitJS simulations |
 | Optics and laser | Line-scan, strobe, lens, alignment, thermal drift, and the AOS repair laser |
 | Systems | Door interlock, servo axis, vacuum table, the AOI scan head and an AOS machine, each in six steps |
 | Integration | From sub-systems to a machine: first power-up, bring-up, calibration, ATP, field faults |
 | Boards | How electronic boards inside a machine are built and fail, with a library of 7 board types |
-| Technical test | 95 interview-style questions in 9 topics, with hints, step-by-step mode and 45 solution schematics |
+| Technical test | 103 interview-style questions in 10 topics, with hints, step-by-step mode and 45 solution schematics |
 | Fault challenge | 48 faults in 4 levels and 11 failure principles, with a hint ladder for each |
 | Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
 
@@ -33,11 +34,11 @@ Every term is explained on first appearance (330 glossary entries and a 157-term
 
 | Suite | What it checks |
 |---|---|
-| verify | 102 numeric answers and formula examples, 32 logic sequences, 288 pages crawled, every question has a topic |
+| verify | 119 numeric answers and formula examples, 32 logic sequences, 304 pages crawled, every question has a topic |
 | models | Every simulation re-implemented independently in Python from the physics: 1795 checks |
 | teach | 24 from-zero lessons: every term defined, every step complete |
 | scenarios | 48 faults: structure, efficient path, answer options |
-| figures | The three live figures, driven by keyboard: 1088 readouts checked against an independent implementation of their physics |
+| figures | The three live figures and the DC motor simulation, driven by keyboard or sliders: 5264 readouts checked against an independent implementation of their physics |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 
