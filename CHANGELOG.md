@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.4.0] — 2026-11-01
+
+The motors tab becomes **Machines and power**, at the level an integrator needs, without design-level depth.
+
+- **Rotor, stator and air gap:** a cross-section, and a table of what sits in each part for every motor type.
+- **DC machine:** separate (or permanent-magnet), shunt, series and compound excitation, with connection diagrams, characteristics, speed control and why a series motor must never run unloaded.
+- **Induction machine:** rotating field, slip, rotor frequency, starting methods (direct, star-delta at one third of the current, soft starter, VFD with V/f).
+- **Synchronous machine:** exact synchronous speed, load angle, and why an AC servo is a synchronous machine that needs its encoder for commutation.
+- **Three-phase systems:** line and phase quantities, star and delta, active and apparent power, what to measure in the cabinet.
+- **Transformers:** turns ratio, current ratio, VA rating, control and isolation transformers, and why a transformer on DC overheats.
+- **Converters:** rectifier and DC bus, buck, boost, buck-boost, isolated converters and the inverter, with a live simulation of the three basic topologies.
+- **Energy chain:** efficiencies multiply, losses become heat, braking energy returns to the DC bus.
+- 9 new questions (M09–M17), 22 numeric checks, 5 more ready-made CircuitJS simulations (buck, boost, transformer, rectifier with filter, three-phase wye), 34 glossary terms. The converter simulation is checked over 864 settings (2592 readouts) in the figures suite.
+
 ## [2.3.0] — 2026-11-01
 
 - **New tab: Motors.** How a motor turns, with the full DC derivation (V = I·R + Ke·ω, T = Kt·I, the speed-torque line, stall current and torque, maximum power at T_s/2); the five main types compared (brushed DC, BLDC, stepper, induction, AC servo); wiring and supply for each type, with diagrams; the parts between the supply and the motor and how each fails; a live DC motor simulation; three ready-made CircuitJS simulations (DC motor, three-phase motor, motor protection switch).
