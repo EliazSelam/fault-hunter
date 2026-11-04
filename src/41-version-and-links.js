@@ -1,5 +1,5 @@
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

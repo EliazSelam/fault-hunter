@@ -309,6 +309,9 @@ h1,h2,h3{text-wrap:balance}
 nav.sheets{padding-inline:6px;scroll-padding-inline:6px}
 button{transition:transform 140ms var(--ease-out)}
 button:not(:disabled):active{transform:scale(.97)}
+.glsearch{display:flex;gap:10px;align-items:center;margin:8px 0}.glsearch input{flex:1;max-width:420px;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--sheet);color:var(--text)}
+.gllist{margin:8px 0}.glrow{border-bottom:1px solid var(--line);padding:10px 0}.glrow dt{font-weight:700;color:var(--ink)}.glrow dt small{font-weight:400;color:var(--muted)}.glrow dd{margin:4px 0 0}
+.glhit{background:var(--livetint);border-radius:6px;padding-inline:8px}.gllinks{margin:8px 0 0;display:flex;gap:12px;flex-wrap:wrap;font-size:14px}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -381,6 +384,7 @@ ol.tsteps .ts{color:var(--live-text)}
   <button role="tab" data-sheet="qb" aria-selected="false">מבחן טכני<small>שאלות · עם רמזים</small></button>
   <button role="tab" data-sheet="ch" aria-selected="false">ציד תקלות<small>האתגר</small></button>
   <button role="tab" data-sheet="s4" aria-selected="false">תקנים ומקרא<small>שרטוט וחשמל</small></button>
+  <button role="tab" data-sheet="gl" aria-selected="false">מושגים<small>מילון וחיפוש</small></button>
   <button role="tab" data-sheet="s0" aria-selected="false">הכנה לראיון<small>System Integrator</small></button>
 </nav>
 <main class="sheet" id="sheet">

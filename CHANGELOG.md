@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.5.0] — 2026-11-04
+
+Terms, end to end.
+
+- **Every term explained:** a crawl of every page, question and fault found about 350 English terms without a definition. All are now defined (about 200 new entries, including units), and a new test suite fails the build if an undefined term ever appears again.
+- **Links to the full explanation:** clicking a term opens its definition and, when the subject is explained in depth elsewhere, a button that goes there (for example PWM → the PWM component page, slip → the induction machine page). 429 of 615 terms have such a link, and the test opens every one.
+- **New Terms tab:** all 615 terms, searchable in Hebrew and English, in 12 categories (units, electrical, digital, machines, measurement, optics, mechanics, PCB/AOI/AOS, motion, safety, integration), each with its link.
+- **Fixes found by the crawl:** acronym keys now match only in capitals, so "not" inside an English machine message is no longer glossed as the NOT gate; plurals are recognized; English machine messages and interview lines are kept out of the inline glossary; a leftover old term in the AOS failure table was replaced.
+
 ## [2.4.0] — 2026-11-01
 
 The motors tab becomes **Machines and power**, at the level an integrator needs, without design-level depth.
