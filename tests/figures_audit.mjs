@@ -55,6 +55,16 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
     else { const I = TL / 0.1, w = (V - 2 * I) / 0.1; same(t.includes('stall'), false, tag + ' running'); near(num(t, /ω = (\d+) rad/), w, 0.51, tag + ' ω'); near(num(t, /I = ([\d.]+) A/), I, 0.0051, tag + ' I'); near(num(t, /P מכני = ([\d.]+) W/), TL * w, 0.051, tag + ' P'); }
   } }
 
+/* 5. Converter lab: buck D·Vin, boost Vin/(1−D), buck-boost −Vin·D/(1−D); ripple and ideal input current */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/mot/conv'); await pg.waitForTimeout(400);
+  for (const top of ['buck', 'boost', 'bb']) for (const Vin of [5, 12, 24, 48]) for (let k = 5; k <= 90; k += 5) for (const Io of [0.5, 2, 5]) {
+    const D = k / 100, tag = `conv ${top} Vin=${Vin} D=${D} I=${Io}`;
+    const t = await pg.evaluate(([tp, v, d, io]) => { const s = document.getElementById('ct'); s.value = tp; s.dispatchEvent(new Event('change')); const set = (id, x) => { const e = document.getElementById(id); e.value = x; e.dispatchEvent(new Event('input')); }; set('cv', v); set('cd', d); set('ci', io); return document.querySelector('#clab .readout').textContent; }, [top, Vin, D, Io]);
+    const L = 22e-6, f = 5e5, Vo = top === 'buck' ? D * Vin : top === 'boost' ? Vin / (1 - D) : -Vin * D / (1 - D);
+    const dI = top === 'buck' ? (Vin - Vo) * D / (L * f) : Vin * D / (L * f), Pout = Math.abs(Vo) * Io;
+    near(num(t, /V_out = (-?[\d.]+) V/), Vo, 0.0051, tag + ' Vout'); near(num(t, /ΔI = ([\d.]+) A/), dI, 0.0051, tag + ' dI'); near(num(t, /P_out = ([\d.]+) W/), Pout, 0.051, tag + ' P'); near(num(t, /= ([\d.]+) A$/), Pout / Vin, 0.0051, tag + ' Iin');
+  } }
+
 await b.close();
 console.log(`figures: ${n} checks`);
 if (problems.length) { console.log('PROBLEMS'); problems.slice(0, 40).forEach(p => console.log('  ' + p)); process.exit(1); }

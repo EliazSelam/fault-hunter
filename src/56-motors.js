@@ -45,6 +45,9 @@ function dcCalc(V, TL, m = DCM) {
   return { stall: false, I, w, rpm: w * 60 / (2 * Math.PI), Ts, Pm: TL * w, Pin: V * I, eff: I > 0 ? TL * w / (V * I) : 0 };
 }
 
+const MOT_TITLE = 'מנועים, מכונות והמרת הספק';
+const MOT_LEAD = 'איך מכונות חשמל הופכות חשמל לתנועה, איך שנאים וממירים משנים מתח, ואיך כל זה מחובר במכונה: מהרשת או מהספק, דרך ההגנות והדרייבר, ועד הסלילים. ברמה שאינטגרטור צריך, בלי לרדת לתכנון.';
+const MOT_SIMS_PRE = [], MOT_SIMS_POST = [];
 const MOT_NAV = [['why', 'איך מנוע מסתובב', 'כוח, מומנט ומתח נגדי'], ['types', 'הסוגים העיקריים', 'DC, BLDC, צעד, השראה, סרבו'], ['wire', 'חיבור והזנה', 'מהספק או מהרשת עד המנוע'], ['iface', 'הרכיבים שבדרך', 'מגען, הגנה, דרייבר, בלם'], ['lab', 'סימולציה: מנוע DC', 'מתח, עומס, מהירות וזרם'], ['sims', 'סימולציות מוכנות', 'CircuitJS'], ['q', 'שאלות מנועים', '']];
 
 function speedTorqueSVG(V, TL) {
@@ -65,8 +68,8 @@ function motorLab(el) {
     el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">
       <div class="ctl"><label for="mv">מתח הזנה V: <b>${V.toFixed(1)} V</b></label><input id="mv" type="range" min="0" max="24" step="0.5" value="${V}"></div>
       <div class="ctl"><label for="mt">מומנט עומס T_L: <b>${TL.toFixed(2)} N·m</b></label><input id="mt" type="range" min="0" max="1.5" step="0.05" value="${TL}"></div></div>
-      <div class="readout">${r.stall ? `<span class="bad">עצירה (stall):</span> העומס גדול מהמומנט המקסימלי ${r.Ts.toFixed(2)} N·m. המנוע לא מסתובב, הזרם ${r.I.toFixed(1)} A והסליל מתחמם.` :
-        `ω = <span class="num">${r.w.toFixed(0)}</span> rad/s (<span class="num">${r.rpm.toFixed(0)}</span> rpm) · I = <span class="num">${r.I.toFixed(2)}</span> A · P מכני = <span class="num">${r.Pm.toFixed(1)}</span> W · P חשמלי = <span class="num">${r.Pin.toFixed(1)}</span> W · נצילות <span class="num">${(r.eff * 100).toFixed(0)}%</span>`}</div>
+      <div class="readout">${r.stall ? `<span class="bad">עצירה (stall):</span> העומס גדול מהמומנט המקסימלי <span dir="ltr">${r.Ts.toFixed(2)} N·m</span>. המנוע לא מסתובב, הזרם <span dir="ltr">${r.I.toFixed(1)} A</span> והסליל מתחמם.` :
+        `<span dir="ltr">ω = <span class="num">${r.w.toFixed(0)}</span> rad/s (<span class="num">${r.rpm.toFixed(0)}</span> rpm)</span> · <span dir="ltr">I = <span class="num">${r.I.toFixed(2)}</span> A</span> · P מכני <span dir="ltr">= <span class="num">${r.Pm.toFixed(1)}</span> W</span> · P חשמלי <span dir="ltr">= <span class="num">${r.Pin.toFixed(1)}</span> W</span> · נצילות <span class="num">${(r.eff * 100).toFixed(0)}%</span>`}</div>
       <div class="stage">${speedTorqueSVG(V, TL)}</div></div>`;
     $('#mv').addEventListener('input', e => { V = +e.target.value; draw(); $('#mv').focus(); });
     $('#mt').addEventListener('input', e => { TL = +e.target.value; draw(); $('#mt').focus(); });
@@ -86,7 +89,7 @@ const MW = {
 function showMot(sub) {
   active = null; sub = sub || 'why'; setTab('mot'); markVisit('mot:' + sub);
   MOT_NAV[MOT_NAV.length - 1][2] = QB.filter(q => q.t === 'mot').length + ' שאלות';
-  const B = hubFrame('מנועים', 'איך מנוע הופך חשמל לתנועה, מה ההבדל בין הסוגים שתפגוש במכונה, ואיך כל אחד מהם מחובר: מהספק או מהרשת, דרך ההגנות והדרייבר, ועד הסלילים.', MOT_NAV, sub, showMot);
+  const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot);
   const H = t => `<h2 style="font-size:24px">${t}</h2>`;
   if (sub === 'why') {
     B.innerHTML = H('איך מנוע מסתובב') + SB('כמו נדנדה שדוחפים בזמן הנכון: זרם בסליל שבתוך שדה מגנטי מקבל כוח, והכוח מסובב את הציר. ככל שהמנוע מהיר יותר, הוא "מתנגד" יותר לזרם שנכנס אליו.', ['זרם עובר בחוט שנמצא בשדה מגנטי, והחוט מקבל כוח: F = B·I·L.', 'כמה חוטים כאלה סביב ציר נותנים מומנט: T = Kt·I. יותר זרם, יותר מומנט.', 'כשהציר מסתובב, אותם חוטים מייצרים מתח נגדי: E = Ke·ω.', 'המתח שהספק נותן מתחלק בין הנפילה על הסליל (I·R) לבין המתח הנגדי.', 'לכן בהתנעה (ω = 0) הזרם הכי גבוה, ובסיבוב מהיר בלי עומס הוא כמעט אפס.'], 'מומנט בא מזרם. מהירות באה ממתח.') +
@@ -131,12 +134,12 @@ function showMot(sub) {
   } else if (sub === 'sims') {
     const C = 'https://www.falstad.com/circuit/circuitjs.html';
     const dc = '$ 1 0.00001 10.2 50 5 50 5e-11\n172 96 176 64 176 0 6 24 24 0 0 0.5 Supply_V\nw 96 176 160 176 0\nr 160 176 256 176 0 0.1\n415 256 176 256 320 0 0.002 2 0.1 0.1 0.0001 0.0001 1 0\nw 256 320 96 320 0\ng 96 320 96 352 0 0\n';
-    const sims = [['מנוע DC', 'הזנה במתח משתנה, נגד מדידה ומנוע DC עם R = 2Ω ו-K = 0.1. שנה את המתח בסליידר, וראה את זרם ההתנעה ואת הזרם במצב יציב.', C + '?cct=' + encodeURIComponent(dc)], ['מנוע תלת-פאזי', 'שלוש פאזות בהפרש של 120°, שמזינות מנוע תלת-פאזי. רואים איך הזרמים מתחלפים ויוצרים שדה מסתובב.', C + '?startCircuit=3motor.txt'], ['מפסק הגנה למנוע', 'מנוע תלת-פאזי עם מפסק הגנה (MPCB): מה קורה בעומס יתר.', C + '?startCircuit=motorprotect.txt']];
-    B.innerHTML = H('סימולציות מוכנות') + `<p>סימולציות מעגל אמיתיות של CircuitJS (Paul Falstad ו-Iain Sharp, GPL-2.0), שנטענות מהאתר שלהם. אפשר לשנות בהן ערכים ולראות מתחים וזרמים. בדקתי ששלושתן נטענות ורצות בלי שגיאות.</p>` +
+    const sims = [...MOT_SIMS_PRE, ['מנוע DC', 'הזנה במתח משתנה, נגד מדידה ומנוע DC עם R = 2Ω ו-K = 0.1. שנה את המתח בסליידר, וראה את זרם ההתנעה ואת הזרם במצב יציב.', C + '?cct=' + encodeURIComponent(dc)], ['מנוע תלת-פאזי', 'שלוש פאזות בהפרש של 120°, שמזינות מנוע תלת-פאזי. רואים איך הזרמים מתחלפים ויוצרים שדה מסתובב.', C + '?startCircuit=3motor.txt'], ['מפסק הגנה למנוע', 'מנוע תלת-פאזי עם מפסק הגנה (MPCB): מה קורה בעומס יתר.', C + '?startCircuit=motorprotect.txt'], ...MOT_SIMS_POST];
+    B.innerHTML = H('סימולציות מוכנות') + `<p>סימולציות מעגל אמיתיות של CircuitJS (Paul Falstad ו-Iain Sharp, GPL-2.0), שנטענות מהאתר שלהם. אפשר לשנות בהן ערכים ולראות מתחים וזרמים. כולן נבדקו: נטענות ורצות בלי שגיאות.</p>` +
       sims.map(([t, d, u]) => `<div class="anat"><p class="anatcap"><b>${t}.</b> ${d} <a href="${u}" target="_blank" rel="noopener">פתח בכרטיסייה חדשה</a></p><div class="anatframe"><iframe title="${t}" loading="lazy" src="${u}" style="min-height:460px"></iframe></div></div>`).join('') +
       `<p class="note">אם הסימולציה לא מופיעה בתוך העמוד (חלק מהתצוגות חוסמות תוכן מאתרים חיצוניים), הקישור "פתח בכרטיסייה חדשה" תמיד עובד.</p>`;
   } else if (sub === 'q') qList(B, 'mot', () => showMot('q'));
-  setTitle('מנועים', MOT_NAV.find(n => n[0] === sub)[1], 'IEC 60034');
+  setTitle('מכונות', MOT_NAV.find(n => n[0] === sub)[1], 'IEC 60034');
 }
 
 QT.mot = 'מנועים';
