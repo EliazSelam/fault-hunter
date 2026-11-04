@@ -15,6 +15,7 @@ for (const s of await pg.evaluate("[...document.querySelectorAll('nav.sheets but
 for (const sub of await pg.evaluate('PCB_NAV.map(n=>n[0])')) { await pg.evaluate(`go('pcb','${sub}')`); await chk('pcb:' + sub); }
 for (const sub of await pg.evaluate('LAB_NAV.map(n=>n[0])')) { await pg.evaluate(`go('lab','${sub}')`); await chk('lab:' + sub); }
 for (const sub of await pg.evaluate('INT_NAV.map(n=>n[0])')) { await pg.evaluate(`go('int','${sub}')`); await chk('int:' + sub); }
+for (const sub of await pg.evaluate('MOT_NAV.map(n=>n[0])')) { await pg.evaluate(`go('mot','${sub}')`); await chk('mot:' + sub); }
 for (const sub of await pg.evaluate('DIG_NAV.map(n=>n[0])')) { await pg.evaluate(`go('dig','${sub}')`); await chk('dig:' + sub); }
 for (const sub of await pg.evaluate('BRD_NAV.map(n=>n[0])')) { await pg.evaluate(`go('brd','${sub}')`); await chk('brd:' + sub); }
 for (const sub of await pg.evaluate('OPT_NAV.map(n=>n[0])')) { await pg.evaluate(`go('opt','${sub}')`); await chk('opt:' + sub); }

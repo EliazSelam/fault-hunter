@@ -44,6 +44,7 @@ Each figure is driven by keyboard with reduced motion, so every value jumps to i
 | Relay bench | I = min(V/R, K(V_G − V_th)²), P = (V − I·R)·I, pull-in at 18 V and drop-out at 2.4 V on the coil, swept up and down | 400 |
 | Line-scan | rate = v / 7 µm; µm per line = 7 (encoder) or 7·v/140 (clock), both sources, speed 40–320 mm/s | 232 |
 | AOS laser | w(Δz), F₀ = 2E/(πw²), D = w√(2 ln(F₀/F_th)), depth = Nδ ln(F₀/F_th), and the removed / too narrow / too shallow state, over E 1–10 µJ × Δz 0–500 µm | 456 |
+| Motors tab, DC lab | ω = (V − I·R)/K, I = T_L/K, stall when T_L ≥ K·V/R, over V 0.5–24 V × T_L 0–1.5 N·m. The same model was run in the CircuitJS DC motor element (R = 2.1 Ω incl. a 0.1 Ω shunt, K = 0.1, b = 10⁻⁴): steady current 0.2360 A against 0.2351 A from ω = K·V/(R·b + K²) | 4176 |
 
 The suite was checked against a deliberately wrong constant (F_th = 1.6 instead of 1.5 in the built figure) and failed as expected.
 
