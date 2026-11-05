@@ -9,7 +9,8 @@ function laserCalc(E, dz, N, fault) {
   const F0 = 2 * Ee / (Math.PI * w * w) * 100;
   const L = F0 > LZ.fth ? Math.log(F0 / LZ.fth) : 0;
   const D = w * Math.sqrt(2 * L), depth = N * LZ.delta * L;
-  return { Ee, w, F0, D, depth, off, wideOk: D / 2 >= LZ.bridge / 2 + off, deepOk: depth >= LZ.tcu };
+  const Lc = L - LZ.tcu / (N * LZ.delta), Dc = Lc > 0 ? w * Math.sqrt(2 * Lc) : 0;   /* diameter cut through the whole copper */
+  return { Ee, w, F0, D, depth, Dc, off, wideOk: D / 2 >= LZ.bridge / 2 + off, deepOk: depth >= LZ.tcu, clearOk: Dc / 2 >= LZ.bridge / 2 + off };
 }
 COMPONENTS.push({
   id: 'laser', kind: 'opt', name: 'לייזר תיקון: fluence, פוקוס והספק', en: 'Repair laser · fluence · focus',
@@ -42,15 +43,16 @@ COMPONENTS.push({
     g += `<line x1="${cx(-rmax)}" x2="${cx(rmax)}" y1="${cy(LZ.tcu)}" y2="${cy(LZ.tcu)}" class="ink"/><text x="${cx(-rmax)}" y="${cy(LZ.tcu) + 16}" class="lblm">laminate</text>`;
     g += `<text x="${cx(-12)}" y="${cy(0) - 6}" class="lblm">trace</text><text x="${cx(12)}" y="${cy(0) - 6}" class="lblm" text-anchor="end">trace</text><text x="${cx(0)}" y="${cy(LZ.tcu) + 32}" class="lblfault" text-anchor="middle">red = copper left in the gap</text>`;
     stage.innerHTML = SVG(640, 250, g, 'Laser fluence profile and ablation cross-section');
-    const ok = r.wideOk && r.deepOk;
+    const ok = r.wideOk && r.deepOk && r.clearOk;
     let msg;
-    if (ok) msg = '<span class="good">התיקון שלם:</span> המכתש רחב מהגשר ועמוק מעובי הנחושת. הפער בין המוליכים נקי.';
+    if (ok) msg = '<span class="good">התיקון שלם:</span> הנחושת נחתכה עד הלמינציה לכל רוחב הגשר. הפער בין המוליכים נקי.';
     else if (r.off && r.deepOk) msg = '<span class="bad">שארית בצד אחד:</span> העומק מספיק והקוטר תקין, אבל המכתש מוזז. זה registration בין המצלמה ללייזר, לא הספק. בודקים בירי על דוגמית ומודדים את מרכז המכתש.';
     else if (!r.deepOk && r.wideOk) msg = '<span class="bad">מכתש רחב ורדוד:</span> האנרגיה מתפזרת על כתם גדול. זה החתימה של defocus: בדוק גובה Z, עובי פאנל במתכון, ו-autofocus.';
     else if (!r.deepOk && !r.wideOk) msg = '<span class="bad">מכתש צר ורדוד:</span> מגיעה פחות אנרגיה לפאנל. מודדים הספק במישור העבודה מול המקור: אם המקור תקין והמישור לא, החשוד הוא האופטיקה (חלון מגן, מראות).';
+    else if (r.wideOk && r.deepOk) msg = `<span class="bad">נשארה נחושת בשולי הגשר:</span> במרכז המכתש הנחושת נחתכה עד הלמינציה, אבל רק בקוטר <span dir="ltr">${fmt(r.Dc, 1)} µm</span>, קטן מרוחב הגשר. בקצוות נשארה נחושת דקה, והקצר עדיין קיים חשמלית. מוסיפים אנרגיה או פולסים, או מעבר נוסף מוזז, לפי המתכון.`;
     else msg = '<span class="bad">עמוק אבל צר:</span> הקוטר קטן מהגשר. מגדילים אנרגיה בזהירות, או מוסיפים מעבר שני מוזז, לפי המתכון.';
     out.innerHTML = `אנרגיה בפאנל: <span class="num">${fmt(r.Ee, 2)} µJ</span> · רדיוס קרן w: <span class="num">${fmt(r.w, 2)} µm</span> · F₀: <span class="num">${fmt(r.F0, 2)} J/cm²</span><br>` +
-      `קוטר מכתש D: <span class="${r.wideOk ? 'num' : 'bad'}">${fmt(r.D, 1)} µm</span> (נדרש ≥ ${LZ.bridge + 2 * r.off} µm) · עומק: <span class="${r.deepOk ? 'num' : 'bad'}">${fmt(r.depth, 1)} µm</span> (נחושת ${LZ.tcu} µm)<br>${msg}`;
+      `קוטר מכתש D: <span class="${r.wideOk ? 'num' : 'bad'}">${fmt(r.D, 1)} µm</span> (נדרש ≥ ${LZ.bridge + 2 * r.off} µm) · עומק: <span class="${r.deepOk ? 'num' : 'bad'}">${fmt(r.depth, 1)} µm</span> (נחושת ${LZ.tcu} µm) · נחתך עד הסוף בקוטר: <span class="${r.clearOk ? 'num' : 'bad'}">${fmt(r.Dc, 1)} µm</span><br>${msg}`;
   },
   schematic: () => SVG(380, 200, ARROW +
     `<rect x="10" y="20" width="70" height="36" class="ink"/><text x="45" y="42" class="lbl" text-anchor="middle">UV laser</text>

@@ -13,7 +13,7 @@ const theme = process.argv.includes("--light") ? "light" : "dark";
 const WIDTH = 640, HEIGHT = 430;
 
 /* model: identical constants to LZ in src/12-aoi-components.js */
-const M = { lam: 0.355, w0: 6, fth: 1.5, delta: 0.4, tcu: 5, bridge: 10, N: 10, EMIN: 1, EMAX: 10, DZMAX: 500 };
+const M = { lam: 0.355, w0: 6, fth: 1.5, delta: 0.4, tcu: 5, bridge: 10, N: 10, EMIN: 1, EMAX: 14, DZMAX: 500 };
 
 /* world: the sample is drawn ×1 in µm (x along the traces, y across, z up); the head above is symbolic */
 const LAM = { x: -60, y: -40, w: 120, d: 80, r: 3 }, LAM_H = 8;           // laminate block
@@ -84,8 +84,8 @@ function calc(E, dz) {                                   /* same as laserCalc(E,
   const w = M.w0 * Math.sqrt(1 + (dz / zr) ** 2);
   const F0 = 2 * E / (Math.PI * w * w) * 100;
   const Lg = F0 > M.fth ? Math.log(F0 / M.fth) : 0;
-  const D = w * Math.sqrt(2 * Lg), depth = M.N * M.delta * Lg;
-  return { w, F0, D, depth, wideOk: D / 2 >= M.bridge / 2, deepOk: depth >= M.tcu };
+  const D = w * Math.sqrt(2 * Lg), depth = M.N * M.delta * Lg, Lc = Lg - M.tcu / (M.N * M.delta), Dc = Lc > 0 ? w * Math.sqrt(2 * Lc) : 0;
+  return { w, F0, D, depth, Dc, wideOk: D / 2 >= M.bridge / 2, deepOk: depth >= M.tcu, clearOk: Dc / 2 >= M.bridge / 2 };
 }
 let E = 4, dz = 0, tE = 4, tdz = 0, frame = 0, last = 0, clock = 0, touring = !still.matches, idle = 0;
 const path = (pts) => "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") + "Z";
@@ -105,6 +105,8 @@ function draw() {
   let g = "";
   if (r.F0 <= M.fth) g = box(-half, half, BR.y, BR.y + BR.d, LAM_H, LAM_H + h);
   else {
+    const rcl = r.Dc / 2;   /* outside the cut-through diameter a thin layer stays */
+    if (rcl < half && r.depth >= h) { g += box(-half, -rcl, BR.y, BR.y + BR.d, LAM_H, LAM_H + h * 0.35) + box(rcl, half, BR.y, BR.y + BR.d, LAM_H, LAM_H + h * 0.35); }
     if (rc < half) { g += box(-half, -rc, BR.y, BR.y + BR.d, LAM_H, LAM_H + h) + box(rc, half, BR.y, BR.y + BR.d, LAM_H, LAM_H + h); }
     const left = Math.max(0, h - r.depth);
     if (left > 0.05) g += box(-Math.min(rc, half), Math.min(rc, half), BR.y, BR.y + BR.d, LAM_H, LAM_H + left);
@@ -112,7 +114,7 @@ function draw() {
   bridgeG.innerHTML = g;
   const ring = []; for (let i = 0; i <= 48; i++) { const a = i / 48 * Math.PI * 2; ring.push(iso([Math.cos(a) * rc, Math.sin(a) * rc, SURF + 0.1], P)); }
   craterG.innerHTML = r.D > 0 ? '<path class="iso-line" data-tone="hi" data-free="both" d="' + path(ring) + '"/>' : "";
-  const state = r.F0 <= M.fth ? "below threshold" : !r.deepOk ? "too shallow" : !r.wideOk ? "too narrow" : "short removed";
+  const state = r.F0 <= M.fth ? "below threshold" : !r.deepOk ? "too shallow" : !r.clearOk ? "copper left at the edges" : "short removed";
   const text = "E " + E.toFixed(1) + " µJ · Δz " + dz.toFixed(0) + " µm · F₀ " + r.F0.toFixed(2) + " J/cm² · D " + r.D.toFixed(1) + " µm · depth " + r.depth.toFixed(1) + " µm · " + state;
   if (readout.textContent !== text) readout.textContent = text;
   stage.setAttribute("aria-valuetext", text);
@@ -137,12 +139,12 @@ const body = k.plateHtml({
   fig: "Fig 3",
   title: "AOS: removing a copper short",
   hint: "↔ E · ↕ Δz",
-  readout: "E 4.0 µJ · Δz 0 µm · F₀ 7.07 J/cm² · D 10.6 µm · depth 6.2 µm · short removed",
+  readout: "E 4.0 µJ · Δz 0 µm · F₀ 7.07 J/cm² · D 10.6 µm · depth 6.2 µm · copper left at the edges",
   keys: [
     { mark: "lit", label: "Lens: the laser is focused to a spot of a few µm" },
     { mark: "line", label: "Ring: the crater edge, where the fluence equals the threshold" },
   ],
-  caption: `Same model as the app's laser simulation, with ${M.N} pulses: F₀ = 2E/(πw²), crater diameter D = w·√(2·ln(F₀/F_th)), depth = N·δ·ln(F₀/F_th), w(Δz) = w₀·√(1 + (Δz/z_R)²). Example values: w₀ = ${M.w0} µm, λ = 355 nm (z_R ≈ ${(Math.PI * M.w0 ** 2 / M.lam).toFixed(0)} µm), F_th = ${M.fth} J/cm², δ = ${M.delta} µm per pulse, copper ${M.tcu} µm, short ${M.bridge} µm wide. Too narrow: copper left at the edges. Too shallow: copper left at the bottom. The short is gone only when the crater is both wide enough (D ≥ ${M.bridge} µm) and deep enough (depth ≥ ${M.tcu} µm). Brown = copper left. Defocus is drawn ×${DZ_DRAW}.`,
+  caption: `Same model as the app's laser simulation, with ${M.N} pulses: F₀ = 2E/(πw²), crater diameter D = w·√(2·ln(F₀/F_th)), depth = N·δ·ln(F₀/F_th), w(Δz) = w₀·√(1 + (Δz/z_R)²). Example values: w₀ = ${M.w0} µm, λ = 355 nm (z_R ≈ ${(Math.PI * M.w0 ** 2 / M.lam).toFixed(0)} µm), F_th = ${M.fth} J/cm², δ = ${M.delta} µm per pulse, copper ${M.tcu} µm, short ${M.bridge} µm wide. Too shallow: copper left at the bottom. Copper left at the edges: the centre is cut through, but the profile is Gaussian, so the cut-through width D_c = w·√(2·(ln(F₀/F_th) − t/(N·δ))) is smaller than D. The short is gone only when D_c ≥ ${M.bridge} µm, which with one spot and ${M.N} pulses needs about 12 µJ at focus; in practice the machine places several overlapping spots. Brown = copper left. Defocus is drawn ×${DZ_DRAW}.`,
   body: `<div class="iso-stage" tabindex="0" role="application" aria-label="Pulse energy across, defocus up and down, or arrow keys">${svg}</div>`,
 });
 const name = theme === "light" ? "aos-laser-light.html" : "aos-laser.html";

@@ -38,12 +38,13 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
 { const lam = 0.355, w0 = 6, fth = 1.5, delta = 0.4, tcu = 5, bridge = 10, N = 10, zr = Math.PI * w0 * w0 / lam;
   await open(fig('aos-laser', 'aos-laser.html'));
   let E = 4, dz = 0; await press('ArrowLeft', 6); E = 1;
-  for (let i = 0; i <= 18; i++) { for (let j = 0; j <= 25; j += 5) {
+  for (let i = 0; i <= 26; i++) { for (let j = 0; j <= 25; j += 5) {
       if (j) { await press('ArrowUp', 5); dz = Math.min(500, dz + 100); }
       const r = await read(), w = w0 * Math.sqrt(1 + (dz / zr) ** 2), F0 = 2 * E / (Math.PI * w * w) * 100, Lg = F0 > fth ? Math.log(F0 / fth) : 0, D = w * Math.sqrt(2 * Lg), depth = N * delta * Lg;
-      const st = F0 <= fth ? 'below threshold' : depth < tcu ? 'too shallow' : D / 2 < bridge / 2 ? 'too narrow' : 'short removed', tag = `aos E=${E} dz=${dz}`;
+      const Lc = Lg - tcu / (N * delta), Dc = Lc > 0 ? w * Math.sqrt(2 * Lc) : 0;
+      const st = F0 <= fth ? 'below threshold' : depth < tcu ? 'too shallow' : Dc / 2 < bridge / 2 ? 'copper left at the edges' : 'short removed', tag = `aos E=${E} dz=${dz}`;
       near(num(r, /F₀ ([\d.]+)/), F0, 0.0051, tag + ' F0'); near(num(r, /D ([\d.]+) µm/), D, 0.051, tag + ' D'); near(num(r, /depth ([\d.]+)/), depth, 0.051, tag + ' depth'); same(r.endsWith(st), true, tag + ' state'); }
-    await press('ArrowDown', 25); dz = 0; await press('ArrowRight', 1); E = Math.min(10, E + 0.5); } }
+    await press('ArrowDown', 25); dz = 0; await press('ArrowRight', 1); E = Math.min(14, E + 0.5); } }
 
 /* 4. Motors tab, DC motor lab: V = I·R + K·ω, T = K·I, stall when T_L ≥ K·V/R (R = 2 Ω, K = 0.1) */
 { await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/mot/lab'); await pg.waitForTimeout(400);
@@ -102,6 +103,27 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
     let want = false; for (let j = 0; j * step < 510; j++) if (x >= j * step + 1.5 && x <= j * step + fov - 1.5) want = true;
     same(k >= 0, want, `scan sharp zone fov=${fov} ov=${ov} x=${x}`);
   }
+}
+
+/* 9. Laser crater (3D) and the laser component: same numbers as laserCalc, and the cut-through diameter D_c */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/s1/laser'); await pg.waitForTimeout(500);
+  for (let E = 1; E <= 14; E += 0.5) for (const dz of [0, 100, 250, 500]) for (const N of [1, 5, 10, 20]) {
+    const [a, c] = await pg.evaluate(([E, dz, N]) => [laserCalc(E, dz, N, 'none'), craterCalc(E, dz, N)], [E, dz, N]);
+    const w = 6 * Math.sqrt(1 + (dz / (Math.PI * 36 / 0.355)) ** 2), F0 = 2 * E / (Math.PI * w * w) * 100, Lg = F0 > 1.5 ? Math.log(F0 / 1.5) : 0, Lc = Lg - 5 / (N * 0.4), Dc = Lc > 0 ? w * Math.sqrt(2 * Lc) : 0, tag = `crater E=${E} dz=${dz} N=${N}`;
+    near(c.F0, F0, 1e-9, tag + ' F0'); near(c.D, w * Math.sqrt(2 * Lg), 1e-9, tag + ' D'); near(c.Dc, Dc, 1e-9, tag + ' Dc'); near(a.Dc, Dc, 1e-9, tag + ' Dc (component)');
+    same(a.clearOk, Dc / 2 >= 5, tag + ' cleared across the short'); same(Dc <= c.D + 1e-12, true, tag + ' Dc ≤ D');
+  }
+}
+/* 10. Stepper: 200·m pulses per rev, f = rpm/60·200·m, pull-out T = 0.5/(1 + f_full/1000), stall when the load is above it; loss in whole electrical cycles */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/mot/types'); await pg.waitForTimeout(600);
+  for (const rpm of [0, 60, 120, 300, 600, 900, 1200]) for (const m of [1, 2, 4, 8, 16]) for (const TL of [0, 0.1, 0.2, 0.3, 0.45]) {
+    const r = await pg.evaluate(([a, b, c]) => stepCalc(a, b, c), [rpm, m, TL]), ff = rpm / 60 * 200, Tpo = 0.5 / (1 + ff / 1000), tag = `stepper rpm=${rpm} m=${m} T=${TL}`;
+    near(r.spr, 200 * m, 0, tag + ' steps/rev'); near(r.fstep, rpm / 60 * 200 * m, 1e-9, tag + ' f_step'); near(r.Tpo, Tpo, 1e-12, tag + ' pull-out'); same(r.stall, TL > Tpo, tag + ' stall');
+  }
+  await pg.evaluate(() => { const set = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input')); }; set('spr', 1200); set('spl', 0.45); document.getElementById('spz').click(); });
+  await pg.waitForTimeout(1500);
+  const lost = num(await pg.$eval('#spr2', e => e.textContent), /הוחמצו (\d+)/);
+  same(lost > 0 && lost % 4 === 0, true, `stepper UI: overloaded, lost ${lost} full steps, a multiple of 4`);
 }
 
 await b.close();

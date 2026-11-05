@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.8.0] — 2026-11-05
+
+- **Navigation:** the 18 tabs are grouped into five sections (start, foundations, systems and machines, practice, reference); only the tabs of the current section show. A search box (press `/`) covers pages, components, systems, simulations, questions, faults and all 615 terms, in Hebrew and English, with keyboard selection.
+- **3D laser crater, repair-laser page:** the Gaussian fluence surface over the copper, the threshold plane, and the crater below; energy, defocus and pulses.
+- **3D stepper motor, motor types page:** energized poles in sequence, the rotor stepping, and missed steps when the load is above the pull-out torque, counted in whole electrical cycles (4 full steps). The pull-out curve is an example model.
+- **Correction to the laser model:** the crater was judged complete when it was wide enough (D ≥ the short) and deep enough at the centre. The profile is Gaussian, so the copper is cut through only within D_c = w·√(2·(ln(F₀/F_th) − t/(N·δ))), which is smaller than D; outside it a thin layer stays and the short is still connected. The laser simulation, the AOS figure and their messages now require D_c ≥ the short width, and show D_c. At 4 µJ and 10 pulses the old message said "complete"; it now says copper is left at the edges (D_c = 4.7 µm). The 3D crater view made this visible.
+- Figures suite: crater numbers against laserCalc and D_c over 432 settings, the stepper over 175 settings, and an overload test that loses a multiple of 4 full steps (3485 new checks).
+
 ## [2.7.0] — 2026-11-05
 
 - **3D AOI scan head, line-scan page:** a 510 × 610 mm panel scanned in swaths by an 8k line-scan camera. Change the field of view, overlap, scan speed and the position of a defect; see the number of swaths, pixel size, line rate and time per panel, and whether the overlap covers the soft edges of each swath. With too little overlap, a band at every seam is seen only at a swath edge, and a defect there is shown as at risk.
