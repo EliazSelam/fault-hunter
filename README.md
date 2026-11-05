@@ -24,7 +24,7 @@ The UI is in Hebrew, with technical terms in English.
 | Boards | How electronic boards inside a machine are built and fail, with a library of 7 board types |
 | Technical test | 112 interview-style questions in 10 topics, with hints, step-by-step mode and 45 solution schematics |
 | Fault challenge | 48 faults in 4 levels and 11 failure principles, with a hint ladder for each |
-| 3D simulations | A rotating three-phase field in an induction motor (disconnect a phase, swap two phases, change load and poles), and ballscrew backlash with a dial indicator; drawn in 3D on a canvas, no library, orbit by dragging |
+| 3D simulations | A rotating three-phase field in an induction motor (disconnect a phase, swap two phases, change load and poles), ballscrew backlash with a dial indicator, and an AOI scan head over a panel (swaths, overlap, soft edges, a defect in the seam); drawn in 3D on a canvas, no library, orbit by dragging |
 | Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
 
 Every term is explained on first appearance, and links to the page that explains it in depth; a Terms tab lists all 615 terms with search and 12 categories. The terms suite fails the build if any English term on any page is left undefined. Every term is defined and every value is tagged as an example, a model assumption, or equipment-dependent.
@@ -39,7 +39,7 @@ Every term is explained on first appearance, and links to the page that explains
 | models | Every simulation re-implemented independently in Python from the physics: 1795 checks |
 | teach | 24 from-zero lessons: every term defined, every step complete |
 | scenarios | 48 faults: structure, efficient path, answer options |
-| figures | The three live figures, the DC motor simulation and the converter simulation, driven by keyboard or sliders: 10449 readouts checked against an independent implementation of their physics (including the 3D field and backlash models) |
+| figures | The three live figures, the DC motor simulation and the converter simulation, driven by keyboard or sliders: 15937 readouts checked against an independent implementation of their physics (including the 3D field and backlash models) |
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
