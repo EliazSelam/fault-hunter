@@ -65,6 +65,31 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
     near(num(t, /V_out = (-?[\d.]+) V/), Vo, 0.0051, tag + ' Vout'); near(num(t, /ΔI = ([\d.]+) A/), dI, 0.0051, tag + ' dI'); near(num(t, /P_out = ([\d.]+) W/), Pout, 0.051, tag + ' P'); near(num(t, /= ([\d.]+) A$/), Pout / Vin, 0.0051, tag + ' Iin');
   } }
 
+/* 6. 3D induction motor: field of three coils at 0°, 120°, 240° */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/mot/ind'); await pg.waitForTimeout(500);
+  const r = await pg.evaluate(() => { const out = []; for (let i = 0; i < 72; i++) { const th = i / 72 * 2 * Math.PI; out.push([th, imField(th), imField(th, { swap: true }), imField(th, { open: true })]); } return out; });
+  for (const [th, bal, sw, op] of r) {
+    near(Math.hypot(bal[0], bal[1]), 1.5, 1e-9, `field |B| balanced θ=${th.toFixed(2)}`);
+    near(Math.atan2(Math.sin(Math.atan2(bal[1], bal[0]) - th), Math.cos(Math.atan2(bal[1], bal[0]) - th)), 0, 1e-9, `field angle = θ at ${th.toFixed(2)}`);
+    near(Math.atan2(Math.sin(Math.atan2(sw[1], sw[0]) + th), Math.cos(Math.atan2(sw[1], sw[0]) + th)), 0, 1e-9, `swapped field angle = −θ at ${th.toFixed(2)}`);
+    near(Math.abs(op[0] * Math.sin(-Math.PI / 6) - op[1] * Math.cos(-Math.PI / 6)), 0, 1e-9, `open phase: field stays on one axis at ${th.toFixed(2)}`);
+    near(Math.hypot(op[0], op[1]), Math.sqrt(3) * Math.abs(Math.cos(th)), 1e-9, `open phase: |B| = √3·|cos θ| at ${th.toFixed(2)}`);
+  }
+  for (const f of [10, 25, 50, 60]) for (const p of [2, 4, 6]) for (let L = 0; L <= 12; L++) { const st = await pg.evaluate(([f, p, l]) => imState(f, p, l), [f, p, L / 10]);
+    near(st.ns, 120 * f / p, 1e-9, `im ns f=${f} p=${p}`); near(st.s, 0.04 * L / 10, 1e-12, `im slip load=${L / 10}`); near(st.nr, 120 * f / p * (1 - 0.04 * L / 10), 1e-9, `im nr`); near(st.fr, 0.04 * L / 10 * f, 1e-9, `im rotor frequency`); }
+}
+
+/* 7. Ballscrew backlash: play operator; error never exceeds b/2, and a reversal loses exactly b */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/s1/screw'); await pg.waitForTimeout(500);
+  for (const bb of [0, 0.01, 0.04, 0.1]) {
+    const r = await pg.evaluate((bb) => { let xt = 5, path = []; for (let i = 0; i <= 400; i++) path.push(5 + 3 * Math.sin(i / 400 * 4 * Math.PI)); const out = []; for (const xc of path) { xt = playStep(xt, xc, bb); out.push([xc, xt]); } let a = 10, t = playStep(10, 10.001, bb); t = playStep(t, 12, bb); const top = t; t = playStep(t, 11, bb); return { out, lost: (12 - 11) - (top - t) }; }, bb);
+    for (const [xc, xt] of r.out) near(Math.min(Math.abs(xc - xt), bb / 2), Math.abs(xc - xt), 1e-12, `backlash b=${bb}: |error| ≤ b/2`);
+    near(r.lost, bb, 1e-12, `backlash b=${bb}: lost motion on reversal = b`);
+  }
+  await pg.focus('#bsrev'); await pg.click('#bsrev'); await pg.waitForTimeout(2300);
+  near(num(await pg.$eval('#bsr', e => e.textContent), /השעון מראה (-?\d+) µm/), 40, 0.5, 'backlash UI: go 1 mm and back reads b = 40 µm');
+}
+
 await b.close();
 console.log(`figures: ${n} checks`);
 if (problems.length) { console.log('PROBLEMS'); problems.slice(0, 40).forEach(p => console.log('  ' + p)); process.exit(1); }

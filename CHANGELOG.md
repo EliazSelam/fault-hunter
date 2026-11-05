@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.6.0] — 2026-11-04
+
+First 3D simulations, drawn on a canvas with a small built-in engine (no library), orbit by dragging or arrow keys.
+
+- **Rotating field, induction machine page:** three coils 120° apart, the field as their sum, the rotor following with slip. Disconnect a phase (the field only pulses on one axis, and a stopped motor cannot start), swap two phases (the direction reverses), change frequency, poles and load. A three-phase plot marks the present instant.
+- **Ballscrew backlash, ballscrew page:** screw, nut, carriage and a dial indicator. Reverse direction and the screw turns while the table waits for the gap; "go 1 mm and back" reads the backlash on the dial.
+- Figures suite: the field magnitude is 1.5 at every angle and follows θ (−θ when swapped); with a phase open it stays on one axis with |B| = √3·|cos θ|; n_s, slip, rotor speed and frequency over 156 settings; backlash never exceeds b/2 and a reversal loses exactly b; the UI reversal test reads 40 µm. 1593 new checks.
+
 ## [2.5.0] — 2026-11-04
 
 Terms, end to end.
