@@ -20,9 +20,10 @@ function view3(cv, opts = {}) {
 }
 function cssv(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#1B2F5A'; }
 /* draw a list of polygons sorted far to near */
-function paint3(V, polys) {
+function paint3(V, polys, sorted = true) {
   const { ctx, proj } = V;
-  const items = polys.map(p => { const q = p.pts.map(proj); return { q, d: q.reduce((s, x) => s + x[2], 0) / q.length, p }; }).sort((a, b) => b.d - a.d);
+  const items = polys.map(p => { const q = p.pts.map(proj); return { q, d: q.reduce((s, x) => s + x[2], 0) / q.length, p }; });
+  if (sorted) items.sort((a, b) => b.d - a.d);
   for (const { q, p } of items) {
     ctx.beginPath(); q.forEach((x, i) => i ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); if (p.close !== false) ctx.closePath();
     if (p.fill) { ctx.globalAlpha = p.alpha ?? 1; ctx.fillStyle = p.fill; ctx.fill(); ctx.globalAlpha = 1; }
@@ -172,7 +173,7 @@ function bsSim(el) {
     ctx.fillStyle = text; ctx.fillText('dial · 10 µm / mark', c[0] - 50, c[1] + rr + 16);
     const ml = V.proj([-4.95, 0, 0.8]); ctx.fillText('motor', ml[0] - 18, ml[1] - 6);
   };
-  const set = v => { xc = Math.max(0, Math.min(20, v)); xt = playStep(xt, xc, b); $('#bsc').value = xc; readout(); draw(); };
+  const set = v => { if (!document.body.contains(cv)) { if (anim) { clearInterval(anim); anim = null; } return; } xc = Math.max(0, Math.min(20, v)); xt = playStep(xt, xc, b); $('#bsc').value = xc; readout(); draw(); };
   $('#bsc').addEventListener('input', e => set(+e.target.value));
   $('#bsb').addEventListener('input', e => { b = +e.target.value; xt = playStep(xt, xc, b); readout(); draw(); });
   $('#bsz').addEventListener('click', () => { zero = xt; readout(); draw(); });
@@ -181,3 +182,62 @@ function bsSim(el) {
 }
 const _s1_3d = showS1;
 showS1 = function (id) { _s1_3d(id); if ((id || COMPONENTS[0].id) === 'screw') { const sec = document.getElementById('comp'); if (sec) { sec.insertAdjacentHTML('beforeend', '<h3>סימולציה תלת-ממדית: backlash בבורג כדורי</h3><p>הזז את פקודת המיקום, ואז שנה כיוון. בהיפוך כיוון הבורג מסתובב, אבל השולחן עומד עד שהאום חוצה את הרווח. בדיוק כך מודדים backlash במכונה: שעון מדידה על העגלה, הלוך וחזור, וקוראים את ההפרש.</p><div id="bs3d"></div>'); bsSim($('#bs3d')); } } };
+
+/* ---- 3. AOI scan head: swaths, overlap and stitching ---- */
+const SCAN = { W: 510, L: 610, px: 8192, edge: 1.5, turn: 0.4 };          /* panel 510 × 610 mm, 8k line sensor, 1.5 mm soft edge, 0.4 s per turn-around */
+function scanPlan(fov, ov, v, m = SCAN) {
+  const step = fov - ov, N = step > 0 ? Math.max(1, Math.ceil((m.W - fov) / step) + 1) : Infinity;
+  const covered = fov + (N - 1) * step, pix = fov * 1000 / m.px, rate = v / (pix / 1000);
+  const time = N * m.L / v + (N - 1) * m.turn, gap = Math.max(0, 2 * m.edge - ov);
+  return { step, N, covered, pix, rate, time, gap, ok: gap === 0 };
+}
+function scanGood(x, fov, ov, m = SCAN) { const p = scanPlan(fov, ov, 1, m); for (let k = 0; k < p.N; k++) { const a = k * p.step + m.edge, b = k * p.step + fov - m.edge; if (x >= a && x <= b) return k; } return -1; }
+function scanSim(el) {
+  el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">
+    <div class="ctl"><label for="sfv">רוחב שדה (FOV): <b id="sfvv"></b></label><input id="sfv" type="range" min="20" max="80" step="1" value="40"></div>
+    <div class="ctl"><label for="sov">חפיפה: <b id="sovv"></b></label><input id="sov" type="range" min="0" max="6" step="0.25" value="2"></div>
+    <div class="ctl"><label for="ssp">מהירות סריקה: <b id="sspv"></b></label><input id="ssp" type="range" min="100" max="500" step="10" value="250"></div>
+    <div class="ctl"><label for="sdx">פגם במיקום: <b id="sdxv"></b></label><input id="sdx" type="range" min="0" max="510" step="0.5" value="39"></div></div>
+    <div class="readout" id="sr"></div>
+    <div class="stage" style="padding:0"><canvas id="scv" width="680" height="340" tabindex="0" role="img" aria-label="AOI scan head over a panel, with swaths, overlap and soft edges, in 3D. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
+    <p style="font-size:14px;color:var(--muted);margin:8px 16px">ערכי דוגמה: פאנל 510×610 mm, חיישן line-scan של 8192 פיקסלים, שוליים של 1.5 mm בכל צד של רצועה שבהם התמונה פחות חדה, ו-0.4 s לכל סיבוב בקצה. בכתום-חום: השוליים. בכחול: הרצועה הנוכחית.</p></div>`;
+  const cv = $('#scv'), V = view3(cv, { yaw: -0.45, pitch: 0.75, dist: 12, fov: 480, onView: () => draw() });
+  let fov = 40, ov = 2, v = 250, dx = 39, t0 = performance.now(), frame = 0;
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const readout = () => {
+    const p = scanPlan(fov, ov, v), k = scanGood(dx, fov, ov);
+    $('#sfvv').textContent = fov + ' mm'; $('#sovv').textContent = ov + ' mm'; $('#sspv').textContent = v + ' mm/s'; $('#sdxv').textContent = dx + ' mm';
+    $('#sr').innerHTML = `<span dir="ltr"><span class="num">${p.N}</span></span> רצועות · צעד <span dir="ltr"><span class="num">${p.step.toFixed(2)}</span> mm</span> · פיקסל <span dir="ltr"><span class="num">${p.pix.toFixed(2)}</span> µm</span> · קצב שורות <span dir="ltr"><span class="num">${(p.rate / 1000).toFixed(1)}</span> kHz</span> · זמן לפאנל <span dir="ltr"><span class="num">${p.time.toFixed(1)}</span> s</span><br>${p.ok ? 'החפיפה מכסה את השוליים: כל נקודה בפאנל נראית חדה ברצועה אחת לפחות.' : `החפיפה קטנה מהשוליים: בכל תפר יש פס ברוחב <span dir="ltr">${p.gap.toFixed(2)} mm</span> שנראה רק בקצה רצועה. שם פגמים עלולים להתפספס או להיות התראות שווא.`} ${k >= 0 ? `הפגם ב-${dx} mm נמצא בחלק החד של רצועה ${k + 1}.` : `<span class="bad">הפגם ב-${dx} mm נופל בתפר, בשוליים בלבד.</span>`}`;
+  };
+  const draw = () => {
+    const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const p = scanPlan(fov, ov, v), S = 7 / SCAN.L, X = x => (x - SCAN.W / 2) * S, Y = y => (y - SCAN.L / 2) * S, polys = [];
+    const rect = (x0, x1, y0, y1, z, fill, alpha, stroke) => polys.push({ pts: [[X(x0), Y(y0), z], [X(x1), Y(y0), z], [X(x1), Y(y1), z], [X(x0), Y(y1), z]], fill, alpha, stroke });
+    rect(-15, SCAN.W + 15, -15, SCAN.L + 15, -0.06, tint, 0.5, line);
+    rect(0, SCAN.W, 0, SCAN.L, 0, sheet, 1, ink);
+    const tt = ((performance.now() - t0) / 1000) * 0.6, total = p.N, cur = Math.floor(tt % total), frac = (tt % 1);
+    for (let k = 0; k < p.N; k++) {
+      const a = k * p.step, b = Math.min(SCAN.W, a + fov);
+      rect(a, b, 0, SCAN.L, 0.01, k === cur ? live : tint, k === cur ? 0.35 : 0.25, line);
+      rect(a, Math.min(b, a + SCAN.edge * 4), 0, SCAN.L, 0.02, mech, 0.35);              /* soft edges, drawn ×4 so they are visible */
+      rect(Math.max(a, b - SCAN.edge * 4), b, 0, SCAN.L, 0.02, mech, 0.35);
+    }
+    paint3(V, polys, false);   /* flat layers: draw in order, not by depth */
+    /* the head over the current swath, moving along y */
+    const hx = cur * p.step + fov / 2, hy = (cur % 2 ? 1 - frac : frac) * SCAN.L, top = V.proj([X(hx), Y(hy), 0.9]), bot1 = V.proj([X(cur * p.step), Y(hy), 0.02]), bot2 = V.proj([X(Math.min(SCAN.W, cur * p.step + fov)), Y(hy), 0.02]);
+    ctx.fillStyle = live; ctx.globalAlpha = 0.18; ctx.beginPath(); ctx.moveTo(top[0], top[1]); ctx.lineTo(bot1[0], bot1[1]); ctx.lineTo(bot2[0], bot2[1]); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = live; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(bot1[0], bot1[1]); ctx.lineTo(bot2[0], bot2[1]); ctx.stroke();
+    ctx.fillStyle = ink; ctx.fillRect(top[0] - 10, top[1] - 16, 20, 16);
+    /* the defect */
+    const d = V.proj([X(dx), Y(SCAN.L * 0.35), 0.03]), good = scanGood(dx, fov, ov) >= 0;
+    ctx.strokeStyle = good ? ink : mech; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(d[0], d[1], 7, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('defect', d[0] + 10, d[1] + 4);
+    const lbl = V.proj([X(0), Y(SCAN.L), 0]); ctx.fillText('panel 510 × 610 mm · edges drawn ×4', lbl[0], lbl[1] - 8);
+  };
+  const tick = () => { draw(); frame = requestAnimationFrame(tick); };
+  [['sfv', x => fov = +x], ['sov', x => ov = +x], ['ssp', x => v = +x], ['sdx', x => dx = +x]].forEach(([id, set]) => $('#' + id).addEventListener('input', e => { set(e.target.value); readout(); }));
+  readout(); if (matchMedia('(prefers-reduced-motion: reduce)').matches) draw(); else frame = requestAnimationFrame(tick);
+  const obs = new MutationObserver(() => { if (!document.body.contains(cv)) { cancelAnimationFrame(frame); obs.disconnect(); } }); obs.observe(document.getElementById('content'), { childList: true, subtree: true });
+}
+const _s1_3d2 = showS1;
+showS1 = function (id) { _s1_3d2(id); if ((id || COMPONENTS[0].id) === 'linescan') { const sec = document.getElementById('comp'); if (sec) { sec.insertAdjacentHTML('beforeend', '<h3>סימולציה תלת-ממדית: ראש סריקה, רצועות ותפרים</h3><p>מצלמת line-scan רואה רצועה ברוחב השדה (FOV). כדי לכסות פאנל רחב, הראש עובר ברצועות זו ליד זו, עם חפיפה. בשוליים של כל רצועה התמונה פחות חדה, ולכן החפיפה צריכה להיות לפחות פעמיים רוחב השוליים. נסה: הקטן את החפיפה, והזז את הפגם אל התפר.</p><div id="scan3d"></div>'); scanSim($('#scan3d')); } } };

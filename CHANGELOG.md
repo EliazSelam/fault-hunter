@@ -2,6 +2,13 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.7.0] — 2026-11-05
+
+- **3D AOI scan head, line-scan page:** a 510 × 610 mm panel scanned in swaths by an 8k line-scan camera. Change the field of view, overlap, scan speed and the position of a defect; see the number of swaths, pixel size, line rate and time per panel, and whether the overlap covers the soft edges of each swath. With too little overlap, a band at every seam is seen only at a swath edge, and a defect there is shown as at risk.
+- Figures suite: swath count, coverage, pixel, line rate, time and seam gap over 234 settings, and the sharp zone at 4084 positions (5488 new checks).
+- The 3D engine can draw flat layers in order, so large flat parts no longer hide smaller ones.
+- The backlash demo stops its out-and-back move if you leave the page mid-move (it used to throw an error), and the test now waits for the move to finish instead of a fixed delay.
+
 ## [2.6.0] — 2026-11-04
 
 First 3D simulations, drawn on a canvas with a small built-in engine (no library), orbit by dragging or arrow keys.

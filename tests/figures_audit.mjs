@@ -86,8 +86,22 @@ const num = (s, re) => { const m = s.match(re); return m ? parseFloat(m[1]) : Na
     for (const [xc, xt] of r.out) near(Math.min(Math.abs(xc - xt), bb / 2), Math.abs(xc - xt), 1e-12, `backlash b=${bb}: |error| ≤ b/2`);
     near(r.lost, bb, 1e-12, `backlash b=${bb}: lost motion on reversal = b`);
   }
-  await pg.focus('#bsrev'); await pg.click('#bsrev'); await pg.waitForTimeout(2300);
+  await pg.focus('#bsrev'); await pg.click('#bsrev'); await pg.waitForFunction(() => +document.getElementById('bsc').value > 10.5, null, { timeout: 15000 }); await pg.waitForFunction(() => Math.abs(+document.getElementById('bsc').value - 10) < 1e-9, null, { timeout: 15000 }); await pg.waitForTimeout(200);
   near(num(await pg.$eval('#bsr', e => e.textContent), /השעון מראה (-?\d+) µm/), 40, 0.5, 'backlash UI: go 1 mm and back reads b = 40 µm');
+}
+
+/* 8. AOI scan head: N = ceil((W − FOV)/(FOV − ov)) + 1, pixel = FOV/8192, rate = v/pixel, time = N·L/v + (N−1)·0.4 s, seam gap = max(0, 2·1.5 − ov) */
+{ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/s1/linescan'); await pg.waitForTimeout(500);
+  for (let fov = 20; fov <= 80; fov += 5) for (const ov of [0, 1, 2, 3, 4, 6]) for (const v of [100, 250, 500]) {
+    const r = await pg.evaluate(([f, o, s]) => scanPlan(f, o, s), [fov, ov, v]), step = fov - ov, N = Math.max(1, Math.ceil((510 - fov) / step) + 1), tag = `scan fov=${fov} ov=${ov} v=${v}`;
+    near(r.N, N, 0, tag + ' N'); same(r.covered >= 510 - 1e-9, true, tag + ' covers the panel'); near(r.pix, fov * 1000 / 8192, 1e-12, tag + ' pixel'); near(r.rate, v / (fov / 8192), 1e-6, tag + ' line rate'); near(r.time, N * 610 / v + (N - 1) * 0.4, 1e-9, tag + ' time'); near(r.gap, Math.max(0, 3 - ov), 1e-12, tag + ' seam gap');
+  }
+  /* a point is sharp if it is inside some swath, at least 1.5 mm from its edges */
+  for (const [fov, ov] of [[40, 2], [40, 3], [40, 4], [60, 1]]) for (let x = 0; x <= 510; x += 0.5) {
+    const k = await pg.evaluate(([x, f, o]) => scanGood(x, f, o), [x, fov, ov]), step = fov - ov;
+    let want = false; for (let j = 0; j * step < 510; j++) if (x >= j * step + 1.5 && x <= j * step + fov - 1.5) want = true;
+    same(k >= 0, want, `scan sharp zone fov=${fov} ov=${ov} x=${x}`);
+  }
 }
 
 await b.close();
