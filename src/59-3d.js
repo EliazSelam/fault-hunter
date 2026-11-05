@@ -241,3 +241,126 @@ function scanSim(el) {
 }
 const _s1_3d2 = showS1;
 showS1 = function (id) { _s1_3d2(id); if ((id || COMPONENTS[0].id) === 'linescan') { const sec = document.getElementById('comp'); if (sec) { sec.insertAdjacentHTML('beforeend', '<h3>סימולציה תלת-ממדית: ראש סריקה, רצועות ותפרים</h3><p>מצלמת line-scan רואה רצועה ברוחב השדה (FOV). כדי לכסות פאנל רחב, הראש עובר ברצועות זו ליד זו, עם חפיפה. בשוליים של כל רצועה התמונה פחות חדה, ולכן החפיפה צריכה להיות לפחות פעמיים רוחב השוליים. נסה: הקטן את החפיפה, והזז את הפגם אל התפר.</p><div id="scan3d"></div>'); scanSim($('#scan3d')); } } };
+
+/* ---- 4. Laser crater: the Gaussian fluence surface cut by the threshold ---- */
+/* same constants as LZ in src/12-aoi-components.js */
+function craterCalc(E, dz, N) {
+  const w = LZ.w0 * Math.sqrt(1 + (dz / (Math.PI * LZ.w0 ** 2 / LZ.lam)) ** 2), F0 = 2 * E / (Math.PI * w * w) * 100;
+  const Lg = F0 > LZ.fth ? Math.log(F0 / LZ.fth) : 0, D = w * Math.sqrt(2 * Lg), depth = N * LZ.delta * Lg;
+  const Lc = Lg - LZ.tcu / (N * LZ.delta), Dc = Lc > 0 ? w * Math.sqrt(2 * Lc) : 0;        /* diameter where the whole copper thickness is gone */
+  return { w, F0, D, depth, Dc, through: depth >= LZ.tcu };
+}
+function craterSim(el) {
+  el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">
+    <div class="ctl"><label for="cre">אנרגיית פולס: <b id="crev"></b></label><input id="cre" type="range" min="1" max="10" step="0.1" value="4"></div>
+    <div class="ctl"><label for="crz">defocus Δz: <b id="crzv"></b></label><input id="crz" type="range" min="0" max="500" step="10" value="0"></div>
+    <div class="ctl"><label for="crn">מספר פולסים: <b id="crnv"></b></label><input id="crn" type="range" min="1" max="20" step="1" value="10"></div></div>
+    <div class="readout" id="crr"></div>
+    <div class="stage" style="padding:0"><canvas id="crc" width="680" height="360" tabindex="0" role="img" aria-label="Gaussian fluence surface over the copper, the threshold plane, and the crater below it, in 3D. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
+    <p style="font-size:14px;color:var(--muted);margin:8px 16px">למעלה: הפעמון הכחול הוא ה-fluence של הקרן, והמישור החום הוא הסף. איפה שהפעמון מעל הסף, הנחושת מוסרת. למטה: המכתש בנחושת. אותם קבועים כמו בסימולציית הלייזר: w₀ = 6 µm, F_th = 1.5 J/cm², δ = 0.4 µm לפולס, נחושת 5 µm.</p></div>`;
+  const cv = $('#crc'), V = view3(cv, { yaw: -0.6, pitch: 0.42, dist: 10, onView: () => draw() });
+  let E = 4, dz = 0, N = 10;
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text');
+  const readout = () => {
+    const r = craterCalc(E, dz, N);
+    $('#crev').textContent = E.toFixed(1) + ' µJ'; $('#crzv').textContent = dz + ' µm'; $('#crnv').textContent = N;
+    $('#crr').innerHTML = `<span dir="ltr">w = <span class="num">${r.w.toFixed(1)}</span> µm</span> · <span dir="ltr">F₀ = <span class="num">${r.F0.toFixed(2)}</span> J/cm²</span> · קוטר מכתש <span dir="ltr">D = <span class="num">${r.D.toFixed(1)}</span> µm</span> · עומק במרכז <span dir="ltr"><span class="num">${r.depth.toFixed(1)}</span> µm</span> · קוטר שבו כל הנחושת הוסרה <span dir="ltr"><span class="num">${r.Dc.toFixed(1)}</span> µm</span><br>${r.F0 <= LZ.fth ? 'הפעמון כולו מתחת לסף: שום דבר לא מוסר.' : r.through ? (r.Dc >= LZ.bridge ? 'הנחושת נחתכה עד הלמינציה ברוחב שמכסה את כל הגשר (10 µm): הקצר הוסר.' : 'במרכז הנחושת נחתכה עד הלמינציה, אבל רק בקוטר הזה. בשולי המכתש נשארה נחושת דקה, ולכן גשר של 10 µm עדיין מחובר.') : 'המכתש רדוד מעובי הנחושת: נשארת נחושת בתחתית. אפשר להוסיף פולסים או אנרגיה.'}`;
+  };
+  const draw = () => {
+    const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const r = craterCalc(E, dz, N), S = 0.12, Hs = 0.18, Zc = -0.2, polys = [];          /* 1 scene unit ≈ 8 µm across; fluence ×0.18 per J/cm² */
+    const Rm = 26, nr = 18, na = 32;
+    const Fz = rr => Zc + 0.15 + Hs * r.F0 * Math.exp(-2 * rr * rr / (r.w * r.w));
+    const Dz = rr => { const F = r.F0 * Math.exp(-2 * rr * rr / (r.w * r.w)); return F > LZ.fth ? Math.min(LZ.tcu, N * LZ.delta * Math.log(F / LZ.fth)) : 0; };
+    /* copper block with the crater as a depressed surface (depth ×0.12 per µm) */
+    for (let i = 0; i < nr; i++) for (let j = 0; j < na; j++) {
+      const r0 = i / nr * Rm, r1 = (i + 1) / nr * Rm, a0 = j / na * 2 * Math.PI, a1 = (j + 1) / na * 2 * Math.PI;
+      const P = (rr, a, z) => [rr * Math.cos(a) * S, rr * Math.sin(a) * S, z];
+      const z = rr => Zc - Dz(rr) * 0.12, d = Dz((r0 + r1) / 2);
+      polys.push({ pts: [P(r0, a0, z(r0)), P(r1, a0, z(r1)), P(r1, a1, z(r1)), P(r0, a1, z(r0))], fill: d >= LZ.tcu - 1e-9 ? tint : d > 0 ? mech : mech, alpha: d >= LZ.tcu - 1e-9 ? 0.9 : d > 0 ? 0.55 : 0.32, stroke: d > 0 ? mech : null });
+    }
+    paint3(V, polys);
+    /* fluence surface and the threshold plane */
+    const surf = [];
+    for (let i = 0; i < nr; i++) for (let j = 0; j < na; j++) {
+      const r0 = i / nr * Rm, r1 = (i + 1) / nr * Rm, a0 = j / na * 2 * Math.PI, a1 = (j + 1) / na * 2 * Math.PI;
+      const P = (rr, a) => [rr * Math.cos(a) * S, rr * Math.sin(a) * S, Fz(rr)];
+      surf.push({ pts: [P(r0, a0), P(r1, a0), P(r1, a1), P(r0, a1)], fill: live, alpha: 0.28, stroke: live, w: 0.5 });
+    }
+    const zt = Zc + 0.15 + Hs * LZ.fth;
+    surf.push({ pts: ring3(Rm * S, zt, 40), fill: mech, alpha: 0.18, stroke: mech });
+    paint3(V, surf);
+    if (r.D > 0) { ctx.strokeStyle = ink; ctx.lineWidth = 2.5; ctx.beginPath(); ring3(r.D / 2 * S, zt, 48).map(V.proj).forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.stroke(); }
+    ctx.fillStyle = text; ctx.font = '12px system-ui, sans-serif';
+    const a = V.proj([Rm * S, 0, zt]); ctx.fillText('F_th', a[0] + 6, a[1]);
+    const b2 = V.proj([0, 0, Fz(0)]); ctx.fillText('F₀', b2[0] + 6, b2[1] - 4);
+    const c = V.proj([Rm * S, 0, Zc]); ctx.fillText('copper', c[0] + 6, c[1] + 12);
+  };
+  [['cre', v => E = +v], ['crz', v => dz = +v], ['crn', v => N = +v]].forEach(([id, set]) => $('#' + id).addEventListener('input', e => { set(e.target.value); readout(); draw(); }));
+  readout(); draw();
+}
+
+/* ---- 5. Stepper motor: steps, microsteps, and missed steps when the load is above the pull-out torque ---- */
+const STP = { Th: 0.5, fc: 1000 };     /* example: holding torque 0.5 N·m, pull-out torque halves at 1000 full steps/s */
+function stepCalc(rpm, m, TL) {
+  const spr = 200 * m, fstep = rpm / 60 * spr, ffull = rpm / 60 * 200, Tpo = STP.Th / (1 + ffull / STP.fc);
+  return { spr, fstep, ffull, Tpo, stall: TL > Tpo };
+}
+function stepperSim(el) {
+  el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">
+    <div class="ctl"><label for="spr">מהירות פקודה: <b id="sprv"></b></label><input id="spr" type="range" min="0" max="1200" step="10" value="120"></div>
+    <div class="ctl"><label for="spm">חלוקת צעד</label><select id="spm"><option value="1">1 (צעד מלא)</option><option value="2">1/2</option><option value="4">1/4</option><option value="8">1/8</option><option value="16" selected>1/16</option></select></div>
+    <div class="ctl"><label for="spl">מומנט עומס: <b id="splv"></b></label><input id="spl" type="range" min="0" max="0.6" step="0.01" value="0.1"></div>
+    <div class="ctl"><label>מונים</label><div class="tp"><button type="button" id="spz">אפס מונים</button></div></div></div>
+    <div class="readout" id="spr2"></div>
+    <div class="stage" style="padding:0"><canvas id="spc" width="680" height="340" tabindex="0" role="img" aria-label="Stepper motor with energized stator poles and rotor, in 3D. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
+    <p style="font-size:14px;color:var(--muted);margin:8px 16px">מודל איכותי לדוגמה: מומנט החזקה 0.5 N·m, ומומנט ה-pull-out יורד לחצי ב-1000 צעדים מלאים בשנייה. מנוע אמיתי מתואר בגרף מומנט-מהירות בדף הנתונים. ההדמיה מואטת פי 10.</p></div>`;
+  const cv = $('#spc'), V = view3(cv, { yaw: -0.4, pitch: 0.6, dist: 9 });
+  let rpm = 120, m = 16, TL = 0.1, cmd = 0, act = 0, phase = 0, last = 0, frame = 0;
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const readout = () => {
+    const r = stepCalc(rpm, m, TL), lost = Math.floor((cmd - act) / m / 4) * 4;   /* counted in whole electrical cycles (4 full steps) */
+    $('#sprv').textContent = rpm + ' rpm'; $('#splv').textContent = TL.toFixed(2) + ' N·m';
+    $('#spr2').innerHTML = `<span dir="ltr"><span class="num">${r.spr}</span></span> פולסים לסיבוב · <span dir="ltr">f_STEP = <span class="num">${(r.fstep / 1000).toFixed(2)}</span> kHz</span> · מומנט זמין במהירות הזו <span dir="ltr"><span class="num">${r.Tpo.toFixed(3)}</span> N·m</span> · פקודה <span dir="ltr"><span class="num">${Math.floor(cmd / m)}</span></span> צעדים מלאים · בפועל <span dir="ltr"><span class="num">${Math.floor(act / m)}</span></span> · הוחמצו <span dir="ltr"><span class="num">${lost}</span></span><br>${r.stall ? '<span class="bad">העומס גדול מהמומנט הזמין: הרוטור נופל מסנכרון. הבקר ממשיך לשלוח פולסים ולא יודע שהציר לא זז.</span> מנוע צעד שמאבד סנכרון מאבד צעדים בכפולות של 4 צעדים מלאים, מחזור חשמלי אחד (7.2°).' : 'הרוטור עוקב אחרי הפולסים. בלי משוב, זה המצב היחיד שבו מיקום הפקודה הוא גם המיקום האמיתי.'}`;
+  };
+  const draw = () => {
+    const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const polys = [], H = 0.8, R1 = 3.0, R0 = 2.35, Rr = 1.9;
+    polys.push({ pts: ring3(R1, -H), fill: tint, alpha: 0.35, stroke: line });
+    for (let k = 0; k < 24; k++) { const a0 = k / 24 * 2 * Math.PI, a1 = (k + 1) / 24 * 2 * Math.PI; polys.push({ pts: [[R1 * Math.cos(a0), R1 * Math.sin(a0), -H], [R1 * Math.cos(a1), R1 * Math.sin(a1), -H], [R1 * Math.cos(a1), R1 * Math.sin(a1), H], [R1 * Math.cos(a0), R1 * Math.sin(a0), H]], fill: tint, alpha: 0.15, stroke: line }); }
+    /* 8 stator poles, A at 0°/180°, B at 90°/270° (and the 45° poles as their pairs); the energized pair follows the electrical phase */
+    const el = phase % 4, on = [[0, 4], [2, 6], [4, 0], [6, 2]][Math.floor(el)];
+    for (let k = 0; k < 8; k++) {
+      const a = k / 8 * 2 * Math.PI, c = [Math.cos(a), Math.sin(a)], t = [-Math.sin(a), Math.cos(a)], w = 0.32;
+      const P = (r, d, z) => [c[0] * r + t[0] * d, c[1] * r + t[1] * d, z];
+      const active = on.includes(k), col = k % 4 === 0 ? ink : k % 4 === 2 ? live : line;
+      const pts = [P(R0, -w, -H * 0.8), P(R1 - 0.05, -w, -H * 0.8), P(R1 - 0.05, w, -H * 0.8), P(R0, w, -H * 0.8), P(R0, w, H * 0.8), P(R1 - 0.05, w, H * 0.8), P(R1 - 0.05, -w, H * 0.8), P(R0, -w, H * 0.8)];
+      [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 6, 7], [3, 2, 5, 4], [0, 3, 4, 7]].forEach(ix => polys.push({ pts: ix.map(i => pts[i]), fill: active ? col : tint, alpha: active ? 0.85 : 0.3, stroke: col }));
+    }
+    /* rotor with 50 teeth (drawn as ticks) and a marker */
+    const ang = act / m / 200 * 2 * Math.PI;
+    polys.push({ pts: ring3(Rr, H * 0.7), fill: sheet, alpha: 0.95, stroke: text });
+    paint3(V, polys);
+    ctx.strokeStyle = line; ctx.lineWidth = 1;
+    for (let k = 0; k < 50; k++) { const a = ang + k / 50 * 2 * Math.PI, p0 = V.proj([Rr * 0.86 * Math.cos(a), Rr * 0.86 * Math.sin(a), H * 0.7]), p1 = V.proj([Rr * Math.cos(a), Rr * Math.sin(a), H * 0.7]); ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke(); }
+    const c0 = V.proj([0, 0, H * 0.7]), c1 = V.proj([Rr * 0.8 * Math.cos(ang), Rr * 0.8 * Math.sin(ang), H * 0.7]); ctx.strokeStyle = mech; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(c0[0], c0[1]); ctx.lineTo(c1[0], c1[1]); ctx.stroke();
+    ctx.fillStyle = text; ctx.font = '12px system-ui, sans-serif';
+    [['A', 0], ['B', 2], ['A−', 4], ['B−', 6]].forEach(([n, k]) => { const a = k / 8 * 2 * Math.PI, q = V.proj([3.45 * Math.cos(a), 3.45 * Math.sin(a), H]); ctx.fillText(n, q[0] - 6, q[1]); });
+  };
+  const tick = (now) => {
+    const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016; last = now;
+    const r = stepCalc(rpm, m, TL), slow = 0.1, inc = r.fstep * dt * slow;
+    cmd += inc; phase += inc / m;
+    if (!r.stall) act += inc;     /* stalled: the rotor stays where it is while the pulses keep coming */
+    readout(); draw(); frame = requestAnimationFrame(tick);
+  };
+  [['spr', v => rpm = +v], ['spl', v => TL = +v]].forEach(([id, set]) => $('#' + id).addEventListener('input', e => { set(e.target.value); readout(); }));
+  $('#spm').addEventListener('change', e => { const nm = +e.target.value; cmd = cmd / m * nm; act = act / m * nm; m = nm; readout(); });
+  $('#spz').addEventListener('click', () => { cmd = 0; act = 0; readout(); });
+  readout(); draw(); frame = requestAnimationFrame(tick);   /* the motion here is the information, so it runs also with reduced motion */
+  const obs = new MutationObserver(() => { if (!document.body.contains(cv)) { cancelAnimationFrame(frame); obs.disconnect(); } }); obs.observe(document.getElementById('content'), { childList: true, subtree: true });
+}
+const _s1_3d3 = showS1;
+showS1 = function (id) { _s1_3d3(id); if ((id || COMPONENTS[0].id) === 'laser') { const sec = document.getElementById('comp'); if (sec) { sec.insertAdjacentHTML('beforeend', '<h3>סימולציה תלת-ממדית: פרופיל הקרן והסף</h3><p>הקרן היא פעמון גאוסי: הכי חזקה במרכז, ונחלשת לצדדים. רק איפה שהפעמון מעל הסף הנחושת מוסרת, ולכן קוטר המכתש קטן מקוטר הקרן. נסה: הוסף defocus, וראה שהפעמון משתטח, המכתש מתרחב ונעשה רדוד.</p><div id="cr3d"></div>'); craterSim($('#cr3d')); } } };
+const _showMot3 = showMot;
+showMot = function (sub) { _showMot3(sub); if ((sub || 'why') === 'types') { const B = document.getElementById('hb') || content; B.insertAdjacentHTML('beforeend', '<h3>סימולציה תלת-ממדית: מנוע צעד</h3><p>הדרייבר מזין את הסלילים לפי סדר (A, B, A−, B−), והרוטור קופץ צעד אחרי צעד. בעומס גדול מהמומנט הזמין, הרוטור נופל מסנכרון, והבקר לא יודע. נסה: העלה מהירות בעומס קבוע, וראה מתי מתחילים צעדים מוחמצים.</p><div id="st3d"></div>'); stepperSim($('#st3d')); } };

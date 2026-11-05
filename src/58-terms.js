@@ -120,6 +120,7 @@ TERM_NEW.push(
   ['Filter', 'מסנן', 'Filter: מסנן. ביחידת FRL: מסנן מים ולכלוך מהאוויר.', 'בקרה ותנועה'], ['Regulator', 'ווסת לחץ', 'Regulator: ווסת שמחזיק לחץ קבוע.', 'בקרה ותנועה'], ['Lubricator', 'משמן', 'Lubricator: משמן שמוסיף שמן לאוויר הדחוס.', 'בקרה ותנועה'],
   ['Safety', 'בטיחות', 'Safety: בטיחות.', 'בטיחות ותקנים']
 );
+TERM_NEW.push(['pull-out', 'המומנט המקסימלי בתנועה', 'Pull-out torque: המומנט הגדול ביותר שמנוע צעד נותן במהירות נתונה בלי לאבד סנכרון. הוא יורד ככל שהמהירות עולה, ולכן מנוע שעובד טוב לאט יכול לאבד צעדים מהר.', 'מכונות והספק']);
 TERM_NEW.forEach(([k, s, f]) => { GLOSS[k] = f; GSHORT[k] = s; });
 
 /* 2. Where each term is explained in depth: route → the page (sheet/arg) */
@@ -151,7 +152,7 @@ Object.entries({ 'EtherCAT': 'brd/lib', 'CRC': 'brd/lib', 'magnetics': 'brd/lib'
   'BGA': 'brd/fa', 'ESD': 'brd/fa', 'ESR': 'brd/fa', 'ESR meter': 'brd/fa', 'decoupling': 'brd/steps', 'firmware': 'brd/steps', 'LDO': 'brd/steps', 'heartbeat': 'brd/steps', 'DIP switch': 'brd/steps', 'isolation barrier': 'brd/lib',
   'LOTO': 'int/power', 'FAT': 'int/atp', 'ECO': 'int/field', 'false alarm': 'pcb/kpi', 'Kp': 's2/servo', 'Ki': 's2/servo', 'Kd': 's2/servo', 'homing': 's2/servo', 'home': 's2/servo', 'cable chain': 's2/servo', 'critical speed': 's1/screw', 'lead': 's1/screw',
   'IGBT': 'mot/conv', 'dead-time': 's1/pwm', 'dV/dt': 's1/pwm', 'di/dt': 's1/relay', 'hold-up': 's1/psu', 'current limit': 's1/psu', 'fail-safe': 's1/limit', 'live zero': 's1/loop', 'mA': 's1/loop', 'EMI': 's4', 'EMI filter': 'brd/lib', 'IEC': 's4', 'ISO': 's4', 'DIN': 's4', 'ANSI': 'b/atlas',
-  'glitch': 'dig/timing', 'jitter': 'dig/timing', 'FF': 'dig/dff', 'CLK': 'dig/dff', 'EN': 'dig/dl', 'AND': 'dig/why', 'Drain': 'b/atlas', 'h_FE': 'b/atlas', 'logic-level': 'q/Q21', 'CTR': 'q/Q68', 'diffraction': 's1/lens', 'field curvature': 's1/tilt', 'bright field': 'opt/ov', 'dark field': 'opt/ov', 'flat-field': 'opt/ov', 'autofocus': 's2/machine', 'coaxial': 'opt/ov', 'Alarm': 'ch', 'fault': 'ch', 'DIR': 'mot/wire', 'drive': 'mot/wire' }).forEach(([k, r]) => { if (!TERM_LINK[k]) TERM_LINK[k] = r; });
+  'glitch': 'dig/timing', 'jitter': 'dig/timing', 'FF': 'dig/dff', 'CLK': 'dig/dff', 'EN': 'dig/dl', 'AND': 'dig/why', 'Drain': 'b/atlas', 'h_FE': 'b/atlas', 'logic-level': 'q/Q21', 'CTR': 'q/Q68', 'diffraction': 's1/lens', 'field curvature': 's1/tilt', 'bright field': 'opt/ov', 'dark field': 'opt/ov', 'flat-field': 'opt/ov', 'autofocus': 's2/machine', 'coaxial': 'opt/ov', 'Alarm': 'ch', 'fault': 'ch', 'DIR': 'mot/wire', 'drive': 'mot/wire', 'pull-out': 'mot/types' }).forEach(([k, r]) => { if (!TERM_LINK[k]) TERM_LINK[k] = r; });
 /* last resort for the category: words in the definition */
 const CAT_WORDS = [['אופטיקה ולייזר', /לייזר|עדשה|מצלמ|אור |תאורה|פוקוס|פיקסל|אופטי/], ['מכונות והספק', /מנוע|רוטור|סטטור|שנאי|ממיר|פאזה|תלת-פאזי/], ['דיגיטלי', /שער|flip-flop|latch|ביט|מונה|שעון/], ['PCB, AOI ו-AOS', /PCB|נחושת|מוליך|לוח |AOI|AOS|פגם/],
   ['מדידה וחיישנים', /מדיד|חיישן|סקופ|מולטימטר|מד /], ['בטיחות ותקנים', /בטיחות|תקן|ISO|IEC|ESD|הארקה/], ['בקרה ותנועה', /ציר|בקר|PID|תנועה|ואקום|אוויר|סרבו/], ['מכניקה ושרטוט', /בורג|מסב|שרטוט|טולרנס|מכני/],

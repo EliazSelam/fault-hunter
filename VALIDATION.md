@@ -43,7 +43,7 @@ Each figure is driven by keyboard with reduced motion, so every value jumps to i
 |---|---|---|
 | Relay bench | I = min(V/R, K(V_G − V_th)²), P = (V − I·R)·I, pull-in at 18 V and drop-out at 2.4 V on the coil, swept up and down | 400 |
 | Line-scan | rate = v / 7 µm; µm per line = 7 (encoder) or 7·v/140 (clock), both sources, speed 40–320 mm/s | 232 |
-| AOS laser | w(Δz), F₀ = 2E/(πw²), D = w√(2 ln(F₀/F_th)), depth = Nδ ln(F₀/F_th), and the removed / too narrow / too shallow state, over E 1–10 µJ × Δz 0–500 µm | 456 |
+| AOS laser | w(Δz), F₀ = 2E/(πw²), D = w√(2 ln(F₀/F_th)), depth = Nδ ln(F₀/F_th), cut-through D_c = w√(2(ln(F₀/F_th) − t/(Nδ))), and the state (below threshold / too shallow / copper left at the edges / removed), over E 1–14 µJ × Δz 0–500 µm | 648 |
 | Motors tab, DC lab | ω = (V − I·R)/K, I = T_L/K, stall when T_L ≥ K·V/R, over V 0.5–24 V × T_L 0–1.5 N·m. The same model was run in the CircuitJS DC motor element (R = 2.1 Ω incl. a 0.1 Ω shunt, K = 0.1, b = 10⁻⁴): steady current 0.2360 A against 0.2351 A from ω = K·V/(R·b + K²) | 4176 |
 | Machines tab, converter lab | buck V = D·V_in, boost V_in/(1−D), buck-boost −V_in·D/(1−D); inductor ripple and ideal input current, over 3 topologies × 4 input voltages × 18 duty cycles × 3 loads | 2592 |
 
@@ -53,6 +53,7 @@ The suite was checked against a deliberately wrong constant (F_th = 1.6 instead 
 
 | Where | Problem | Fix |
 |---|---|---|
+| Laser model, AOS figure | A short was judged removed when D ≥ its width and the centre depth ≥ the copper. With a Gaussian profile the copper is cut through only within D_c < D, so copper stays at the edges. | Pass requires D_c ≥ the short width; D_c is shown. At 4 µJ, 10 pulses: D = 10.6 µm but D_c = 4.7 µm, now reported as copper left at the edges. |
 | PWM simulation | Warm-up of 40 periods (≈4τ at 20 kHz) left up to 0.6% error in the ripple | Start from the exact periodic steady state |
 | Servo bench | Default Ki = 200 adds a slow closed-loop pole (−0.53 rad/s); the response took 2.07 s to settle, yet the readout said "balanced" based on a ζ that ignores Ki | Default Ki = 50 (1% overshoot, 278 ms); ζ labelled as a PD approximation; new messages for "creeping" and "oscillating" when the response does not settle |
 | Thermal (from zero) | Compared drift with the full DOF; the simulation and Q36 use ±DOF/2. Steel was presented as acceptable | Compare with ±DOF/2 = 6.25 µm; steel (9.6 µm) also fails, Invar passes |

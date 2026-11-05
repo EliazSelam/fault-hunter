@@ -312,6 +312,20 @@ button:not(:disabled):active{transform:scale(.97)}
 .glsearch{display:flex;gap:10px;align-items:center;margin:8px 0}.glsearch input{flex:1;max-width:420px;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:6px;background:var(--sheet);color:var(--text)}
 .gllist{margin:8px 0}.glrow{border-bottom:1px solid var(--line);padding:10px 0}.glrow dt{font-weight:700;color:var(--ink)}.glrow dt small{font-weight:400;color:var(--muted)}.glrow dd{margin:4px 0 0}
 .glhit{background:var(--livetint);border-radius:6px;padding-inline:8px}.gllinks{margin:8px 0 0;display:flex;gap:12px;flex-wrap:wrap;font-size:14px}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.navbar{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin:0 0 10px}
+.navgroups{display:flex;gap:6px;flex-wrap:wrap}
+.navgroups button{font:inherit;font-size:15px;font-weight:600;padding:6px 14px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer;text-align:center}
+.navgroups button small{display:block;font-size:11.5px;font-weight:400;color:var(--muted)}
+.navgroups button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.navgroups button[aria-pressed="true"] small{color:var(--tint)}
+.gsearch{position:relative;flex:1 1 280px;max-width:440px}
+.gsearch input{width:100%;box-sizing:border-box;font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--text)}
+#gsr{position:absolute;inset-inline:0;top:calc(100% + 4px);z-index:30;background:var(--sheet);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);max-height:60vh;overflow:auto;padding:4px}
+#gsr button{display:block;width:100%;text-align:start;font:inherit;font-size:15px;padding:8px 10px;border:0;border-radius:6px;background:none;color:var(--text);cursor:pointer}
+#gsr button[aria-selected="true"],#gsr button:hover{background:var(--livetint)}
+#gsr p{margin:8px 10px;color:var(--muted)}
+nav.sheets button[hidden]{display:none}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
