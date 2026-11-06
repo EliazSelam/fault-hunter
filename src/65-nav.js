@@ -1,6 +1,6 @@
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
-  ['start', 'מתחילים', 'מסלול ועקרונות', ['path', 'pri']],
+  ['start', 'מתחילים', 'מסלול, סימולטור, עקרונות', ['path', 'topic', 'pri']],
   ['base', 'יסודות', 'שרטוט, רכיבים, מדידה', ['b', 'dig', 's1', 'lab']],
   ['mach', 'מערכות ומכונות', 'מנועים, אופטיקה, AOI', ['mot', 'opt', 's2', 'pcb', 'brd', 'int', 's3']],
   ['practice', 'תרגול', 'שאלות ותקלות', ['qb', 'ch']],
@@ -43,6 +43,7 @@ function buildSearch() {
   COMPONENTS.forEach(c => I.push({ t: plain(c.name), k: plain(c.name) + ' ' + (c.en || ''), type: 'רכיב', r: 's1/' + c.id }));
   Object.entries(SYSX).forEach(([id, x]) => I.push({ t: x.title, k: x.title + ' ' + (x.sub || ''), type: 'מערכת', r: 's2/' + id }));
   [['mot/ind', 'שדה מסתובב במנוע השראה (תלת-ממד)'], ['s1/screw', 'backlash בבורג כדורי (תלת-ממד)'], ['s1/linescan', 'ראש סריקה AOI: רצועות ותפרים (תלת-ממד)'], ['s1/laser', 'פרופיל קרן הלייזר והמכתש (תלת-ממד)'], ['mot/types', 'מנוע צעד וצעדים מוחמצים (תלת-ממד)'], ['mot/lab', 'סימולציה: מנוע DC'], ['mot/conv', 'סימולציה: ממירי buck ו-boost'], ['mot/sims', 'סימולציות מעגל מוכנות (CircuitJS)'], ['s1/relay', 'איור חי: MOSFET מפעיל ממסר'], ['s1/linescan', 'איור חי: טריגר מאנקודר מול שעון'], ['s1/laser', 'איור חי: הסרת קצר ב-AOS']].forEach(([r, t]) => I.push({ t, k: t + ' סימולציה הדגמה', type: 'סימולציה', r }));
+  TOPICS.forEach(t => { I.push({ t: 'סימולטור: ' + t.t, k: t.t + ' ' + t.punch + ' סימולציה תהליך', type: 'סימולציה', r: 'topic/' + t.id }); t.faults.forEach(f => I.push({ t: 'עץ תקלה: ' + f.t, k: f.t + ' ' + f.sym, type: 'תקלה', r: 'topic/' + t.id, fault: f.id })); });
   QB.forEach(q => I.push({ t: q.id + ' · ' + q.title, k: q.title + ' ' + plain(q.q), type: 'שאלה', r: 'q/' + q.id }));
   SCN.forEach(s => I.push({ t: s.id + ' · ' + s.title, k: s.title + ' ' + plain(s.ctx), type: 'תקלה', r: 'scn/' + s.id }));
   allTerms().forEach(e => I.push({ t: e.k + (e.al.length ? ' · ' + e.al[0].replace(/^=/, '') : ''), k: e.k + ' ' + e.al.join(' ') + ' ' + e.short + ' ' + e.full, type: 'מושג', term: e.k }));
@@ -59,7 +60,7 @@ function searchIdx(q) {
 }
 const _routeGoNav = routeGo;
 routeGo = function (r) { _routeGoNav(r); const cur = document.querySelector('nav.sheets [aria-selected="true"]'); syncGroup(r.startsWith('q/') ? 'qb' : r.startsWith('scn/') ? 'ch' : cur ? cur.dataset.sheet : r.split('/')[0]); };
-function openHit(x) { if (x.term) go('gl', x.term); else if (x.r.includes('/')) routeGo(x.r); else go(x.r); }
+function openHit(x) { if (x.fault) { TSTATE.lvl = 'fault'; TSTATE.fault = x.fault; TSTATE.node = null; TSTATE.path = []; go('topic', x.r.split('/')[1]); return; } if (x.term) go('gl', x.term); else if (x.r.includes('/')) routeGo(x.r); else go(x.r); }
 (function wireSearch() {
   const inp = $('#gs'), box = $('#gsr'); let hits = [], sel = 0;
   const close = () => { box.hidden = true; inp.setAttribute('aria-expanded', 'false'); };
