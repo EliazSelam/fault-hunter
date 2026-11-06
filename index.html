@@ -6289,7 +6289,7 @@ function view3(cv, opts = {}) {
     let x = p[0] * cy - p[1] * sy, y = p[0] * sy + p[1] * cy, z = p[2];
     const y2 = y * cp - z * sp, z2 = y * sp + z * cp;           // tilt the camera down
     const d = st.dist + y2, k = st.fov / Math.max(0.5, d);
-    return [cv.width / 2 + x * k, cv.height / 2 - z2 * k, d];
+    return [cv.width / 2 + (opts.ox || 0) + x * k, cv.height / 2 + (opts.oy || 0) - z2 * k, d];
   };
   const onDown = e => { st.drag = [e.clientX, e.clientY, st.yaw, st.pitch]; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); };
   const onMove = e => { if (!st.drag) return; st.yaw = st.drag[2] + (e.clientX - st.drag[0]) * 0.01; st.pitch = Math.max(-0.2, Math.min(1.35, st.drag[3] + (e.clientY - st.drag[1]) * 0.01)); if (opts.onView) opts.onView(); };
@@ -6773,9 +6773,11 @@ let TSTATE = { topic: 'aoi', lvl: 'see', fault: null, node: null, path: [] };
 function showTopic(arg) {
   active = null; setTab('topic'); markVisit('topic:' + (arg || 'aoi'));
   const T = TOPICS.find(x => x.id === (arg || TSTATE.topic)) || TOPICS[0]; TSTATE.topic = T.id;
-  content.innerHTML = `<h2>${T.t}</h2><div class="tophead"><div><p class="punch"><b>המהות:</b> ${T.punch}</p><p class="analogy"><b>אנלוגיה:</b> ${T.analogy}</p></div><div class="bell">${bellSVG(TSTATE.lvl)}</div></div>
+  const tsel = TOPICS.length > 1 ? `<div class="chips" role="group" aria-label="נושאים">${TOPICS.map(x => `<button type="button" data-tp="${x.id}" aria-pressed="${x.id === T.id}">${x.t}</button>`).join('')}</div>` : '';
+  content.innerHTML = tsel + `<h2>${T.t}</h2><div class="tophead"><div><p class="punch"><b>המהות:</b> ${T.punch}</p><p class="analogy"><b>אנלוגיה:</b> ${T.analogy}</p></div><div class="bell">${bellSVG(TSTATE.lvl)}</div></div>
     <div class="lvltabs" role="tablist">${LEVELS.map(([k, t, s], i) => `<button type="button" role="tab" data-l="${k}" aria-selected="${TSTATE.lvl === k}"><b>${i + 1}. ${t}</b><small>${s}</small></button>`).join('')}</div><div id="tl"></div>`;
-  content.querySelectorAll('[data-l]').forEach(b => b.addEventListener('click', () => { TSTATE.lvl = b.dataset.l; showTopic(T.id); }));
+  content.querySelectorAll('[data-l]').forEach(b => b.addEventListener('click', () => { TSTATE.lvl = b.dataset.l; TSTATE.sim = null; showTopic(T.id); }));
+  content.querySelectorAll('[data-tp]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tp !== TSTATE.topic) { TSTATE.lvl = 'see'; TSTATE.fault = null; TSTATE.node = null; TSTATE.path = []; TSTATE.sim = null; } showTopic(b.dataset.tp); }));
   const L = $('#tl');
   if (TSTATE.lvl === 'see') topicSee(L, T);
   else if (TSTATE.lvl === 'ask') topicAsk(L, T);
@@ -6786,11 +6788,12 @@ function showTopic(arg) {
 function topicSee(L, T, startAt) {
   L.innerHTML = `<div class="bench"><div class="controls" style="border-top:none"><div class="tp"><button type="button" id="tsPlay">▶ הפעל</button><button type="button" id="tsPrev">שלב קודם</button><button type="button" id="tsNext">שלב הבא</button><button type="button" id="tsAgain">↺ מההתחלה</button></div></div>
     <ol class="stepdots">${T.steps.map((s, i) => `<li><button type="button" data-s="${i}">${i + 1}. ${s.t}</button></li>`).join('')}</ol>
-    <div class="stage" style="padding:0"><canvas id="tsc" width="680" height="380" tabindex="0" role="img" aria-label="The AOI machine in 3D, going through one inspection cycle. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
-    <div class="readout" id="tsr" aria-live="polite"></div></div>
+    <div class="stage" style="padding:0"><canvas id="tsc" width="680" height="380" tabindex="0" role="img" aria-label="${T.t}: the process in 3D, step by step. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
+    <div class="readout" id="tsr" aria-live="polite"></div>${TSTATE.sim ? '<div class="note warn">זו סימולציה עם התקלה שבחרת. <button type="button" class="linkbtn" id="tsNormal">חזור להפעלה תקינה</button></div>' : ''}</div>
     <p class="note">רוצה להבין לעומק? <b>2. הבנה</b> לשאלות קלות, <b>3. תקלות</b> לעץ החלטה, <b>4. פיתוח</b> למתמטיקה. ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
   L.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.r)));
-  const sc = aoiScene($('#tsc')); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0;
+  const tn = $('#tsNormal'); if (tn) tn.addEventListener('click', () => { TSTATE.sim = null; topicSee(L, T, startAt); });
+  const sc = (T.scene || aoiScene)($('#tsc'), TSTATE.sim || null); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0;
   const show = () => { const s = T.steps[si]; $('#tsr').innerHTML = `<b>${si + 1}. ${s.t}.</b> ${s.what}<br><b>למה:</b> ${s.why} <span dir="ltr" class="num">${s.num}</span> · <b>מה בודקים:</b> ${s.check}`; L.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-current', +b.dataset.s === si ? 'step' : 'false')); $('#tsPlay').textContent = playing ? '❚❚ עצור' : '▶ הפעל'; sc.paint([si, u]); };
   const tick = now => { const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016; last = now; if (playing) { u += dt / T.steps[si].dur; if (u >= 1) { if (si < T.steps.length - 1) { si++; u = 0; show(); } else { u = 1; playing = false; show(); } } sc.paint([si, u]); } if (document.body.contains(sc.V.ctx.canvas)) frame = requestAnimationFrame(tick); };
   $('#tsPlay').addEventListener('click', () => { if (!playing && si === T.steps.length - 1 && u >= 1) { si = 0; u = 0; } playing = !playing; show(); });
@@ -6814,18 +6817,126 @@ function topicFault(L, T) {
   const id = TSTATE.node || F.start, n = F.nodes[id];
   const trail = TSTATE.path.map(([q, a]) => `<li>${q} → <b>${a}</b></li>`).join('');
   L.innerHTML = `<p><b>${F.t}.</b> ${F.sym}</p>${trail ? `<ol class="trail">${trail}</ol>` : ''}` + (n.leaf ?
-    `<div class="note"><p><b>הסיבה:</b> ${n.leaf}</p><p><b>מה עושים:</b> ${n.fix}</p><p><b>העיקרון:</b> ${n.pr}</p></div><div class="tp"><button type="button" id="tfNorm">ראה את השלב התקין: ${T.steps.find(s => s.id === F.step).t}</button>${n.go ? `<button type="button" id="tfDeep">להסבר המלא ←</button>` : ''}<button type="button" id="tfBack">צעד אחורה</button><button type="button" id="tfAll">כל התקלות</button></div>` :
+    `<div class="note"><p><b>הסיבה:</b> ${n.leaf}</p><p><b>מה עושים:</b> ${n.fix}</p><p><b>העיקרון:</b> ${n.pr}</p></div><div class="tp"><button type="button" id="tfNorm">ראה את השלב התקין: ${T.steps.find(s => s.id === F.step).t}</button>${n.sim ? `<button type="button" id="tfSim">הפעל את הסימולציה עם התקלה</button>` : ''}${n.go ? `<button type="button" id="tfDeep">להסבר המלא ←</button>` : ''}<button type="button" id="tfBack">צעד אחורה</button><button type="button" id="tfAll">כל התקלות</button></div>` :
     `<div class="tq"><p><b>${n.q}</b></p><div class="tp">${n.o.map(([t, to], j) => `<button type="button" data-to="${to}" data-j="${j}">${t}</button>`).join('')}</div></div><div class="tp"><button type="button" id="tfBack"${TSTATE.path.length ? '' : ' disabled'}>צעד אחורה</button><button type="button" id="tfAll">כל התקלות</button></div>`);
   L.querySelectorAll('[data-to]').forEach(b => b.addEventListener('click', () => { TSTATE.path.push([n.q, b.textContent, id]); TSTATE.node = b.dataset.to; topicFault(L, T); }));
   const back = $('#tfBack'); if (back) back.addEventListener('click', () => { const p = TSTATE.path.pop(); TSTATE.node = p ? p[2] : null; topicFault(L, T); });
   $('#tfAll').addEventListener('click', () => { TSTATE.fault = null; topicFault(L, T); });
-  const norm = $('#tfNorm'); if (norm) norm.addEventListener('click', () => { TSTATE.lvl = 'see'; showTopic(T.id); topicSee($('#tl'), T, T.steps.findIndex(s => s.id === F.step)); });
+  const norm = $('#tfNorm'); if (norm) norm.addEventListener('click', () => { TSTATE.lvl = 'see'; TSTATE.sim = null; showTopic(T.id); topicSee($('#tl'), T, T.steps.findIndex(s => s.id === F.step)); });
+  const fsim = $('#tfSim'); if (fsim) fsim.addEventListener('click', () => { TSTATE.lvl = 'see'; TSTATE.sim = n.sim; showTopic(T.id); topicSee($('#tl'), T, T.steps.findIndex(s => s.id === F.step)); });
   const deep = $('#tfDeep'); if (deep) deep.addEventListener('click', () => routeGo(n.go));
 }
 function topicMath(L, T) {
   L.innerHTML = `<p>כאן המספרים שמאחורי כל שלב, בגזירה מלאה. הערכים הם דוגמה, ונבדקים בבדיקה העצמית.</p>` + T.math().map(([t, h]) => `<details class="drill" open><summary>${t}</summary><div class="mathbox">${h}</div></details>`).join('') + `<p class="note">להתעמקות בסגנון הקיים: ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
   L.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.r)));
 }
+
+/* ---- topic 2: a servo axis, from command to motion ---- */
+const SV = { m: 5, b: 20, Kp: 2e5, Kd: 1200, Ki: 2e6, Fmax: 200, L: 0.1, v: 0.25, a: 2, dt: 1e-4, T: 1.3, Fd: 10, tFd: 0.7, FE: 0.5e-3, win: 10e-6 };
+function svProfile(t, p = SV) {                       /* trapezoid: accel, cruise, decel */
+  const ta = p.v / p.a, sa = p.v * ta / 2, tc = (p.L - 2 * sa) / p.v, T = 2 * ta + tc;
+  if (t <= 0) return [0, 0, 0]; if (t < ta) return [p.a * t * t / 2, p.a * t, p.a];
+  if (t < ta + tc) return [sa + p.v * (t - ta), p.v, 0]; if (t < T) { const d = T - t; return [p.L - p.a * d * d / 2, p.a * d, -p.a]; } return [p.L, 0, 0];
+}
+function svSim(o = {}) {
+  const p = Object.assign({}, SV, o), n = Math.round(p.T / p.dt); let x = 0, v = 0, I = 0, eP = 0;
+  const out = { t: [], xc: [], x: [], e: [], F: [], sat: [], p };
+  for (let k = 0; k <= n; k++) {
+    const t = k * p.dt, [xc] = svProfile(t, p), xm = (p.encSign || 1) * x, xm0 = x;
+    const e = xc - xm; I += e * p.dt; const de = (e - eP) / p.dt; eP = e;
+    let F = p.Kp * e + p.Ki * I + p.Kd * de; const sat = Math.abs(F) > p.Fmax; if (sat) { F = Math.sign(F) * p.Fmax; I -= e * p.dt; }   /* simple anti-windup */
+    const Fload = (t >= p.tFd ? p.Fd : 0) + (p.fric ? Math.sign(v || F) * Math.min(p.fric, Math.abs(F)) : 0);
+    const acc = (F - p.b * v - Fload) / p.m; v += acc * p.dt; x += v * p.dt;
+    if (k % 10 === 0) { out.t.push(t); out.xc.push(xc); out.x.push(xm0); out.e.push(e); out.F.push(F); out.sat.push(sat); }   /* record what the controller saw at this sample */
+    if (!isFinite(x) || Math.abs(x) > 1) break;
+  }
+  const i = out.t.length - 1, emax = Math.max(...out.e.map(Math.abs));
+  out.final = out.x[i]; out.emax = emax; out.alarm = emax > p.FE; out.overshoot = Math.max(0, Math.max(...out.x) - p.L);
+  const iMove = out.t.findIndex(t => t >= 0.06 && t < 0.12); out.eAcc = out.e[iMove];
+  return out;
+}
+const SV_STEPS = [
+  { id: 'en', t: 'Enable', lead: 'drive', dur: 2.5, win: [0, 0], what: 'הדרייבר מקבל אישור (STO תקין), הבלם משתחרר, והלולאה מחזיקה את הציר במקום.', why: 'בלי לולאה סגורה לפני שחרור הבלם, ציר אנכי היה נופל.', num: 'בלם משתחרר תוך עשרות ms', check: 'STO בשני ערוצים, מתח לבלם' },
+  { id: 'cmd', t: 'פקודה', lead: 'profile', dur: 2.5, win: [0, 0.02], what: 'הבקר מתכנן פרופיל תנועה: תאוצה, מהירות קבועה, האטה. בכל מחזור הוא שולח מיקום רצוי חדש.', why: 'קפיצה ישירה ליעד הייתה דורשת כוח אינסופי.', num: '100 mm · 0.25 m/s · 2 m/s²', check: 'פרמטרי פרופיל במתכון' },
+  { id: 'acc', t: 'תאוצה והלולאה', lead: 'error', dur: 3.5, win: [0, 0.125], what: 'בכל מחזור: שגיאה = רצוי פחות נמדד. ה-PID הופך אותה לכוח (זרם במנוע). בתאוצה צריך כוח, ולכן יש שגיאה קטנה.', why: 'ה-P דוחף לפי המרחק, ה-D מרסן לפי מהירות השינוי, וה-I מוחק שארית קבועה.', num: 'שגיאת עקיבה עשרות µm', check: 'following error מול הסף' },
+  { id: 'cru', t: 'מהירות קבועה', lead: 'carriage', dur: 3, win: [0.125, 0.4], what: 'המנוע מסובב את הבורג, העגלה זזה, והאנקודר סופר. השגיאה קטנה, כי צריך רק להתגבר על חיכוך.', why: 'בתנועה אחידה ה-I כבר פיצה על החיכוך.', num: 'v = 0.25 m/s', check: 'זרם בתנועה מול ערך בקבלה' },
+  { id: 'dec', t: 'האטה', lead: 'error', dur: 3, win: [0.4, 0.525], what: 'הפרופיל מאט לקראת היעד. השגיאה מתהפכת: עכשיו הציר מקדים מעט.', why: 'אותו כוח, בכיוון ההפוך.', num: 'אותו גודל שגיאה, סימן הפוך', check: 'סימטריה בין תאוצה להאטה' },
+  { id: 'set', t: 'התייצבות', lead: 'window', dur: 3, win: [0.525, 0.65], what: 'הפרופיל הגיע ליעד. הציר עוד נע מעט סביבו עד שהוא נכנס לחלון, ואז נדלק In-position.', why: 'הבקר מתחיל את הפעולה הבאה רק אחרי In-position.', num: 'חלון ±10 µm', check: 'זמן התייצבות, overshoot' },
+  { id: 'hold', t: 'החזקה', lead: 'current', dur: 3.5, win: [0.65, 1.3], what: 'בזמן 0.7 s כבל נגרר מפעיל 10 N על העגלה. השגיאה קופצת, וה-I מחזיר אותה לאפס.', why: 'בלי I הייתה נשארת שגיאה קבועה של F/Kp.', num: '10 N / Kp = 50 µm בלי I', check: 'זרם בעמידה מול ערך בקבלה' }
+];
+const SV_FAULTS = [
+  { id: 'fe', step: 'acc', t: 'Following error בתנועה', sym: 'הציר עוצר באמצע תנועה עם התראת following error.', start: 'a',
+    nodes: {
+      a: { q: 'מתי זה קורה?', o: [['בתאוצה, בתנועות מהירות', 'b'], ['מיד בתחילת התנועה, בכל מהירות', 'c'], ['רק בכיוון אחד, באזור מסוים במהלך', 'L4']] },
+      b: { q: 'מה הזרם בזמן התאוצה?', o: [['נוגע במגבלת הזרם', 'L1'], ['רחוק מהמגבלה', 'L2']] },
+      c: { q: 'לאן הציר זז ברגע ה-enable?', o: [['בורח בכיוון אחד, מהר', 'L3'], ['לא זז בכלל', 'L5']] },
+      L1: { leaf: 'הכוח הנדרש לתאוצה גדול ממה שהדרייבר נותן: רוויה. השגיאה גדלה עד הסף.', fix: 'מורידים תאוצה במתכון, או בודקים אם העומס השתנה. אחר כך מגבלת הזרם מול המנוע.', pr: 'רוויה פותחת את הלולאה.', sim: { Fmax: 12 }, go: 's2/servo' },
+      L2: { leaf: 'הגבר נמוך מדי: הלולאה לא דוחפת מספיק בתאוצה.', fix: 'מכווננים מחדש לפי הנוהל, ובודקים שהאינרציה במתכון נכונה.', pr: 'Kp קטן = שגיאה גדולה בתאוצה.', sim: { Kp: 2.5e4, Kd: 400, Ki: 0 } },
+      L3: { leaf: 'כיוון האנקודר הפוך לכיוון המנוע: משוב חיובי.', fix: 'עוצרים מיד. בודקים חיווט A/B ופרמטר כיוון, לפני הפעלה נוספת.', pr: 'סימן המשוב קובע אם הלולאה מתקנת או מגבירה.', sim: { encSign: -1 } },
+      L4: { leaf: 'עומס מכני: הבלם לא משתחרר עד הסוף, או מסילה תקועה באזור.', fix: 'מזיזים ידנית בלי מתח (לפי הנוהל) ומרגישים, בודקים מתח לבלם.', pr: 'זרם גבוה בלי תאוצה = כוח מכני.', sim: { fric: 150 } },
+      L5: { leaf: 'אין מומנט: STO פתוח או הדרייבר לא באמת ב-enable.', fix: 'בודקים 24V בשני ערוצי STO ואת סטטוס הדרייבר.', pr: 'קודם האישור, אחר כך הכיוונון.', go: 'mot/wire' } } },
+  { id: 'osc', step: 'hold', t: 'זמזום ורעידה בעמידה', sym: 'הציר עומד במקום אבל מזמזם ומרעיד, ולפעמים יוצא מחלון ה-In-position.', start: 'a',
+    nodes: {
+      a: { q: 'מה קורה כשמורידים את ההגבר בחצי?', o: [['הזמזום נעלם', 'L1'], ['לא משתנה', 'b']] },
+      b: { q: 'באות האנקודר בסקופ רואים רעש?', o: [['כן, קפיצות וקוצים', 'L2'], ['האות נקי', 'L3']] },
+      L1: { leaf: 'הגבר גבוה מדי, או D נמוך מדי: הלולאה על סף יציבות.', fix: 'מורידים Kp או מעלים D, לפי הנוהל, ובודקים שוב את ה-overshoot.', pr: 'ריסון מול קשיחות.', sim: { Kp: 8e5, Kd: 0 } },
+      L2: { leaf: 'רעש באנקודר: מיגון או הארקה, והלולאה מגיבה לרעש.', fix: 'בודקים מיגון כבל, הארקה, והפרדה מכבלי הספק.', pr: 'הלולאה טובה כמו המדידה שלה.', go: 's1/encoder' },
+      L3: { leaf: 'תהודה מכנית: צימוד רופף או חלק גמיש.', fix: 'בודקים ברגים בצימוד ובתושבות, ומודדים את תדר הרעידה.', pr: 'מכני לפני חשמלי.', go: 's1/screw' } } },
+  { id: 'ovs', step: 'set', t: 'Overshoot והתייצבות איטית', sym: 'הציר עובר את היעד, חוזר, ולוקח זמן רב עד In-position. הזמן למחזור גדל.', start: 'a',
+    nodes: {
+      a: { q: 'השינוי קרה אחרי שינוי פרמטרים, או אחרי שינוי מכני?', o: [['אחרי שינוי פרמטרים', 'L1'], ['אחרי שינוי מכני או עומס', 'L2']] },
+      L1: { leaf: 'I גבוה מדי: האינטגרל מגיב חזק לכל שגיאה, והציר מתנדנד סביב היעד הרבה זמן לפני שהוא נרגע.', fix: 'מחזירים את Ki לערך המאושר, ובודקים מגבלת אינטגרל.', pr: 'I מוחק שארית, אבל יותר מדי ממנו מוסיף תנודה.', sim: { Ki: 2e7 } },
+      L2: { leaf: 'האינרציה גדלה (עומס כבד יותר), והכיוונון כבר לא מתאים.', fix: 'מעדכנים אינרציה ומכווננים מחדש לפי הנוהל.', pr: 'כיוונון שייך לעומס מסוים.', sim: { m: 15 } } } }
+];
+const SV_QUIZ = [
+  ['מה הבקר משווה בכל מחזור?', ['מתח מול זרם', 'מיקום רצוי מול מיקום נמדד', 'מהירות מול טמפרטורה'], 1, 'השגיאה היא ההפרש ביניהם, וממנה מחושב הכוח.'],
+  ['למה יש שגיאת עקיבה דווקא בתאוצה?', ['כי האנקודר מאט', 'כי צריך כוח כדי להאיץ, והכוח מגיע מהשגיאה', 'כי הבורג מתארך'], 1, 'עם P בלבד, השגיאה בתאוצה היא בערך m·a/Kp.'],
+  ['מה תפקיד ה-I?', ['לרסן רעידות', 'למחוק שגיאה קבועה, למשל מכבל נגרר', 'להאיץ את התנועה'], 1, 'האינטגרל גדל כל עוד יש שגיאה, עד שהכוח מאזן את העומס.'],
+  ['ציר בורח מיד ב-enable. מה החשוד הראשון?', ['כיוון אנקודר הפוך', 'תאוצה גבוהה', 'סף In-position'], 0, 'משוב בסימן הפוך הופך את התיקון להגברה.']
+];
+const SV_MATH = () => {
+  const r = svSim(), pd = svSim({ Ki: 0, T: 0.2 });
+  return [
+    ['הבקר הבדיד: PID בכל מחזור', `${mM(mR(mS(mI('F'), mI('k')), mO('='), mS(mI('K'), mI('p')), mS(mI('e'), mI('k')), mO('+'), mS(mI('K'), mI('i')), mO('·'), mI('T'), mO('·'), mI('Σ'), mS(mI('e'), mI('j')), mO('+'), mS(mI('K'), mI('d')), mO('·'), mF(mR(mS(mI('e'), mI('k')), mO('−'), mS(mI('e'), mR(mI('k'), mO('−'), mN('1')))), mI('T'))), true)}<p>T הוא זמן המחזור. בסימולציה T = 0.1 ms, Kp = 2·10⁵ N/m, Ki = 2·10⁶ N/(m·s), Kd = 1200 N·s/m, מסה 5 kg, ריסון 20 N·s/m. ערכי דוגמה.</p>`],
+    ['תדר טבעי וריסון של הלולאה', `<p>בלי I, המערכת היא מסה עם קפיץ (Kp) ובולם (b + Kd):</p>${mM(mR(mI('m'), mI('ẍ'), mO('+'), mO('('), mI('b'), mO('+'), mS(mI('K'), mI('d')), mO(')'), mI('ẋ'), mO('+'), mS(mI('K'), mI('p')), mI('x'), mO('='), mS(mI('K'), mI('p')), mS(mI('x'), mI('c'))), true)}${mM(mR(mS(mI('ω'), mI('n')), mO('='), MM.sq(mF(mS(mI('K'), mI('p')), mI('m'))), mO('='), mN('200'), mI('rad/s'), mO(',&#8195;'), mI('ζ'), mO('='), mF(mR(mI('b'), mO('+'), mS(mI('K'), mI('d'))), mR(mN('2'), MM.sq(mR(mS(mI('K'), mI('p')), mI('m'))))), mO('='), mF(mN('1220'), mN('2000')), mO('='), mN('0.61')), true)}<p>ζ = 0.61: מעט overshoot והתייצבות מהירה. מעלים Kd → פחות overshoot, אבל רגישות גבוהה יותר לרעש.</p>`],
+    ['שגיאת עקיבה בתאוצה', `<p>בתאוצה קבועה a, כשהמערכת התייצבה על התאוצה, הכוח הנדרש m·a + b·v מגיע מהשגיאה. בלי I:</p>${mM(mR(mI('e'), mO('≈'), mF(mR(mI('m'), mI('a'), mO('+'), mI('b'), mI('v')), mS(mI('K'), mI('p'))), mO('='), mF(mR(mN('5'), mO('·'), mN('2'), mO('+'), mN('20'), mO('·'), mN('0.12')), mR(mN('2'), mO('·'), mSup(mN('10'), mN('5')))), mO('≈'), mN('62'), mI('µm')), true)}<p>ב-t = 0.06 s המהירות כבר 0.12 m/s, ולכן גם הריסון b·v דורש כוח. בתחילת התאוצה (v ≈ 0) נשאר רק m·a/Kp = 50 µm. בסימולציה בלי I, ב-t = 0.06 s: ${(pd.eAcc * 1e6).toFixed(0)} µm. עם I: ${(r.eAcc * 1e6).toFixed(0)} µm, כי האינטגרל מספק חלק מהכוח.</p>`],
+    ['שגיאה קבועה בעמידה, ולמה צריך I', `${mM(mR(S_e_ss(), mO('='), mF(mS(mI('F'), mI('d')), mS(mI('K'), mI('p'))), mO('='), mF(mN('10'), mR(mN('2'), mO('·'), mSup(mN('10'), mN('5')))), mO('='), mN('50'), mI('µm'), mO(',&#8195;'), mt('עם I:'), mO('→'), mN('0')), true)}<p>ה-I צובר את השגיאה בזמן, ולכן ממשיך לגדול עד שהכוח שלו מאזן את העומס, והשגיאה חוזרת לאפס.</p>`],
+    ['כוח מקסימלי ורוויה', `${mM(mR(mS(mI('F'), mI('need')), mO('='), mI('m'), mI('a'), mO('+'), mI('b'), mI('v'), mO('='), mN('5'), mO('·'), mN('2'), mO('+'), mN('20'), mO('·'), mN('0.25'), mO('='), mN('15'), mI('N'), mO('&lt;'), mS(mI('F'), mI('max')), mO('='), mN('200'), mI('N')), true)}<p>המרווח גדול. אם מגבלת הכוח נמוכה מהנדרש (למשל 12 N, פחות מ-15 N), או התאוצה גבוהה מדי, הכוח נחתך, הלולאה "נפתחת", והשגיאה גדלה בלי שליטה: following error.</p>`]
+  ];
+};
+const mSup = (a, b) => `<msup>${a}${b}</msup>`, mt = s => `<mtext>${s}</mtext>`, S_e_ss = () => mS(mI('e'), mI('ss'));
+{ const r = svSim(), pd = svSim({ Ki: 0, T: 0.2 });
+  VERIFY.push(['SV wn', Math.sqrt(SV.Kp / SV.m), 200, 1e-9], ['SV zeta', (SV.b + SV.Kd) / (2 * Math.sqrt(SV.Kp * SV.m)), 0.61, 1e-9], ['SV Fneed', SV.m * SV.a + SV.b * SV.v, 15, 1e-12], ['SV ess', SV.Fd / SV.Kp * 1e6, 50, 1e-9], ['SV PD acc error µm', pd.eAcc * 1e6, (SV.m * SV.a + SV.b * SV.a * 0.06) / SV.Kp * 1e6, 2], ['SV final µm', Math.abs(r.final - SV.L) * 1e6, 0, 2]); }
+
+function servoScene(cv, sim) {
+  const V = view3(cv, { yaw: -0.5, pitch: 0.45, dist: 13, fov: 420, ox: 150, oy: -70, onView: () => paint(V.last || [0, 0]) });
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const R = svSim(sim || {}), N = R.t.length;
+  const box = (P, x0, x1, y0, y1, z0, z1, fill, alpha, stroke) => { const p = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]]; [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [0, 3, 7, 4]].forEach(f => P.push({ pts: f.map(i => p[i]), fill, alpha, stroke })); };
+  function paint([si, u]) {
+    V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const st = SV_STEPS[si], t = st.win[0] + (st.win[1] - st.win[0]) * u, k = Math.min(N - 1, Math.round(t / 0.001));
+    const x = R.x[k] || 0, X = -3.2 + x / SV.L * 5.6, P = [];
+    box(P, -4.4, 3.6, -1.1, 1.1, -1.2, -1.0, tint, 0.45, line); box(P, -4.2, 3.4, 0.7, 0.9, -1.0, -0.8, tint, 0.7, line); box(P, -4.2, 3.4, -0.9, -0.7, -1.0, -0.8, tint, 0.7, line);
+    for (let j = 0; j < 10; j++) { const a0 = j / 10 * 2 * Math.PI, a1 = (j + 1) / 10 * 2 * Math.PI, r = 0.2; P.push({ pts: [[-4.2, r * Math.cos(a0), -0.55 + r * Math.sin(a0)], [3.4, r * Math.cos(a0), -0.55 + r * Math.sin(a0)], [3.4, r * Math.cos(a1), -0.55 + r * Math.sin(a1)], [-4.2, r * Math.cos(a1), -0.55 + r * Math.sin(a1)]], fill: sheet, alpha: 0.9, stroke: line }); }
+    box(P, -5.4, -4.3, -0.6, 0.6, -1.1, 0.1, st.lead === 'drive' || st.lead === 'current' ? live : ink, 0.85, ink);
+    box(P, X - 0.7, X + 0.7, -1.0, 1.0, -0.8, -0.2, st.lead === 'carriage' ? live : tint, 0.85, st.lead === 'carriage' ? live : ink);
+    paint3(V, P);
+    /* plots: command and actual position, and the error (µm), with the present instant */
+    const px = 14, pw = 300, ph = 70, py1 = cv.height - 168, py2 = cv.height - 84;
+    const plot = (arr, y0, scale, col, off) => { ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath(); for (let i = 0; i < N; i++) { const X1 = px + i / (N - 1) * pw, Y1 = y0 + ph / 2 - (arr[i] - off) * scale; i ? ctx.lineTo(X1, Y1) : ctx.moveTo(X1, Y1); } ctx.stroke(); };
+    ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(px, py1, pw, ph); ctx.strokeRect(px, py2, pw, ph);
+    plot(R.xc, py1, ph / SV.L * 0.9, line, SV.L / 2); plot(R.x, py1, ph / SV.L * 0.9, live, SV.L / 2);
+    const emaxv = Math.max(60e-6, R.emax * 1.1); plot(R.e, py2, ph / 2 / emaxv, st.lead === 'error' || st.lead === 'window' ? live : ink, 0);
+    if (st.lead === 'window') { ctx.strokeStyle = mech; ctx.setLineDash([4, 3]); [SV.win, -SV.win].forEach(w => { const Y = py2 + ph / 2 - w * ph / 2 / emaxv; ctx.beginPath(); ctx.moveTo(px, Y); ctx.lineTo(px + pw, Y); ctx.stroke(); }); ctx.setLineDash([]); }
+    const cx = px + k / (N - 1) * pw; ctx.strokeStyle = text; ctx.beginPath(); ctx.moveTo(cx, py1); ctx.lineTo(cx, py2 + ph); ctx.stroke();
+    ctx.fillStyle = text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('position: command (grey) · actual (blue)', px, py1 - 5); ctx.fillText('following error, µm (±' + (emaxv * 1e6).toFixed(0) + ')', px, py2 - 5);
+    ctx.font = '600 13px system-ui, sans-serif'; ctx.fillText(`t = ${t.toFixed(3)} s · x = ${(x * 1000).toFixed(2)} mm · e = ${((R.e[k] || 0) * 1e6).toFixed(1)} µm · F = ${(R.F[k] || 0).toFixed(1)} N${R.sat[k] ? ' (limit)' : ''}`, 14, 22);
+    if (sim) { ctx.fillStyle = mech; ctx.fillText(R.alarm ? 'FAULT SIMULATION · following error > 0.5 mm' : 'FAULT SIMULATION', 14, 40); }
+  }
+  return { V, paint };
+}
+TOPICS.push({ id: 'servo', t: 'ציר סרבו: מפקודה לתנועה', punch: 'הבקר אומר איפה הציר צריך להיות, האנקודר אומר איפה הוא באמת, וה-PID הופך את ההפרש לכוח במנוע. זו לולאה שחוזרת אלפי פעמים בשנייה.', analogy: 'כמו נהג ששומר מרחק מהרכב שלפניו: מסתכל (אנקודר), משווה (שגיאה), ולוחץ על הדוושה לפי כמה רחוק (P), כמה מהר המרחק משתנה (D), וכמה זמן הוא כבר רחוק (I).', steps: SV_STEPS, faults: SV_FAULTS, quiz: SV_QUIZ, math: SV_MATH, scene: servoScene, deep: [['s2/servo', 'ציר סרבו, מאפס'], ['s1/encoder', 'אנקודר'], ['s1/screw', 'בורג כדורי ו-backlash'], ['mot/sync', 'מנוע סרבו כמכונה סנכרונית'], ['s1/brake', 'בלם החזקה']] });
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
   ['start', 'מתחילים', 'מסלול, סימולטור, עקרונות', ['path', 'topic', 'pri']],
@@ -7818,7 +7929,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.9.0';
+const APP_VERSION = '2.10.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

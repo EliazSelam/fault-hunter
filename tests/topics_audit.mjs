@@ -25,7 +25,7 @@ for (const T of topics) {
   for (const [r] of T.deep) ok(await pg.evaluate(r => { try { routeGo(r); return content.textContent.length > 200; } catch (e) { return false; } }, r), `${T.id}: deep link ${r} opens`);
   /* UI: every step, play, again; every level */
   await pg.evaluate(id => { TSTATE.lvl = 'see'; go('topic', id); }, T.id); await pg.waitForTimeout(200);
-  for (let i = 0; i < T.steps.length; i++) { await pg.click(`[data-s="${i}"]`); ok(await pg.evaluate(i => document.querySelector(`[data-s="${i}"]`).getAttribute('aria-current') === 'step' && document.getElementById('tsr').textContent.includes(TOPICS[0].steps[i].t), i), `${T.id}: step ${i + 1} shows its narration`); }
+  for (let i = 0; i < T.steps.length; i++) { await pg.click(`[data-s="${i}"]`); ok(await pg.evaluate(i => document.querySelector(`[data-s="${i}"]`).getAttribute('aria-current') === 'step' && document.getElementById('tsr').textContent.includes(TOPICS.find(x => x.id === TSTATE.topic).steps[i].t), i), `${T.id}: step ${i + 1} shows its narration`); }
   await pg.click('#tsAgain'); await pg.waitForTimeout(300); ok(await pg.evaluate(() => document.querySelector('[data-s="0"]').getAttribute('aria-current') === 'step'), `${T.id}: replay starts from step 1`);
   /* quiz: right answer says correct */
   await pg.click('[data-l="ask"]');
@@ -36,7 +36,7 @@ for (const T of topics) {
     for (const [leaf, clicks] of leaves) {
       await pg.evaluate(([fid]) => { TSTATE.lvl = 'fault'; TSTATE.fault = fid; TSTATE.node = null; TSTATE.path = []; showTopic(TSTATE.topic); }, [F.id]);
       for (const j of clicks) await pg.click(`#tl [data-j="${j}"]`);
-      ok(await pg.evaluate(t => document.getElementById('tl').textContent.includes(t), F.nodes[leaf].leaf.slice(0, 20)), `${T.id}/${F.id}: clicking reaches leaf ${leaf}`);
+      ok(await pg.evaluate(t => { const c = document.getElementById('tl').cloneNode(true); c.querySelectorAll('.gdef').forEach(x => x.remove()); return c.textContent.replace(/\s+/g, ' ').includes(t); }, F.nodes[leaf].leaf.slice(0, 20)), `${T.id}/${F.id}: clicking reaches leaf ${leaf}`);
       await pg.click('#tfNorm'); await pg.waitForTimeout(150);
       const si = T.steps.findIndex(s => s.id === F.step);
       ok(await pg.evaluate(si => document.querySelector(`[data-s="${si}"]`)?.getAttribute('aria-current') === 'step', si), `${T.id}/${F.id}/${leaf}: "see the normal step" opens step ${si + 1}`);
@@ -44,6 +44,23 @@ for (const T of topics) {
   }
   await pg.click('[data-l="math"]'); ok(await pg.evaluate(() => document.querySelectorAll('#tl math').length >= 4), `${T.id}: math level renders MathML`);
 }
+/* servo model: the normal case and each fault preset really shows what its leaf says */
+{ const r = await pg.evaluate(() => { const ring = s => { let n = 0; for (let i = 1; i < s.t.length; i++) if (s.t[i] > 0.75 && Math.sign(s.e[i]) !== Math.sign(s.e[i - 1])) n++; return n; };
+    const f = o => { const s = svSim(o); return { fin: Math.abs(s.final - SV.L), emax: s.emax, ovs: s.overshoot, alarm: s.alarm, ring: ring(s), eAcc: s.eAcc }; };
+    return { n: f({}), pd: f({ Ki: 0, T: 0.2 }), sat: f({ Fmax: 12 }), low: f({ Kp: 2.5e4, Kd: 400, Ki: 0 }), enc: f({ encSign: -1 }), fric: f({ fric: 150 }), osc: f({ Kp: 8e5, Kd: 0 }), ki: f({ Ki: 2e7 }), heavy: f({ m: 15 }) }; });
+  ok(!r.n.alarm && r.n.fin < 2e-6, 'servo normal: no alarm, ends within 2 µm of the target');
+  { const want = (5 * 2 + 20 * 2 * 0.06) / 2e5; ok(Math.abs(r.pd.eAcc - want) < 2e-6, `servo PD: error at t = 0.06 s ≈ (m·a + b·v)/Kp = ${(want * 1e6).toFixed(1)} µm (got ${(r.pd.eAcc * 1e6).toFixed(1)})`); }
+  ok(r.sat.alarm, 'servo preset: force limit below the need gives a following-error alarm'); ok(r.low.alarm, 'servo preset: low gain gives a following-error alarm');
+  ok(r.enc.alarm && r.enc.emax > 0.05, 'servo preset: reversed encoder runs away'); ok(r.fric.alarm, 'servo preset: mechanical drag gives a following-error alarm');
+  ok(r.osc.ring > 20 && r.n.ring === 0, 'servo preset: high gain without D keeps ringing; normal does not'); ok(r.ki.ring > r.n.ring + 10, 'servo preset: too much I keeps it swinging around the target');
+  ok(r.heavy.ovs > 1.5 * r.n.ovs, 'servo preset: heavier load overshoots more');
+  /* every leaf with a fault simulation opens it without errors */
+  for (const T of topics) for (const F of T.faults) for (const [id, nd] of Object.entries(F.nodes)) if (nd.sim) {
+    await pg.evaluate(([tid, fid, id]) => { TSTATE.topic = tid; TSTATE.lvl = 'fault'; TSTATE.fault = fid; TSTATE.node = id; TSTATE.path = []; showTopic(tid); }, [T.id, F.id, id]);
+    await pg.click('#tfSim'); await pg.waitForTimeout(150);
+    ok(await pg.evaluate(() => !!document.getElementById('tsNormal') && !!document.getElementById('tsc')), `${T.id}/${F.id}/${id}: "run with the fault" opens the simulation in fault mode`);
+    await pg.click('#tsNormal');
+  } }
 await b.close();
 console.log(`topics: ${topics.length} topics, ${n} checks`);
 if (problems.length) { console.log('PROBLEMS'); problems.slice(0, 60).forEach(p => console.log('  ' + p)); process.exit(1); }

@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.10.0] — 2026-11-06
+
+- **Second topic in the process simulator: a servo axis, from command to motion.** A real simulation: a discrete PID at 10 kHz on a 5 kg carriage with damping, a trapezoidal move of 100 mm, a force limit with anti-windup, and a 10 N cable drag at 0.7 s. Seven steps (enable, command, acceleration and the loop, cruise, deceleration, settling into the window, holding against the drag), with live position and following-error plots and the present instant.
+- **Faults you can replay:** each leaf of a fault tree can run the simulation with that fault: force limit below the need (following-error alarm), low gain, reversed encoder (runaway), mechanical drag, high gain without D (ringing), too much I (swinging around the target), heavier load (more overshoot). The topics suite checks that each preset really shows what its leaf says.
+- Math level: the discrete PID, natural frequency and damping (ω_n = 200 rad/s, ζ = 0.61), the acceleration error (m·a + b·v)/K_p, why a constant drag needs I (50 µm without it), and the force limit.
+- Topic selector in the simulator; a scene can sit off-centre so plots and 3D do not overlap.
+- Fix found while checking: the simulation recorded the error after the position update instead of the error the controller saw, which hid the damping term; it now records what the controller saw.
+
 ## [2.9.0] — 2026-11-06
 
 - **Process simulator (new tab, in "Start here"):** every topic opens like a Gaussian, from the essence outward, in four levels:

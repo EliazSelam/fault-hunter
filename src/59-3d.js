@@ -9,7 +9,7 @@ function view3(cv, opts = {}) {
     let x = p[0] * cy - p[1] * sy, y = p[0] * sy + p[1] * cy, z = p[2];
     const y2 = y * cp - z * sp, z2 = y * sp + z * cp;           // tilt the camera down
     const d = st.dist + y2, k = st.fov / Math.max(0.5, d);
-    return [cv.width / 2 + x * k, cv.height / 2 - z2 * k, d];
+    return [cv.width / 2 + (opts.ox || 0) + x * k, cv.height / 2 + (opts.oy || 0) - z2 * k, d];
   };
   const onDown = e => { st.drag = [e.clientX, e.clientY, st.yaw, st.pitch]; cv.setPointerCapture && cv.setPointerCapture(e.pointerId); };
   const onMove = e => { if (!st.drag) return; st.yaw = st.drag[2] + (e.clientX - st.drag[0]) * 0.01; st.pitch = Math.max(-0.2, Math.min(1.35, st.drag[3] + (e.clientY - st.drag[1]) * 0.01)); if (opts.onView) opts.onView(); };
