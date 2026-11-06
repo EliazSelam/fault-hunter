@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.9.0] — 2026-11-06
+
+- **Process simulator (new tab, in "Start here"):** every topic opens like a Gaussian, from the essence outward, in four levels:
+  1. **Essence:** an end-to-end 3D simulation of the normal process, with the punch in one sentence and an analogy; play, step, jump to any step, and replay from the start. One element leads each step, so the eye knows where to look.
+  2. **Understanding:** short questions with immediate feedback.
+  3. **Faults:** decision trees. Each question splits on what you would see or measure, and each branch ends at a cause, a fix, the principle, a link to the full explanation, and a button back to the normal step.
+  4. **Development:** the engineering math in full, rendered with native MathML (no library), with every number checked.
+- **First topic: the AOI inspection cycle** in eight steps (load, vacuum, homing, fiducials, scan, compare, report and verify, unload), three fault trees (vacuum low, fiducial not found, false calls along seams), four questions, and four derivations (vacuum hold-down force, registration, pixel and line rate, cycle time and throughput).
+- New test suite `topics`: structure of every step, question and fault tree (every node reachable, no cycles), and a click-through to every leaf and back to the normal step (125 checks).
+- Search finds the simulator and each fault tree.
+
 ## [2.8.0] — 2026-11-05
 
 - **Navigation:** the 18 tabs are grouped into five sections (start, foundations, systems and machines, practice, reference); only the tabs of the current section show. A search box (press `/`) covers pages, components, systems, simulations, questions, faults and all 615 terms, in Hebrew and English, with keyboard selection.

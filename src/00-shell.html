@@ -326,6 +326,14 @@ button:not(:disabled):active{transform:scale(.97)}
 #gsr button[aria-selected="true"],#gsr button:hover{background:var(--livetint)}
 #gsr p{margin:8px 10px;color:var(--muted)}
 nav.sheets button[hidden]{display:none}
+.tophead{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:4px 0 10px}.tophead>div:first-child{flex:1 1 360px}
+.punch{font-size:18px;color:var(--ink);margin:0 0 6px}.analogy{margin:0;color:var(--text)}.bell svg{max-width:100%;height:auto}
+.lvltabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}.lvltabs button{font:inherit;padding:8px 14px;border:1px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);cursor:pointer;text-align:start}
+.lvltabs button small{display:block;font-size:12px;color:var(--muted)}.lvltabs button[aria-selected="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.lvltabs button[aria-selected="true"] small{color:var(--tint)}
+.stepdots{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0 12px;margin:10px 0}.stepdots button{font:inherit;font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--text);cursor:pointer}
+.stepdots button[aria-current="step"]{background:var(--live);border-color:var(--live);color:var(--sheet)}
+.tq{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;background:var(--sheet)}.tq .tp button[aria-pressed="true"]{outline:2px solid var(--live)}.tqr{margin:8px 0 0}
+.trail{color:var(--muted);font-size:14px}.mathbox math{font-size:1.15em;margin:10px 0}.mathbox{overflow-x:auto}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -383,6 +391,7 @@ ol.tsteps .ts{color:var(--live-text)}
 </header>
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
+  <button role="tab" data-sheet="topic" aria-selected="false">סימולטור תהליך<small>מהמהות לפיתוח</small></button>
   <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
   <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>
   <button role="tab" data-sheet="pcb" aria-selected="false">AOI ו-AOS<small>ייצור PCB</small></button>

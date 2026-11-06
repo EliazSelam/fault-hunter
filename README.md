@@ -10,6 +10,7 @@ The UI is in Hebrew, with technical terms in English.
 
 | Area | Content |
 |---|---|
+| Process simulator | Each topic opens like a Gaussian: first the essence, an end-to-end 3D simulation of the normal process with a one-line punch and an analogy, step by step with replay; then quick understanding questions; then fault decision trees that end at a cause, a fix and the normal step; then the engineering math in full. First topic: the AOI inspection cycle |
 | Learning path | A start page that orders everything from micro to macro, with progress tracking |
 | 12 principles | The ideas that repeat in every system, so you can diagnose a fault you have never seen |
 | Lab | Multimeter, signal generator and oscilloscope, and sensors, as simulations where mistakes cost nothing |
@@ -35,7 +36,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs seven suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs eight suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|
@@ -44,6 +45,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | teach | 24 from-zero lessons: every term defined, every step complete |
 | scenarios | 48 faults: structure, efficient path, answer options |
 | figures | The three live figures, the DC motor simulation and the converter simulation, driven by keyboard or sliders: 19422 readouts checked against an independent implementation of their physics (including the 3D field and backlash models) |
+| topics | Every process simulator: steps, quiz answers, every fault tree reachable and acyclic, a click-through to every leaf and back to the normal step, MathML rendered |
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
