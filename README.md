@@ -10,7 +10,7 @@ The UI is in Hebrew, with technical terms in English.
 
 | Area | Content |
 |---|---|
-| Process simulator | Each topic opens like a Gaussian: first the essence, an end-to-end 3D simulation of the normal process with a one-line punch and an analogy, step by step with replay; then quick understanding questions; then fault decision trees that end at a cause, a fix and the normal step; then the engineering math in full. First topic: the AOI inspection cycle |
+| Process simulator | Each topic opens like a Gaussian: first the essence, an end-to-end 3D simulation of the normal process with a one-line punch and an analogy, step by step with replay; then quick understanding questions; then fault decision trees that end at a cause, a fix and the normal step; then the engineering math in full. Topics: the AOI inspection cycle, and a servo axis from command to motion (a real PID simulation, with each fault replayable) |
 | Learning path | A start page that orders everything from micro to macro, with progress tracking |
 | 12 principles | The ideas that repeat in every system, so you can diagnose a fault you have never seen |
 | Lab | Multimeter, signal generator and oscilloscope, and sensors, as simulations where mistakes cost nothing |
