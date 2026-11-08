@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.15.0] — 2026-11-07
+
+Structure first, on all seven topics.
+
+- **Every topic opens on its showcase:** the end-to-end 3D simulation starts playing at once, without prediction pauses, with the CEO level on top (why it matters, the value, the analogy). "Play again with predictions" is one click away.
+- **Vertical Feynman technique:** each topic is explained at three depths, and each level of the topic carries its card: CEO (why, analogy, no jargon), architect (the blocks and the information between them), engineer (the math, protocol or mechanics). The engineer level ends with an exercise: write your own explanation at each of the three levels, then compare.
+- **Information flow and interfaces (architect level):** a block diagram of the subsystem; every arrow has a signal kind (electrical, data, mechanical, optical, pneumatic) and the steps in which it is active, so the flow lights up step by step, or plays through the whole process. Interface blocks and outside systems are marked, and listed with everything that crosses them, next to the machine map.
+- **Reverse engineering:** disconnect any block (or several) and see which flows break, which blocks are left without input, which step fails first, and what the symptom is; where a model exists, open the simulation with that block broken.
+- Topics suite: 1267 checks, including the structure of every topic (every step has an active flow, every block is connected, every block has a reverse-engineering entry) and a click-through of the showcase, every flow step, every disconnection and every Feynman exercise.
+
 ## [2.14.0] — 2026-11-07
 
 - **Topic: the line-scan camera and its lighting, from photon to image.** Eight steps: light, lens, encoder trigger, strobe and exposure, readout into the frame grabber, flat-field correction, segmentation, the image. The 3D scene builds the image row by row in gray levels, and plots the line profile raw, after flat-field, and with the threshold. The model: line rate v/p; motion blur v·t; defocus blur 2·NA·Δz; gray level k·R·I·t clipped at 255; vignetting at the line edges; continuous light at the same average power as the strobe. Faults replay what they do to the picture: a worn LED or dirty window or short strobe (dark, low margin), no strobe (motion blur of a full pixel), defocus beyond ±22.5 µm (blur), a stale white reference (dark edges, false calls at swath edges). Five derivations.
