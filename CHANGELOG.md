@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.11.0] — 2026-11-06
+
+- **Topic: AOS, repairing a short.** Eight steps (defect list, registration, arrival and identification, 3D height measurement, cut planning, firing behind the shutter interlock, re-measurement, report). The recipe plans a row of overlapping spots from the nominal cut-through width D_c; the cut happens with the actual crater, so defocus, a weaker laser or a camera-laser offset leave copper, and too much energy damages the laminate. Three fault trees (copper left, laminate damage, laser not firing) with replayable faults, and four derivations, including why each extra micron of D_c costs depth: damage = Nδ·D_c²/(2w²).
+- **Topic: first power-up of a machine and ATP.** Eight steps from the unpowered check to ATP, with a live checklist; the 24 V drop at the far end of a cable; a repeatability test of 30 approaches with 3σ against ±2 µm. Three fault trees (24 V sagging, runaway on the first jog, repeatability failing) and four derivations (cable drop, warm-up ΔL = αLΔT, PSU sizing, mean and standard deviation).
+- Topics suite: 434 checks, including the AOS and bring-up models against what each fault leaf says.
+
 ## [2.10.0] — 2026-11-06
 
 - **Second topic in the process simulator: a servo axis, from command to motion.** A real simulation: a discrete PID at 10 kHz on a 5 kg carriage with damping, a trapezoidal move of 100 mm, a force limit with anti-windup, and a 10 N cable drag at 0.7 s. Seven steps (enable, command, acceleration and the loop, cruise, deceleration, settling into the window, holding against the drag), with live position and following-error plots and the present instant.
