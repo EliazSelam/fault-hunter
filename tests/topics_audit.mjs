@@ -68,6 +68,30 @@ for (const T of topics) {
   ok(cm.mot.issues.includes('blur') && !cm.mot.sat && Math.abs(cm.mot.Gcu - 200) < 1e-9 && cm.def.issues.includes('blur'), 'camera presets: continuous light (no strobe) and defocus blur the image');
   ok(cm.ff.issues.includes('edges') && !cm.n.issues.includes('edges'), 'camera preset: no flat-field leaves dark edges');
   ok(cm.sat.sat && cm.sat.Gcu === 255, 'camera: double light saturates copper at 255');
+  /* structure: vertical Feynman, information flow and interfaces, reverse engineering */
+  const ST = await pg.evaluate(() => TOPICS.map(T => { const A = ARCH[T.id]; return { id: T.id, has: !!A, why: A && A.why, f3: A && A.f3, blocks: A ? A.blocks.map(b => [b.id, b.k]) : [], flows: A ? A.flows.map(f => [f.a, f.b, f.s, f.t, f.st]) : [], rev: A ? Object.entries(A.rev).map(([k, r]) => [k, r[0], r[1], !!r[2]]) : [], steps: T.steps.map(s => s.id) }; }));
+  for (const S of ST) {
+    ok(S.has && S.why && S.f3 && S.f3.length === 3 && S.f3.every(x => x && x.length > 40), `${S.id}: value statement and three Feynman levels (CEO, architect, engineer)`);
+    const ids = S.blocks.map(b => b[0]);
+    S.flows.forEach(([a, b, s, l, st]) => { ok(ids.includes(a) && ids.includes(b) && 'edmop'.includes(s) && l && st.length && st.every(x => S.steps.includes(x)), `${S.id}: flow ${a}→${b} has real ends, a signal kind and real steps`); });
+    S.steps.forEach(sid => ok(S.flows.some(f => f[4].includes(sid)), `${S.id}: step ${sid} has at least one active flow`));
+    ids.forEach(id => ok(S.flows.some(f => f[0] === id || f[1] === id), `${S.id}: block ${id} is connected`));
+    ok(S.blocks.some(b => b[1] !== 'int'), `${S.id}: shows at least one interface or outside system`);
+    ids.forEach(id => { const r = S.rev.find(x => x[0] === id); ok(r && r[1] && S.steps.includes(r[2]), `${S.id}: reverse engineering covers ${id} with a real failing step`); });
+  }
+  /* broken-flow propagation on a small graph */
+  const bf = await pg.evaluate(() => { const A = { blocks: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }], flows: [{ a: 'a', b: 'b' }, { a: 'b', b: 'c' }, { a: 'd', b: 'c' }, { a: 'c', b: 'a' }] }; const r = brokenFlows(A, new Set(['a'])); return { broken: [...r.broken].sort(), starved: [...r.starved].sort() }; });
+  ok(bf.broken.join() === '0,1' && bf.starved.join() === 'a,b', 'reverse engineering: a block with another healthy input is not starved; a block with no inputs left is');
+  for (const S of ST) {
+    await pg.evaluate(id => { TSTATE.lvl = 'show'; TSTATE.sim = null; TSTATE.fault = null; go('topic', id); }, S.id); await pg.waitForTimeout(250);
+    ok(await pg.evaluate(() => /עצור/.test(document.getElementById('tsPlay').textContent) && document.getElementById('tsp').hidden && !!document.querySelector('.f3card')), `${S.id}: opens on the showcase, playing, without prediction pauses, with the CEO level`);
+    await pg.click('[data-l="arch"]'); await pg.waitForTimeout(100);
+    for (let i = 0; i < S.steps.length; i++) { await pg.click(`[data-as="${i}"]`); ok(await pg.evaluate(() => document.querySelectorAll('#arD line.live').length >= 1), `${S.id}: flow view highlights flows in step ${i + 1}`); }
+    await pg.click('[data-l="rev"]'); await pg.waitForTimeout(100);
+    for (const [id] of S.blocks) { await pg.click(`[data-rv2="${id}"]`); ok(await pg.evaluate(id => document.getElementById('rvR').textContent.includes('נותק') && (document.querySelectorAll('#rvD line.faults').length >= 1 || ARCH[TSTATE.topic].flows.every(f => f.a !== id)), id), `${S.id}: disconnecting ${id} shows what breaks`); await pg.click(`[data-rv2="${id}"]`); }
+    for (const r of S.rev.filter(x => x[3])) { await pg.click(`[data-rv2="${r[0]}"]`); await pg.click(`[data-rs="${r[0]}"]`); await pg.waitForTimeout(150); ok(await pg.evaluate(() => !!document.getElementById('tsNormal')), `${S.id}: "see it in the simulation" for ${r[0]} opens fault mode`); await pg.evaluate(() => { TSTATE.sim = null; TSTATE.lvl = 'rev'; showTopic(TSTATE.topic); }); }
+    await pg.click('[data-l="eng"]'); await pg.waitForTimeout(100); await pg.click('[data-fy="2"]'); ok(await pg.evaluate(() => document.querySelectorAll('[data-fy]').length === 3 && !document.querySelectorAll('.tq .tqr')[document.querySelectorAll('.tq .tqr').length - 1].hidden), `${S.id}: three-level Feynman exercise with model answers`);
+  }
   /* the learning model: map, predictions, checks, self-explanation, faults in three grades, integration, review */
   const L2 = await pg.evaluate(() => TOPICS.map(T => ({ id: T.id, where: T.where, lit: T.lit, preds: T.steps.filter(s => s.pred).map(s => [s.id, s.pred]), checks: T.checks, explain: T.explain, solo: T.faults.map(f => [f.id, f.solo, Object.keys(f.nodes)]), integ: T.integ, ids: TOPICS.map(x => x.id) })));
   for (const X of L2) {
@@ -87,8 +111,8 @@ for (const T of topics) {
   ok(rv.due.length === 1 && rv.due[0] === 'aoi:q:0', 'review: only due questions are offered');
   /* UI of the new levels on every topic */
   for (const X of L2) {
-    await pg.evaluate(id => { TSTATE.lvl = 'map'; TSTATE.fault = null; go('topic', id); }, X.id); await pg.waitForTimeout(150);
-    ok(await pg.evaluate(() => document.querySelectorAll('#tl svg rect').length >= 8), `${X.id}: machine map renders`);
+    await pg.evaluate(id => { TSTATE.lvl = 'arch'; TSTATE.fault = null; go('topic', id); }, X.id); await pg.waitForTimeout(150);
+    ok(await pg.evaluate(() => document.querySelectorAll('#tl svg rect').length >= 8), `${X.id}: flow diagram and machine map render`);
     for (const l of ['eng', 'integ', 'review']) { await pg.click(`[data-l="${l}"]`); await pg.waitForTimeout(100); ok(await pg.evaluate(() => document.getElementById('tl').textContent.length > 80), `${X.id}: level ${l} renders`); }
     await pg.click('[data-l="integ"]'); await pg.click(`#ig [data-o="${X.integ[2]}"]`); ok(await pg.evaluate(() => document.querySelector('#ig .tqr').textContent.startsWith('נכון')), `${X.id}: integration right answer marked right`);
     for (const [fid, s] of X.solo) {

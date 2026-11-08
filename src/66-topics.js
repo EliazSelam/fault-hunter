@@ -137,7 +137,7 @@ function showTopic(arg) {
   else if (TSTATE.lvl === 'ask') topicAsk(L, T);
   else if (TSTATE.lvl === 'fault') topicFault(L, T);
   else topicMath(L, T);
-  setTitle('נושאים', T.t, LEVELS.find(l => l[0] === TSTATE.lvl)[1]);
+  setTitle('נושאים', T.t, (LEVELS.find(l => l[0] === TSTATE.lvl) || ['', '', ''])[1]);
 }
 function topicSee(L, T, startAt) {
   L.innerHTML = `<div class="bench"><div class="controls" style="border-top:none"><div class="tp"><button type="button" id="tsPlay">▶ הפעל</button><button type="button" id="tsPrev">שלב קודם</button><button type="button" id="tsNext">שלב הבא</button><button type="button" id="tsAgain">↺ מההתחלה</button></div></div>
@@ -147,9 +147,9 @@ function topicSee(L, T, startAt) {
     <p class="note">להבנה לעומק: ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
   L.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.r)));
   const tn = $('#tsNormal'); if (tn) tn.addEventListener('click', () => { TSTATE.sim = null; topicSee(L, T, startAt); });
-  const sc = (T.scene || aoiScene)($('#tsc'), TSTATE.sim || null); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0; const asked = new Set();
+  const sc = (T.scene || aoiScene)($('#tsc'), TSTATE.sim || null); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0; const asked = new Set(); const noPred = !!TSTATE.noPred;
   /* predict before you see it: in play mode, a step with a prediction pauses until you answer */
-  const askPred = () => { const s = T.steps[si]; if (!s.pred || asked.has(si) || TSTATE.sim) return false; asked.add(si); playing = false; const [q, o, a, why] = s.pred, box = $('#tsp');
+  const askPred = () => { const s = T.steps[si]; if (!s.pred || asked.has(si) || TSTATE.sim || noPred) return false; asked.add(si); playing = false; const [q, o, a, why] = s.pred, box = $('#tsp');
     box.hidden = false; box.innerHTML = `<p><b>לפני שממשיכים, נבא:</b> ${q}</p><div class="tp">${o.map((x, j) => `<button type="button" data-p="${j}">${x}</button>`).join('')}</div><p class="tqr" hidden></p>`;
     box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.p === a; box.querySelectorAll('[data-p]').forEach(x => { x.disabled = true; x.setAttribute('aria-pressed', x === b); }); const r = box.querySelector('.tqr'); r.hidden = false; r.innerHTML = (ok ? '<span class="good">ניבוי נכון.</span> ' : '<span class="bad">לא בדיוק, וזה בדיוק הרגע ללמוד.</span> ') + why + ' <button type="button" class="linkbtn" id="tspGo">המשך וראה ←</button>'; $('#tspGo').addEventListener('click', () => { box.hidden = true; playing = true; show(); }); })); show(); return true; };
   const show = () => { const s = T.steps[si]; $('#tsr').innerHTML = `<b>${si + 1}. ${s.t}.</b> ${s.what}<br><b>למה:</b> ${s.why} <span dir="ltr" class="num">${s.num}</span> · <b>מה בודקים:</b> ${s.check}`; L.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-current', +b.dataset.s === si ? 'step' : 'false')); $('#tsPlay').textContent = playing ? '❚❚ עצור' : '▶ הפעל'; sc.paint([si, u]); };
