@@ -2,6 +2,13 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.13.0] — 2026-11-07
+
+- **Topic: the vacuum table.** A real pump-down model: a venturi pumping toward its ultimate pressure against leak conductances, dp/dt = −(S/V)(p − p_ult) + (C/V)(p_atm − p), with the curve and the −60 kPa threshold on screen. Eight steps from placing the panel to lifting it. Faults replay their curve: an uncovered zone and no supply air never reach the threshold; a seal leak reaches it slower; a clogged filter much slower. Derivations: the pump-down equation, the steady pressure and time constant, the time to threshold, the hold-down force.
+- **Topic: the safety chain.** Two channels through the door and the E-stop, a safety relay that enables only with both channels closed, contactor feedback (EDM) and a manual reset; STO to the drives and the laser shutter in the same chain. Eight steps from running to reset, with the channels drawn live. Faults: reset not working (discrepancy, welded contactor), a door that opens without stopping (bypass, STO not wired), nuisance stops. Derivations: response time, stopping distance (45 mm at 0.5 m/s), discrepancy time, and why two channels.
+- **The start page now features the process simulator**, with a button for every topic.
+- Topics suite: 752 checks, including the vacuum and safety models against every fault leaf. Two narration numbers were corrected to what the model gives (time to threshold 2 s, not 1.6 s; an uncovered zone settles near 25 kPa, not 45).
+
 ## [2.12.0] — 2026-11-07
 
 The process simulator now follows an evidence-based learning model, applied to all four topics.
