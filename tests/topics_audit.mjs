@@ -54,6 +54,13 @@ for (const T of topics) {
   ok(r.enc.alarm && r.enc.emax > 0.05, 'servo preset: reversed encoder runs away'); ok(r.fric.alarm, 'servo preset: mechanical drag gives a following-error alarm');
   ok(r.osc.ring > 20 && r.n.ring === 0, 'servo preset: high gain without D keeps ringing; normal does not'); ok(r.ki.ring > r.n.ring + 10, 'servo preset: too much I keeps it swinging around the target');
   ok(r.heavy.ovs > 1.5 * r.n.ovs, 'servo preset: heavier load overshoots more');
+  /* vacuum and safety models: each preset shows what its leaf says */
+  const vs = await pg.evaluate(() => ({ n: vacCalc(), bare: vacCalc({ C: 3 }), air: vacCalc({ S: 0 }), seal: vacCalc({ C: 0.4 }), filt: vacCalc({ S: 0.4 }),
+    run: safeLogic({ estop: true, door: true, latched: true, edm: true }), open: safeLogic({ estop: true, door: false, latched: true, edm: true }), cut: safeLogic({ estop: true, door: true, latched: true, edm: true, cut2: true }), weld: safeLogic({ estop: true, door: true, latched: true, edm: false }), unl: safeLogic({ estop: true, door: true, latched: false, edm: true }), stop: stopCalc() }));
+  ok(vs.n.reach && vs.n.tth < 3, 'vacuum normal: reaches −60 kPa within 3 s'); ok(!vs.bare.reach, 'vacuum preset: an uncovered zone never reaches the threshold'); ok(!vs.air.reach, 'vacuum preset: no supply air never reaches the threshold');
+  ok(vs.seal.reach && vs.seal.tth > 1.5 * vs.n.tth, 'vacuum preset: a seal leak reaches it, but slower'); ok(vs.filt.tth > 2 * vs.n.tth, 'vacuum preset: a clogged filter is much slower');
+  ok(vs.run.out && !vs.open.out && !vs.cut.out && vs.cut.disc && !vs.weld.out && !vs.unl.out && vs.unl.ready, 'safety logic: runs only with both channels, EDM and reset; discrepancy and welded contactor block; closing the door alone does not restart');
+  ok(Math.abs(vs.stop.s - 0.045) < 1e-9, 'safety: stopping distance 45 mm at 0.5 m/s');
   /* the learning model: map, predictions, checks, self-explanation, faults in three grades, integration, review */
   const L2 = await pg.evaluate(() => TOPICS.map(T => ({ id: T.id, where: T.where, lit: T.lit, preds: T.steps.filter(s => s.pred).map(s => [s.id, s.pred]), checks: T.checks, explain: T.explain, solo: T.faults.map(f => [f.id, f.solo, Object.keys(f.nodes)]), integ: T.integ, ids: TOPICS.map(x => x.id) })));
   for (const X of L2) {
