@@ -6937,6 +6937,197 @@ function servoScene(cv, sim) {
   return { V, paint };
 }
 TOPICS.push({ id: 'servo', t: 'ציר סרבו: מפקודה לתנועה', punch: 'הבקר אומר איפה הציר צריך להיות, האנקודר אומר איפה הוא באמת, וה-PID הופך את ההפרש לכוח במנוע. זו לולאה שחוזרת אלפי פעמים בשנייה.', analogy: 'כמו נהג ששומר מרחק מהרכב שלפניו: מסתכל (אנקודר), משווה (שגיאה), ולוחץ על הדוושה לפי כמה רחוק (P), כמה מהר המרחק משתנה (D), וכמה זמן הוא כבר רחוק (I).', steps: SV_STEPS, faults: SV_FAULTS, quiz: SV_QUIZ, math: SV_MATH, scene: servoScene, deep: [['s2/servo', 'ציר סרבו, מאפס'], ['s1/encoder', 'אנקודר'], ['s1/screw', 'בורג כדורי ו-backlash'], ['mot/sync', 'מנוע סרבו כמכונה סנכרונית'], ['s1/brake', 'בלם החזקה']] });
+
+/* shared helper for topic scenes */
+function tBox(P, x0, x1, y0, y1, z0, z1, fill, alpha, stroke) { const p = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]]; [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [0, 3, 7, 4]].forEach(f => P.push({ pts: f.map(i => p[i]), fill, alpha, stroke })); }
+
+/* ---- topic 3: AOS, repairing a short ---- */
+/* the same laser constants as LZ; a cut across the short is a row of overlapping spots */
+const AP = { E: 5, N: 10, dz: 0, W: 10, ov: 0.3, off: 0, loss: 0, dmg: 3 };
+/* the recipe plans the spots from the nominal crater; the cut happens with the actual one (defocus, a weaker laser, an offset) */
+function aosPlan(o = {}) {
+  const p = Object.assign({}, AP, o), nom = craterCalc(p.E, 0, p.N), act = craterCalc(p.E * (1 - p.loss), p.dz, p.N);
+  const pitch = nom.Dc * (1 - p.ov), n = p.forceN || (nom.Dc > 0 ? Math.max(1, Math.ceil((p.W - nom.Dc) / Math.max(pitch, 1e-9)) + 1) : 0);
+  const centers = p.forceN ? [p.off] : Array.from({ length: n }, (_, i) => -p.W / 2 + nom.Dc / 2 + i * pitch + p.off);
+  const Dc = act.Dc; let reach = -p.W / 2, cleared = n > 0 && Dc > 0;
+  for (const x of [...centers].sort((a, b) => a - b)) { if (x - Dc / 2 > reach + 1e-9) { cleared = false; break; } reach = Math.max(reach, x + Dc / 2); }
+  if (reach < p.W / 2 - 1e-9) cleared = false;
+  const damage = act.depth - LZ.tcu > p.dmg;
+  return { ...act, nomDc: nom.Dc, pitch, n, centers, cleared, damage, ok: cleared && !damage, p };
+}
+const AOS_STEPS = [
+  { id: 'list', t: 'רשימת פגמים', lead: 'list', dur: 2.5, what: 'המכונה מקבלת מה-AOI והאימות רשימה: איפה כל פגם, ומה הסוג שלו. כאן: קצר בין שני מוליכים.', why: 'AOS לא מחפשת פגמים. היא מתקנת את מה שכבר נמצא.', num: 'מיקום ב-µm, סוג: קצר', check: 'מזהה פאנל תואם לרשימה' },
+  { id: 'reg', t: 'רישום', lead: 'camera', dur: 3, what: 'כמו ב-AOI: fiducials, ואז טרנספורמציה מקואורדינטות ה-AOI לקואורדינטות של המכונה הזו.', why: 'שתי מכונות שונות, שני צירים שונים. בלי רישום, הלייזר יורה במקום הלא נכון.', num: 'שארית < 3 µm', check: 'שארית הרישום' },
+  { id: 'look', t: 'הגעה וזיהוי', lead: 'camera', dur: 3, what: 'הראש נוסע לפגם, מצלם אותו בהגדלה, ומאשר שזה באמת קצר ושהוא איפה שצריך.', why: 'תמונה לפני כל פעולה בלתי הפיכה.', num: 'הגדלה גבוהה, FOV קטן', check: 'פוקוס, תאורה' },
+  { id: 'meas', t: 'מדידה תלת-ממדית', lead: 'height', dur: 3, what: 'חיישן גובה מודד את עובי הנחושת ואת גובה הלמינציה סביב הקצר.', why: 'האנרגיה ומספר הפולסים נבחרים לפי העובי.', num: 'נחושת 5 µm', check: 'כיול חיישן הגובה' },
+  { id: 'plan', t: 'תכנון החיתוך', lead: 'spots', dur: 3.5, what: 'המכונה מתכננת שורת כתמים חופפים לרוחב הקצר, כך שהחלק שנחתך עד הסוף בכל כתם (D_c) מכסה את כל הרוחב.', why: 'הקרן גאוסית: כתם אחד חותך עד הסוף רק במרכזו.', num: '5 µJ · 10 פולסים · 2 כתמים', check: 'מתכון לפי עובי וחומר' },
+  { id: 'fire', t: 'ירי', lead: 'laser', dur: 3.5, what: 'התריס נפתח רק כשכל תנאי הבטיחות סגורים. פולסי UV יורים, כתם אחרי כתם, ויניקה מוציאה את האדים.', why: 'בלי יניקה, אדים מתיישבים על החלון והעוצמה יורדת.', num: '355 nm', check: 'interlock של התריס, יניקה' },
+  { id: 'ver', t: 'מדידה חוזרת', lead: 'height', dur: 3, what: 'מצלמים ומודדים שוב. בודקים שהפער נקי לכל הרוחב, בלי שארית ובלי נזק ללמינציה.', why: 'תיקון שלא נמדד אחרי, לא נחשב.', num: 'פער נקי, נזק < 3 µm', check: 'שארית בשוליים' },
+  { id: 'rep', t: 'דוח', lead: 'list', dur: 2.5, what: 'הפגם מסומן כמתוקן או ככישלון, והמכונה עוברת לפגם הבא.', why: 'הנתון חוזר ללקוח ול-yield.', num: 'זמן לתיקון: שניות', check: 'סטטוס בדוח' }
+];
+const AOS_FAULTS = [
+  { id: 'left', step: 'ver', t: 'נשארה נחושת אחרי התיקון', sym: 'המדידה החוזרת מראה שהקצר לא נחתך לגמרי: נשאר פס נחושת דק.', start: 'a',
+    nodes: {
+      a: { q: 'איפה נשארה הנחושת?', o: [['בשולי החיתוך, לשני הצדדים', 'b'], ['בצד אחד בלבד', 'L3'], ['שכבה דקה בכל השטח', 'c']] },
+      b: { q: 'כמה כתמים תוכננו, מול D_c?', o: [['כתם אחד, ו-D_c קטן מרוחב הקצר', 'L1'], ['מספיק כתמים לפי המתכון', 'L2']] },
+      c: { q: 'מה מראה מד ההספק מול הערך בקבלה?', o: [['נמוך ממה שהיה', 'L4'], ['תקין', 'L5']] },
+      L1: { leaf: 'כתם אחד: חיתוך מלא רק במרכזו, והשוליים נשארו.', fix: 'מתכון עם שורת כתמים חופפים, לפי D_c.', pr: 'פרופיל גאוסי: D_c < D.', sim: { E: 4, forceN: 1 }, go: 's1/laser' },
+      L2: { leaf: 'Defocus: הגובה שנמדד לא נכון, והקרן רחבה ונמוכה מדי.', fix: 'בודקים כיול חיישן הגובה, ושטיחות הפאנל באזור.', pr: 'סימפטום אופטי, סיבה במדידה.', sim: { dz: 350 } },
+      L3: { leaf: 'היסט בין המצלמה ללייזר: החיתוך זז לצד אחד.', fix: 'מכיילים את ההיסט בין המצלמה ללייזר על מטרת כיול, ובודקים התחממות.', pr: 'קואורדינטות של שני חיישנים צריכות להתלכד.', sim: { off: 3.5 }, go: 's1/fid' },
+      L4: { leaf: 'חלון מגן מלוכלך, או מקור לייזר שנחלש.', fix: 'מנקים או מחליפים חלון לפי הנוהל, ובודקים יניקה. אחר כך הספק.', pr: 'משווים לנתון מה-ATP.', sim: { loss: 0.3 } },
+      L5: { leaf: 'עובי נחושת גדול מהמתכון (תהליך אחר בלוח הזה).', fix: 'בודקים את העובי שנמדד מול המתכון, ומתאימים פולסים.', pr: 'המתכון שייך לחומר מסוים.' } } },
+  { id: 'burn', step: 'fire', t: 'נזק ללמינציה', sym: 'הקצר נחתך, אבל סביב החיתוך הלמינציה כהה או חרוכה, והמדידה מראה בור עמוק.', start: 'a',
+    nodes: {
+      a: { q: 'מה השתנה לאחרונה?', o: [['מתכון או אנרגיה', 'L1'], ['כלום, ופתאום בכל הלוחות', 'L2']] },
+      L1: { leaf: 'יותר מדי אנרגיה או פולסים: העומק עובר את הנחושת ונכנס ללמינציה.', fix: 'מחזירים למתכון המאושר, ומוסיפים כתם במקום להגביר.', pr: 'חותכים בכמה כתמים, לא בכתם חזק אחד.', sim: { E: 14, N: 20 } },
+      L2: { leaf: 'חומר אחר בלוחות (למינציה רגישה יותר).', fix: 'בודקים עם התהליך, ומתאימים מתכון לחומר.', pr: 'המתכון שייך לחומר מסוים.' } } },
+  { id: 'shut', step: 'fire', t: 'הלייזר לא יורה', sym: 'המכונה מגיעה לירי ועוצרת עם "Shutter not ready".', start: 'a',
+    nodes: {
+      a: { q: 'מה מצב שרשרת הבטיחות?', o: [['פתוחה: דלת או כיסוי', 'L1'], ['סגורה', 'b']] },
+      b: { q: 'הבקר שולח פקודה לתריס, ויש מתח בסליל?', o: [['יש פקודה ואין מתח', 'L2'], ['יש מתח, התריס לא זז', 'L3']] },
+      L1: { leaf: 'כיסוי או דלת פתוחים: ה-interlock חוסם את התריס, בכוונה.', fix: 'סוגרים ומאפסים לפי הנוהל. לא עוקפים.', pr: 'בטיחות לפני תפוקה.', go: 's4' },
+      L2: { leaf: 'חיווט או יציאה של כרטיס.', fix: 'מודדים ביציאה ובסליל, לפי השרטוט.', pr: 'מדידה מחלקת את המערכת לחצי.' },
+      L3: { leaf: 'תריס תקוע או חיישן מצב שלו לא מאשר.', fix: 'מחליפים או מכוונים לפי הנוהל.', pr: 'מאמתים חיישן לפני שמאמינים לו.' } } }
+];
+const AOS_QUIZ = [
+  ['למה AOS צריכה רישום משלה, אם ה-AOI כבר מצאה את המיקום?', ['כי המיקום מה-AOI הוא בקואורדינטות של מכונה אחרת', 'כי הלייזר צריך חימום', 'כי זה מאיץ את התיקון'], 0, 'כל מכונה צריכה למפות את הפאנל לצירים שלה.'],
+  ['למה מתכננים כמה כתמים חופפים ולא כתם אחד חזק?', ['כי זה יפה יותר', 'כי כתם אחד חותך עד הסוף רק במרכז, ואנרגיה גבוהה פוגעת בלמינציה', 'כי הלייזר לא יכול כתם גדול'], 1, 'D_c קטן מ-D, וחיזוק הכתם מעמיק במרכז יותר משהוא מרחיב.'],
+  ['מה התריס מחכה לו לפני ירי?', ['לפקודה בלבד', 'לפקודה וגם לשרשרת בטיחות סגורה', 'לטמפרטורה'], 1, 'Interlock: בלי כיסויים סגורים, אין ירי.'],
+  ['מתי תיקון נחשב מוצלח?', ['כשהלייזר ירה', 'כשהמדידה החוזרת מראה פער נקי לכל הרוחב בלי נזק', 'כשעבר זמן מספיק'], 1, 'רק מדידה אחרי מוכיחה.']
+];
+const AOS_MATH = () => { const a = aosPlan(), b = aosPlan({ E: 4, forceN: 1 }); return [
+  ['כמה רחב החלק שנחתך עד הסוף', `${mM(mR(mS(mI('D'), mI('c')), mO('='), mI('w'), MM.sq(mR(mN('2'), mO('('), mI('ln'), mF(mS(mI('F'), mN('0')), mS(mI('F'), mI('th'))), mO('−'), mF(mI('t'), mR(mI('N'), mI('δ'))), mO(')')))), true)}<p>ב-5 µJ ו-10 פולסים: F₀ = ${a.F0.toFixed(2)} J/cm², D = ${a.D.toFixed(1)} µm, ו-D_c = ${a.Dc.toFixed(2)} µm. קצר ברוחב 10 µm לא נחתך בכתם אחד. ב-4 µJ: D_c = ${b.Dc.toFixed(1)} µm בלבד.</p>`],
+  ['כמה כתמים צריך', `${mM(mR(mI('s'), mO('='), mS(mI('D'), mI('c')), mO('('), mN('1'), mO('−'), mI('ov'), mO(')'), mO(',&#8195;'), mI('n'), mO('='), mO('⌈'), mF(mR(mI('W'), mO('−'), mS(mI('D'), mI('c'))), mI('s')), mO('⌉'), mO('+'), mN('1')), true)}<p>עם חפיפה של 30%: s = ${a.pitch.toFixed(2)} µm, ולכן n = ${a.n} כתמים לקצר של 10 µm. כל כתם חותך קטע של D_c, והקטעים חופפים, כך שכל הרוחב נחתך.</p>`],
+  ['נזק ללמינציה', `${mM(mR(mS(mI('d'), mI('lam')), mO('='), mI('N'), mI('δ'), mI('ln'), mF(mS(mI('F'), mN('0')), mS(mI('F'), mI('th'))), mO('−'), mI('t')), true)}<p>העומק במרכז פחות עובי הנחושת הוא כמה הקרן נכנסה ללמינציה. מהגזירה למעלה זה גם Nδ·D_c²/(2w²): כל מיקרון נוסף של D_c עולה בעומק. ב-5 µJ: ${(a.depth - LZ.tcu).toFixed(1)} µm. כתם חזק בהרבה (14 µJ, 20 פולסים) נכנס ${(aosPlan({ E: 14, N: 20 }).depth - LZ.tcu).toFixed(1)} µm, מעל סף הנזק לדוגמה של 3 µm.</p>`],
+  ['היסט בין מצלמה ללייזר', `<p>אם החיתוך זז ב-δ, הכתם האחרון כבר לא מגיע לשפה הרחוקה של הקצר. התנאי:</p>${mM(mR(mS(mI('x'), mI('last')), mO('+'), mF(mS(mI('D'), mI('c')), mN('2')), mO('+'), mI('δ'), mO('≥'), mF(mI('W'), mN('2'))), true)}<p>ב-δ = 3.5 µm, עם שני כתמים, השוליים בצד אחד נשארים. לכן מכיילים את ההיסט על מטרה, ובודקים אחרי חימום.</p>`]
+]; };
+{ const a = aosPlan(); VERIFY.push(['AOS F0', a.F0, 2 * 5 / (Math.PI * 36) * 100, 1e-9], ['AOS damage = Nδ·Dc²/(2w²)', a.depth - LZ.tcu, 10 * 0.4 * a.Dc ** 2 / (2 * 36), 1e-9], ['AOS n spots', a.n, 2, 0], ['AOS cleared', a.cleared ? 1 : 0, 1, 0], ['AOS 4uJ Dc', craterCalc(4, 0, 10).Dc, 4.65, 0.01]); }
+function aosScene(cv, sim) {
+  const V = view3(cv, { yaw: -0.5, pitch: 0.75, dist: 19, fov: 470, oy: 30, onView: () => paint(V.last || [0, 0]) });
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const plan = aosPlan(sim || {});
+  const S = 0.18;                                    /* 1 µm → 0.18 scene units */
+  function paint([si, u]) {
+    V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const st = AOS_STEPS[si], P = [];
+    tBox(P, -6, 6, -4.5, 4.5, -0.6, -0.2, tint, 0.5, line);                         /* laminate */
+    tBox(P, -6, 6, -4.2, -1.8, -0.2, -0.2 + 5 * S, sheet, 0.95, ink); tBox(P, -6, 6, 1.8, 4.2, -0.2, -0.2 + 5 * S, sheet, 0.95, ink);   /* two traces */
+    paint3(V, P, false);
+    /* the short: copper between the traces, cut where the spots cleared it */
+    const done = si > 5 || (si === 5 && u > 0.98), firing = si === 5, nShot = firing ? Math.floor(u * plan.n * 1.0001) : done ? plan.n : 0;
+    const Q = [], hw = AP.W / 2;
+    const left = []; let cur = -hw;
+    plan.centers.slice(0, nShot).sort((a, b) => a - b).forEach(x => { if (x - plan.Dc / 2 > cur) left.push([cur, x - plan.Dc / 2]); cur = Math.max(cur, x + plan.Dc / 2); }); if (cur < hw) left.push([cur, hw]);
+    const segs = nShot ? left : [[-hw, hw]];
+    segs.forEach(([a, b]) => { if (b - a > 0.05) tBox(Q, a * S, b * S, -1.8, 1.8, -0.2, -0.2 + 5 * S * (nShot ? 0.35 : 1), mech, 0.85, mech); });
+    if (nShot) { const tag = plan.ok ? live : mech; tBox(Q, -hw * S, hw * S, -0.25, 0.25, -0.2, -0.19, tag, 0.25, tag); }
+    paint3(V, Q, false);
+    /* planned spots and the beam */
+    if (si >= 4) plan.centers.forEach((x, i) => { const q = V.proj([x * S, 0, -0.2 + 5 * S + 0.02]); ctx.strokeStyle = i < nShot ? ink : live; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(q[0], q[1], Math.max(2, (i < nShot ? plan.Dc : plan.nomDc) / 2 * S * 60), Math.max(1, (i < nShot ? plan.Dc : plan.nomDc) / 2 * S * 30), 0, 0, Math.PI * 2); ctx.stroke(); });
+    const hx = si === 5 && plan.n ? (plan.centers[Math.min(plan.n - 1, nShot)] || 0) * S : 0, top = V.proj([hx, 0, 3.4]);
+    const H = []; tBox(H, hx - 0.6, hx + 0.6, -0.6, 0.6, 2.6, 4.2, st.lead === 'laser' || st.lead === 'camera' || st.lead === 'height' ? live : ink, 0.85, ink); paint3(V, H);
+    if (si === 5 && Math.floor(u * 40) % 2 === 0) { const b = V.proj([hx, 0, -0.2 + 5 * S]); ctx.strokeStyle = live; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(top[0], top[1] + 20); ctx.lineTo(b[0], b[1]); ctx.stroke(); }
+    if (si === 3 || si === 6) { const y = -3 + u * 6, a = V.proj([-6, y, 0.6]), b = V.proj([6, y, 0.6]); ctx.strokeStyle = live; ctx.setLineDash([5, 4]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]); }
+    ctx.fillStyle = text; ctx.font = '600 13px system-ui, sans-serif';
+    ctx.fillText(`E = ${plan.p.E} µJ · N = ${plan.p.N} · Δz = ${plan.p.dz} µm · planned D_c = ${plan.nomDc.toFixed(1)} µm · actual ${plan.Dc.toFixed(1)} µm · spots = ${plan.n}${(si >= 6) ? ' · ' + (plan.ok ? 'gap clean' : plan.damage ? 'laminate damage' : 'copper left') : ''}`, 14, 22);
+    if (sim) { ctx.fillStyle = mech; ctx.fillText('FAULT SIMULATION', 14, 40); }
+    ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = text; ctx.fillText('trace', V.proj([-5.5, -3, 0.8])[0], V.proj([-5.5, -3, 0.8])[1]); ctx.fillText('short (10 µm wide)', V.proj([2, 0, 1])[0], V.proj([2, 0, 1])[1]);
+  }
+  return { V, paint };
+}
+TOPICS.push({ id: 'aos', t: 'AOS: תיקון קצר', punch: 'המכונה מקבלת מיקום של פגם, מוצאת אותו בעצמה, מודדת אותו, מתכננת שורת כתמים, יורה, ומודדת שוב. תיקון שלא נמדד אחרי, לא נחשב.', analogy: 'כמו מנתח שקיבל צילום: קודם מוצא את המקום המדויק בגוף שמולו, מודד, חותך במשיכות קטנות, ובודק אחרי.', steps: AOS_STEPS, faults: AOS_FAULTS, quiz: AOS_QUIZ, math: AOS_MATH, scene: aosScene, deep: [['s2/aos', 'מכונת AOS, מאפס'], ['s1/laser', 'לייזר התיקון'], ['s1/fid', 'רישום'], ['pcb/def', 'סוגי פגמים']] });
+
+/* ---- topic 4: first power-up of a machine, and ATP ---- */
+const BU = { rho: 0.0175, len: 10, A: 0.75, I: 3, V: 24, Vmin: 21.6, alpha: 11.7e-6, L: 500, dT: 2, spec: 2 };
+function buDrop(o = {}) { const p = Object.assign({}, BU, o), R = 2 * p.rho * p.len / p.A, dV = p.I * R; return { R, dV, Vend: p.V - dV, ok: p.V - dV >= p.Vmin }; }
+function buRepeat(seed = 7, drift = 0, n = 30) {      /* repeatability: n approaches to the same point, µm */
+  let s = seed; const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const g = () => { let a = 0; for (let i = 0; i < 12; i++) a += rnd(); return a - 6; };
+  const x = Array.from({ length: n }, (_, i) => 0.5 * g() + drift * i / (n - 1));
+  const m = x.reduce((a, b) => a + b, 0) / n, sd = Math.sqrt(x.reduce((a, b) => a + (b - m) ** 2, 0) / (n - 1));
+  return { x, m, sd, r3: 3 * sd, range: Math.max(...x) - Math.min(...x), pass: Math.max(...x.map(v => Math.abs(v - m))) <= BU.spec && 3 * sd <= BU.spec };
+}
+const BU_STEPS = [
+  { id: 'vis', t: 'בדיקה בלי מתח', lead: 'cabinet', dur: 3, what: 'בלי מתח: חיווט מול השרטוט, רציפות הארקה (PE) לכל גוף מתכת, בידוד, ומומנט על ברגים.', why: 'טעות חיווט שמתגלה בלי מתח היא תיקון. עם מתח היא נזק.', num: 'רציפות PE: ערך נמוך, לפי התקן', check: 'שרטוט משוחרר, מד רציפות' },
+  { id: 'v24', t: 'מתח בקרה בלבד', lead: 'psu', dur: 3, what: 'מדליקים רק את ה-24V. מודדים את המתח בספק ובקצה הרחוק של כל ענף.', why: 'כבל ארוך ודק מפיל מתח. מכשיר שמקבל 21V במקום 24V מתנהג מוזר.', num: '24V בספק, ≥ 21.6V בקצה', check: 'מתח בקצה הענף הרחוק' },
+  { id: 'safe', t: 'שרשרת הבטיחות', lead: 'safety', dur: 3, what: 'בודקים כל רכיב בשרשרת לבד: כל עצירת חירום, כל דלת, STO. כל אחד חייב לפתוח את השרשרת.', why: 'שרשרת שלא נבדקה רכיב-רכיב יכולה להסתיר מגע מגושר.', num: 'כל רכיב לבד', check: 'ממסר הבטיחות, נוריות' },
+  { id: 'com', t: 'תקשורת', lead: 'drives', dur: 2.5, what: 'הבקר רואה את כל הדרייברים וכרטיסי ה-I/O ברשת, עם הכתובות הנכונות.', why: 'בלי זה, אין דרך לשלוט במשהו.', num: 'כל הצמתים online', check: 'נוריות Link, כתובות' },
+  { id: 'ax', t: 'ציר אחד, בזהירות', lead: 'axis', dur: 4, what: 'ציר אחד, מגבלת זרם נמוכה, מהירות נמוכה: jog קצר, בדיקת כיוון מנוע מול אנקודר, מתגי גבול, ואז homing.', why: 'כיוון אנקודר הפוך מתגלה בתנועה קטנה ואיטית, לא במהירות מלאה.', num: 'מגבלת זרם נמוכה', check: 'כיוון, גבולות, home' },
+  { id: 'tune', t: 'כיוונון וכיול', lead: 'axis', dur: 3, what: 'כיוונון לולאת הסרבו לכל ציר, כיול מצלמה וחיישנים, אחרי חימום.', why: 'מכונה קרה ומכונה חמה שונות במיקרונים.', num: 'חימום לפני כיול', check: 'זמן חימום, טמפרטורה' },
+  { id: 'dry', t: 'מחזור יבש', lead: 'axis', dur: 3, what: 'מריצים את כל המחזור בלי פאנל, ואז עם פאנל בדיקה.', why: 'כל ציר עובד לבד לא מבטיח שהם לא מתנגשים יחד.', num: 'מחזור מלא', check: 'רצף, זמנים, התנגשויות' },
+  { id: 'atp', t: 'ATP', lead: 'stats', dur: 4, what: 'מדידות מול המפרט, בנוהל קבוע: למשל 30 הגעות לאותה נקודה, ומהן פיזור. כל תוצאה נרשמת.', why: 'הלקוח קונה מספרים, לא תחושה.', num: '30 מדידות, 3σ ≤ ±2 µm', check: 'נוהל, מכשיר מכויל, תיעוד' }
+];
+const BU_FAULTS = [
+  { id: 'drop', step: 'v24', t: 'ה-24V צונח כשמפעילים דרייברים', sym: 'המתח בקצה הענף נמוך, ונופל עוד יותר כשמאפשרים את הדרייברים. לפעמים כרטיס מתאפס.', start: 'a',
+    nodes: {
+      a: { q: 'מה המתח בספק עצמו, מול הקצה הרחוק?', o: [['בספק 24V, בקצה הרבה פחות', 'b'], ['גם בספק נמוך', 'c']] },
+      b: { q: 'מה חתך הכבל ואורכו, מול הזרם?', o: [['כבל ארוך ודק לזרם הזה', 'L1'], ['חתך ואורך סבירים', 'L2']] },
+      c: { q: 'מה קורה כשמנתקים את הדרייברים מה-24V?', o: [['המתח חוזר', 'L3'], ['עדיין נמוך', 'L4']] },
+      L1: { leaf: 'מפל מתח בכבל: ΔV = I·2ρL/A.', fix: 'כבל עבה יותר, הזנה מקרוב יותר, או ענף נפרד. מודדים שוב בקצה.', pr: 'מודדים בצרכן, לא בספק.', sim: { len: 25, A: 0.5 } },
+      L2: { leaf: 'מגע רופף או הדק שרוף בדרך: התנגדות מקומית.', fix: 'מודדים מפל מתח על כל הדק לאורך הענף בזמן עומס.', pr: 'מדידה מחלקת את המערכת לחצי.' },
+      L3: { leaf: 'הספק קטן מדי לזרם ההתנעה של הדרייברים (קבלים בכניסה).', fix: 'ספק גדול יותר, או הזנה נפרדת ללוגיקה של הדרייברים.', pr: 'זרם התנעה, לא רק זרם עבודה.', go: 's1/psu' },
+      L4: { leaf: 'קצר חלקי או עומס יתר בענף אחר.', fix: 'מנתקים ענפים אחד-אחד עד שהמתח חוזר.', pr: 'חצי-חצי עד שמוצאים.' } } },
+  { id: 'run', step: 'ax', t: 'הציר בורח ב-jog הראשון', sym: 'ב-jog הראשון הציר מאיץ לכיוון אחד ועוצר רק בהתראה או בגבול.', start: 'a',
+    nodes: {
+      a: { q: 'האנקודר סופר בכיוון שהמנוע זז?', o: [['לא, הפוך', 'L1'], ['כן', 'b']] },
+      b: { q: 'שינית חיווט פאזות של המנוע?', o: [['כן, U V W הוחלפו', 'L2'], ['לא', 'L3']] },
+      L1: { leaf: 'כיוון אנקודר הפוך: משוב חיובי.', fix: 'מתקנים חיווט A/B או פרמטר כיוון. בודקים שוב עם מגבלת זרם נמוכה.', pr: 'קודם כיוון, אחר כך מהירות.', go: 'topic/servo' },
+      L2: { leaf: 'סדר פאזות שגוי במנוע סרבו: הקומוטציה לא מתאימה.', fix: 'מחזירים לסדר בשרטוט, ומריצים זיהוי קומוטציה לפי הנוהל.', pr: 'סדר פאזות הוא חלק מהמשוב.', go: 'mot/sync' },
+      L3: { leaf: 'פרמטר מנוע או אנקודר לא תואם (רזולוציה, סוג).', fix: 'משווים פרמטרים לדף הנתונים של המנוע והאנקודר.', pr: 'הגדרה לפני חומרה.' } } },
+  { id: 'atp', step: 'atp', t: 'ATP חוזרות נכשל', sym: 'מבחן החזרתיות נכשל: הפיזור גדול מ-±2 µm.', start: 'a',
+    nodes: {
+      a: { q: 'איך נראות 30 המדידות לפי הסדר?', o: [['זוחלות לכיוון אחד לאורך המבחן', 'L1'], ['פיזור אקראי רחב', 'b'], ['שתי קבוצות נפרדות', 'L3']] },
+      b: { q: 'הנוהל קובע הגעה מאותו כיוון בכל פעם?', o: [['לא, מגיעים משני הכיוונים', 'L2'], ['כן', 'L4']] },
+      L1: { leaf: 'סחיפה תרמית: המכונה לא התחממה לפני המבחן.', fix: 'חימום לפי הנוהל, ובודקים טמפרטורה לאורך המבחן.', pr: 'ΔL = α·L·ΔT.', sim: { drift: 6 }, go: 's1/thermal' },
+      L2: { leaf: 'Backlash: הגעה משני כיוונים מוסיפה את הרווח לפיזור.', fix: 'הגעה מכיוון אחד לפי הנוהל, ובודקים backlash בנפרד.', pr: 'מודדים דבר אחד בכל פעם.', go: 's1/screw' },
+      L3: { leaf: 'משהו זז בין שני מצבים: ברג רופף בתושבת או במכשיר המדידה.', fix: 'מהדקים לפי המומנט, ומודדים שוב.', pr: 'קודם המדידה עצמה.' },
+      L4: { leaf: 'כיוונון רועש או רעידות מהסביבה.', fix: 'בודקים כיוונון וזמן התייצבות לפני כל מדידה, ורעידות ברצפה.', pr: 'קוראים רק אחרי In-position.', go: 'topic/servo' } } }
+];
+const BU_QUIZ = [
+  ['למה בודקים חיווט ורציפות הארקה לפני שמדליקים מתח?', ['כי זה מהיר יותר', 'כי טעות בלי מתח היא תיקון, ועם מתח היא נזק', 'כי כך כתוב בשרטוט'], 1, 'מלמטה למעלה: קודם מה שלא מסוכן לבדוק.'],
+  ['איפה מודדים את ה-24V?', ['רק בספק', 'בספק ובקצה הרחוק של כל ענף', 'רק בבקר'], 1, 'מפל בכבל מראה רק בקצה.'],
+  ['למה ה-jog הראשון איטי ועם מגבלת זרם נמוכה?', ['כדי לחסוך חשמל', 'כדי שכיוון שגוי יתגלה בלי נזק', 'כי ככה הבקר מתחיל'], 1, 'משוב הפוך במהירות מלאה הוא התנגשות.'],
+  ['ATP חוזרות נכשל והמדידות זוחלות לכיוון אחד. מה בודקים קודם?', ['חימום', 'כיוונון', 'מכשיר המדידה'], 0, 'זחילה עקבית לאורך זמן מצביעה על טמפרטורה.']
+];
+const BU_MATH = () => { const d = buDrop(), r = buRepeat(), r2 = buRepeat(7, 6); return [
+  ['מפל מתח בכבל', `${mM(mR(mI('R'), mO('='), mF(mR(mN('2'), mI('ρ'), mI('L')), mI('A')), mO('='), mF(mR(mN('2'), mO('·'), mN('0.0175'), mO('·'), mN('10')), mN('0.75')), mO('≈'), mN(d.R.toFixed(3)), mI('Ω'), mO(',&#8195;'), mI('ΔV'), mO('='), mI('I'), mI('R'), mO('='), mN('3'), mO('·'), mN(d.R.toFixed(3)), mO('≈'), mN(d.dV.toFixed(2)), mI('V')), true)}<p>הלוך וחזור (2L), נחושת ρ = 0.0175 Ω·mm²/m, כבל 10 m בחתך 0.75 mm², 3 A. בקצה: ${d.Vend.toFixed(2)} V. זה מעל 21.6 V (‎−10%), אבל כבל של 25 m ב-0.5 mm² כבר נותן ${buDrop({ len: 25, A: 0.5 }).Vend.toFixed(1)} V.</p>`],
+  ['למה מחממים לפני כיול', `${mM(mR(mI('ΔL'), mO('='), mI('α'), mI('L'), mI('ΔT'), mO('='), mN('11.7'), mO('·'), mSup(mN('10'), mN('−6')), mO('·'), mN('500'), mI('mm'), mO('·'), mN('2'), mI('°C'), mO('≈'), mN('11.7'), mI('µm')), true)}<p>שתי מעלות על חצי מטר פלדה הן כמעט 12 µm, פי שש מהמפרט. לכן מחממים ומודדים טמפרטורה לאורך המבחן.</p>`],
+  ['גודל הספק', `${mM(mR(mS(mI('I'), mI('PSU')), mO('≥'), mN('1.25'), mO('·'), mI('Σ'), mS(mI('I'), mI('i')), mO('='), mN('1.25'), mO('·'), mO('('), mN('2'), mO('+'), mN('1'), mO('+'), mN('1'), mO(')'), mO('='), mN('5'), mI('A'), mO(',&#8195;'), mI('P'), mO('='), mN('24'), mO('·'), mN('5'), mO('='), mN('120'), mI('W')), true)}<p>לוגיקה של דרייברים 2 A, I/O 1 A, חיישנים 1 A (ערכי דוגמה), עם 25% מרווח. ועוד בודקים את זרם ההתנעה של הקבלים בכניסת הדרייברים, שיכול להיות גבוה בהרבה לרגע.</p>`],
+  ['חזרתיות: ממוצע, סטיית תקן ו-3σ', `${mM(mR(mI('x̄'), mO('='), mF(mN('1'), mI('n')), mI('Σ'), mS(mI('x'), mI('i')), mO(',&#8195;'), mI('σ'), mO('='), MM.sq(mF(mR(mI('Σ'), mO('('), mS(mI('x'), mI('i')), mO('−'), mI('x̄'), mSup(mO(')'), mN('2'))), mR(mI('n'), mO('−'), mN('1'))))), true)}<p>30 הגעות לאותה נקודה (נתונים מדומים לדוגמה): σ = ${r.sd.toFixed(2)} µm, 3σ = ${r.r3.toFixed(2)} µm, ${r.pass ? 'עובר' : 'נכשל'} מול ±2 µm. עם זחילה תרמית של 6 µm לאורך המבחן: 3σ = ${r2.r3.toFixed(1)} µm, נכשל.</p>`]
+]; };
+{ const d = buDrop(); VERIFY.push(['BU PSU A', 1.25 * (2 + 1 + 1), 5, 1e-12], ['BU PSU W', 24 * 5, 120, 0], ['BU R', d.R, 0.4667, 0.0005], ['BU dV', d.dV, 1.4, 0.005], ['BU dL um', BU.alpha * BU.L * BU.dT * 1000, 11.7, 0.01]); }
+function buScene(cv, sim) {
+  const V = view3(cv, { yaw: -0.6, pitch: 0.5, dist: 13, fov: 450, ox: 110, onView: () => paint(V.last || [0, 0]) });
+  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const d = buDrop(sim || {}), rep = buRepeat(7, (sim && sim.drift) || 0);
+  function paint([si, u]) {
+    V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
+    const P = [], on = k => si >= k;
+    tBox(P, -4, 3, -2.5, 2.5, -1.4, -1.1, tint, 0.45, line);                                         /* machine base */
+    tBox(P, 3.4, 5.2, -1.6, 1.6, -1.4, 2.6, si === 0 ? live : tint, 0.35, si === 0 ? live : line);    /* cabinet */
+    tBox(P, 3.6, 5.0, -1.3, -0.5, 1.6, 2.3, on(1) ? live : sheet, on(1) ? 0.6 : 0.9, ink);           /* PSU */
+    tBox(P, 3.6, 5.0, -0.3, 0.5, 1.6, 2.3, on(2) ? (si === 2 && Math.floor(u * 6) % 2 ? mech : live) : sheet, on(2) ? 0.6 : 0.9, ink);   /* safety relay */
+    for (let k = 0; k < 3; k++) tBox(P, 3.6 + k * 0.48, 3.98 + k * 0.48, -1.3, 0.5, 0.3, 1.3, on(3) ? live : sheet, on(3) ? 0.45 : 0.9, ink);   /* drives */
+    const ax = si >= 4 ? (si === 4 ? Math.sin(u * Math.PI) * 0.8 : si === 7 ? Math.sin(u * 30) * 1.6 : Math.sin(u * Math.PI * 2) * 2) : 0;
+    tBox(P, -3.8, 2.8, -0.3, 0.3, -1.1, -0.8, tint, 0.8, line);
+    tBox(P, ax - 0.7, ax + 0.7, -1.0, 1.0, -0.8, -0.2, on(4) ? live : tint, 0.8, ink);
+    paint3(V, P);
+    /* the checklist */
+    ctx.font = '12px system-ui, sans-serif';
+    BU_STEPS.forEach((s, k) => { ctx.fillStyle = k < si ? ink : k === si ? live : line; ctx.fillText((k < si ? '✓ ' : k === si ? '▸ ' : '· ') + (k + 1) + '. ' + s.id, 14, 50 + k * 18); });
+    ctx.fillStyle = text; ctx.font = '600 13px system-ui, sans-serif';
+    if (si === 1) ctx.fillText(`24 V at the PSU · ${d.Vend.toFixed(2)} V at the far end (ΔV ${d.dV.toFixed(2)} V) · ${d.ok ? 'OK' : 'below 21.6 V'}`, 14, 22);
+    else if (si === 7) {
+      const n = Math.max(1, Math.round(u * 30)), x0 = 150, y0 = 30, w = 220, h = 90; ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(x0, y0, w, h);
+      [BU.spec, -BU.spec].forEach(sp => { const y = y0 + h / 2 - sp / 8 * h; ctx.strokeStyle = mech; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + w, y); ctx.stroke(); ctx.setLineDash([]); });
+      rep.x.slice(0, n).forEach((v, i) => { ctx.fillStyle = Math.abs(v - rep.m) > BU.spec ? mech : live; ctx.beginPath(); ctx.arc(x0 + 6 + i / 29 * (w - 12), y0 + h / 2 - v / 8 * h, 3, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = text; ctx.fillText(`repeatability: ${n}/30 · 3σ = ${rep.r3.toFixed(2)} µm · ${rep.pass ? 'PASS' : 'FAIL'} (±2 µm)`, 14, 22);
+    } else ctx.fillText((si + 1) + '/8 · ' + BU_STEPS[si].id, 14, 22);
+    if (sim) { ctx.fillStyle = mech; ctx.fillText('FAULT SIMULATION', 14, 40); }
+  }
+  return { V, paint };
+}
+TOPICS.push({ id: 'bringup', t: 'הפעלה ראשונה של מכונה ו-ATP', punch: 'לפני שמכונה זזה, מוכיחים שכל שכבה עובדת, מלמטה למעלה: חיווט, מתחים, בטיחות, תקשורת, כל ציר לבד, ורק אז הכול יחד. ובסוף מוכיחים במספרים.', analogy: 'כמו טייס לפני המראה: רשימת בדיקות קבועה, מלמטה למעלה, ולא מדלגים על שלב גם כשממהרים.', steps: BU_STEPS, faults: BU_FAULTS, quiz: BU_QUIZ, math: BU_MATH, scene: buScene, deep: [['int/power', 'הפעלה ראשונה'], ['int/atp', 'ATP'], ['s1/psu', 'ספק 24V ונפילת מתח'], ['s2/interlock', 'שרשרת הבטיחות'], ['s1/thermal', 'התפשטות תרמית']] });
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
   ['start', 'מתחילים', 'מסלול, סימולטור, עקרונות', ['path', 'topic', 'pri']],
@@ -7929,7 +8120,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.10.0';
+const APP_VERSION = '2.11.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

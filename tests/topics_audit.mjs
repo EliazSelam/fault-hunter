@@ -54,6 +54,12 @@ for (const T of topics) {
   ok(r.enc.alarm && r.enc.emax > 0.05, 'servo preset: reversed encoder runs away'); ok(r.fric.alarm, 'servo preset: mechanical drag gives a following-error alarm');
   ok(r.osc.ring > 20 && r.n.ring === 0, 'servo preset: high gain without D keeps ringing; normal does not'); ok(r.ki.ring > r.n.ring + 10, 'servo preset: too much I keeps it swinging around the target');
   ok(r.heavy.ovs > 1.5 * r.n.ovs, 'servo preset: heavier load overshoots more');
+  /* AOS plan and bring-up models */
+  const q = await pg.evaluate(() => ({ ok: aosPlan(), one: (() => { const r = aosPlan({ E: 4 }); return r.Dc >= AP.W; })(), dz: aosPlan({ dz: 350 }), off: aosPlan({ off: 3.5 }), weak: aosPlan({ loss: 0.3 }), burn: aosPlan({ E: 14, N: 20 }), drop: buDrop(), dropBad: buDrop({ len: 25, A: 0.5 }), rep: buRepeat(), drift: buRepeat(7, 6) }));
+  ok(q.ok.ok && q.ok.n === 2, 'AOS normal plan: 2 spots clear the 10 µm short without damage'); ok(!q.one, 'AOS: one 4 µJ spot does not clear 10 µm');
+  ok(!q.dz.cleared, 'AOS preset: defocus leaves copper'); ok(!q.off.cleared, 'AOS preset: camera-laser offset leaves copper on one side'); ok(!q.weak.cleared, 'AOS preset: weak laser leaves copper'); ok(q.burn.damage, 'AOS preset: too much energy damages the laminate');
+  ok(q.drop.ok && Math.abs(q.drop.dV - 1.4) < 0.01, 'bring-up: 10 m × 0.75 mm² at 3 A drops 1.4 V, OK'); ok(!q.dropBad.ok, 'bring-up preset: 25 m × 0.5 mm² is below 21.6 V');
+  ok(q.rep.pass, 'bring-up: the example repeatability passes ±2 µm'); ok(!q.drift.pass, 'bring-up preset: 6 µm thermal drift fails');
   /* every leaf with a fault simulation opens it without errors */
   for (const T of topics) for (const F of T.faults) for (const [id, nd] of Object.entries(F.nodes)) if (nd.sim) {
     await pg.evaluate(([tid, fid, id]) => { TSTATE.topic = tid; TSTATE.lvl = 'fault'; TSTATE.fault = fid; TSTATE.node = id; TSTATE.path = []; showTopic(tid); }, [T.id, F.id, id]);
