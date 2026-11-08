@@ -30,6 +30,9 @@ Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.
 ## Topic rule
 A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `analogy`, then `steps` (3D, one lead element per step), `quiz`, `faults` (decision trees: every option leads to a node, leaves have `leaf`, `fix`, `pr`, optional `go`), and `math` (MathML via the `MM` helpers, numbers added to `VERIFY`). `tests/topics_audit.mjs` walks every leaf.
 
+## Learning model rule
+Every topic follows the levels in `src/67-topic-levels.js`: map (where in the machine), essence (steps with `pred` predictions), intuition (`quiz`), engineering depth (`explain` self-explanation), faults (each with `solo` observations and its answer leaf, shown worked, guided and on your own), math (optional), integration (`integ`, linking other topics), and review. Each of see, eng and math ends with a `checks` question. Answers feed a Leitner review queue in localStorage (1, 3, 7, 21 days), interleaved across topics.
+
 ## Terms rule
 Every new English term must be defined (in `TERM_NEW` in `src/58-terms.js`, or in `LEX`), and given a `TERM_LINK` to the page that explains it if there is one. `tests/terms_audit.mjs` fails on any undefined term. English sentences (interview lines, machine messages) get `lang="en"` so they are not glossed.
 

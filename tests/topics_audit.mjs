@@ -54,6 +54,36 @@ for (const T of topics) {
   ok(r.enc.alarm && r.enc.emax > 0.05, 'servo preset: reversed encoder runs away'); ok(r.fric.alarm, 'servo preset: mechanical drag gives a following-error alarm');
   ok(r.osc.ring > 20 && r.n.ring === 0, 'servo preset: high gain without D keeps ringing; normal does not'); ok(r.ki.ring > r.n.ring + 10, 'servo preset: too much I keeps it swinging around the target');
   ok(r.heavy.ovs > 1.5 * r.n.ovs, 'servo preset: heavier load overshoots more');
+  /* the learning model: map, predictions, checks, self-explanation, faults in three grades, integration, review */
+  const L2 = await pg.evaluate(() => TOPICS.map(T => ({ id: T.id, where: T.where, lit: T.lit, preds: T.steps.filter(s => s.pred).map(s => [s.id, s.pred]), checks: T.checks, explain: T.explain, solo: T.faults.map(f => [f.id, f.solo, Object.keys(f.nodes)]), integ: T.integ, ids: TOPICS.map(x => x.id) })));
+  for (const X of L2) {
+    ok(X.where && X.lit && X.lit.length, `${X.id}: has "where in the machine" and lit blocks`);
+    ok(X.preds.length >= 2, `${X.id}: at least 2 predictions`); X.preds.forEach(([sid, [q, o, a, w]]) => ok(q && a >= 0 && a < o.length && w, `${X.id}/${sid}: prediction answer valid`));
+    ['see', 'eng', 'math'].forEach(l => { const c = X.checks && X.checks[l]; ok(c && c[2] >= 0 && c[2] < c[1].length && c[3], `${X.id}: retrieval check at the end of "${l}"`); });
+    ok(X.explain && X.explain[0] && X.explain[1], `${X.id}: self-explanation prompt and model answer`);
+    X.solo.forEach(([fid, s, keys]) => ok(s && s[0] && keys.includes(s[1]), `${X.id}/${fid}: on-your-own observations and a real answer leaf`));
+    ok(X.integ && X.integ[2] >= 0 && X.integ[2] < X.integ[1].length && X.integ[4].every(id => X.ids.includes(id)), `${X.id}: integration question links real topics`);
+  }
+  const rv = await pg.evaluate(() => { const now = 1e12, a = reviewNext(null, true, now), b = reviewNext(a, true, now), c = reviewNext(b, false, now);
+    const il = interleave([['a1', { id: 'a' }], ['a2', { id: 'a' }], ['b1', { id: 'b' }], ['c1', { id: 'c' }], ['b2', { id: 'b' }]]).map(x => x[0]);
+    const d = { 'aoi:q:0': { box: 1, due: now - 1 }, 'aoi:q:1': { box: 2, due: now + 1 } };
+    return { a, b, c, il, due: reviewDue(now, d).map(x => x[0]) }; });
+  ok(rv.a.box === 1 && rv.a.due === 1e12 + 86400000, 'review: first right answer → box 1, due in 1 day'); ok(rv.b.box === 2 && rv.b.due === 1e12 + 3 * 86400000, 'review: second → box 2, due in 3 days');
+  ok(rv.c.box === 1, 'review: a miss goes back to box 1'); ok(rv.il.join() === 'a1,b1,c1,a2,b2', 'review: questions interleave between topics');
+  ok(rv.due.length === 1 && rv.due[0] === 'aoi:q:0', 'review: only due questions are offered');
+  /* UI of the new levels on every topic */
+  for (const X of L2) {
+    await pg.evaluate(id => { TSTATE.lvl = 'map'; TSTATE.fault = null; go('topic', id); }, X.id); await pg.waitForTimeout(150);
+    ok(await pg.evaluate(() => document.querySelectorAll('#tl svg rect').length >= 8), `${X.id}: machine map renders`);
+    for (const l of ['eng', 'integ', 'review']) { await pg.click(`[data-l="${l}"]`); await pg.waitForTimeout(100); ok(await pg.evaluate(() => document.getElementById('tl').textContent.length > 80), `${X.id}: level ${l} renders`); }
+    await pg.click('[data-l="integ"]'); await pg.click(`#ig [data-o="${X.integ[2]}"]`); ok(await pg.evaluate(() => document.querySelector('#ig .tqr').textContent.startsWith('נכון')), `${X.id}: integration right answer marked right`);
+    for (const [fid, s] of X.solo) {
+      await pg.evaluate(f => { TSTATE.lvl = 'fault'; TSTATE.fault = f; TSTATE.node = null; TSTATE.path = []; FGRADE = 'worked'; showTopic(TSTATE.topic); }, fid);
+      ok(await pg.evaluate(() => document.querySelectorAll('#tl ol.worked li').length >= 1), `${X.id}/${fid}: worked example shows the path`);
+      await pg.click('[data-g="solo"]'); await pg.click(`[data-leaf="${s[1]}"]`); ok(await pg.evaluate(() => document.querySelector('#tl .tqr').textContent.startsWith('נכון')), `${X.id}/${fid}: on-your-own right cause marked right`);
+      await pg.evaluate(() => { FGRADE = 'guided'; });
+    }
+  }
   /* AOS plan and bring-up models */
   const q = await pg.evaluate(() => ({ ok: aosPlan(), one: (() => { const r = aosPlan({ E: 4 }); return r.Dc >= AP.W; })(), dz: aosPlan({ dz: 350 }), off: aosPlan({ off: 3.5 }), weak: aosPlan({ loss: 0.3 }), burn: aosPlan({ E: 14, N: 20 }), drop: buDrop(), dropBad: buDrop({ len: 25, A: 0.5 }), rep: buRepeat(), drift: buRepeat(7, 6) }));
   ok(q.ok.ok && q.ok.n === 2, 'AOS normal plan: 2 spots clear the 10 µm short without damage'); ok(!q.one, 'AOS: one 4 µJ spot does not clear 10 µm');
