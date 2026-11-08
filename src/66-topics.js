@@ -120,7 +120,7 @@ const TOPICS = [{ id: 'aoi', t: 'מחזור בדיקה במכונת AOI', punch:
 const LEVELS = [['see', 'המהות', 'רואים את כל התהליך'], ['ask', 'הבנה', 'שאלות קלות'], ['fault', 'תקלות', 'עץ החלטה'], ['math', 'פיתוח', 'מתמטיקה ותאוריה']];
 function bellSVG(lvl) {
   const W = 300, H = 74, pts = []; for (let i = 0; i <= 60; i++) { const x = i / 60, y = Math.exp(-Math.pow((x - 0.5) / 0.17, 2)); pts.push([10 + x * (W - 20), H - 8 - y * (H - 20)]); }
-  const d = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L'), bands = [0.06, 0.16, 0.28, 0.42];
+  const nb = LEVELS.filter(l => l[0] !== 'review').length, d = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('L'), bands = Array.from({ length: nb }, (_, k) => 0.05 + k * 0.42 / Math.max(1, nb - 1));
   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Levels of the topic, from the essence at the centre outward">${bands.map((b, k) => `<rect x="${(10 + (0.5 - b) * (W - 20)).toFixed(1)}" y="6" width="${(2 * b * (W - 20)).toFixed(1)}" height="${H - 14}" class="${k === LEVELS.findIndex(l => l[0] === lvl) ? 'fill-live' : 'fill-tint'}" opacity="${k === LEVELS.findIndex(l => l[0] === lvl) ? 0.35 : 0.18 - k * 0.03}"/>`).reverse().join('')}<path d="${d}" class="live" fill="none"/></svg>`;
 }
 let TSTATE = { topic: 'aoi', lvl: 'see', fault: null, node: null, path: [] };
@@ -129,7 +129,7 @@ function showTopic(arg) {
   const T = TOPICS.find(x => x.id === (arg || TSTATE.topic)) || TOPICS[0]; TSTATE.topic = T.id;
   const tsel = TOPICS.length > 1 ? `<div class="chips" role="group" aria-label="נושאים">${TOPICS.map(x => `<button type="button" data-tp="${x.id}" aria-pressed="${x.id === T.id}">${x.t}</button>`).join('')}</div>` : '';
   content.innerHTML = tsel + `<h2>${T.t}</h2><div class="tophead"><div><p class="punch"><b>המהות:</b> ${T.punch}</p><p class="analogy"><b>אנלוגיה:</b> ${T.analogy}</p></div><div class="bell">${bellSVG(TSTATE.lvl)}</div></div>
-    <div class="lvltabs" role="tablist">${LEVELS.map(([k, t, s], i) => `<button type="button" role="tab" data-l="${k}" aria-selected="${TSTATE.lvl === k}"><b>${i + 1}. ${t}</b><small>${s}</small></button>`).join('')}</div><div id="tl"></div>`;
+    <div class="lvltabs" role="tablist">${LEVELS.map(([k, t, s], i) => `<button type="button" role="tab" data-l="${k}" aria-selected="${TSTATE.lvl === k}"><b>${k === 'review' ? '🔄' : i + '.'} ${t}</b><small>${s}</small></button>`).join('')}</div><div id="tl"></div>`;
   content.querySelectorAll('[data-l]').forEach(b => b.addEventListener('click', () => { TSTATE.lvl = b.dataset.l; TSTATE.sim = null; showTopic(T.id); }));
   content.querySelectorAll('[data-tp]').forEach(b => b.addEventListener('click', () => { if (b.dataset.tp !== TSTATE.topic) { TSTATE.lvl = 'see'; TSTATE.fault = null; TSTATE.node = null; TSTATE.path = []; TSTATE.sim = null; } showTopic(b.dataset.tp); }));
   const L = $('#tl');
@@ -143,17 +143,21 @@ function topicSee(L, T, startAt) {
   L.innerHTML = `<div class="bench"><div class="controls" style="border-top:none"><div class="tp"><button type="button" id="tsPlay">▶ הפעל</button><button type="button" id="tsPrev">שלב קודם</button><button type="button" id="tsNext">שלב הבא</button><button type="button" id="tsAgain">↺ מההתחלה</button></div></div>
     <ol class="stepdots">${T.steps.map((s, i) => `<li><button type="button" data-s="${i}">${i + 1}. ${s.t}</button></li>`).join('')}</ol>
     <div class="stage" style="padding:0"><canvas id="tsc" width="680" height="380" tabindex="0" role="img" aria-label="${T.t}: the process in 3D, step by step. Drag to orbit." style="width:100%;height:auto;cursor:grab;touch-action:none"></canvas></div>
-    <div class="readout" id="tsr" aria-live="polite"></div>${TSTATE.sim ? '<div class="note warn">זו סימולציה עם התקלה שבחרת. <button type="button" class="linkbtn" id="tsNormal">חזור להפעלה תקינה</button></div>' : ''}</div>
-    <p class="note">רוצה להבין לעומק? <b>2. הבנה</b> לשאלות קלות, <b>3. תקלות</b> לעץ החלטה, <b>4. פיתוח</b> למתמטיקה. ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
+    <div id="tsp" class="tq" hidden></div><div class="readout" id="tsr" aria-live="polite"></div>${TSTATE.sim ? '<div class="note warn">זו סימולציה עם התקלה שבחרת. <button type="button" class="linkbtn" id="tsNormal">חזור להפעלה תקינה</button></div>' : ''}</div>
+    <p class="note">להבנה לעומק: ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
   L.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.r)));
   const tn = $('#tsNormal'); if (tn) tn.addEventListener('click', () => { TSTATE.sim = null; topicSee(L, T, startAt); });
-  const sc = (T.scene || aoiScene)($('#tsc'), TSTATE.sim || null); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0;
+  const sc = (T.scene || aoiScene)($('#tsc'), TSTATE.sim || null); let si = startAt || 0, u = 0, playing = false, last = 0, frame = 0; const asked = new Set();
+  /* predict before you see it: in play mode, a step with a prediction pauses until you answer */
+  const askPred = () => { const s = T.steps[si]; if (!s.pred || asked.has(si) || TSTATE.sim) return false; asked.add(si); playing = false; const [q, o, a, why] = s.pred, box = $('#tsp');
+    box.hidden = false; box.innerHTML = `<p><b>לפני שממשיכים, נבא:</b> ${q}</p><div class="tp">${o.map((x, j) => `<button type="button" data-p="${j}">${x}</button>`).join('')}</div><p class="tqr" hidden></p>`;
+    box.querySelectorAll('[data-p]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.p === a; box.querySelectorAll('[data-p]').forEach(x => { x.disabled = true; x.setAttribute('aria-pressed', x === b); }); const r = box.querySelector('.tqr'); r.hidden = false; r.innerHTML = (ok ? '<span class="good">ניבוי נכון.</span> ' : '<span class="bad">לא בדיוק, וזה בדיוק הרגע ללמוד.</span> ') + why + ' <button type="button" class="linkbtn" id="tspGo">המשך וראה ←</button>'; $('#tspGo').addEventListener('click', () => { box.hidden = true; playing = true; show(); }); })); show(); return true; };
   const show = () => { const s = T.steps[si]; $('#tsr').innerHTML = `<b>${si + 1}. ${s.t}.</b> ${s.what}<br><b>למה:</b> ${s.why} <span dir="ltr" class="num">${s.num}</span> · <b>מה בודקים:</b> ${s.check}`; L.querySelectorAll('[data-s]').forEach(b => b.setAttribute('aria-current', +b.dataset.s === si ? 'step' : 'false')); $('#tsPlay').textContent = playing ? '❚❚ עצור' : '▶ הפעל'; sc.paint([si, u]); };
-  const tick = now => { const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016; last = now; if (playing) { u += dt / T.steps[si].dur; if (u >= 1) { if (si < T.steps.length - 1) { si++; u = 0; show(); } else { u = 1; playing = false; show(); } } sc.paint([si, u]); } if (document.body.contains(sc.V.ctx.canvas)) frame = requestAnimationFrame(tick); };
-  $('#tsPlay').addEventListener('click', () => { if (!playing && si === T.steps.length - 1 && u >= 1) { si = 0; u = 0; } playing = !playing; show(); });
+  const tick = now => { const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016; last = now; if (playing) { u += dt / T.steps[si].dur; if (u >= 1) { if (si < T.steps.length - 1) { si++; u = 0; show(); askPred(); } else { u = 1; playing = false; show(); } } sc.paint([si, u]); } if (document.body.contains(sc.V.ctx.canvas)) frame = requestAnimationFrame(tick); };
+  $('#tsPlay').addEventListener('click', () => { if (!playing && si === T.steps.length - 1 && u >= 1) { si = 0; u = 0; } playing = !playing; show(); if (playing && u === 0) askPred(); });
   $('#tsNext').addEventListener('click', () => { playing = false; si = Math.min(T.steps.length - 1, si + 1); u = 1; show(); });
   $('#tsPrev').addEventListener('click', () => { playing = false; si = Math.max(0, si - 1); u = 1; show(); });
-  $('#tsAgain').addEventListener('click', () => { si = 0; u = 0; playing = true; show(); });
+  $('#tsAgain').addEventListener('click', () => { si = 0; u = 0; playing = true; asked.clear(); $('#tsp').hidden = true; show(); askPred(); });
   L.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => { playing = false; si = +b.dataset.s; u = 1; show(); }));
   u = startAt != null ? 1 : 0; show(); frame = requestAnimationFrame(tick);
 }

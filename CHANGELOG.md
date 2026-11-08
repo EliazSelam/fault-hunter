@@ -2,6 +2,21 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.12.0] — 2026-11-07
+
+The process simulator now follows an evidence-based learning model, applied to all four topics.
+
+- **0. Where it sits in the machine** (whole-task first, 4C/ID; advance organizer): a machine map with the topic's blocks highlighted, and links to the topics it touches.
+- **1. Essence, with prediction** (predict-observe-explain): in play mode, key steps pause and ask what will happen before you see it.
+- **2. Intuition:** the short questions, now recorded for review.
+- **3. Engineering depth, with self-explanation** (Chi 1989): the numbers and checks of every step, a "explain it in your own words" prompt with a model answer to compare.
+- **4. Faults in three grades** (faded worked examples): worked (the full path with reasons), guided (the decision tree), on your own (observations from the field, pick the cause).
+- **5. Math, marked optional** (expertise reversal effect).
+- **6. Integration:** a question that crosses systems, with links to the topics it joins.
+- **🔄 Spaced, interleaved review** (testing effect, spacing, interleaving): every answer goes into a Leitner queue (1, 3, 7, 21 days; a miss returns to day 1), and due questions come back mixed across topics.
+- Each of the essence, engineering and math layers ends with a short retrieval check.
+- Topics suite: 531 checks, including the review schedule, interleaving, every prediction and check answer, every on-your-own answer leaf, and a click-through of every new level on every topic.
+
 ## [2.11.0] — 2026-11-06
 
 - **Topic: AOS, repairing a short.** Eight steps (defect list, registration, arrival and identification, 3D height measurement, cut planning, firing behind the shutter interlock, re-measurement, report). The recipe plans a row of overlapping spots from the nominal cut-through width D_c; the cut happens with the actual crater, so defocus, a weaker laser or a camera-laser offset leave copper, and too much energy damages the laminate. Three fault trees (copper left, laminate damage, laser not firing) with replayable faults, and four derivations, including why each extra micron of D_c costs depth: damage = Nδ·D_c²/(2w²).
