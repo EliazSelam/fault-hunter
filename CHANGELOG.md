@@ -2,6 +2,11 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.14.0] — 2026-11-07
+
+- **Topic: the line-scan camera and its lighting, from photon to image.** Eight steps: light, lens, encoder trigger, strobe and exposure, readout into the frame grabber, flat-field correction, segmentation, the image. The 3D scene builds the image row by row in gray levels, and plots the line profile raw, after flat-field, and with the threshold. The model: line rate v/p; motion blur v·t; defocus blur 2·NA·Δz; gray level k·R·I·t clipped at 255; vignetting at the line edges; continuous light at the same average power as the strobe. Faults replay what they do to the picture: a worn LED or dirty window or short strobe (dark, low margin), no strobe (motion blur of a full pixel), defocus beyond ±22.5 µm (blur), a stale white reference (dark edges, false calls at swath edges). Five derivations.
+- Topics suite: 876 checks, including the camera model against every fault leaf.
+
 ## [2.13.0] — 2026-11-07
 
 - **Topic: the vacuum table.** A real pump-down model: a venturi pumping toward its ultimate pressure against leak conductances, dp/dt = −(S/V)(p − p_ult) + (C/V)(p_atm − p), with the curve and the −60 kPa threshold on screen. Eight steps from placing the panel to lifting it. Faults replay their curve: an uncovered zone and no supply air never reach the threshold; a seal leak reaches it slower; a clogged filter much slower. Derivations: the pump-down equation, the steady pressure and time constant, the time to threshold, the hold-down force.

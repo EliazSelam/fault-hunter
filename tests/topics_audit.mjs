@@ -61,6 +61,13 @@ for (const T of topics) {
   ok(vs.seal.reach && vs.seal.tth > 1.5 * vs.n.tth, 'vacuum preset: a seal leak reaches it, but slower'); ok(vs.filt.tth > 2 * vs.n.tth, 'vacuum preset: a clogged filter is much slower');
   ok(vs.run.out && !vs.open.out && !vs.cut.out && vs.cut.disc && !vs.weld.out && !vs.unl.out && vs.unl.ready, 'safety logic: runs only with both channels, EDM and reset; discrepancy and welded contactor block; closing the door alone does not restart');
   ok(Math.abs(vs.stop.s - 0.045) < 1e-9, 'safety: stopping distance 45 mm at 0.5 m/s');
+  /* camera model: each preset shows what its leaf says */
+  const cm = await pg.evaluate(() => ({ n: camCalc(), led: camCalc({ I: 0.5 }), win: camCalc({ I: 0.6 }), short: camCalc({ ts: 1 }), mot: camCalc({ strobe: false }), def: camCalc({ dz: 60 }), ff: camCalc({ ff: false }), sat: camCalc({ I: 2 }) }));
+  ok(cm.n.ok && Math.abs(cm.n.blurMot - 0.5) < 1e-12 && Math.abs(cm.n.margin - 150) < 1e-9, 'camera normal: no issues, 0.5 µm motion blur, margin 150');
+  ok(cm.led.issues.includes('dark') && cm.win.issues.includes('dark') && cm.short.issues.includes('dark'), 'camera presets: worn LED, dirty window and a short strobe are dark');
+  ok(cm.mot.issues.includes('blur') && !cm.mot.sat && Math.abs(cm.mot.Gcu - 200) < 1e-9 && cm.def.issues.includes('blur'), 'camera presets: continuous light (no strobe) and defocus blur the image');
+  ok(cm.ff.issues.includes('edges') && !cm.n.issues.includes('edges'), 'camera preset: no flat-field leaves dark edges');
+  ok(cm.sat.sat && cm.sat.Gcu === 255, 'camera: double light saturates copper at 255');
   /* the learning model: map, predictions, checks, self-explanation, faults in three grades, integration, review */
   const L2 = await pg.evaluate(() => TOPICS.map(T => ({ id: T.id, where: T.where, lit: T.lit, preds: T.steps.filter(s => s.pred).map(s => [s.id, s.pred]), checks: T.checks, explain: T.explain, solo: T.faults.map(f => [f.id, f.solo, Object.keys(f.nodes)]), integ: T.integ, ids: TOPICS.map(x => x.id) })));
   for (const X of L2) {
