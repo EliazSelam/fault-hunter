@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.21.0] — 2026-11-09
+
+**The structure, visible.** A working preview built straight from the syllabus data, following the updated direction (base, body, full system).
+
+- New tab "המבנה החדש" at the head of "getting started". The entry shows three spaces: the body first (the AOI and AOS machines and machine infrastructure, with their subsystems, and the process that connects the machines), the base (the knowledge library) and the full system (the process, first power-up and ATP, field diagnosis).
+- A node page shows both axes: the scope breadcrumb with the way down to its parts and its relations to other systems, and the seven depth layers with a side cone. Every page states its goal and mounts at most one activity, from the existing builders.
+- The camera is the pilot of core and branches: in flow, engineer and math, the layer opens with its core and three branches around it (motion and position, trigger and timing, lighting and optics). Each page shows where it widens in the same layer, where it continues in the next layer, and what it needs first; a meter counts the layer's required pages. The single heavy derivation page is split into focused pages, each with a local illustration that says what it shows (motion blur without the strobe, dark edges without flat-field, blur out of focus).
+- The understanding quiz now closes layer 0 instead of opening layer 1.
+- Leaving to an existing page (a lab, a field fault, a question) shows a way back to the same node, layer and page.
+- An eleventh suite, `ui`, opens all 348 pages and checks each has a goal and at most one activity, that every activity mounts, that the camera's branches continue deeper, that completion counts, and that the way back works. The data suite now also checks spaces, cores, branches, links and that every math activity says what it illustrates.
+- Fix found by the new suite: a process scene could draw one more frame after its page was replaced; its loop now stops as soon as its canvas leaves the page.
+
 ## [2.20.0] — 2026-11-09
 
 Stage B of the restructure: the syllabus map, as data and a review document. No interface change.

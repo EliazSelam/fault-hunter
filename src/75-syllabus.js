@@ -32,6 +32,9 @@ const SYL_NODES = [
   N('res', 'משאבים רוחביים', 'resource', null)
 ];
 /* cross relations that are not containment */
+/* the three spaces of the syllabus: the body is the main entry */
+const SYL_SPACES = [['body', 'הגוף', 'מערכות פועלות ותצוגות התכלית שלהן. כאן מתחילים'], ['base', 'הבסיס', 'אבני הבניין: רכיבים, לוגיקה, מכונות חשמל, מדידה ושרטוט'], ['system', 'המערכת המלאה', 'תיאום, הפעלה, כיול ואבחון חוצה מערכות']];
+const sylSpace = id => { const n = SYL_NODES.find(x => x.id === id); if (!n) return null; if (['lib', 'draw', 'mechdraw', 'dig', 'meas', 'elec', 'boards'].includes(id) || (n.parent && ['lib', 'draw', 'mechdraw', 'dig', 'meas', 'elec', 'boards'].includes(n.parent))) return 'base'; if (['proc', 'routes', 'bringup', 'field'].includes(id) || n.kind === 'step') return 'system'; if (id === 'res') return 'res'; return 'body'; };
 const SYL_REL = [
   ['step.panel', 'next-process', 'aoi'], ['aoi', 'next-process', 'step.verify'], ['step.verify', 'next-process', 'aos', 'מתאים לתיקון הממודל'], ['step.verify', 'next-process', 'step.report', 'קריאת שווא'], ['aos', 'next-process', 'step.report'], ['aoi', 'next-process', 'step.report', 'תקין'],
   ['servo', 'triggers', 'aoi.img', 'טריגר שורה ממיקום'], ['servo', 'measures', 'aoi.img', 'מיקום לרישום'], ['vac', 'enables', 'aoi.img', 'פאנל שטוח בפוקוס'],
@@ -47,7 +50,7 @@ const P = (node, layer, id, goal, act, content = [], items = [], flags = {}) => 
 /* a process-simulator topic gives a full cone */
 function topicCone(node, T) {
   P(node, 'show', 'demo', 'לראות את התהליך פועל מקצה לקצה, ומה ההישג שלו', `scene:${T}`, [`punch:${T}`, `analogy:${T}`, `f3:${T}/0`], [`pred:${T}/*`]);
-  P(node, 'flow', 'quiz', 'שאלות הבנה בדרך למטה, מתוך מה שראית בהדגמה', `quiz:${T}`, [], [`quiz:${T}/*`]);
+  P(node, 'show', 'quiz', 'לסגור את תצוגת התכלית: שאלות הבנה על מה שראית', `quiz:${T}`, [], [`quiz:${T}/*`]);
   P(node, 'flow', 'flow', 'לזהות מי משתתף, מה עובר ביניהם ואיפה הממשקים', `flow:${T}`, [`ifaces:${T}`, `f3:${T}/1`], [`check:${T}/see`]);
   P(node, 'eng', 'steps', 'לחבר בין פקודה, מנגנון ומדידה בכל שלב', `explain:${T}`, [`steps-table:${T}`, `f3:${T}/2`], [`explain:${T}`, `feynman:${T}/*`, `check:${T}/eng`]);
   P(node, 'math', 'deriv', 'לבדוק את ההנחות, היחידות והמשמעות של כל נוסחה', null, [`math:${T}`], [`check:${T}/math`]);
@@ -89,6 +92,21 @@ const scnHome = s => SCN_HOME[s.sys] || ('c.' + s.sys.split(':')[1]);
 
 /* ---- build the pages ---- */
 [['aoi', 'aoi'], ['aoi.img', 'cam'], ['servo', 'servo'], ['vac', 'vac'], ['aos', 'aos'], ['pwr', 'pwr'], ['ecat', 'ecat'], ['safety', 'safety'], ['bringup', 'bringup']].forEach(([n, t]) => topicCone(n, t));
+/* ---- the camera as the pilot of core and branches (A18–A20) ----
+   Flow, engineer and math each open with a core, then three branches of understanding around it:
+   motion and position, trigger and timing, lighting and optics. Each branch continues into the next layer. */
+{ const i = SYL_PAGES.findIndex(p => p.id === 'aoi.img/math/deriv'); if (i >= 0) SYL_PAGES.splice(i, 1); }
+P('aoi.img', 'flow', 'b-motion', 'תנועה ומיקום: הציר מזיז את הפאנל ומדווח איפה הוא נמצא', 'scene:servo', ['rel:servo>aoi.img'], [], { view: true, focus: 'שלבי הפקודה והמהירות הקבועה' });
+P('aoi.img', 'flow', 'b-trigger', 'טריגר ותזמון: פולס מהאנקודר מפעיל כל שורה', 'fig:linescan', [], [], { view: true });
+P('aoi.img', 'flow', 'b-light', 'תאורה ואופטיקה: מסלול האור מהפאנל לחיישן', 'bench:strobe', ['teach:strobe/story'], [], { view: true });
+P('aoi.img', 'eng', 'b-motion', 'תנועה ומיקום: איך מתקבל מיקום שאפשר לסמוך עליו לסריקה', null, ['teach:encoder/steps']);
+P('aoi.img', 'eng', 'b-trigger', 'טריגר ותזמון: מה מפעיל את הדגימה ואיך מתאמים חשיפה', null, ['teach:linescan/steps']);
+P('aoi.img', 'eng', 'b-light', 'תאורה ואופטיקה: איך התאורה, העדשה והחיישן קובעים את התמונה', null, ['teach:strobe/steps', 'teach:lens/steps']);
+P('aoi.img', 'math', 'core', 'גרעין: קצב השורות נובע ממהירות התנועה ומגודל הפיקסל', null, ['mathpart:cam/0'], ['check:cam/math']);
+P('aoi.img', 'math', 'b-trigger', 'טריגר ותזמון: טשטוש תנועה כמכפלה של מהירות וזמן הבזק', 'scene:cam', ['mathpart:cam/1'], [], { view: true, sim: { strobe: false }, at: 'exp', focus: 'שלב החשיפה, בלי סטרוב', illustrates: 'b = v·t: אור רציף לכל זמן השורה נותן פיקסל שלם של טשטוש' });
+P('aoi.img', 'math', 'b-light', 'תאורה: רמת אפור, רוויה, ותיקון שדה', 'scene:cam', ['mathpart:cam/2', 'mathpart:cam/4'], [], { view: true, sim: { ff: false }, at: 'ff', focus: 'שלב תיקון השדה, בלי ייחוס', illustrates: 'G_corr = G_raw·W̄/W(x): בלי ייחוס הקצוות נשארים כהים' });
+P('aoi.img', 'math', 'b-optics', 'אופטיקה: עומק שדה וטשטוש פוקוס', 'scene:cam', ['mathpart:cam/3'], [], { view: true, sim: { dz: 60 }, at: 'img', focus: 'Δz = 60 µm, מחוץ לעומק השדה', illustrates: 'b ≈ 2·NA·Δz: מחוץ ל-±22.5 µm הטשטוש גדל לינארית' });
+
 SYL_NODES.filter(n => n.comp).forEach(n => compCone(n.id, n.comp));
 [['servo', 'servo'], ['vac', 'vac'], ['safety', 'interlock'], ['boards', 'card']].forEach(([n, s]) => sysPages(n, s));
 /* nodes without a topic: their own pages from what exists */
@@ -100,7 +118,7 @@ P('aoi.mot', 'show', 'demo', 'לראות איך הפאנל מוחזק ומוזז
 P('aoi.mot', 'integ', 'abbe', 'לחבר בין שגיאת תנועה לשגיאת מיקום בתמונה', null, ['q:P09']);
 P('aos.plan', 'show', 'demo', 'לראות את הרישום, המדידה ותכנון הכתמים', 'scene:aos', ['math:aos/plan'], [], { view: true, focus: 'steps reg, look, meas, plan' });
 P('aos.laser', 'show', 'demo', 'לראות איך קרן גאוסית מסירה נחושת וכמה נשאר בשוליים', 'fig:aos');
-P('aos.laser', 'math', 'crater', 'לפתח את קוטר החיתוך המלא D_c ולראות אותו משתנה', 'sim:cr3d', ['math:aos/dc']);
+P('aos.laser', 'math', 'crater', 'לפתח את קוטר החיתוך המלא D_c ולראות אותו משתנה', 'sim:cr3d', ['math:aos/dc'], [], { illustrates: 'D_c = w·√(2(ln(F₀/F_th) − t/(Nδ))): משנים אנרגיה ופולסים, ורואים איפה הנחושת נחתכת עד הסוף' });
 P('aoi.img', 'integ', 'swaths', 'לחבר תנועה, צילום וכיסוי פאנל: רצועות, חפיפה ותפרים', 'sim:scan3d', [], [], { note: 'עמוד המשך לאינטגרציה של המצלמה' });
 P('c.screw', 'integ', 'backlash3d', 'לראות backlash בהיפוך כיוון ולמדוד אותו', 'sim:bs3d');
 P('aoi', 'integ', 'machine', 'להריץ מחזור של המכונה המשולבת ולאבחן תקלה שחוצה מערכות', 'lab:s3', [], ['s3faults:*']);
@@ -112,7 +130,7 @@ P('bringup', 'eng', 'procedure', 'לקרוא את נוהל ההפעלה הראש
 P('draw', 'show', 'board', 'לחקור כרטיס אמיתי: רכיב, תפקיד ומה נשרף אם הוא בקצר', 'lab:board', ['p:b/board'], ['tasks:board/*']);
 P('draw', 'flow', 'grammar', 'לקרוא סכמה: קווים, הזנות, הדקים והפניות', null, ['p:b/grammar', 'p:b/atlas']);
 P('draw', 'eng', 'set', 'לנווט בסט שרטוטים: מפיוז לסליל ולמגע', 'lab:schset', ['p:b/set'], ['stasks:set/*']);
-P('draw', 'math', 'decode', 'לפענח ערכי נגדים וקבלים', 'lab:decode', ['p:b/decode']);
+P('draw', 'math', 'decode', 'לפענח ערכי נגדים וקבלים', 'lab:decode', ['p:b/decode'], [], { illustrates: 'ערך = ספרות × מכפיל, ועוד סבולת: כל פס צבע הוא איבר בנוסחה' });
 P('draw', 'fault', 'symbols', 'לזהות סמלים בסכמה', 'lab:symquiz', ['p:b/quiz']);
 P('mechdraw', 'show', 'mech', 'לקרוא שרטוט מכני: מבטים, מידות, טולרנסים', 'lab:mechdrill', ['p:b/mech', 'p:b/mdrill'], ['mtasks:mdrill/*']);
 P('dig', 'show', 'ff', 'לראות זיכרון של ביט אחד: latch ו-flip-flop בשעון', 'lab:ff', ['p:dig/why', 'p:dig/lab']);
@@ -127,7 +145,7 @@ P('elec', 'flow', 'wiring', 'לעקוב אחרי ההזנה מהרשת דרך ה
 P('elec', 'eng', 'dc', 'לחקור מנוע DC: מתח, עומס, מהירות וזרם', 'sim:mlab', ['p:mot/lab'], ['labtask:mot/*']);
 P('elec', 'eng', 'stepper', 'לראות צעדים מוחמצים במנוע צעד', 'sim:st3d', ['p:mot/types']);
 P('elec', 'eng', 'machines', 'להכיר מכונות DC, השראה וסנכרוניות ושנאים', null, ['p:mot/dcm', 'p:mot/ind', 'p:mot/sync', 'p:mot/tri', 'p:mot/xfmr']);
-P('elec', 'math', 'conv', 'לפתח buck ו-boost ולראות את המתח משתנה עם duty', 'sim:clab', ['p:mot/conv']);
+P('elec', 'math', 'conv', 'לפתח buck ו-boost ולראות את המתח משתנה עם duty', 'sim:clab', ['p:mot/conv'], [], { illustrates: 'V_out = D·V_in (buck) ו-V_out = V_in/(1 − D) (boost): משנים duty ורואים את המתח' });
 ['dcmotor', '3motor', 'motorprotect', 'buck', 'boost', 'xfmr', 'rect', '3phase'].forEach(c => P('elec', 'rev', `cj-${c}`, `לחקור מעגל מוכן: ${c}`, `cj:${c}`, ['p:mot/sims']));
 P('boards', 'show', 'card', 'לראות כרטיס כניסה/יציאה עובד, ולהזריק בו תקלה', 'sys:card', ['p:brd'], [], { view: true });
 P('boards', 'eng', 'steps', 'לזהות את אזורי הכרטיס ואת נקודות הבדיקה', null, ['p:brd/steps', 'p:brd/lib', 'p:lib/psu', 'p:lib/di', 'p:lib/do', 'p:lib/ai', 'p:lib/drive', 'p:lib/comm', 'p:lib/led']);
@@ -142,3 +160,23 @@ const SYL_QPAGES = {}, SYL_SPAGES = {};
 QB.forEach(q => { const n = qbHome(q); (SYL_QPAGES[n] = SYL_QPAGES[n] || []).push(q.id); });
 Object.entries(SYL_QPAGES).forEach(([n, ids]) => P(n, 'fault', 'questions', 'לתרגל את שאלות הפרק', `qset:${n}`, [], ids.map(i => 'q:' + i)));
 SCN.forEach(s => { const n = scnHome(s); (SYL_SPAGES[n] = SYL_SPAGES[n] || []).push(s.id); P(n, 'fault', `scn-${s.id}`, `תקלה מהשטח: ${s.title}`, `scn:${s.id}`); });
+
+/* ---- development map (pilot: the camera): core, branches, links within a layer and across layers, completion ---- */
+const SYL_DEV = {
+  'aoi.img': {
+    layers: {
+      flow: { core: 'aoi.img/flow/flow', branches: [['motion', 'תנועה ומיקום', 'aoi.img/flow/b-motion'], ['trigger', 'טריגר ותזמון', 'aoi.img/flow/b-trigger'], ['light', 'תאורה ואופטיקה', 'aoi.img/flow/b-light']], required: ['aoi.img/flow/flow', 'aoi.img/flow/b-trigger', 'aoi.img/flow/b-light'] },
+      eng: { core: 'aoi.img/eng/steps', branches: [['motion', 'תנועה ומיקום', 'aoi.img/eng/b-motion'], ['trigger', 'טריגר ותזמון', 'aoi.img/eng/b-trigger'], ['light', 'תאורה ואופטיקה', 'aoi.img/eng/b-light']], required: ['aoi.img/eng/steps', 'aoi.img/eng/b-trigger', 'aoi.img/eng/b-light'] },
+      math: { core: 'aoi.img/math/core', branches: [['trigger', 'טריגר ותזמון', 'aoi.img/math/b-trigger'], ['light', 'תאורה', 'aoi.img/math/b-light'], ['optics', 'אופטיקה', 'aoi.img/math/b-optics']], required: ['aoi.img/math/core', 'aoi.img/math/b-trigger'] }
+    },
+    links: [
+      ['aoi.img/flow/b-motion', 'expandsWithinDepth', 'aoi.img/flow/b-trigger', 'המיקום הוא מה שמפעיל את הדגימה'],
+      ['aoi.img/flow/b-trigger', 'expandsWithinDepth', 'aoi.img/flow/b-light', 'הטריגר מפעיל גם את ההבזק'],
+      ['aoi.img/flow/b-motion', 'deepensAcrossDepth', 'aoi.img/eng/b-motion'], ['aoi.img/flow/b-trigger', 'deepensAcrossDepth', 'aoi.img/eng/b-trigger'], ['aoi.img/flow/b-light', 'deepensAcrossDepth', 'aoi.img/eng/b-light'],
+      ['aoi.img/eng/b-motion', 'deepensAcrossDepth', 'aoi.img/math/core', 'מהירות ומרחק בין דגימות → קצב שורות'], ['aoi.img/eng/b-trigger', 'deepensAcrossDepth', 'aoi.img/math/b-trigger'], ['aoi.img/eng/b-light', 'deepensAcrossDepth', 'aoi.img/math/b-light'], ['aoi.img/eng/b-light', 'deepensAcrossDepth', 'aoi.img/math/b-optics'],
+      ['aoi.img/eng/b-motion', 'expandsWithinDepth', 'aoi.img/eng/b-trigger', 'מהירות וזמן חשיפה נפגשים בטשטוש'],
+      ['aoi.img/math/core', 'prerequisite', 'aoi.img/math/b-trigger', 'צריך את v ואת p כדי לחשב טשטוש בפיקסלים'],
+      ['aoi.img/math/b-trigger', 'expandsWithinDepth', 'aoi.img/math/b-optics', 'שני מקורות טשטוש מצטרפים: √(b_motion² + b_defocus²)']
+    ]
+  }
+};

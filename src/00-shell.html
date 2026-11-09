@@ -341,6 +341,18 @@ nav.sheets button[hidden]{display:none}
 .crumbs{font-size:14px;color:var(--muted);margin:0 0 6px}.conehead{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}.conehead>div:first-child{flex:1 1 380px}
 .conenav svg{display:block}.clpart{margin:14px 0}.gate{border:1.5px dashed var(--live);border-radius:10px;padding:10px 14px;margin:18px 0;background:var(--livetint)}.gatet{font-weight:700;color:var(--ink);margin:0 0 6px}
 .godown{text-align:center;margin:22px 0}.godown button{font:inherit;font-weight:600;padding:10px 18px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.sylbar{display:inline-flex;gap:2px;vertical-align:middle}.sylbar i{width:8px;height:8px;border:1px solid var(--line);border-radius:2px}.sylbar i.on{background:var(--live);border-color:var(--live)}
+.sylgap{font-size:12px;color:var(--mech);border:1px dashed var(--mech);border-radius:4px;padding:0 4px}.syltiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.syltile{border:1.5px solid var(--ink);border-radius:10px;padding:10px 12px;background:var(--sheet)}.syltt{font:inherit;font-weight:700;font-size:18px;border:0;background:none;color:var(--ink);cursor:pointer;padding:0}.sylsub{font-size:14px;margin-top:6px}
+.sylspace{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:12px 0}.sylspace.body{border:2px solid var(--live);background:var(--livetint)}.sylspace h3 small{font-weight:400;color:var(--muted);font-size:14px;margin-inline-start:6px}
+.sylcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.syltree{list-style:none;padding:0;margin:0}.syltree li{margin:4px 0}.sylctx{font-size:14px;margin:10px 0 0}
+.sylflow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.sylstep{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--sheet)}.sylstep.machine{border:1.5px solid var(--ink);font-weight:700}.sylarr{color:var(--muted)}
+.sylcore button,.sylbranches button{font:inherit;text-align:start;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.sylcore{margin:10px 0 6px}.sylcore button{width:100%;border-color:var(--ink);font-weight:600}.sylbranches{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.sylcore button[aria-current="step"],.sylbranches button[aria-current="step"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.sylbranches button.seen{border-color:var(--live)}
+.sylmeter{font-size:14px;color:var(--muted);margin:6px 0}.sylmore{font-size:14px}.sylgoal{border-inline-start:4px solid var(--ink);padding:6px 12px;margin:12px 0;background:var(--tint)}
+.sylill{font-size:15px}.syldev{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin:16px 0}.syldev ul{margin:4px 0;padding-inline-start:18px}
+.sylback{position:sticky;top:0;z-index:5;margin:0 0 10px}.sylback button{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.sylitems{color:var(--muted)}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -398,6 +410,7 @@ ol.tsteps .ts{color:var(--live-text)}
 </header>
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
+  <button role="tab" data-sheet="syl" aria-selected="false">המבנה החדש<small>תצוגה מקדימה</small></button>
   <button role="tab" data-sheet="topic" aria-selected="false">סימולטור תהליך<small>מהמהות לפיתוח</small></button>
   <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
   <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>

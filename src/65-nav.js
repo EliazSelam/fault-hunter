@@ -1,6 +1,6 @@
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
-  ['start', 'מתחילים', 'מסלול, סימולטור, עקרונות', ['path', 'topic', 'pri']],
+  ['start', 'מתחילים', 'המבנה החדש, מסלול, סימולטור', ['syl', 'path', 'topic', 'pri']],
   ['base', 'יסודות', 'שרטוט, רכיבים, מדידה', ['b', 'dig', 's1', 'lab']],
   ['mach', 'מערכות ומכונות', 'מנועים, אופטיקה, AOI', ['mot', 'opt', 's2', 'pcb', 'brd', 'int', 's3']],
   ['practice', 'תרגול', 'שאלות ותקלות', ['qb', 'ch']],

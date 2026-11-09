@@ -70,5 +70,5 @@ const MASTER = [
     ['p:pcb', 'p:pcb/ov'], ['p:pcb/pcba'], ['p:pcb/line'], ['p:pcb/def', 'p:pcb/prod'], ['p:pcb/kpi'], ['p:pcb/kpi#full'], ['qb:pcb'], ['x:aoi', 'x:aos']] },
   /* resources that serve every subject */
   { id: 'res', track: 'res', t: 'משאבים רוחביים', L: [
-    ['p:topic', 'p:path'], ['p:pri'], [], [], [], ['p:gl', 'p:s0'], ['p:qb', 'p:ch', 't:*/review'], ['p:s3']] }
+    ['p:syl', 'p:topic', 'p:path'], ['p:pri'], [], [], [], ['p:gl', 'p:s0'], ['p:qb', 'p:ch', 't:*/review'], ['p:s3']] }
 ];
