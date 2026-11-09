@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.22.0] — 2026-11-10
+
+**The zoom: from a component to the whole process.** The idea of "Powers of Ten", on the machine.
+
+- New tab "זום במכונה", first under "getting started". Five scales, each made of the one below: components (resistor, coil, capacitor, diode, transistor) → small circuits (relay with its driver and diode, encoder, DC motor, PWM, brake) → mechanisms and principles (trigger and strobe, lens and tilt, registration, the axis control loop, transmission, the vacuum valve, door interlock, the laser source) → systems working in parallel (line-scan camera, servo axis, vacuum table, safety chain, laser repair) → the process (scan, find missing or excess copper, repair).
+- A node shows its core window open in the middle and the other windows around it, ordered from the core outward; each opens in place. Zoom in goes to what the node is made of, zoom out to what it is part of (a relay shows both the vacuum valve and the door interlock). A 3D stack of the five scales on the side shows where you are and opens a whole scale. Zoom in and out move with a zoom motion (off for reduced motion).
+- Built only from windows that already exist: 166 of them across 24 nodes, each with exactly one home. Several windows on one subject at different depths are kept (the motor's simple explanation, derivation and formula table); the same content twice is a duplicate, and the new suite fails on it.
+- Authorship: a byline under the title (Eliaz Selam, electrical engineer, control and signal processing, LinkedIn), a "designed and drawn by" cell in the drawing's title block, the name in the share tags, and LinkedIn in the footer. No link to the code.
+- Removed: the 7-layer structure preview of 2.21.0 and the cone pilot of 2.19.0 (the cone repeated the camera topic), with their data and tests.
+- Suites: `zoom` (2679 checks) replaces `syllabus` and `ui`.
+
 ## [2.21.0] — 2026-11-09
 
 **The structure, visible.** A working preview built straight from the syllabus data, following the updated direction (base, body, full system).

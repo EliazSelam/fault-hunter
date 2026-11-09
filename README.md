@@ -68,6 +68,6 @@ Machine architectures, schematics and values are typical, based on public source
 
 ## Author
 
-**Eliaz Selam** · B.Sc. Electrical Engineering (control systems and signal processing) · [LinkedIn](https://www.linkedin.com/in/eliaz-selam) · [GitHub](https://github.com/EliazSelam)
+**Eliaz Selam** · B.Sc. Electrical Engineering (control systems and signal processing) · [LinkedIn](https://www.linkedin.com/in/eliaz-selam)
 
 License: MIT · Third-party: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) · Changes: [CHANGELOG.md](CHANGELOG.md) · Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
