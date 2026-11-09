@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.20.0] — 2026-11-09
+
+Stage B of the restructure: the syllabus map, as data and a review document. No interface change.
+
+- The agreed hierarchy: the work process at the root (panel, AOI, verification, AOS, report); under the AOI machine, image acquisition and processing (camera, lighting, lens, tilt, registration) and motion and panel holding (servo, vacuum); under the AOS machine, defect identification and repair planning, and laser and repair verification; machine infrastructure (24 V, EtherCAT, safety) serving both machines; activity routes (first power-up and ATP, field diagnosis) that act on a machine; a shared library; shared resources. 44 nodes and 26 relations that are not containment (next process, triggers, measures, enables, powers, commands, provides data, prerequisite, acts on).
+- 339 pages across the seven layers, each with a learning goal and at most one activity; 210 activities in a registry, each with exactly one home page; 24 pages show an activity whose home is elsewhere, as a focused view.
+- Every one of the 112 bank questions, 320 embedded items (predictions, checks, tries, tasks, explanations, Feynman, solo diagnoses, guided tasks, machine faults, interview drills, lab tasks) and 48 field faults has exactly one home: 432 items, the same count as the handoff. Q55 and Q61 have an explicit home.
+- A tenth test suite, `syllabus`, enforces all of this and writes `docs/SYLLABUS_MAP.md` with the tree, the relations, a node × layer coverage matrix, every page, the home of every question and fault, and the gaps.
+
 ## [2.19.0] — 2026-11-09
 
 **Cone pilot: the line-scan camera**, built from the drawing.
