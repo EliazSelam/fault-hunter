@@ -30,6 +30,9 @@ Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.
 ## Topic rule
 A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `analogy`, then `steps` (3D, one lead element per step), `quiz`, `faults` (decision trees: every option leads to a node, leaves have `leaf`, `fix`, `pr`, optional `go`), and `math` (MathML via the `MM` helpers, numbers added to `VERIFY`). `tests/topics_audit.mjs` walks every leaf.
 
+## Syllabus map (stage B)
+`src/75-syllabus.js` holds the agreed structure as data: `SYL_NODES` (process → machine → subsystem → unit, plus machine infrastructure, activity routes, a shared library and resources), `SYL_REL` (relations other than containment), and `SYL_PAGES` (node × layer × page, one goal and at most one activity per page; a page that shows an activity whose home is elsewhere is marked `view`). `tests/syllabus_map.mjs` fails on a page without a goal, more than one activity, an activity without exactly one home, an interactive asset missing from the registry, or a question, fault or embedded item without exactly one home; it writes `docs/SYLLABUS_MAP.md`. Data only: the interface does not read it yet.
+
 ## Cone pages
 `src/74-cone.js` renders a topic as one vertical cone, following the drawing: 0 showcase · 1 flow and interfaces · 2 engineer · 3 math · 4 reverse engineering · 5 faults (with the chapter's questions) · 6 integration. Questions are woven in as gates between levels. Pieces come from their own builders (topic scene, `bench`, `anatBlock`/`mountAnat`, `scanSim`, `renderTeach` split by `zParts`), so interactive parts are untouched. `TOPIC_TREE` holds the tree of cones (root: first power-up and ATP). A topic joins by getting a `CONE` entry. Pilot: `cam`.
 
