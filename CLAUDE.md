@@ -30,6 +30,9 @@ Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.
 ## Topic rule
 A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `analogy`, then `steps` (3D, one lead element per step), `quiz`, `faults` (decision trees: every option leads to a node, leaves have `leaf`, `fix`, `pr`, optional `go`), and `math` (MathML via the `MM` helpers, numbers added to `VERIFY`). `tests/topics_audit.mjs` walks every leaf.
 
+## One home per subject
+A subject covered in several tabs has one entry: its simulator topic. `SUBJECTS` in `src/72-subjects.js` lists every other page about it with what that page adds; those pages get a subject bar (part of «X», what this page adds, the way to the showcase, the other pages), and the topic lists them all. Optics pages that repeat a component page are listed in `ROUTE_ALIAS` and say so. A new page about an existing subject goes into `SUBJECTS`, not into a new tab.
+
 ## Structure rule
 Every topic has an `ARCH` entry in `src/70-structure.js`: `why`, `f3` (CEO, architect, engineer), `blocks` (int, if = interface, ext = other system, with x, y), `flows` (from, to, signal kind e/d/m/o/p, label, the steps where it is active), and `rev` (for every block: what breaks, the first failing step, and an optional simulation preset). Every step must have an active flow and every block a flow; `tests/topics_audit.mjs` checks it.
 

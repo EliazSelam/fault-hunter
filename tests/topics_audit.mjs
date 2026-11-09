@@ -78,6 +78,17 @@ for (const T of topics) {
   ok(pe.e.ok && pe.e.wkc === 6 && pe.e.util < 0.02, 'EtherCAT normal: WKC 6 of 6, frame ≈ 11 µs of 1 ms');
   ok(pe.brk.wkc === 1 && pe.brk.lost.length === 5, 'EtherCAT preset: a cut after X leaves WKC 1 and five slaves lost');
   ok(pe.nop.wkc === 5 && !pe.nop.ok, 'EtherCAT preset: one slave not in OP lowers WKC by one'); ok(pe.ov.overrun, 'EtherCAT preset: 10,500 extra bytes overrun the cycle'); ok(!pe.crc.ok, 'EtherCAT preset: CRC errors are flagged');
+  /* one home per subject: every member page carries the subject bar, the topic lists every member page */
+  const SJ = await pg.evaluate(() => Object.entries(SUBJECTS).map(([id, S]) => ({ id, pages: S.pages.map(p => p[0]), topic: !!TOPICS.find(t => t.id === id), deep: (TOPICS.find(t => t.id === id) || { deep: [] }).deep.map(d => d[0]) })));
+  for (const S of SJ) {
+    ok(S.topic && S.deep.join() === S.pages.join(), `subject ${S.id}: has a simulator topic that lists all its pages`);
+    for (const r of S.pages) {
+      await pg.evaluate(r => routeGo(r), r); await pg.waitForTimeout(80);
+      ok(await pg.evaluate(id => { const b = document.getElementById('content').querySelector(':scope > .subjbar'); return !!b && !!b.querySelector(`[data-sbt="${id}"]`); }, S.id), `subject ${S.id}: ${r} shows the subject bar with the way to the showcase`);
+    }
+  }
+  for (const r of await pg.evaluate(() => Object.keys(ROUTE_ALIAS))) { await pg.evaluate(r => routeGo(r), r); await pg.waitForTimeout(80); ok(await pg.evaluate(() => { const b = document.getElementById('content').querySelector(':scope > .subjbar'); return !b || b.textContent.includes('אותו דף'); }), `${r}: an optics page that repeats a component page says so`); }
+  await pg.evaluate(() => routeGo('mot/xfmr')); await pg.waitForTimeout(80); ok(await pg.evaluate(() => !document.getElementById('content').querySelector(':scope > .subjbar')), 'a page outside every subject has no subject bar');
   /* structure: vertical Feynman, information flow and interfaces, reverse engineering */
   const ST = await pg.evaluate(() => TOPICS.map(T => { const A = ARCH[T.id]; return { id: T.id, has: !!A, why: A && A.why, f3: A && A.f3, blocks: A ? A.blocks.map(b => [b.id, b.k]) : [], flows: A ? A.flows.map(f => [f.a, f.b, f.s, f.t, f.st]) : [], rev: A ? Object.entries(A.rev).map(([k, r]) => [k, r[0], r[1], !!r[2]]) : [], steps: T.steps.map(s => s.id) }; }));
   for (const S of ST) {

@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.17.0] — 2026-11-08
+
+**One home per subject.** The same subject appeared in up to four places, each written differently: a component page, a system lesson, an optics page, and a simulator topic. A crawl of all 114 pages grouped them into nine subjects.
+
+- Each subject now has one entry, its simulator topic, which lists every page about the subject with what each one adds (the system from zero with practice, the component in depth, the industrial context).
+- Every other page about the subject shows a bar at the top: which subject it belongs to, what this page adds, a button to the showcase, and the other pages.
+- The seven optics pages that are the same as component pages (line-scan, strobe, lens, tilt, thermal, fiducials, laser) now say so.
+- The numbers were compared across the duplicates of each subject (vacuum level and threshold, laser constants, line-scan pixel and speed): they agree.
+- Topics suite: every subject page shows its bar, every topic lists its pages, optics duplicates are marked, and pages outside every subject have no bar.
+- Fix found while building it: the new code observed the content element before the app declared it, which stopped the whole page from loading; every suite failed at once, and it now observes the element directly.
+
 ## [2.16.0] — 2026-11-08
 
 Two more topics, built structure-first like the others (showcase, Feynman levels, flows and interfaces, reverse engineering, faults, math).
