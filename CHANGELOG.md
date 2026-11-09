@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.16.0] — 2026-11-08
+
+Two more topics, built structure-first like the others (showcase, Feynman levels, flows and interfaces, reverse engineering, faults, math).
+
+- **24 V power distribution, from the mains to the boards.** A supply, three fused branches and their cables; the voltage at the far end of each branch, the load on the supply, the input power, inrush against the current limit, and hold-up. Faults replay: a short blows only its own fuse; no soft-start dips the 24 V when the drives are enabled; a long thin cable leaves the valves below 21.6 V; an undersized supply is overloaded.
+- **EtherCAT: one frame through the whole machine.** The frame travels out through six slaves and back, read and written on the fly; the working counter, distributed clocks and the watchdog. Faults replay: a cable cut (the slave before it closes the loop, the rest are lost), a slave not in OP, CRC errors from a motor cable, a cycle overrun.
+- Topics suite: 1602 checks across nine topics. Two presets were corrected to values that really produce their fault (the "undersized supply" preset first blew a fuse instead of overloading; the "overrun" preset first stayed under 80%).
+
 ## [2.15.0] — 2026-11-07
 
 Structure first, on all seven topics.
