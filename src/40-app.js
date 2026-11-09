@@ -47,7 +47,7 @@ const STD = [
 const content = $('#content'), tb = $('#titleblock');
 let active = null; let raf = null; let last = 0;
 function setTitle(sheet, name, std) {
-  tb.innerHTML = `<div><b>גיליון</b>${sheet}</div><div><b>נושא</b>${name}</div><div><b>תקן ייחוס</b><span class="mono">${std}</span></div><div><b>קנה מידה</b>NTS · ללא קנה מידה</div>`;
+  tb.innerHTML = `<div><b>גיליון</b>${sheet}</div><div><b>נושא</b>${name}</div><div><b>תקן ייחוס</b><span class="mono">${std}</span></div><div><b>תכנון ושרטוט</b>Eliaz Selam · <a href="https://www.linkedin.com/in/eliaz-selam" target="_blank" rel="noopener">LinkedIn</a></div>`;
 }
 function bench(def, host) {
   const s = {}; (def.controls || []).forEach(c => s[c.id] = c.val); if (def.init) def.init(s);
@@ -223,7 +223,7 @@ function showS0() {
 
 function go(sheet, arg) {
   document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet));
-  ({ syl: (a) => showSyl(a), path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
+  ({ zoom: (a) => showZoom(a), path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
   if (sheet === 's3' || sheet === 's4') markVisit(sheet);
   if (FH_RET && sheet !== 'ch') { const r = FH_RET; const bar = document.createElement('div'); bar.className = 'retbar'; bar.innerHTML = `<button type="button" class="btn primary">חזרה לתקלה ${r}</button>`; bar.querySelector('button').addEventListener('click', () => { FH_RET = null; playScn(r); }); content.prepend(bar); }
   window.scrollTo(0, 0);

@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="Eliaz Selam">
+<meta name="description" content="מהרכיב למכונה: מערכת לימוד אינטראקטיבית של מכונות AOI ו-AOS, מהרכיב ועד התהליך. נבנתה על ידי Eliaz Selam, מהנדס חשמל.">
+<meta property="og:title" content="מהרכיב למכונה · Eliaz Selam">
+<meta property="og:description" content="מערכת לימוד אינטראקטיבית של מכונות AOI ו-AOS: זום מהרכיב, דרך המערכות, ועד תהליך הסריקה והתיקון.">
+<meta property="og:type" content="website">
 <title>מהרכיב למכונה · ציד תקלות</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -353,6 +358,18 @@ nav.sheets button[hidden]{display:none}
 .sylmeter{font-size:14px;color:var(--muted);margin:6px 0}.sylmore{font-size:14px}.sylgoal{border-inline-start:4px solid var(--ink);padding:6px 12px;margin:12px 0;background:var(--tint)}
 .sylill{font-size:15px}.syldev{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;border:1px dashed var(--line);border-radius:10px;padding:10px 14px;margin:16px 0}.syldev ul{margin:4px 0;padding-inline-start:18px}
 .sylback{position:sticky;top:0;z-index:5;margin:0 0 10px}.sylback button{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.sylitems{color:var(--muted)}
+.byline{font-size:14px;color:var(--muted);margin:2px 0 6px}.byline b{color:var(--ink)}.byline a,.titleblock a{color:var(--live)}
+.zwrap{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:18px;align-items:start}@media (max-width:820px){.zwrap{grid-template-columns:1fr}.zstack{order:-1}}
+.zstack{position:sticky;top:10px;perspective:700px;display:flex;flex-direction:column;gap:6px;padding:8px 0}
+.zplane{font:inherit;text-align:start;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;background:var(--sheet);color:var(--ink);cursor:pointer;transform:rotateX(38deg) scale(calc(0.8 + var(--i) * 0.05));transform-origin:center;transition:transform .25s}
+.zplane small{display:block;font-size:11px;color:var(--muted)}.zplane b{font-size:15px;margin-inline-end:4px}.zplane:hover{transform:rotateX(18deg) scale(1)}.zplane.cur{background:var(--ink);color:var(--sheet);border-color:var(--ink);transform:rotateX(0) scale(1.04)}.zplane.cur small{color:var(--sheet)}
+.zwt{display:inline;font-size:16px;margin:0}.zcrumb{margin:0 0 6px}.zup,.ztile{font:inherit;cursor:pointer;color:var(--ink);background:var(--sheet)}.zup{border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.ztiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.ztile{text-align:start;padding:12px 14px;border:1.5px solid var(--ink);border-radius:12px}.ztile small{display:block;color:var(--muted);margin-top:4px}
+.zwin{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:10px 0;background:var(--sheet)}.zwin.core{border:2px solid var(--ink);box-shadow:0 0 0 6px var(--livetint)}.zwin header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zwin:not(.core) .zbody:empty{display:none}.zopen{margin-inline-start:auto;font:inherit;font-size:13px;padding:3px 12px;border:1px solid var(--ink);border-radius:999px;background:none;color:var(--ink);cursor:pointer}
+.zaround{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 12px}.zaround .zwin.open{grid-column:1/-1}.zring{margin:18px 0 4px;font-size:15px;color:var(--muted)}
+@keyframes zIn{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}@keyframes zOut{from{transform:scale(1.12);opacity:0}to{transform:none;opacity:1}}@keyframes zFade{from{opacity:0}to{opacity:1}}
+.zanim{animation:zFade .35s ease-out}.zanim.zin{animation:zIn .45s ease-out}.zanim.zout{animation:zOut .45s ease-out}@media (prefers-reduced-motion:reduce){.zanim,.zanim.zin,.zanim.zout{animation:none}}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -404,13 +421,14 @@ ol.tsteps .ts{color:var(--live-text)}
 <header class="top">
   <div>
     <h1>מהרכיב למכונה</h1>
+    <p class="byline">נבנה על ידי <b>Eliaz Selam</b> · מהנדס חשמל, בקרה ועיבוד אותות · <a href="https://www.linkedin.com/in/eliaz-selam" target="_blank" rel="noopener">LinkedIn</a></p>
     <p>מערכת לימוד ואתגר אינטראקטיבי: איך עובדים רכיבים, מערכות ומכונות AOI ו-AOS לייצור לוחות, מה בודקים באינטגרציה וב-ATP, ואיך מוצאים תקלה לפני שהשעון של זמן ההשבתה רץ.</p>
   </div>
   <div class="hdrctl" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="theme" id="themeBtn" type="button">מצב תצוגה</button></div>
 </header>
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
-  <button role="tab" data-sheet="syl" aria-selected="false">המבנה החדש<small>תצוגה מקדימה</small></button>
+  <button role="tab" data-sheet="zoom" aria-selected="false">זום במכונה<small>מהרכיב לתהליך</small></button>
   <button role="tab" data-sheet="topic" aria-selected="false">סימולטור תהליך<small>מהמהות לפיתוח</small></button>
   <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
   <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>
@@ -436,5 +454,5 @@ ol.tsteps .ts{color:var(--live-text)}
   <div id="content"></div>
   <div class="titleblock" id="titleblock"></div>
 </main>
-<footer><b>מהרכיב למכונה</b> · נבנה על ידי Eliaz Selam. השרטוטים, ארכיטקטורות המכונות והערכים בספר מייצגים תכנון תעשייתי טיפוסי ומבוססים על מקורות ציבוריים. הם נועדו ללימוד, ואינם תיעוד של מכונה ספציפית. ערכי סימולציה מסומנים כדוגמה או כהנחת מודל. לפני עבודה על ציוד אמיתי, עובדים לפי הנוהל, השרטוט והתקן של היצרן.</footer>
+<footer><b>מהרכיב למכונה</b> · נבנה על ידי Eliaz Selam (<a href="https://www.linkedin.com/in/eliaz-selam" target="_blank" rel="noopener">LinkedIn</a>). השרטוטים, ארכיטקטורות המכונות והערכים בספר מייצגים תכנון תעשייתי טיפוסי ומבוססים על מקורות ציבוריים. הם נועדו ללימוד, ואינם תיעוד של מכונה ספציפית. ערכי סימולציה מסומנים כדוגמה או כהנחת מודל. לפני עבודה על ציוד אמיתי, עובדים לפי הנוהל, השרטוט והתקן של היצרן.</footer>
 </div>
