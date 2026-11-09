@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.18.0] — 2026-11-09
+
+Stage 1 of the reorganization: the master map. No interface change.
+
+- `MASTER` places every asset on a level of its subject's cone: 16 subjects in three tracks (foundations, subsystems, the whole machine) plus shared resources, each with eight levels (essence, intuition, structure and flow, engineering depth, math and physics, advanced, chapter quiz, integration).
+- A ninth test suite, `map`, fails if any of the 415 assets (120 pages, 36 system stages, 81 topic levels, 7 simulations, 3 figures, 8 CircuitJS circuits, 112 questions, 48 faults) is left unplaced, or a ref points at nothing. All 415 are placed.
+- `docs/MASTER_MAP.md` is generated for review: the summary matrix, every subject level by level, and the assets that serve more than one subject.
+
 ## [2.17.0] — 2026-11-08
 
 **One home per subject.** The same subject appeared in up to four places, each written differently: a component page, a system lesson, an optics page, and a simulator topic. A crawl of all 114 pages grouped them into nine subjects.

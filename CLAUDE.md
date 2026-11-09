@@ -30,6 +30,9 @@ Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.
 ## Topic rule
 A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `analogy`, then `steps` (3D, one lead element per step), `quiz`, `faults` (decision trees: every option leads to a node, leaves have `leaf`, `fix`, `pr`, optional `go`), and `math` (MathML via the `MM` helpers, numbers added to `VERIFY`). `tests/topics_audit.mjs` walks every leaf.
 
+## Master map
+`MASTER` in `src/73-master-map.js` places every asset on a level of its subject's cone (16 subjects in 3 tracks, plus shared resources; 8 levels from essence to integration). `tests/master_map.mjs` fails if any page, system stage, topic level, simulation, figure, CircuitJS circuit, question or fault is unplaced, or if a ref points at nothing, and writes `docs/MASTER_MAP.md`. Data only for now: the interface does not read it yet.
+
 ## One home per subject
 A subject covered in several tabs has one entry: its simulator topic. `SUBJECTS` in `src/72-subjects.js` lists every other page about it with what that page adds; those pages get a subject bar (part of «X», what this page adds, the way to the showcase, the other pages), and the topic lists them all. Optics pages that repeat a component page are listed in `ROUTE_ALIAS` and say so. A new page about an existing subject goes into `SUBJECTS`, not into a new tab.
 
