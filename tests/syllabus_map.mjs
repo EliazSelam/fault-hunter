@@ -7,7 +7,7 @@ const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..'
 const b = await chromium.launch(); const pg = await b.newPage(); const jsErr = []; pg.on('pageerror', e => jsErr.push(e.message));
 await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href); await pg.waitForTimeout(400);
 const D = await pg.evaluate(() => ({
-  layers: SYL_LAYERS, nodes: SYL_NODES, rel: SYL_REL, pages: SYL_PAGES,
+  layers: SYL_LAYERS, nodes: SYL_NODES, rel: SYL_REL, pages: SYL_PAGES, dev: SYL_DEV, spaces: SYL_SPACES, space: Object.fromEntries(SYL_NODES.map(n => [n.id, sylSpace(n.id)])),
   topics: TOPICS.map(t => ({ id: t.id, t: t.t, faults: t.faults.map(f => ({ id: f.id, t: f.t, solo: !!f.solo })), pred: t.steps.filter(s => s.pred).map(s => s.id), quiz: t.quiz.length, checks: Object.keys(t.checks || {}), integ: !!t.integ, explain: !!t.explain })),
   comps: COMPONENTS.map(c => ({ id: c.id, t: c.name.replace(/<[^>]+>/g, '') })), teach: Object.fromEntries(Object.entries(TEACH).map(([k, v]) => [k, { check: (v.check || []).length, try: (v.try || []).length }])),
   zero: Object.fromEntries(Object.entries(ZERO).map(([k, v]) => [k, (v.check || []).length])), sysx: Object.fromEntries(Object.entries(SYSX).map(([k, v]) => [k, { bench: typeof v.bench === 'string', guided: (v.guided || []).length, t: v.title }])),
@@ -74,6 +74,25 @@ D.qb.forEach(q => want.push(`q:${q.id}`)); D.scn.forEach(s => want.push(`scn:${s
 want.forEach(it => ok((owner[it] || []).length === 1, `item ${it}: ${(owner[it] || []).length} homes (needs exactly 1)`));
 Object.keys(owner).filter(it => !it.startsWith('review') && !want.includes(it)).forEach(it => P.push(`item ${it} on a page does not exist in the content`));
 ok(['Q55', 'Q61'].every(q => owner['q:' + q] && owner['q:' + q].length === 1), 'Q55 and Q61 have an explicit home');
+/* spaces, development map, local illustrations (A05, A06, A17, A18, A20) */
+ok(D.spaces[0][0] === 'body', 'the body is the first space (the main entry)');
+D.nodes.forEach(n => ok(['body', 'base', 'system', 'res'].includes(D.space[n.id]), `node ${n.id}: belongs to a space`));
+const pid = new Set(D.pages.map(p => p.id));
+Object.entries(D.dev).forEach(([nid, dv]) => {
+  Object.entries(dv.layers).forEach(([l, x]) => {
+    ok(pid.has(x.core), `${nid}/${l}: core ${x.core} exists`); ok(x.branches.length >= 2, `${nid}/${l}: at least two branches around the core`);
+    x.branches.forEach(b => ok(pid.has(b[2]) && b[2].split('/')[1] === l, `${nid}/${l}: branch ${b[0]} page exists in this layer`));
+    x.required.forEach(r => ok(r === x.core || x.branches.some(b => b[2] === r), `${nid}/${l}: required ${r} is the core or a branch`));
+  });
+  dv.links.forEach(([a, r, z]) => { ok(pid.has(a) && pid.has(z), `${nid}: link ${a} → ${z} has real pages`);
+    if (r === 'deepensAcrossDepth') ok(LORD.indexOf(z.split('/')[1]) > LORD.indexOf(a.split('/')[1]), `${nid}: ${a} deepens into a deeper layer`);
+    if (r === 'expandsWithinDepth') ok(z.split('/')[1] === a.split('/')[1], `${nid}: ${a} expands within the same layer`); });
+  const ls = Object.keys(dv.layers);
+  for (let i = 0; i + 1 < ls.length; i++) { const deep = dv.links.filter(k => k[1] === 'deepensAcrossDepth' && k[0].split('/')[1] === ls[i] && k[2].split('/')[1] === ls[i + 1]); ok(deep.length >= 2, `${nid}: at least two branches of ${ls[i]} continue into ${ls[i + 1]}`); }
+});
+D.pages.filter(p => p.layer === 'math' && p.act).forEach(p => ok(p.illustrates, `page ${p.id}: a math page with an activity says what it illustrates`));
+ok(!D.pages.some(p => p.id === 'aoi.img/math/deriv'), 'the heavy camera derivation page is split');
+D.topics.forEach(T => { const q = D.pages.find(p => p.act === `quiz:${T.id}`); ok(q && q.layer === 'show', `${T.id}: the understanding quiz closes the showcase layer`); });
 /* ---- the review document ---- */
 const ln = id => node[id] ? node[id].t : id, la = l => layer[l] || l, an = a => a ? (ACT[a] ? ACT[a].t : a) : '—';
 const kids = id => D.nodes.filter(n => n.parent === id);
