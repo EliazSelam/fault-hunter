@@ -68,6 +68,16 @@ for (const T of topics) {
   ok(cm.mot.issues.includes('blur') && !cm.mot.sat && Math.abs(cm.mot.Gcu - 200) < 1e-9 && cm.def.issues.includes('blur'), 'camera presets: continuous light (no strobe) and defocus blur the image');
   ok(cm.ff.issues.includes('edges') && !cm.n.issues.includes('edges'), 'camera preset: no flat-field leaves dark edges');
   ok(cm.sat.sat && cm.sat.Gcu === 255, 'camera: double light saturates copper at 255');
+  /* power and EtherCAT models: each preset shows what its leaf says */
+  const pe = await pg.evaluate(() => ({ n: pwrCalc(), sh: pwrCalc({ br: [{}, { short: true }, {}] }), soft: pwrCalc({ soft: false }), big: pwrCalc({ br: [{ I: 3.8 }, { I: 3.8 }, { I: 3.6 }] }), thin: pwrCalc({ br: [{}, {}, { L: 30, A: 0.5 }] }),
+    e: ecatCalc(), brk: ecatCalc({ brk: 1 }), nop: ecatCalc({ notOp: true }), ov: ecatCalc({ bytes: 10500 }), crc: ecatCalc({ crc: true }) }));
+  ok(pe.n.ok && Math.abs(pe.n.Itot - 7.5) < 1e-12, 'power normal: 7.5 A of 10, every branch above 21.6 V');
+  ok(pe.sh.branches[1].blown && pe.sh.branches[0].ok && pe.sh.branches[2].ok, 'power preset: a short blows only its own fuse, the other branches keep working');
+  ok(pe.soft.dip && !pe.n.dip, 'power preset: no soft-start dips the 24 V'); ok(pe.big.overload, 'power preset: an undersized supply is overloaded');
+  ok(!pe.thin.branches[2].ok && pe.thin.branches[2].Vend < 21.6, 'power preset: a long thin cable leaves the valves below 21.6 V');
+  ok(pe.e.ok && pe.e.wkc === 6 && pe.e.util < 0.02, 'EtherCAT normal: WKC 6 of 6, frame ≈ 11 µs of 1 ms');
+  ok(pe.brk.wkc === 1 && pe.brk.lost.length === 5, 'EtherCAT preset: a cut after X leaves WKC 1 and five slaves lost');
+  ok(pe.nop.wkc === 5 && !pe.nop.ok, 'EtherCAT preset: one slave not in OP lowers WKC by one'); ok(pe.ov.overrun, 'EtherCAT preset: 10,500 extra bytes overrun the cycle'); ok(!pe.crc.ok, 'EtherCAT preset: CRC errors are flagged');
   /* structure: vertical Feynman, information flow and interfaces, reverse engineering */
   const ST = await pg.evaluate(() => TOPICS.map(T => { const A = ARCH[T.id]; return { id: T.id, has: !!A, why: A && A.why, f3: A && A.f3, blocks: A ? A.blocks.map(b => [b.id, b.k]) : [], flows: A ? A.flows.map(f => [f.a, f.b, f.s, f.t, f.st]) : [], rev: A ? Object.entries(A.rev).map(([k, r]) => [k, r[0], r[1], !!r[2]]) : [], steps: T.steps.map(s => s.id) }; }));
   for (const S of ST) {
