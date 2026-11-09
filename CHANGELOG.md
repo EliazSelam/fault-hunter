@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.19.0] — 2026-11-09
+
+**Cone pilot: the line-scan camera**, built from the drawing.
+
+- One page, seven levels from the top down: showcase, flow and interfaces, engineer, math, reverse engineering, faults, integration. A vertical cone beside the level buttons shows where you are and navigates; every level ends with "continue down".
+- Questions woven between levels, as in the drawing: understanding questions on the way down from the showcase, deepening questions after the flow, the simulator with its questions on the way into reverse engineering, and the faults level carries the chapter's questions (16 from the technical test, 9 field faults).
+- Every line-scan piece that was spread across tabs now sits on its level: the 3D showcase, the live encoder-trigger figure and the 3D scan head (showcase); the block diagram and the component schematic (flow); the step-by-step lesson, the Feynman exercise and, folded, the words, the other components in the chain and the full technical reading (engineer); the formulas, the worked numbers and the self-check (math); the line-scan bench and block disconnection (reverse engineering); the fault trees and what can go wrong (faults); the integration question, the place in the tree and spaced review (integration).
+- Interactive pieces are mounted from their own builders, unchanged; the topics suite checks they still respond.
+- The tree of cones from the drawing: first power-up and ATP at the root, the AOI cycle, EtherCAT, power and AOS under it, and line-scan, vacuum, servo and safety under the AOI cycle; the breadcrumb shows the path.
+- Topics suite: 1661 checks, including every cone level and its pieces.
+
 ## [2.18.0] — 2026-11-09
 
 Stage 1 of the reorganization: the master map. No interface change.

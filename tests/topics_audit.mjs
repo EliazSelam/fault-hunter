@@ -7,6 +7,8 @@ const problems = []; let n = 0; const ok = (c, msg) => { n++; if (!c) problems.p
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1200, height: 900 } });
 pg.on('pageerror', e => problems.push('js error: ' + e.message));
 await pg.goto(INDEX + '#/topic'); await pg.waitForTimeout(500);
+/* the cone pilot replaces the level tabs for its topics; the per-level checks below run on the classic view, the cone is checked at the end */
+const CONE_IDS = await pg.evaluate(() => { window.__cone = Object.assign({}, CONE); Object.keys(CONE).forEach(k => delete CONE[k]); return Object.keys(window.__cone); });
 const topics = await pg.evaluate(() => TOPICS.map(t => ({ id: t.id, steps: t.steps, quiz: t.quiz, faults: t.faults, mathN: t.math().length, deep: t.deep })));
 for (const T of topics) {
   ok(T.steps.length >= 4, `${T.id}: at least 4 steps`);
@@ -156,6 +158,36 @@ for (const T of topics) {
     ok(await pg.evaluate(() => !!document.getElementById('tsNormal') && !!document.getElementById('tsc')), `${T.id}/${F.id}/${id}: "run with the fault" opens the simulation in fault mode`);
     await pg.click('#tsNormal');
   } }
+/* cone pilot: seven levels, woven questions, every piece mounted and working, tree breadcrumb */
+await pg.evaluate(() => Object.assign(CONE, window.__cone));
+for (const id of CONE_IDS) {
+  await pg.evaluate(id => { TSTATE.lvl = 'show'; TSTATE.sim = null; go('topic', id); }, id); await pg.waitForTimeout(400);
+  ok(await pg.evaluate(() => [...document.querySelectorAll('.crumbs button, .crumbs b')].map(x => x.textContent).length === 3), `${id}: breadcrumb shows root › parent › topic`);
+  ok(await pg.evaluate(() => /עצור/.test(document.getElementById('tsPlay').textContent)), `${id}: opens on the playing showcase`);
+  const want = { show: L => L.querySelectorAll('canvas').length >= 2 && L.querySelectorAll('.anat iframe').length >= 1 && L.querySelectorAll('.gate .tq').length >= 2,
+    flow: L => !!L.querySelector('#arD svg') && L.querySelectorAll('.scheme svg').length >= 2 && L.querySelectorAll('.gate .lvlcheck').length === 2,
+    eng: L => !!L.querySelector('ol.tsteps') && L.querySelectorAll('[data-fy]').length === 3 && L.querySelectorAll('details.more').length >= 3,
+    math: L => L.querySelectorAll('math').length >= 4 && !!L.querySelector('.formulas') && L.querySelectorAll('.gate input[type=range], .gate select').length >= 1,
+    rev: L => !!L.querySelector('#rvD svg') && L.querySelectorAll('#clBench2 input[type=range], #clBench2 select').length >= 1,
+    fault: L => L.querySelectorAll('[data-f]').length >= 3 && L.querySelectorAll('[data-q]').length >= 5 && L.querySelectorAll('[data-scn]').length >= 1,
+    integ: L => !!L.querySelector('#ig') && L.querySelectorAll('[data-ct]').length >= 3 && !!L.querySelector('#clRev .tq') };
+  const levels = await pg.evaluate(() => CONE_LEVELS.map(l => l[0]));
+  for (let i = 0; i < levels.length; i++) {
+    const l = levels[i];
+    await pg.evaluate(l => document.querySelector(`.lvltabs [data-cl="${l}"]`).click(), l); await pg.waitForTimeout(250);
+    ok(await pg.evaluate(fs => { const L = document.getElementById('tl'); return (new Function('L', 'return (' + fs + ')(L)'))(L); }, want[l].toString()), `${id}: level ${i} (${l}) has its pieces`);
+    ok(await pg.evaluate(last => last ? !document.getElementById('clDown') : !!document.getElementById('clDown'), i === levels.length - 1), `${id}: level ${i} ${i === levels.length - 1 ? 'is the bottom' : 'leads down to the next'}`);
+  }
+  /* the pieces still work */
+  await pg.evaluate(() => document.querySelector('.lvltabs [data-cl="show"]').click()); await pg.waitForTimeout(300);
+  const r1 = await pg.evaluate(() => document.getElementById('sr').textContent); await pg.evaluate(() => { const e = document.getElementById('sov'); e.value = 4; e.dispatchEvent(new Event('input')); }); const r2 = await pg.evaluate(() => document.getElementById('sr').textContent);
+  ok(r1 !== r2 && /מכסה את השוליים/.test(r2), `${id}: the 3D scan head responds to its slider`);
+  await pg.evaluate(() => document.querySelector('.lvltabs [data-cl="rev"]').click()); await pg.waitForTimeout(250);
+  const b1 = await pg.evaluate(() => document.querySelector('#clBench2 .readout').textContent); await pg.evaluate(() => { const s = document.querySelector('#clBench2 input[type=range]'); s.value = s.max; s.dispatchEvent(new Event('input')); }); const b2 = await pg.evaluate(() => document.querySelector('#clBench2 .readout').textContent);
+  ok(b1 !== b2, `${id}: the line-scan bench responds to its controls`);
+  await pg.evaluate(() => document.querySelector('.conenav [data-cl="fault"]').dispatchEvent(new Event('click'))); await pg.waitForTimeout(200);
+  ok(await pg.evaluate(() => document.querySelector('.lvltabs [data-cl="fault"]').getAttribute('aria-selected') === 'true'), `${id}: the cone on the side navigates`);
+}
 await b.close();
 console.log(`topics: ${topics.length} topics, ${n} checks`);
 if (problems.length) { console.log('PROBLEMS'); problems.slice(0, 60).forEach(p => console.log('  ' + p)); process.exit(1); }

@@ -30,6 +30,9 @@ Version: `APP_VERSION` in `src/41-version-and-links.js`, an entry in `CHANGELOG.
 ## Topic rule
 A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `analogy`, then `steps` (3D, one lead element per step), `quiz`, `faults` (decision trees: every option leads to a node, leaves have `leaf`, `fix`, `pr`, optional `go`), and `math` (MathML via the `MM` helpers, numbers added to `VERIFY`). `tests/topics_audit.mjs` walks every leaf.
 
+## Cone pages
+`src/74-cone.js` renders a topic as one vertical cone, following the drawing: 0 showcase · 1 flow and interfaces · 2 engineer · 3 math · 4 reverse engineering · 5 faults (with the chapter's questions) · 6 integration. Questions are woven in as gates between levels. Pieces come from their own builders (topic scene, `bench`, `anatBlock`/`mountAnat`, `scanSim`, `renderTeach` split by `zParts`), so interactive parts are untouched. `TOPIC_TREE` holds the tree of cones (root: first power-up and ATP). A topic joins by getting a `CONE` entry. Pilot: `cam`.
+
 ## Master map
 `MASTER` in `src/73-master-map.js` places every asset on a level of its subject's cone (16 subjects in 3 tracks, plus shared resources; 8 levels from essence to integration). `tests/master_map.mjs` fails if any page, system stage, topic level, simulation, figure, CircuitJS circuit, question or fault is unplaced, or if a ref points at nothing, and writes `docs/MASTER_MAP.md`. Data only for now: the interface does not read it yet.
 
