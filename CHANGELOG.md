@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.26.0] — 2026-11-10
+
+**Multi-level disassembly.** A part of the machine now opens into the parts it is made of, and those open further, down to the components.
+
+- "פרק לחלקים ⤢" on a selected part: the rest of the machine disappears, and the part explodes into its own parts, each named. Eleven assemblies: the camera head (lens, line-scan sensor, strobe LED bar, MOSFET driver board, trigger cable), the vacuum table (zoned surface, manifold, venturi, solenoid valve, pressure switch), the valve (solenoid coil, plunger and spring, body, the relay that drives it), the relay (coil, contacts, flyback diode, MOSFET, gate resistor, filter capacitor), the motor, the 24 V supply, the I/O cards, the axis, the laser head, the safety chain and the controller.
+- Click a part inside to see what it is, its scale, what it is part of, and its windows in two layers; if it has parts of its own, open it too. A path at the top (המכונה › שולחן ואקום › שסתום › ממסר) and "one level up" lead back.
+- Every inner part is checked against the zoom tree: it must be the opened topic itself or one of its parts.
+- The demo tour has a new second step: the table opens to the valve, the valve to the relay, and the relay to its components.
+
 ## [2.25.0] — 2026-11-10
 
 **Two layers, the machine first.**

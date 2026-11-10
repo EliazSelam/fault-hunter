@@ -81,18 +81,37 @@ ok(await pg.evaluate(() => MPARTS.filter(p => p.node).every(p => zNode(p.node)))
 ok(await pg.evaluate(() => [...new Set(MPARTS.filter(p => p.node).map(p => p.node))].length >= 20), 'the machine shows at least 20 topics as parts');
 const mp = await pg.evaluate(() => mPickAt('table')); ok(!!mp, 'the vacuum table can be clicked');
 if (mp) { await pg.mouse.click(mp[0], mp[1]); await pg.waitForTimeout(300); ok(await pg.evaluate(() => MS.sel === 'table' && /שכבה 1/.test(document.getElementById('mside').textContent) && /שכבה 2/.test(document.getElementById('mside').textContent)), 'clicking a part selects it and lists its two layers'); }
-await pg.evaluate(() => document.querySelector('#mside .zgo').click()); await pg.waitForTimeout(250);
+await pg.evaluate(() => document.querySelector('#mside .zgo[data-zn]').click()); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.zring')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.zring')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
 await pg.evaluate(() => { const s = document.getElementById('mE'); }); 
 await pg.evaluate(() => go('zoom', 'appx')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES.length), 'appendices: the topics outside the machine and the shared resources');
+/* multi-level disassembly */
+const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
+  return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
+inner.forEach(([n, exists, bad]) => ok(exists && bad.length === 0, `inner assembly of ${n}: every part is ${n} itself or a part of it (not: ${bad.join(', ')})`));
+await pg.evaluate(() => { MS.E = 0; MS.assembling = false; MS.path = []; MS.sel = null; MS.rot = false; go('zoom', 'machine'); }); await pg.waitForTimeout(300);
+await pg.evaluate(() => mSelect('table')); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => !!document.querySelector('#mside [data-mo="vac"]')), 'a part with an inner assembly offers to open it');
+await pg.evaluate(() => document.querySelector('#mside [data-mo="vac"]').click()); await pg.waitForTimeout(1500);
+ok(await pg.evaluate(() => MS.path.join() === 'vac' && MS.IE > 0.9 && MS.polys.length > 10), 'opening the table explodes its inner parts');
+await pg.evaluate(() => { MS.isel = INNER.vac.findIndex(p => p.node === 'valve'); mSide(); document.querySelector('#mside [data-mo="valve"]').click(); }); await pg.waitForTimeout(1500);
+await pg.evaluate(() => { MS.isel = INNER.valve.findIndex(p => p.node === 'relay'); mSide(); document.querySelector('#mside [data-mo="relay"]').click(); }); await pg.waitForTimeout(1500);
+ok(await pg.evaluate(() => MS.path.join('>') === 'vac>valve>relay' && /המכונה/.test(document.querySelector('.mcrumb').textContent)), 'down three levels: table, valve, relay, with the path shown');
+const coil = await pg.evaluate(() => mPickAt('in:' + INNER.relay.findIndex(p => p.node === 'coil')));
+ok(!!coil, 'the relay\u2019s coil can be clicked'); if (coil) { await pg.mouse.click(coil[0], coil[1]); await pg.waitForTimeout(200); ok(await pg.evaluate(() => INNER.relay[MS.isel] && INNER.relay[MS.isel].node === 'coil' && /סליל/.test(document.getElementById('mside').textContent)), 'clicking the coil shows the component'); }
+await pg.evaluate(() => document.querySelector('#mside [data-mup]').click()); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => MS.path.join('>') === 'vac>valve'), 'one level up goes back to the valve');
+await pg.evaluate(() => document.querySelector('.mcrumb [data-mlv="0"]').click()); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => MS.path.length === 0), 'the breadcrumb returns to the whole machine');
 /* the demo tour */
 await pg.evaluate(() => go('about')); await pg.waitForTimeout(150); await pg.click('.about [data-tour]'); await pg.waitForTimeout(250);
-const tourWant = ['#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
+const tourWant = ['#/zoom/machine', '#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
 for (let i = 0; i < tourWant.length; i++) {
   const r = await pg.evaluate(() => [location.hash, !!document.getElementById('ztour'), document.querySelector('#ztour .ztn').textContent]);
   ok(r[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);
-  if (i === 8) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
+  if (i === 1) { await pg.waitForTimeout(4200); ok(await pg.evaluate(() => MS.path.join('>') === 'vac>valve>relay'), 'tour: the disassembly step opens the table, the valve and the relay'); }
+  if (i === 9) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
   await pg.click('#ztNext'); await pg.waitForTimeout(250);
 }
 ok(await pg.evaluate(() => !document.getElementById('ztour')), 'tour: the last step closes the bar');
