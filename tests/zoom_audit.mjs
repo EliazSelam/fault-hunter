@@ -73,6 +73,16 @@ ok(await pg.evaluate(() => document.querySelectorAll('.zlog').length >= 5 && /0 
 /* about */
 await pg.evaluate(() => go('about')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => { const li = document.querySelector('.abtn.li'), gh = document.querySelector('.abtn.gh'); return !!li && !!gh && li.href.includes('linkedin.com/in/eliaz-selam') && gh.href.includes('github.com/EliazSelam') && /Eliaz Selam/.test(document.querySelector('.about').textContent); }), 'about: the project is mine, with LinkedIn and GitHub buttons');
+/* the demo tour */
+await pg.evaluate(() => go('about')); await pg.waitForTimeout(150); await pg.click('.about [data-tour]'); await pg.waitForTimeout(250);
+const tourWant = ['#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
+for (let i = 0; i < tourWant.length; i++) {
+  const r = await pg.evaluate(() => [location.hash, !!document.getElementById('ztour'), document.querySelector('#ztour .ztn').textContent]);
+  ok(r[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);
+  if (i === 7) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
+  await pg.click('#ztNext'); await pg.waitForTimeout(250);
+}
+ok(await pg.evaluate(() => !document.getElementById('ztour')), 'tour: the last step closes the bar');
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));
 console.log(`zoom: ${D.nodes.length} nodes, ${Object.keys(home).length} windows, ${n} checks`);
