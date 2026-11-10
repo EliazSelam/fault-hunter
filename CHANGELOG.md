@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.30.0] — 2026-11-11
+
+**The physics and math layer, animated.** Six derivations that unfold step by step next to a drawing that shows what each step says, with sliders that change the numbers in the formulas and in the drawing at once.
+
+- **Line rate and motion blur** (camera): the panel scrolls under the sensor line, one line per encoder pulse; f = v/p, b = v·t, b/p = f·t, and why continuous light blurs a whole pixel.
+- **Depth of field** (lens): the light cone, the panel off focus, b ≈ 2·NA·Δz, the pixel limit p/(2NA), and the wave limit ±λ/(2NA²).
+- **The laser crater** (laser repair): the Gaussian fluence, F₀ = 2E/(πw₀²), the threshold crossing that gives D, the crater deepening pulse by pulse in a copper cross-section, and the full-cut diameter D_c.
+- **Vacuum pump-down** (vacuum table): the balance equation, the steady state, the exponential with τ = V/(S+C), the time to threshold, and a leak large enough that the threshold is never reached.
+- **The servo loop** (control loop): from m·ẍ + b·ẋ = F and a PD controller to ω_n and ζ, the step response drawn as the carriage moves, overshoot and settling time.
+- **The relay coil** (relay): current rise with τ = L/R, the kilovolt spike at turn-off without a diode, and the flyback diode that clamps it.
+- Every number comes from the same constants as the simulations (F₀ 7.07 J/cm², D 10.6 µm and D_c 4.7 µm for the crater; 51.2 kHz; p_ss and t_th of the vacuum model; ω_n 200 rad/s, ζ 0.61, 8.9% overshoot). The zoom suite checks each of them, and that every animation steps and follows its sliders.
+- The animations are the first window in their topic's theory layer, and they are in the simulations gallery.
+
 ## [2.29.0] — 2026-11-11
 
 **Two machines, and every simulation one click away.**
