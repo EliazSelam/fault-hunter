@@ -93,6 +93,20 @@ ok(await pg.evaluate(() => { const shown = new Set(NAV_GROUPS.flatMap(g => g[3])
 { const p2 = await b.newPage(); await p2.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href); await p2.waitForTimeout(500); ok(await p2.evaluate(() => !!document.getElementById('mc') && document.querySelector('.navgroups [aria-pressed="true"]').dataset.grp === 'machine'), 'with no address the book opens on the machine'); await p2.close(); }
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(200);
 ok(await pg.evaluate(() => !!document.querySelector('#mside .mwhole [data-zn="proc"]') && !!document.querySelector('#mside .mwhole [data-zn="bringup"]')), 'the whole machine offers its cycle and its bring-up');
+/* moving around and curiosity */
+await pg.evaluate(() => { localStorage.removeItem('fh-explored'); go('zoom', 'valve'); }); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => { const p = [...document.querySelectorAll('.zpath [data-zn]')].map(b => b.dataset.zn); return p[p.length - 1] === 'valve' && p.includes('vac') && p.includes('proc'); }), 'path bar: from the machine down to the topic');
+ok(await pg.evaluate(() => document.querySelectorAll('.zsibs button').length >= 1 || zSiblings('valve').length === 1), 'siblings at the same scale are offered');
+await pg.keyboard.press('ArrowUp'); await pg.waitForTimeout(200); ok(await pg.evaluate(() => ZS.node === 'vac'), 'arrow up zooms out');
+await pg.keyboard.press('ArrowDown'); await pg.waitForTimeout(200); ok(await pg.evaluate(() => ZS.node === 'valve'), 'arrow down zooms in');
+await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(150); await pg.keyboard.press('ArrowLeft'); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => ZS.node !== 'cam' && zNode(ZS.node).level === 4), 'arrow left moves to the next topic at the same scale');
+ok(await pg.evaluate(() => ['valve', 'vac', 'cam'].every(id => zExplored().has(id))), 'visited topics are counted as explored');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => /חקרת \d+ מתוך \d+/.test(document.querySelector('#mside .mexp').textContent) && !!document.querySelector('#mside [data-nx]')), 'the machine shows exploration progress and what to explore next');
+ok(await pg.evaluate(() => MPARTS.filter(p => p.node).every(p => zTeaser(p.node) || !zWindows(zNode(p.node)).some(w => /^t:|^c:/.test(w)))), 'every part with questions has a teaser question');
+ok(await pg.evaluate(() => { mJump('diode'); return MS.path.length >= 1 && INNER[MS.path[MS.path.length - 1]][MS.isel].node === 'diode'; }), 'the finder jumps into the machine, opened down to a component');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; });
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
