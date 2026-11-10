@@ -90,7 +90,7 @@ zMachineView = (function (orig) {
     orig();
     const bar = content.querySelector('.mbar'); if (!bar) return;
     bar.insertAdjacentHTML('beforeend', `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}</datalist></label>`);
-    $('#mFind').addEventListener('change', e => { const z = zMachineTopics().find(x => x.t === e.target.value.trim()) || zMachineTopics().find(x => x.t.includes(e.target.value.trim())); if (!z) return; e.target.value = ''; mJump(z.id); });
+    $('#mFind').addEventListener('change', e => { const v = e.target.value.trim(); if (!v) return; const z = zMachineTopics().find(x => x.t === v) || zMachineTopics().find(x => x.t.includes(v)); if (!z) return; e.target.value = ''; mJump(z.id); });
   };
 })(zMachineView);
 /* jump to a topic inside the machine: a part, or the part that contains it, opened down to it */

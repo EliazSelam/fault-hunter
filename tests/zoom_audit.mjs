@@ -107,6 +107,25 @@ ok(await pg.evaluate(() => /חקרת \d+ מתוך \d+/.test(document.querySelect
 ok(await pg.evaluate(() => MPARTS.filter(p => p.node).every(p => zTeaser(p.node) || !zWindows(zNode(p.node)).some(w => /^t:|^c:/.test(w)))), 'every part with questions has a teaser question');
 ok(await pg.evaluate(() => { mJump('diode'); return MS.path.length >= 1 && INNER[MS.path[MS.path.length - 1]][MS.isel].node === 'diode'; }), 'the finder jumps into the machine, opened down to a component');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; });
+/* two machines and the simulations gallery */
+await pg.evaluate(() => { MS.path = []; MS.sel = null; MS.E = 0; MS.assembling = false; MS.rot = false; go('zoom', 'machine'); mSetMachine('aos'); }); await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => { const ids = new Set(MS.polys.map(p => p[2])); return ids.has('laser') && !ids.has('cam') && !ids.has('strobe'); }), 'the AOS machine shows the laser head and not the camera');
+await pg.evaluate(() => mSetMachine('aoi')); await pg.waitForTimeout(300);
+ok(await pg.evaluate(() => { const ids = new Set(MS.polys.map(p => p[2])); return ids.has('cam') && !ids.has('laser'); }), 'the AOI machine shows the camera and not the laser head');
+await pg.evaluate(() => mSetMachine('line')); await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => { const ids = new Set(MS.polys.map(p => p[2])); return ids.has('M:aoi') && ids.has('M:aos') && ids.has('M:verify'); }), 'the line shows both machines and the verification station');
+const aosAt = await pg.evaluate(() => mPickAt('M:aos'));
+if (aosAt) { await pg.mouse.click(aosAt[0], aosAt[1]); await pg.waitForTimeout(250); }
+ok(await pg.evaluate(() => MS.machine === 'aos'), 'clicking the AOS machine on the line enters it');
+ok(await pg.evaluate(() => !document.querySelector('#mside .mreal')), 'no notes about specific companies on the machines');
+await pg.evaluate(() => { mSetMachine('aoi'); mSelect('laser'); }); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => MS.machine === 'aos'), 'selecting an AOS part switches to the AOS machine');
+await pg.evaluate(() => { MS.sel = null; mSetMachine('aoi'); ZG.q = ''; ZG.ctx = 'all'; go('zoom', 'sims'); }); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => document.querySelectorAll('.simcard').length === zSimList().length && zSimList().length >= 20), 'the gallery lists every simulation');
+ok(await pg.evaluate(() => { const s = zSimList(); const cr = s.find(x => x.w === 'sim:cr3d'), sc = s.find(x => x.w === 'sim:scan3d'); return cr && cr.ctx === 'AOS' && sc && sc.ctx === 'AOI'; }), 'the gallery files the crater under AOS and the scan head under AOI');
+await pg.fill('#sgq', 'מכתש'); await pg.waitForTimeout(150); await pg.click('.simcard'); await pg.waitForTimeout(600);
+ok(await pg.evaluate(() => ZS.node === 'laser' && !!document.querySelector('.zwin.zfocus canvas')), 'finding the crater opens it in place in its topic');
+await pg.evaluate(() => { ZG.q = ''; });
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
