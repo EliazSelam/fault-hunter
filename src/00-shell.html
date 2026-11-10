@@ -406,6 +406,11 @@ nav.sheets button[hidden]{display:none}
 .mreal{margin:12px 0 0;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:14px}.mreal summary{cursor:pointer;font-weight:600;color:var(--ink)}.mreal ul{padding-inline-start:18px;margin:6px 0}
 .simgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:0 0 16px}.simcard{font:inherit;text-align:start;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--sheet);color:var(--ink);cursor:pointer}
 .simcard:hover,.simcard:focus-visible{border-color:var(--live);box-shadow:0 0 0 3px var(--livetint)}.simcard small{color:var(--muted)}.zwin.zfocus{box-shadow:0 0 0 3px var(--live)}
+.anim{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.4fr);gap:14px;align-items:start}@media (max-width:820px){.anim{grid-template-columns:1fr}}
+.anim canvas{width:100%;height:auto;border-radius:12px;background:#FBFAF7;border:1px solid var(--line)}.asteps{margin:0;padding-inline-start:22px}.asteps li{margin:0 0 8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .3s,opacity .3s}
+.asteps li.next{opacity:.38}.asteps li.done{opacity:.75}.asteps li.cur{background:var(--livetint);box-shadow:inset 3px 0 0 var(--live)}
+.actl{display:flex;gap:6px;margin:6px 0}.actl button{font:inherit;font-size:14px;padding:5px 12px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.actl [data-ab="play"]{background:var(--ink);color:var(--sheet);font-weight:700}
+.aprm{display:grid;gap:6px;font-size:13px}.aprm label{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}.aprm input{grid-column:1/-1;width:100%}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}

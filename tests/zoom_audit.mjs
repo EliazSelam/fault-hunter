@@ -126,6 +126,20 @@ ok(await pg.evaluate(() => { const s = zSimList(); const cr = s.find(x => x.w ==
 await pg.fill('#sgq', 'מכתש'); await pg.waitForTimeout(150); await pg.click('.simcard'); await pg.waitForTimeout(600);
 ok(await pg.evaluate(() => ZS.node === 'laser' && !!document.querySelector('.zwin.zfocus canvas')), 'finding the crater opens it in place in its topic');
 await pg.evaluate(() => { ZG.q = ''; });
+/* the physics and math layer, animated: same numbers as the models */
+const AV = await pg.evaluate(() => Object.fromEntries(Object.entries(ANIMS).map(([k, A]) => [k, A.calc(Object.fromEntries(A.params.map(p => [p[0], p[5]])))])));
+const near = (a, b, tol) => Math.abs(a - b) <= tol;
+ok(near(AV.scan.f, 51.2, 0.1) && near(AV.scan.b, 0.5, 1e-9) && near(AV.scan.bpx, 0.10, 0.005), 'animation scan: f = v/p = 51.2 kHz, blur 0.50 µm = 0.10 px, as in the camera model');
+ok(near(AV.dof.dof, 22.5, 0.05) && near(AV.dof.b, 6, 1e-9), 'animation dof: ±λ/(2NA²) = ±22.5 µm, b = 2·NA·Δz');
+ok(near(AV.crater.F0, 7.07, 0.01) && near(AV.crater.D, 10.6, 0.05) && near(AV.crater.h0, 6.2, 0.05) && near(AV.crater.Dc, 4.7, 0.06), 'animation crater: F₀ 7.07, D 10.6, depth 6.2, full cut 4.7 µm, as in the laser simulation');
+ok(await pg.evaluate(() => { const a = ANIMS.pump.calc({ S: VT.S, C: VT.C, V: VT.V }), b = vacCalc(); return Math.abs(a.pss - b.pss) < 1e-9 && Math.abs(a.tth - b.tth) < 1e-9; }), 'animation pump: the same p_ss and t_th as the vacuum model');
+ok(near(AV.servo.wn, 200, 1e-6) && near(AV.servo.z, 0.61, 1e-9) && near(AV.servo.Mp, 8.9, 0.05) && Math.abs(AV.servo.ts - AV.servo.ts4) / AV.servo.ts4 < 0.15, 'animation servo: ω_n 200, ζ 0.61, Mp 8.9%, simulated settling within 15% of 4/(ζω_n)');
+ok(near(AV.coil.I, 0.05, 1e-9) && near(AV.coil.tau, 0.2 / 480, 1e-12), 'animation coil: I = V/R = 50 mA, τ = L/R');
+ok(await pg.evaluate(() => Object.values(ANIMS).every(A => zWindows(zNode(A.node)).includes('anim:' + Object.keys(ANIMS).find(k => ANIMS[k] === A)))), 'every animation is a window of its topic');
+await pg.evaluate(() => zOpenWindow('laser', 'anim:crater')); await pg.waitForTimeout(500);
+const an = await pg.evaluate(() => { const el = [...document.querySelectorAll('.zwin')].find(s => s.dataset.w === 'anim:crater').querySelector('.zbody'); const first = el.querySelector('.asteps li.cur').dataset.as; el.querySelector('[data-ab="next"]').click(); const second = el.querySelector('.asteps li.cur').dataset.as; const r = el.querySelector('[data-ap="E"]'); r.value = 8; r.dispatchEvent(new Event('input')); return [first, second, el.querySelector('.asteps li[data-as="1"]').textContent, !!el.querySelector('canvas')]; });
+ok(an[0] === '0' && an[1] === '1' && /14\.1/.test(an[2]) && an[3], `the crater animation steps forward and its formulas follow the slider (${an[2].slice(0, 60)})`);
+ok(await pg.evaluate(() => zSimList().filter(s => s.kind === 'anim').length === Object.keys(ANIMS).length), 'the animations are in the simulations gallery');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
