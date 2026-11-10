@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.25.0] — 2026-11-10
+
+**Two layers, the machine first.**
+
+- **Layer 1, the main one: a complete inspection machine in 3D.** The zoom tab opens on it, and it assembles itself part by part, like an exploded engine coming together: granite base, Y rails, ball screw, servo motor with brake and encoder, vacuum table with its valve and pressure switch, the panel, the X gantry, the line-scan camera with lens and strobe, the AOS laser head with its source and registration camera, the electrical cabinet (24 V supply, controller and EtherCAT, I/O cards, relays, fuses), and the enclosure with door interlock and emergency stop. 25 parts, each a topic of the zoom. Explode it with a slider or assemble it again, turn it, zoom in, and click a part: the view flies to it and the side panel shows its scale, what it is part of, what it is made of, and its windows.
+- **Layer 2, the inner one: theory.** Every topic now shows its windows in two layers: first the simulations and visualisations (process scenes, simulations, live figures, flows, disconnections, fault trees, questions), then the theory (simple explanation, step by step, numbers, formulas, derivations, what goes wrong, pages and cards).
+- **Appendices.** Topics that are not parts of the machine (the production line, digital logic, measurement instruments) moved out of the tree into a new "appendices" view, next to the resources for the whole book. They are no longer parts of anything.
+- The demo tour opens with the machine assembling. The zoom suite clicks a part in the 3D machine, enters it, checks the two layers and the appendices (14,436 checks).
+
 ## [2.24.0] — 2026-11-10
 
 - **A two-minute demo tour.** "▶ סיור הדגמה" in the zoom's views bar and on the about page runs the same nine steps every time: the whole process, zoom in to the vacuum table, the valve, the relay (part of three mechanisms) and the coil; the tree by scale; the 3D stack; the duplicates report with its live check; and the about page. A floating bar shows the step and its sentence, with previous, next and close; arrow keys and Escape work too.

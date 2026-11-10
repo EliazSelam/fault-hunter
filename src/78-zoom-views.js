@@ -1,4 +1,5 @@
 /* ============ Zoom views: tree by scale, 3D stack, duplicates report; and "about the project" ============ */
+const zVis = () => ZOOM.filter(z => !(typeof ZAPPX !== 'undefined' && ZAPPX.has(z.id)));
 const zLevelName = l => ZLEVELS.find(x => x[0] === l)[1];
 const zCtx = id => ZCTX[id] || 'SHARED';
 const zDesc = id => { const seen = new Set(), out = []; const w = x => { if (seen.has(x)) return; seen.add(x); out.push(x); zNode(x).parts.forEach(w); }; w(id); return out; };
@@ -80,19 +81,19 @@ function z3dView() {
   const V = view3(cv, { yaw: -0.6, pitch: 0.38, dist: Z3.dist, fov: 640, oy: -25, onView: () => draw() });
   const planeCol = { 5: ink, 4: live, 3: tint, 2: mech, 1: text };
   const pos = {};
-  ZLEVELS.forEach(([l]) => { const ns = ZOOM.filter(z => z.level === l).sort((a, b) => ZCORE.has(b.id) - ZCORE.has(a.id)); const z = (l - 3) * 1.9;
+  ZLEVELS.forEach(([l]) => { const ns = zVis().filter(z => z.level === l).sort((a, b) => ZCORE.has(b.id) - ZCORE.has(a.id)); const z = (l - 3) * 1.9;
     ns.forEach((n, i) => { const core = ZCORE.has(n.id), R = core ? 1.0 + (i % 2) * 0.5 : 2.3 + (i % 3) * 0.6, a = i * 2.39996 + l * 0.7; pos[n.id] = [R * Math.cos(a), R * Math.sin(a), z]; }); });
   function draw() {
     V.st.dist = Z3.dist; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const P = [];
     ZLEVELS.forEach(([l]) => { const z = (l - 3) * 1.9, on = !Z3.focus || Z3.focus === l; P.push({ pts: [[-4.2, -4.2, z], [4.2, -4.2, z], [4.2, 4.2, z], [-4.2, 4.2, z]], fill: planeCol[l], alpha: on ? 0.16 : 0.05, stroke: line }); });
     tBox(P, -0.12, 0.12, -0.12, 0.12, -4.0, 4.0, live, 0.5, null);
-    ZOOM.forEach(n => { const [x, y, z] = pos[n.id], s = ZCORE.has(n.id) ? 0.2 : 0.14, on = !Z3.focus || Z3.focus === n.level; tBox(P, x - s, x + s, y - s, y + s, z, z + 2 * s, ZCORE.has(n.id) ? live : sheet, on ? 0.95 : 0.25, ink); });
+    zVis().forEach(n => { const [x, y, z] = pos[n.id], s = ZCORE.has(n.id) ? 0.2 : 0.14, on = !Z3.focus || Z3.focus === n.level; tBox(P, x - s, x + s, y - s, y + s, z, z + 2 * s, ZCORE.has(n.id) ? live : sheet, on ? 0.95 : 0.25, ink); });
     paint3(V, P);
-    ctx.lineWidth = 1; ZOOM.forEach(n => n.parts.forEach(c => { const a = V.proj(pos[n.id]), b = V.proj(pos[c]); const on = !Z3.focus || Z3.focus === n.level || Z3.focus === zNode(c).level; ctx.strokeStyle = line; ctx.globalAlpha = on ? 0.7 : 0.15; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }));
+    ctx.lineWidth = 1; zVis().forEach(n => n.parts.forEach(c => { const a = V.proj(pos[n.id]), b = V.proj(pos[c]); const on = !Z3.focus || Z3.focus === n.level || Z3.focus === zNode(c).level; ctx.strokeStyle = line; ctx.globalAlpha = on ? 0.7 : 0.15; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }));
     ctx.setLineDash([]); ctx.globalAlpha = 1; Z3.hits = [];
     ctx.direction = 'rtl'; ctx.textAlign = 'center';
-    ZOOM.forEach(n => { const c = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.15]); if (!Z3.focus || Z3.focus === n.level) Z3.hits.push([c[0] - 10, c[1] - 10, 20, 20, n.id]); });
-    ZOOM.forEach(n => { if (Z3.focus && Z3.focus !== n.level) return; const core = ZCORE.has(n.id); if (!Z3.focus && !core && Z3.hover !== n.id) return; const q = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.5]);
+    zVis().forEach(n => { const c = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.15]); if (!Z3.focus || Z3.focus === n.level) Z3.hits.push([c[0] - 10, c[1] - 10, 20, 20, n.id]); });
+    zVis().forEach(n => { if (Z3.focus && Z3.focus !== n.level) return; const core = ZCORE.has(n.id); if (!Z3.focus && !core && Z3.hover !== n.id) return; const q = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.5]);
       ctx.font = `${core ? '600 ' : ''}12px system-ui, sans-serif`; const w = Math.min(190, ctx.measureText(n.t).width + 14), h = 20;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - h, w, h); ctx.globalAlpha = 1; ctx.strokeStyle = core ? live : line; ctx.strokeRect(q[0] - w / 2, q[1] - h, w, h);
       ctx.fillStyle = text; ctx.fillText(n.t.length > 28 ? n.t.slice(0, 27) + '…' : n.t, q[0], q[1] - 6); Z3.hits.push([q[0] - w / 2, q[1] - h, w, h, n.id]); });
