@@ -2,6 +2,12 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.24.0] — 2026-11-10
+
+- **A two-minute demo tour.** "▶ סיור הדגמה" in the zoom's views bar and on the about page runs the same nine steps every time: the whole process, zoom in to the vacuum table, the valve, the relay (part of three mechanisms) and the coil; the tree by scale; the 3D stack; the duplicates report with its live check; and the about page. A floating bar shows the step and its sentence, with previous, next and close; arrow keys and Escape work too.
+- On a phone the scale stack becomes a compact row above the topic, so the content starts sooner.
+- The zoom suite walks the whole tour (14,432 checks).
+
 ## [2.23.0] — 2026-11-10
 
 **The architecture is complete, with no duplicates.**

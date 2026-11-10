@@ -163,3 +163,36 @@ function showAbout() {
     <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
   setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
 }
+
+/* ---- a two-minute demo tour: the same path every time, one click per step ---- */
+const ZTOUR = [
+  [() => go('zoom', 'proc'), 'רמה 5, התהליך כולו: AOI סורקת ומוצאת חוסר או עודף נחושת, ו-AOS מתקנת. במרכז, ההדגמה של המחזור.'],
+  [() => go('zoom', 'vac'), 'זום פנימה: שולחן הוואקום, אחת המערכות שעובדות במקביל כדי שהסריקה תושלם.'],
+  [() => go('zoom', 'valve'), 'עוד רמה פנימה: שסתום הוואקום, המנגנון שמתרגם פקודה מהבקר לאוויר.'],
+  [() => go('zoom', 'relay'), 'מעגל קטן: הממסר. למעלה, "חלק מ": אותו ממסר משמש גם את ה-interlock של הדלת ואת כרטיסי הפלט.'],
+  [() => go('zoom', 'coil'), 'הרכיב: הסליל. מכאן הכול מתחיל, ומכאן אפשר לעלות חזרה עד התהליך.'],
+  [() => go('zoom', 'tree'), 'העץ המלא: כל הנושאים לפי רמות, גרעין והרחבה, עם סינון לפי מכונה וענף.'],
+  [() => { Z3.rot = true; go('zoom', '3d'); }, 'אותו עץ כשכבות בתלת-ממד. אפשר לסובב, להתקרב וללחוץ על נושא.'],
+  [() => { go('zoom', 'dedup'); setTimeout(() => { const b = document.getElementById('zRun'); if (b) b.click(); }, 150); }, 'משמעת הנדסית: בדיקת כפילויות חיה. כל חלון בבית אחד, ואותו תוכן לא מופיע פעמיים.'],
+  [() => go('about'), 'מי בנה ואיך: הארכיטקטורה והאימות שלי, ו-AI כשותף לכתיבת קוד.']
+];
+const ZT_STATE = { i: -1 };
+function zTourShow() {
+  let bar = document.getElementById('ztour');
+  if (ZT_STATE.i < 0) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'ztour'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'סיור הדגמה'); document.body.appendChild(bar); }
+  const [, text] = ZTOUR[ZT_STATE.i], last = ZT_STATE.i === ZTOUR.length - 1;
+  bar.innerHTML = `<span class="ztn">סיור הדגמה · ${ZT_STATE.i + 1}/${ZTOUR.length}</span><p aria-live="polite">${text}</p><div><button type="button" id="ztPrev"${ZT_STATE.i ? '' : ' disabled'}>הקודם</button><button type="button" id="ztNext">${last ? 'סיום' : 'הבא ←'}</button><button type="button" id="ztClose" aria-label="סגור את הסיור">✕</button></div>`;
+  bar.querySelector('#ztPrev').addEventListener('click', () => zTourGo(ZT_STATE.i - 1));
+  bar.querySelector('#ztNext').addEventListener('click', () => last ? zTourGo(-1) : zTourGo(ZT_STATE.i + 1));
+  bar.querySelector('#ztClose').addEventListener('click', () => zTourGo(-1));
+}
+function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
+document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
+/* start buttons: in the zoom's views bar and on the about page */
+const _zSubnav78 = zSubnav;
+zSubnav = cur => _zSubnav78(cur).replace('</nav>', '<button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>');
+const _zWireSub78 = zWireSub;
+zWireSub = () => { _zWireSub78(); content.querySelectorAll('[data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0))); };
+const _showAbout78 = showAbout;
+showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };

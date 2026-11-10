@@ -387,6 +387,11 @@ nav.sheets button[hidden]{display:none}
 .zlog{border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin:10px 0;background:var(--sheet)}.zlog.legit{border-style:dashed}.zlog header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.zlog p{margin:6px 0}
 .about{max-width:860px}.aboutbtns{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.abtn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;padding:10px 20px;border-radius:12px;text-decoration:none;color:#fff}.abtn.li{background:#3078B0}.abtn.gh{background:#1B2F5A}.abtn:hover{filter:brightness(1.12)}
 .aboutstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.aboutstats div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--sheet)}.aboutstats b{display:block;font-size:24px;color:var(--ink)}.aboutstats small{color:var(--muted)}
+#ztour{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);z-index:50;width:min(760px,calc(100% - 24px));display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--ink);color:var(--sheet);border-radius:14px;padding:10px 14px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#ztour p{margin:0;font-size:15px;line-height:1.45}.ztn{font-size:12px;opacity:.8;white-space:nowrap}#ztour div{display:flex;gap:6px}#ztour button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--sheet);border-radius:999px;background:transparent;color:var(--sheet);cursor:pointer}#ztour button:disabled{opacity:.4;cursor:default}#ztour #ztNext{background:var(--sheet);color:var(--ink);font-weight:700}
+@media (max-width:640px){#ztour{grid-template-columns:1fr}.ztn{order:-1}}
+.ztstart{font:inherit;font-size:14px;font-weight:700;padding:6px 14px;border:1.5px solid var(--live);border-radius:999px;background:var(--live);color:#fff;cursor:pointer;margin-inline-start:auto}.ztstart.big{font-size:16px;padding:10px 20px;margin:0}
+@media (max-width:820px){.zstack{flex-direction:row;overflow-x:auto;perspective:none;position:static}.zplane{transform:none;flex:0 0 auto}.zplane:hover,.zplane.cur{transform:none}.zplane small{display:none}}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -8445,6 +8450,39 @@ function showAbout() {
     <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
   setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
 }
+
+/* ---- a two-minute demo tour: the same path every time, one click per step ---- */
+const ZTOUR = [
+  [() => go('zoom', 'proc'), 'רמה 5, התהליך כולו: AOI סורקת ומוצאת חוסר או עודף נחושת, ו-AOS מתקנת. במרכז, ההדגמה של המחזור.'],
+  [() => go('zoom', 'vac'), 'זום פנימה: שולחן הוואקום, אחת המערכות שעובדות במקביל כדי שהסריקה תושלם.'],
+  [() => go('zoom', 'valve'), 'עוד רמה פנימה: שסתום הוואקום, המנגנון שמתרגם פקודה מהבקר לאוויר.'],
+  [() => go('zoom', 'relay'), 'מעגל קטן: הממסר. למעלה, "חלק מ": אותו ממסר משמש גם את ה-interlock של הדלת ואת כרטיסי הפלט.'],
+  [() => go('zoom', 'coil'), 'הרכיב: הסליל. מכאן הכול מתחיל, ומכאן אפשר לעלות חזרה עד התהליך.'],
+  [() => go('zoom', 'tree'), 'העץ המלא: כל הנושאים לפי רמות, גרעין והרחבה, עם סינון לפי מכונה וענף.'],
+  [() => { Z3.rot = true; go('zoom', '3d'); }, 'אותו עץ כשכבות בתלת-ממד. אפשר לסובב, להתקרב וללחוץ על נושא.'],
+  [() => { go('zoom', 'dedup'); setTimeout(() => { const b = document.getElementById('zRun'); if (b) b.click(); }, 150); }, 'משמעת הנדסית: בדיקת כפילויות חיה. כל חלון בבית אחד, ואותו תוכן לא מופיע פעמיים.'],
+  [() => go('about'), 'מי בנה ואיך: הארכיטקטורה והאימות שלי, ו-AI כשותף לכתיבת קוד.']
+];
+const ZT_STATE = { i: -1 };
+function zTourShow() {
+  let bar = document.getElementById('ztour');
+  if (ZT_STATE.i < 0) { if (bar) bar.remove(); return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'ztour'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'סיור הדגמה'); document.body.appendChild(bar); }
+  const [, text] = ZTOUR[ZT_STATE.i], last = ZT_STATE.i === ZTOUR.length - 1;
+  bar.innerHTML = `<span class="ztn">סיור הדגמה · ${ZT_STATE.i + 1}/${ZTOUR.length}</span><p aria-live="polite">${text}</p><div><button type="button" id="ztPrev"${ZT_STATE.i ? '' : ' disabled'}>הקודם</button><button type="button" id="ztNext">${last ? 'סיום' : 'הבא ←'}</button><button type="button" id="ztClose" aria-label="סגור את הסיור">✕</button></div>`;
+  bar.querySelector('#ztPrev').addEventListener('click', () => zTourGo(ZT_STATE.i - 1));
+  bar.querySelector('#ztNext').addEventListener('click', () => last ? zTourGo(-1) : zTourGo(ZT_STATE.i + 1));
+  bar.querySelector('#ztClose').addEventListener('click', () => zTourGo(-1));
+}
+function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
+document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
+/* start buttons: in the zoom's views bar and on the about page */
+const _zSubnav78 = zSubnav;
+zSubnav = cur => _zSubnav78(cur).replace('</nav>', '<button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>');
+const _zWireSub78 = zWireSub;
+zWireSub = () => { _zWireSub78(); content.querySelectorAll('[data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0))); };
+const _showAbout78 = showAbout;
+showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
   ['start', 'מתחילים', 'זום במכונה, על הפרויקט, מסלול', ['zoom', 'about', 'path', 'topic', 'pri']],
@@ -9437,7 +9475,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.23.0';
+const APP_VERSION = '2.24.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
