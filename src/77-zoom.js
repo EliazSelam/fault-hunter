@@ -157,7 +157,7 @@ function zStack(cur) {
 }
 function zLevelView(level) {
   const L = ZLEVELS.find(x => x[0] === level);
-  content.innerHTML = `<div class="zwrap"><div class="zmain zanim"><h2>רמה ${level}: ${L[1]}</h2><p class="lead">${L[2]}. בחר נושא כדי להיכנס אליו.</p><div class="ztiles">${ZOOM.filter(n => n.level === level).map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות${n.parts.length ? ` · בנוי מ-${n.parts.length}` : ''}</small></button>`).join('')}</div></div>${zStack(level)}</div>`;
+  content.innerHTML = `<div class="zwrap"><div class="zmain zanim"><h2>רמה ${level}: ${L[1]}</h2><p class="lead">${L[2]}. בחר נושא כדי להיכנס אליו.</p><div class="ztiles">${ZOOM.filter(n => n.level === level && !(typeof ZAPPX !== 'undefined' && ZAPPX.has(n.id))).map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות${n.parts.length ? ` · בנוי מ-${n.parts.length}` : ''}</small></button>`).join('')}</div></div>${zStack(level)}</div>`;
   zWire(); setTitle('זום', `רמה ${level}`, L[1]);
 }
 function zNodeView(id) {

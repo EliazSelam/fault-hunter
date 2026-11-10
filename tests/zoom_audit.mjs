@@ -8,7 +8,7 @@ const ROOT = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..'
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1200, height: 900 } }); const errs = []; pg.on('pageerror', e => errs.push(e.message));
 await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/zoom'); await pg.waitForTimeout(500);
 const P = []; let n = 0; const ok = (c, m) => { n++; if (!c) P.push(m); };
-const D = await pg.evaluate(() => ({ nodes: ZOOM.map(z => ({ id: z.id, level: z.level, parts: z.parts, wins: zWindows(z) })), levels: ZLEVELS.map(l => l[0]) }));
+const D = await pg.evaluate(() => ({ nodes: ZOOM.map(z => ({ id: z.id, level: z.level, parts: z.parts, wins: zWindows(z), appx: ZAPPX.has(z.id) })), levels: ZLEVELS.map(l => l[0]) }));
 /* one home per window */
 const home = {}; D.nodes.forEach(z => z.wins.forEach(w => (home[w] = home[w] || []).push(z.id)));
 Object.entries(home).forEach(([w, h]) => ok(h.length === 1, `window ${w}: ${h.length} homes (${h.join(', ')})`));
@@ -17,7 +17,8 @@ const byId = Object.fromEntries(D.nodes.map(z => [z.id, z]));
 D.nodes.forEach(z => z.parts.forEach(p => ok(byId[p] && byId[p].level < z.level, `${z.id}: part ${p} exists at a lower scale`)));
 D.levels.forEach(l => ok(D.nodes.some(z => z.level === l), `scale ${l} has nodes`));
 const seen = new Set(); const walk = id => { if (seen.has(id)) return; seen.add(id); byId[id].parts.forEach(walk); }; D.nodes.filter(z => z.level === 5).forEach(z => walk(z.id));
-D.nodes.forEach(z => ok(seen.has(z.id), `${z.id}: reachable by zooming in from the top scale`));
+D.nodes.filter(z => !z.appx).forEach(z => ok(seen.has(z.id), `${z.id}: reachable by zooming in from the top scale`));
+D.nodes.filter(z => z.appx).forEach(z => ok(!D.nodes.some(o => o.parts.includes(z.id)), `${z.id}: an appendix is not a part of the machine`));
 /* every window renders, and no two windows carry the same content */
 const text = {};
 for (const w of Object.keys(home)) {
@@ -40,7 +41,7 @@ ok(await pg.evaluate(() => ZS.node === 'coil' && /סליל/.test(document.queryS
 await pg.evaluate(() => document.querySelector('.zup').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => !!document.querySelector('.zmain.zout')), 'zoom out goes up, with the zoom-out motion');
 await pg.evaluate(() => document.querySelector('.zplane[data-zl="4"]').click()); await pg.waitForTimeout(150);
-ok(await pg.evaluate(() => document.querySelectorAll('.ztile').length === ZOOM.filter(z => z.level === 4).length), 'the level stack opens a scale with its nodes');
+ok(await pg.evaluate(() => document.querySelectorAll('.ztile').length === ZOOM.filter(z => z.level === 4 && !ZAPPX.has(z.id)).length), 'the level stack opens a scale with its nodes');
 await pg.evaluate(() => go('zoom', 'trig')); await pg.waitForTimeout(150);
 const before = await pg.evaluate(() => document.querySelectorAll('.zwin.open').length); await pg.evaluate(() => document.querySelector('.zwin:not(.core) .zopen').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(b => document.querySelectorAll('.zwin.open').length === b + 1 && !!document.querySelector('.zwin.open .zbody').innerHTML.trim(), before), 'a window around the core opens in place');
@@ -55,7 +56,7 @@ ok(cov[1].length === 0, `every one of ${cov[0]} pages is accounted for (missing:
 /* tree by scale */
 await pg.evaluate(() => { ZT.q = ''; ZT.core = false; ZT.ctx = 'all'; ZT.branch = null; go('zoom', 'tree'); }); await pg.waitForTimeout(150);
 const all = await pg.evaluate(() => document.querySelectorAll('.ztcard').length);
-ok(await pg.evaluate(n => document.querySelectorAll('.ztcol').length === 5 && n === ZOOM.length, all), `tree: five columns with all ${all} topics`);
+ok(await pg.evaluate(n => document.querySelectorAll('.ztcol').length === 5 && n === ZOOM.filter(z => !ZAPPX.has(z.id)).length, all), `tree: five columns with all ${all} machine topics`);
 await pg.click('#ztCore'); await pg.waitForTimeout(100); ok(await pg.evaluate(() => [...document.querySelectorAll('.ztcard')].every(c => c.classList.contains('core')) && document.querySelectorAll('.ztcard').length === ZCORE.size), 'tree: core only shows the core chain'); await pg.click('#ztCore'); await pg.waitForTimeout(100);
 await pg.click('[data-ctx="AOS"]'); await pg.waitForTimeout(100); ok(await pg.evaluate(() => ![...document.querySelectorAll('.ztcard .zid')].some(z => ['CAM', 'TRIG', 'OPTICS'].includes(z.textContent))), 'tree: the AOS filter hides AOI-only topics'); await pg.click('[data-ctx="all"]'); await pg.waitForTimeout(100);
 await pg.click('[data-br="vac"]'); await pg.waitForTimeout(100); ok(await pg.evaluate(() => { const ids = [...document.querySelectorAll('.ztcard .zid')].map(z => z.textContent.toLowerCase()); return ids.includes('vac') && ids.includes('relay') && ids.includes('coil') && !ids.includes('optics'); }), 'tree: a branch filter shows the branch down to its components'); await pg.click('[data-br="proc"]'); await pg.waitForTimeout(100);
@@ -73,13 +74,25 @@ ok(await pg.evaluate(() => document.querySelectorAll('.zlog').length >= 5 && /0 
 /* about */
 await pg.evaluate(() => go('about')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => { const li = document.querySelector('.abtn.li'), gh = document.querySelector('.abtn.gh'); return !!li && !!gh && li.href.includes('linkedin.com/in/eliaz-selam') && gh.href.includes('github.com/EliazSelam') && /Eliaz Selam/.test(document.querySelector('.about').textContent); }), 'about: the project is mine, with LinkedIn and GitHub buttons');
+/* the machine in 3D: the main layer */
+await pg.evaluate(() => { MS.E = 0; MS.target = 0; MS.assembling = false; MS.sel = null; MS.rot = false; go('zoom'); }); await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => location.hash === '#/zoom' || location.hash === '#/zoom/machine') && await pg.evaluate(() => !!document.getElementById('mc') && document.querySelectorAll('.zsub [data-zv="machine"][aria-current="page"]').length === 1), 'the zoom opens on the machine in 3D');
+ok(await pg.evaluate(() => MPARTS.filter(p => p.node).every(p => zNode(p.node))), 'every machine part is a zoom topic');
+ok(await pg.evaluate(() => [...new Set(MPARTS.filter(p => p.node).map(p => p.node))].length >= 20), 'the machine shows at least 20 topics as parts');
+const mp = await pg.evaluate(() => mPickAt('table')); ok(!!mp, 'the vacuum table can be clicked');
+if (mp) { await pg.mouse.click(mp[0], mp[1]); await pg.waitForTimeout(300); ok(await pg.evaluate(() => MS.sel === 'table' && /שכבה 1/.test(document.getElementById('mside').textContent) && /שכבה 2/.test(document.getElementById('mside').textContent)), 'clicking a part selects it and lists its two layers'); }
+await pg.evaluate(() => document.querySelector('#mside .zgo').click()); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.zring')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.zring')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
+await pg.evaluate(() => { const s = document.getElementById('mE'); }); 
+await pg.evaluate(() => go('zoom', 'appx')); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES.length), 'appendices: the topics outside the machine and the shared resources');
 /* the demo tour */
 await pg.evaluate(() => go('about')); await pg.waitForTimeout(150); await pg.click('.about [data-tour]'); await pg.waitForTimeout(250);
-const tourWant = ['#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
+const tourWant = ['#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
 for (let i = 0; i < tourWant.length; i++) {
   const r = await pg.evaluate(() => [location.hash, !!document.getElementById('ztour'), document.querySelector('#ztour .ztn').textContent]);
   ok(r[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);
-  if (i === 7) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
+  if (i === 8) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
   await pg.click('#ztNext'); await pg.waitForTimeout(250);
 }
 ok(await pg.evaluate(() => !document.getElementById('ztour')), 'tour: the last step closes the bar');
