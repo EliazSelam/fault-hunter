@@ -370,6 +370,23 @@ nav.sheets button[hidden]{display:none}
 .zaround{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 12px}.zaround .zwin.open{grid-column:1/-1}.zring{margin:18px 0 4px;font-size:15px;color:var(--muted)}
 @keyframes zIn{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}@keyframes zOut{from{transform:scale(1.12);opacity:0}to{transform:none;opacity:1}}@keyframes zFade{from{opacity:0}to{opacity:1}}
 .zanim{animation:zFade .35s ease-out}.zanim.zin{animation:zIn .45s ease-out}.zanim.zout{animation:zOut .45s ease-out}@media (prefers-reduced-motion:reduce){.zanim,.zanim.zin,.zanim.zout{animation:none}}
+.zsub{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.zsub button{font:inherit;font-size:14px;padding:6px 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.zsub button[aria-current="page"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.zback{position:sticky;top:0;z-index:5;margin:0 0 10px}.zback button,.zgo{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.ztsum{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}.ztsum div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;background:var(--sheet)}.ztsum small{display:block;color:var(--muted)}
+.ztbar,.ztbranch{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.ztbar input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;min-width:200px;background:var(--sheet);color:var(--text)}
+.ztbar button,.ztbranch button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.ztbar button[aria-pressed="true"],.ztbranch button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.ztctx{display:inline-flex;gap:4px}
+.ztcols{display:grid;grid-template-columns:repeat(5,minmax(170px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}.ztcol{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--tint)}
+.ztch{font-size:15px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:baseline}.ztch span{background:var(--ink);color:var(--sheet);border-radius:999px;padding:0 8px}.ztch small{width:100%;font-weight:400;font-size:12px;color:var(--muted)}
+.ztcard{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 8px;background:var(--sheet)}.ztcard.core{border:2px solid var(--live)}.ztcard header{display:flex;justify-content:space-between;gap:6px;font-size:11px}.zid{font-family:ui-monospace,monospace;color:var(--muted);font-size:11px}
+.zbadge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--muted)}.ztcard.core .zbadge{border-color:var(--live);color:var(--live);font-weight:600}.ztcard h3{font-size:15px;margin:6px 0 2px}.zmeta{font-size:12px;color:var(--muted);margin:0}
+.zlink{font-size:12px;margin:4px 0}.zlink button{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--live);cursor:pointer;margin:2px}.zopen2{font:inherit;font-size:13px;border:0;background:none;color:var(--live);cursor:pointer;padding:0;font-weight:600}
+.z3bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.z3bar button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.z3bar button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.z3stage{border:1px solid var(--line);border-radius:14px;background:var(--sheet);overflow:hidden}.z3stage canvas{width:100%;height:auto;display:block;cursor:grab;touch-action:none}
+.zrule{display:grid;grid-template-columns:1fr 1fr;gap:10px}.zrule>div{border:1.5px solid var(--line);border-radius:12px;padding:8px 14px}.zrule .ok{border-color:var(--live)}.zrule .no{border-color:var(--mech)}.zrule h3{font-size:16px;margin:4px 0}
+.zlive{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}.zlive button{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.zlog{border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin:10px 0;background:var(--sheet)}.zlog.legit{border-style:dashed}.zlog header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.zlog p{margin:6px 0}
+.about{max-width:860px}.aboutbtns{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.abtn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;padding:10px 20px;border-radius:12px;text-decoration:none;color:#fff}.abtn.li{background:#3078B0}.abtn.gh{background:#1B2F5A}.abtn:hover{filter:brightness(1.12)}
+.aboutstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.aboutstats div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--sheet)}.aboutstats b{display:block;font-size:24px;color:var(--ink)}.aboutstats small{color:var(--muted)}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -429,6 +446,7 @@ ol.tsteps .ts{color:var(--live-text)}
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
   <button role="tab" data-sheet="zoom" aria-selected="false">זום במכונה<small>מהרכיב לתהליך</small></button>
+  <button role="tab" data-sheet="about" aria-selected="false">על הפרויקט<small>Eliaz Selam</small></button>
   <button role="tab" data-sheet="topic" aria-selected="false">סימולטור תהליך<small>מהמהות לפיתוח</small></button>
   <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
   <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>
@@ -8068,7 +8086,7 @@ const MASTER = [
     ['p:pcb', 'p:pcb/ov'], ['p:pcb/pcba'], ['p:pcb/line'], ['p:pcb/def', 'p:pcb/prod'], ['p:pcb/kpi'], ['p:pcb/kpi#full'], ['qb:pcb'], ['x:aoi', 'x:aos']] },
   /* resources that serve every subject */
   { id: 'res', track: 'res', t: 'משאבים רוחביים', L: [
-    ['p:zoom', 'p:topic', 'p:path'], ['p:pri'], [], [], [], ['p:gl', 'p:s0'], ['p:qb', 'p:ch', 't:*/review'], ['p:s3']] }
+    ['p:zoom', 'p:about', 'p:topic', 'p:path'], ['p:pri'], [], [], [], ['p:gl', 'p:s0'], ['p:qb', 'p:ch', 't:*/review'], ['p:s3']] }
 ];
 /* ============ Zoom: from a component to the whole process ============
    Like "Powers of Ten": every scale is made of the scale below it. Five scales:
@@ -8079,33 +8097,56 @@ const MASTER = [
 const ZLEVELS = [[1, 'רכיבים', 'נגד, סליל, קבל, דיודה, טרנזיסטור'], [2, 'מעגל קטן', 'ממסר, אנקודר, מנוע, דרייבר'], [3, 'מנגנון ועיקרון', 'סנכרון, יישור, בקרה, שליטה'], [4, 'מערכות במקביל', 'מצלמה, ציר, ואקום, בטיחות, לייזר'], [5, 'התהליך', 'סריקה, מציאת פגם, תיקון']];
 const ZN = (id, level, t, core, around, parts = []) => ({ id, level, t, core, around, parts });
 const ZOOM = [
-  ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ'], ['cam', 'servo', 'vac', 'safety', 'laser']),
-  ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ'], ['trig', 'optics', 'reg']),
-  ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ'], ['loop', 'trans']),
-  ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ'], ['valve']),
-  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ'], ['interlock']),
-  ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ'], ['laserunit']),
-  ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'mosfet']),
-  ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:bench', 'c:thermal:formulas']),
+  /* 5 · the process: scan, find, repair; and the work around it */
+  ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ', 'p:s2/machine'], ['cam', 'servo', 'vac', 'safety', 'laser', 'pwr', 'ecat']),
+  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas']),
+  ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi'], []),
+  /* 4 · systems working in parallel */
+  ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ', 'p:opt/ov', 'p:opt/q', 'p:opt/ch'], ['trig', 'optics', 'reg']),
+  ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ', 'p:s2/servo'], ['loop', 'trans']),
+  ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ', 'p:s2/vac'], ['valve']),
+  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock']),
+  ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ', 'p:s2/aos'], ['laserunit', 'reg']),
+  ZN('pwr', 4, 'ספק 24V וחלוקת מתח', 't:pwr:scene', ['t:pwr:flow', 't:pwr:rev', 't:pwr:quiz', 't:pwr:math:*', 't:pwr:fault:*', 't:pwr:integ', 'p:mot/wire', 'p:mot/tri', 'p:mot/energy', 'p:mot/sims'], ['psu']),
+  ZN('ecat', 4, 'בקרה ותקשורת EtherCAT', 't:ecat:scene', ['t:ecat:flow', 't:ecat:rev', 't:ecat:quiz', 't:ecat:math:*', 't:ecat:fault:*', 't:ecat:integ', 'p:mot/iface'], ['iocards']),
+  /* 3 · mechanisms and principles */
+  ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'logic', 'mosfet']),
+  ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:steps', 'c:thermal:bench', 'c:thermal:formulas', 'c:thermal:wrong']),
   ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong']),
   ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake']),
-  ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong']),
-  ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay']),
-  ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong'], ['relay']),
+  ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong'], ['fits']),
+  ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay', 'sensors']),
+  ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong', 'p:s2/interlock'], ['relay', 'switch']),
   ZN('laserunit', 3, 'מקור לייזר, אופטיקה ותריס', 'c:laser:story', ['c:laser:steps', 'c:laser:bench', 'c:laser:numbers', 'c:laser:formulas', 'c:laser:wrong']),
-  ZN('relay', 2, 'ממסר עם דרייבר ודיודה', 'fig:relay', ['c:relay:story', 'c:relay:steps', 'c:relay:bench', 'c:relay:numbers', 'c:relay:formulas', 'c:relay:wrong'], ['coil', 'diode', 'mosfet', 'resistor']),
+  ZN('psu', 3, 'ספק ממותג, נפילת מתח והגנות', 'c:psu:story', ['c:psu:steps', 'c:psu:bench', 'c:psu:numbers', 'c:psu:formulas', 'c:psu:wrong', 'p:mot/conv', 'p:lib/psu'], ['fuse', 'source', 'xfmr', 'diode', 'capacitor']),
+  ZN('iocards', 3, 'כרטיסי קלט/פלט וחקר כשל', 's:card', ['p:brd/steps', 'p:brd/lib', 'p:brd/bench', 'p:brd/fa', 'p:lib/di', 'p:lib/do', 'p:lib/ai', 'p:lib/drive', 'p:lib/comm', 'p:lib/led', 'p:b/board', 'p:b/set', 'c:loop:story', 'c:loop:steps', 'c:loop:bench', 'c:loop:formulas', 'c:loop:wrong', 'p:s2/card', 'p:brd/q', 'p:brd/ch'], ['logic', 'relay', 'meas', 'connector']),
+  /* 2 · small circuits */
+  ZN('relay', 2, 'ממסר עם דרייבר ודיודה', 'fig:relay', ['a:ממסר / מגען', 'c:relay:story', 'c:relay:steps', 'c:relay:bench', 'c:relay:numbers', 'c:relay:formulas', 'c:relay:wrong'], ['coil', 'diode', 'mosfet', 'resistor', 'capacitor']),
   ZN('enc', 2, 'אנקודר', 'c:encoder:story', ['c:encoder:steps', 'c:encoder:bench', 'c:encoder:formulas', 'c:encoder:wrong']),
-  ZN('motor', 2, 'מנוע DC', 'm:why:simple', ['m:why:deriv', 'm:why:formulas', 'sim:mlab'], ['coil']),
+  ZN('motor', 2, 'מנוע: DC, צעד, השראה וסנכרוני', 'm:why:simple', ['m:why:deriv', 'm:why:formulas', 'sim:mlab', 'p:mot/parts', 'p:mot/types', 'p:mot/dcm', 'p:mot/ind', 'p:mot/sync', 'p:mot/q', 'a:מנוע'], ['coil']),
   ZN('pwm', 2, 'PWM וגשר H', 'c:pwm:story', ['c:pwm:steps', 'c:pwm:bench', 'c:pwm:formulas', 'c:pwm:wrong'], ['mosfet']),
   ZN('brake', 2, 'בלם החזקה', 'c:brake:story', ['c:brake:steps', 'c:brake:bench', 'c:brake:formulas', 'c:brake:wrong'], ['coil']),
-  ZN('resistor', 1, 'נגד', 'a:נגד', []),
+  ZN('fits', 2, 'התאמות, טולרנסים ושרטוט מכני', 'c:fits:story', ['c:fits:steps', 'c:fits:bench', 'c:fits:formulas', 'c:fits:wrong', 'p:b/mech', 'p:b/mdrill']),
+  ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q']),
+  ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire'], ['sensors']),
+  ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall']),
+  /* 1 · components */
+  ZN('resistor', 1, 'נגד', 'a:נגד', ['p:b/decode']),
   ZN('capacitor', 1, 'קבל', 'a:קבל קרמי (לא מקוטב)', ['a:קבל אלקטרוליטי (מקוטב)']),
   ZN('coil', 1, 'סליל', 'a:סליל (משרן)', []),
-  ZN('diode', 1, 'דיודה', 'a:דיודה', ['a:זנר / TVS']),
-  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', [], [])
+  ZN('diode', 1, 'דיודה ו-LED', 'a:דיודה', ['a:זנר / TVS', 'a:נורית LED']),
+  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', []),
+  ZN('fuse', 1, 'פיוז', 'a:פיוז', []),
+  ZN('switch', 1, 'מתג ולחצן', 'a:מתג ולחצן', []),
+  ZN('source', 1, 'מקור מתח והארקה', 'a:ספק ומקור מתח', ['a:הארקות ו-0V']),
+  ZN('xfmr', 1, 'שנאי', 'a:שנאי', ['p:mot/xfmr']),
+  ZN('connector', 1, 'הדקים ומחברים', 'a:הדקים ומחברים', []),
 ];
-/* capacitors are part of the relay's driver in practice and of the strobe's driver */
-ZOOM.find(n => n.id === 'relay').parts.push('capacitor');
+/* the chain from the drawing is the core of each scale; the rest are expansions around it */
+const ZCORE = new Set(['proc', 'cam', 'vac', 'trig', 'valve', 'relay', 'resistor', 'coil', 'capacitor']);
+const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 'AOS' };
+/* windows that are a whole existing page, and resources that serve every scale */
+const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
 /* expand wildcards into concrete window ids */
@@ -8143,7 +8184,7 @@ function zCapture() {
   ZCAP.done = true;
 }
 /* every window: a title, a kind, and how it is shown */
-const ZKIND = { story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
+const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
 function zInfo(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {
@@ -8158,6 +8199,7 @@ function zInfo(w) {
   if (k === 'sim') return { kind: 'sim', t: { scan3d: 'ראש הסריקה: רצועות ותפרים', cr3d: 'מכתש הלייזר', bs3d: 'backlash בהיפוך כיוון', mlab: 'מעבדת מנוע DC' }[a] };
   if (k === 'm') return { kind: { simple: 'story', deriv: 'derivation', formulas: 'formulas' }[b], t: 'מנוע DC' };
   if (k === 'a') return { kind: 'card', t: a };
+  if (k === 'p') return { kind: 'page', t: zRouteTitle(w.slice(2)) };
   return { kind: 'card', t: w };
 }
 function zMount(w, el) {
@@ -8175,8 +8217,28 @@ function zMount(w, el) {
   } else if (k === 's') active = bench(SYSTEMS.find(s => s.id === a), el);
   else if (k === 'fig') { el.innerHTML = anatBlock(a); mountAnat(el); }
   else if (k === 'sim') ({ scan3d: scanSim, cr3d: craterSim, bs3d: bsSim, mlab: motorLab })[a](el);
+  else if (k === 'p') { const r = w.slice(2); el.innerHTML = `<p>${zRouteTitle(r)}: חלון קיים בגודל עמוד. הוא נפתח במקומו, ויש דרך חזרה לכאן.</p><p><button type="button" class="zgo" data-route="${r}">פתח ←</button></p>`; el.querySelector('.zgo').addEventListener('click', () => zOpenPage(r)); }
   else { zCapture(); el.innerHTML = ZCAP[w] || ''; }
 }
+
+function zRouteTitle(r) {
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
+  if (hubs[h]) { const x = sub ? hubs[h].find(n => n[0] === sub) : hubs[h][0]; if (x) return x[1]; }
+  if (h === 's2' && SYSX[sub]) return SYSX[sub].title; if (h === 'lib') { const B = BOARDS.find(x => x.id === sub); return B ? (B.name || B.t || sub).replace(/<[^>]+>/g, '') : sub; }
+  const bt = { board: 'קריאת כרטיס אמיתי', set: 'סט שרטוטים מלא', mech: 'שרטוט מכני מאפס', mdrill: 'קריאת שרטוט ייצור', decode: 'מפענחי ערכים', grammar: 'דקדוק של סכמה', quiz: 'חידון סמלים' };
+  if (h === 'b' && bt[sub]) return bt[sub];
+  const tb = document.querySelector(`nav.sheets [data-sheet="${h}"]`); return tb ? tb.firstChild.textContent.trim() : r;
+}
+/* leaving the zoom for a whole page keeps the way back */
+const ZBACK = { node: null };
+function zOpenPage(r) { ZBACK.node = ZS.node; routeGo(r); setTimeout(zBackBar, 0); }
+function zBackBar() {
+  if (!ZBACK.node || (location.hash || '').startsWith('#/zoom')) return;
+  const c = document.getElementById('content'); if (c.querySelector(':scope > .zback')) return;
+  c.insertAdjacentHTML('afterbegin', `<nav class="zback"><button type="button" id="zBack">← חזרה לזום: ${zNode(ZBACK.node).t}</button></nav>`);
+  document.getElementById('zBack').addEventListener('click', () => { const n = ZBACK.node; ZBACK.node = null; go('zoom', n); });
+}
+new MutationObserver(() => { if (typeof active !== 'undefined' && ZBACK.node) zBackBar(); }).observe(document.getElementById('content'), { childList: true });
 
 /* ---- the view ---- */
 const ZS = { node: 'proc', dir: 0, open: new Set() };
@@ -8218,9 +8280,174 @@ function showZoom(arg) {
   if (arg && /^L[1-5]$/.test(arg)) return zLevelView(+arg.slice(1));
   ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); window.scrollTo(0, 0);
 }
+/* ============ Zoom views: tree by scale, 3D stack, duplicates report; and "about the project" ============ */
+const zLevelName = l => ZLEVELS.find(x => x[0] === l)[1];
+const zCtx = id => ZCTX[id] || 'SHARED';
+const zDesc = id => { const seen = new Set(), out = []; const w = x => { if (seen.has(x)) return; seen.add(x); out.push(x); zNode(x).parts.forEach(w); }; w(id); return out; };
+const zAnc = id => { const seen = new Set(); const w = x => zParents(x).forEach(p => { if (!seen.has(p.id)) { seen.add(p.id); w(p.id); } }); w(id); return [...seen]; };
+function zSubnav(cur) {
+  return `<nav class="zsub" aria-label="תצוגות הזום">${[['node', 'זום'], ['tree', 'עץ נושאים לפי רמות'], ['3d', 'שכבות בתלת-ממד'], ['dedup', 'דו"ח כפילויות ושיבוץ']].map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</nav>`;
+}
+function zWireSub() { content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv))); }
+
+/* coverage of every existing page: placed in the tree, a shared resource, or the same content under another address */
+function zCoverage() {
+  const placed = new Set(ZOOM.flatMap(zWindows));
+  const routes = []; document.querySelectorAll('nav.sheets button').forEach(b => routes.push(b.dataset.sheet));
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  Object.entries(hubs).forEach(([h, n]) => n.forEach(x => routes.push(h + '/' + x[0])));
+  ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => routes.push('b/' + t));
+  COMPONENTS.forEach(c => routes.push('s1/' + c.id)); Object.keys(SYSX).forEach(k => routes.push('s2/' + k)); BOARDS.forEach(x => routes.push('lib/' + x.id));
+  const res = new Set(ZRES.map(r => r[0].slice(2)).concat(['zoom']));
+  const has = pre => [...placed].some(w => w.startsWith(pre));
+  const alias = r => {
+    if (r.startsWith('s1/')) return has(`c:${r.slice(3)}:`) ? 'חלונות הרכיב' : null;
+    if (r.startsWith('opt/') && COMPONENTS.some(c => c.id === r.slice(4))) return has(`c:${r.slice(4)}:`) ? 'אותו דף כמו ברכיבים' : null;
+    if (r === 'mot/why') return has('m:why:') ? 'שלושת חלונות המנוע' : null;
+    if (r === 'mot/lab') return placed.has('sim:mlab') ? 'סימולציית המנוע' : null;
+    if (r === 'b/atlas') return has('a:') ? 'כרטיסי הרכיבים' : null;
+    if (['mot', 'dig', 'pcb', 'int', 'brd', 'opt', 'b', 's1', 's2', 'lab'].includes(r)) return 'אינדקס של עמודים שכולם בעץ';
+    return null;
+  };
+  const rows = [...new Set(routes)].map(r => ({ r, how: placed.has('p:' + r) ? 'tree' : res.has(r) ? 'res' : alias(r) ? 'alias' : 'missing', note: alias(r) }));
+  return { rows, placed: rows.filter(x => x.how === 'tree').length, res: rows.filter(x => x.how === 'res').length, alias: rows.filter(x => x.how === 'alias').length, missing: rows.filter(x => x.how === 'missing') };
+}
+/* the live duplicates check: one home per window, and no two windows with the same content */
+function zDupCheck() {
+  const home = {}; ZOOM.forEach(z => zWindows(z).forEach(w => (home[w] = home[w] || []).push(z.id)));
+  const twoHomes = Object.entries(home).filter(([, h]) => h.length > 1);
+  const text = {}, same = [];
+  Object.keys(home).filter(w => /^(c:[^:]+:(story|steps|numbers|wrong|formulas)|m:|a:)/.test(w)).forEach(w => {
+    const el = document.createElement('div'); zMount(w, el); const t = el.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 40) return;
+    if (text[t]) same.push([text[t], w]); else text[t] = w;
+  });
+  return { windows: Object.keys(home).length, twoHomes, same };
+}
+
+/* ---- tree by scale ---- */
+const ZT = { q: '', core: false, ctx: 'all', branch: null };
+function zTreeView() {
+  const show = new Set(ZT.branch ? [...zDesc(ZT.branch), ...zAnc(ZT.branch)] : ZOOM.map(z => z.id));
+  const match = z => show.has(z.id) && (!ZT.core || ZCORE.has(z.id)) && (ZT.ctx === 'all' || zCtx(z.id) === ZT.ctx || (ZT.ctx !== 'SHARED' && zCtx(z.id) === 'SHARED')) && (!ZT.q || (z.t + ' ' + z.id).toLowerCase().includes(ZT.q.toLowerCase()));
+  const card = z => `<article class="ztcard ${ZCORE.has(z.id) ? 'core' : ''}"><header><span class="zid mono">${z.id.toUpperCase()}</span><span class="zbadge">${ZCORE.has(z.id) ? '★ גרעין' : 'הרחבה'}</span></header><h3>${z.t}</h3><p class="zmeta">${zWindows(z).length} חלונות · ${({ AOI: 'AOI', AOS: 'AOS', SHARED: 'משותף' })[zCtx(z.id)]}</p>${zParents(z.id).length ? `<p class="zlink">חלק מ: ${zParents(z.id).map(p => `<button type="button" data-zn="${p.id}">${p.t}</button>`).join(' ')}</p>` : ''}<p><button type="button" class="zopen2" data-zn="${z.id}">פתח ←</button></p></article>`;
+  const branches = [['proc', 'כל המערכת'], ...ZOOM.filter(z => z.level === 4).map(z => [z.id, z.t])];
+  content.innerHTML = zSubnav('tree') + `<h2>עץ הנושאים לפי רמות</h2>
+    <p class="lead">כל הצמתים של הזום, רמה ליד רמה: מהתהליך (ימין) ועד הרכיב (שמאל). <b>גרעין</b> הוא השרשרת המרכזית של כל רמה, <b>הרחבה</b> היא מה שסביבה.</p>
+    <div class="ztsum">${ZLEVELS.slice().reverse().map(([l, t]) => `<div><b>רמה ${l}</b> ${t}<small>${ZOOM.filter(z => z.level === l).length} נושאים</small></div>`).join('')}</div>
+    <div class="ztbar"><label class="vh" for="ztq">סינון לפי שם</label><input id="ztq" type="search" placeholder="סינון נושא בעץ…" value="${ZT.q}">
+      <button type="button" id="ztCore" aria-pressed="${ZT.core}">★ גרעינים בלבד</button>
+      <span class="ztctx">${[['all', 'הכל'], ['AOI', 'מכונת AOI'], ['AOS', 'מכונת AOS'], ['SHARED', 'משותף לשתיהן']].map(([k, t]) => `<button type="button" data-ctx="${k}" aria-pressed="${ZT.ctx === k}">${t}</button>`).join('')}</span></div>
+    <div class="ztbranch">${branches.map(([id, t]) => `<button type="button" data-br="${id}" aria-pressed="${(ZT.branch || 'proc') === id}">${t}</button>`).join('')}</div>
+    <div class="ztcols">${ZLEVELS.slice().reverse().map(([l, t, s]) => { const ns = ZOOM.filter(z => z.level === l && match(z)); return `<section class="ztcol"><h3 class="ztch"><span>${l}</span> ${t}<small>${s}</small></h3>${ns.map(card).join('') || '<p class="note">אין נושאים בסינון הזה.</p>'}</section>`; }).join('')}</div>`;
+  zWireSub(); zWire();
+  $('#ztq').addEventListener('input', e => { ZT.q = e.target.value; const pos = e.target.selectionStart; zTreeView(); const i = $('#ztq'); i.focus(); i.setSelectionRange(pos, pos); });
+  $('#ztCore').addEventListener('click', () => { ZT.core = !ZT.core; zTreeView(); });
+  content.querySelectorAll('[data-ctx]').forEach(b => b.addEventListener('click', () => { ZT.ctx = b.dataset.ctx; zTreeView(); }));
+  content.querySelectorAll('[data-br]').forEach(b => b.addEventListener('click', () => { ZT.branch = b.dataset.br === 'proc' ? null : b.dataset.br; zTreeView(); }));
+  setTitle('זום', 'עץ נושאים', ZOOM.length + ' נושאים');
+}
+
+/* ---- 3D stack of the scales ---- */
+const Z3 = { rot: true, focus: 0, dist: 14, hits: [], hover: null };
+function z3dView() {
+  content.innerHTML = zSubnav('3d') + `<h2>שכבות הזום בתלת-ממד</h2>
+    <p class="lead">חמש הרמות כמשטחים זה מעל זה. במרכז, ציר הגרעין שעובר דרך כל הרמות. כל קוביה היא נושא, והקווים מחברים כל חלק לשלם שהוא בנוי ממנו. גרור כדי לסובב, גלגל כדי להתקרב, ולחץ על נושא כדי להיכנס אליו.</p>
+    <div class="z3bar"><button type="button" id="z3rot" aria-pressed="${Z3.rot}">${Z3.rot ? '❚❚ עצור סיבוב' : '▶ סיבוב'}</button><button type="button" id="z3reset">איפוס</button>
+      <label>מרחק <input type="range" id="z3dist" min="10" max="28" step="0.5" value="${Z3.dist}"></label>
+      <span>${[[0, 'הכל'], ...ZLEVELS.map(l => [l[0], 'רמה ' + l[0]])].map(([l, t]) => `<button type="button" data-zf="${l}" aria-pressed="${Z3.focus === l}">${t}</button>`).join('')}</span></div>
+    <div class="z3stage"><canvas id="z3c" width="1100" height="720" tabindex="0" aria-label="Five zoom scales stacked in 3D; click a topic to open it"></canvas></div>
+    <p class="note">משטח לכל רמה · קוביה מודגשת עם שם = גרעין · מעבר עם העכבר מציג את שם הנושא · בחירת רמה מציגה את כל השמות בה · קו מקווקו = "בנוי מ".</p>`;
+  zWireSub();
+  const cv = $('#z3c'), ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), text = cssv('--text'), sheet = cssv('--sheet'), tint = cssv('--tint');
+  const V = view3(cv, { yaw: -0.6, pitch: 0.38, dist: Z3.dist, fov: 640, oy: -25, onView: () => draw() });
+  const planeCol = { 5: ink, 4: live, 3: tint, 2: mech, 1: text };
+  const pos = {};
+  ZLEVELS.forEach(([l]) => { const ns = ZOOM.filter(z => z.level === l).sort((a, b) => ZCORE.has(b.id) - ZCORE.has(a.id)); const z = (l - 3) * 1.9;
+    ns.forEach((n, i) => { const core = ZCORE.has(n.id), R = core ? 1.0 + (i % 2) * 0.5 : 2.3 + (i % 3) * 0.6, a = i * 2.39996 + l * 0.7; pos[n.id] = [R * Math.cos(a), R * Math.sin(a), z]; }); });
+  function draw() {
+    V.st.dist = Z3.dist; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const P = [];
+    ZLEVELS.forEach(([l]) => { const z = (l - 3) * 1.9, on = !Z3.focus || Z3.focus === l; P.push({ pts: [[-4.2, -4.2, z], [4.2, -4.2, z], [4.2, 4.2, z], [-4.2, 4.2, z]], fill: planeCol[l], alpha: on ? 0.16 : 0.05, stroke: line }); });
+    tBox(P, -0.12, 0.12, -0.12, 0.12, -4.0, 4.0, live, 0.5, null);
+    ZOOM.forEach(n => { const [x, y, z] = pos[n.id], s = ZCORE.has(n.id) ? 0.2 : 0.14, on = !Z3.focus || Z3.focus === n.level; tBox(P, x - s, x + s, y - s, y + s, z, z + 2 * s, ZCORE.has(n.id) ? live : sheet, on ? 0.95 : 0.25, ink); });
+    paint3(V, P);
+    ctx.lineWidth = 1; ZOOM.forEach(n => n.parts.forEach(c => { const a = V.proj(pos[n.id]), b = V.proj(pos[c]); const on = !Z3.focus || Z3.focus === n.level || Z3.focus === zNode(c).level; ctx.strokeStyle = line; ctx.globalAlpha = on ? 0.7 : 0.15; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }));
+    ctx.setLineDash([]); ctx.globalAlpha = 1; Z3.hits = [];
+    ctx.direction = 'rtl'; ctx.textAlign = 'center';
+    ZOOM.forEach(n => { const c = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.15]); if (!Z3.focus || Z3.focus === n.level) Z3.hits.push([c[0] - 10, c[1] - 10, 20, 20, n.id]); });
+    ZOOM.forEach(n => { if (Z3.focus && Z3.focus !== n.level) return; const core = ZCORE.has(n.id); if (!Z3.focus && !core && Z3.hover !== n.id) return; const q = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.5]);
+      ctx.font = `${core ? '600 ' : ''}12px system-ui, sans-serif`; const w = Math.min(190, ctx.measureText(n.t).width + 14), h = 20;
+      ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - h, w, h); ctx.globalAlpha = 1; ctx.strokeStyle = core ? live : line; ctx.strokeRect(q[0] - w / 2, q[1] - h, w, h);
+      ctx.fillStyle = text; ctx.fillText(n.t.length > 28 ? n.t.slice(0, 27) + '…' : n.t, q[0], q[1] - 6); Z3.hits.push([q[0] - w / 2, q[1] - h, w, h, n.id]); });
+    ctx.direction = 'ltr'; ctx.textAlign = 'left'; ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = text;
+    ZLEVELS.forEach(([l, t]) => { const q = V.proj([4.3, -4.2, (l - 3) * 1.9]); ctx.fillText(`L${l} · ${t}`, q[0] + 6, q[1]); });
+  }
+  let down = null, t0 = performance.now();
+  cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+  cv.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved > 4) return; const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; const h = Z3.hits.slice().reverse().find(([a, b, w, hh]) => x >= a && x <= a + w && y >= b && y <= b + hh); if (h) { ZS.dir = 1; go('zoom', h[4]); } });
+  cv.addEventListener('pointermove', e => { if (down) return; const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; const h = Z3.hits.slice().reverse().find(([a, b, w, hh]) => x >= a && x <= a + w && y >= b && y <= b + hh); Z3.hover = h ? h[4] : null; cv.style.cursor = h ? 'pointer' : 'grab'; });
+  cv.addEventListener('wheel', e => { e.preventDefault(); Z3.dist = Math.max(10, Math.min(28, Z3.dist + Math.sign(e.deltaY) * 0.6)); const s = $('#z3dist'); if (s) s.value = Z3.dist; draw(); }, { passive: false });
+  $('#z3rot').addEventListener('click', () => { Z3.rot = !Z3.rot; z3dView(); });
+  $('#z3reset').addEventListener('click', () => { Z3.dist = 14; Z3.focus = 0; Z3.rot = true; z3dView(); });
+  $('#z3dist').addEventListener('input', e => { Z3.dist = +e.target.value; draw(); });
+  content.querySelectorAll('[data-zf]').forEach(b => b.addEventListener('click', () => { Z3.focus = +b.dataset.zf; z3dView(); }));
+  window.zHit3d = id => { const h = Z3.hits.find(x => x[4] === id); return h ? [h[0] + h[2] / 2, h[1] + h[3] / 2] : null; };
+  const tick = now => { if (!document.body.contains(cv)) return; if (Z3.rot && !down && !matchMedia('(prefers-reduced-motion: reduce)').matches) { V.st.yaw += (now - t0) / 1000 * 0.12; } t0 = now; draw(); requestAnimationFrame(tick); };
+  draw(); requestAnimationFrame(tick);
+  setTitle('זום', 'שכבות בתלת-ממד', '5 רמות');
+}
+
+/* ---- duplicates report ---- */
+const ZDEDUP = [
+  ['DEDUP-01', 'אופטיקה מול רכיבים: שבעה דפים זהים בשתי לשוניות', 'line-scan, סטרוב, עדשה, הטיה, תרמי, fiducials ולייזר הופיעו גם בלשונית הרכיבים וגם בלשונית האופטיקה, באותו עומק בדיוק.', 'לכל אחד בית אחד בזום (טריגר וסטרוב, אופטיקה, רישום, מקור הלייזר). כתובות האופטיקה נשארו ככינוי לאותו תוכן, ולא כעותק.', 'trig'],
+  ['DEDUP-02', 'פיילוט הקונוס שכפל את נושא המצלמה', 'גרסה 2.19 בנתה דף קונוס למצלמה לצד נושא המצלמה הקיים, עם אותן סימולציות ואותם פיתוחים.', 'הקונוס הוסר. חלונות המצלמה יושבים פעם אחת, ברמה 4.', 'cam'],
+  ['DEDUP-03', 'סימולציית ציר הסרבו שובצה פעמיים', 'אותה סימולציה שובצה גם ברמת המערכות (ציר סרבו) וגם ברמת המנגנון (לולאת הבקרה).', 'נשארה רק בלולאת הבקרה, רמה 3, כי היא מדגימה את ה-PID. הבדיקה האוטומטית תופסת מקרה כזה.', 'loop'],
+  ['DEDUP-04', 'מבנה מקביל: "שבע שכבות" לצד הזום', 'גרסה 2.21 הציגה מבנה ניווט שני, עם אותם חלונות מסודרים אחרת.', 'הוסר. הזום הוא המבנה היחיד.', 'proc'],
+  ['DEDUP-05', 'מעבדת מנוע DC: דף וסימולציה', 'דף המעבדה של המנוע מכיל בדיוק את סימולציית המנוע.', 'חלון אחד, הסימולציה, ברמה 2. הדף נספר ככינוי.', 'motor'],
+  ['LEGIT-01', 'מנוע DC: בפשטות, גזירה, נוסחאות', 'שלושה חלונות על אותו נושא, באותו דף.', 'לא כפילות: שלוש פרוסות בעומקים שונים של אותו גרעין. נשמרו, זה לצד זה, בצומת המנוע.', 'motor']
+];
+function zDedupView() {
+  const cov = zCoverage();
+  content.innerHTML = zSubnav('dedup') + `<h2>דו"ח כפילויות ושיבוץ</h2>
+    <div class="zrule"><div class="ok"><h3>מותר ורצוי: אותו נושא בעומקים שונים</h3><p>מנוע DC מופיע כאנלוגיה, כגזירה וכטבלת נוסחאות. כל אחד מוסיף עומק משלו.</p></div>
+      <div class="no"><h3>אסור: אותו תוכן באותו עומק</h3><p>דף line-scan שהופיע גם ברכיבים וגם באופטיקה. כפילות כזו מאותרת ומאוחדת לחלון אחד.</p></div></div>
+    <div class="zlive"><button type="button" id="zRun">הרץ בדיקת כפילויות חיה</button><span id="zLiveOut" aria-live="polite"></span></div>
+    <h3>כיסוי: כל ${cov.rows.length} העמודים הקיימים</h3>
+    <p>${cov.placed} בעץ הזום · ${cov.alias} אותו תוכן תחת כתובת אחרת · ${cov.res} משאבים רוחביים (מבחן, מילון, ראיון ועוד) · <b>${cov.missing.length} בלי בית</b>${cov.missing.length ? ': ' + cov.missing.map(m => m.r).join(', ') : ''}.</p>
+    <h3>יומן: מה נמצא ומה נעשה</h3>
+    ${ZDEDUP.map(([id, t, found, fix, jump]) => `<article class="zlog ${id.startsWith('LEGIT') ? 'legit' : ''}"><header><span class="zid mono">${id}</span> <b>${t}</b> <span class="zbadge">${id.startsWith('LEGIT') ? 'לגיטימי, נשמר' : 'אוחד ✓'}</span></header><p><b>מה נמצא:</b> ${found}</p><p><b>מה נעשה:</b> ${fix}</p><p><button type="button" class="zopen2" data-zn="${jump}">קפוץ לצומת בזום ←</button></p></article>`).join('')}`;
+  zWireSub(); zWire();
+  $('#zRun').addEventListener('click', () => { const r = zDupCheck(); $('#zLiveOut').innerHTML = `${r.twoHomes.length + r.same.length === 0 ? '✓' : '✗'} ${r.windows} חלונות · ${r.twoHomes.length} עם יותר מבית אחד · ${r.same.length} זוגות עם תוכן זהה`; });
+  setTitle('זום', 'דו"ח כפילויות', ZDEDUP.length + ' רשומות');
+}
+
+/* ---- route the zoom tab ---- */
+const _showZoom78 = showZoom;
+showZoom = function (arg) {
+  if (arg === 'tree' || arg === '3d' || arg === 'dedup') { active = null; setTab('zoom'); markVisit('zoom'); ({ tree: zTreeView, '3d': z3dView, dedup: zDedupView })[arg](); window.scrollTo(0, 0); return; }
+  _showZoom78(arg);
+  content.insertAdjacentHTML('afterbegin', zSubnav(arg && /^L[1-5]$/.test(arg) ? 'node' : 'node')); zWireSub();
+};
+
+/* ---- about the project ---- */
+function showAbout() {
+  active = null; setTab('about'); markVisit('about');
+  const wins = new Set(ZOOM.flatMap(zWindows)).size;
+  const li = 'https://www.linkedin.com/in/eliaz-selam', gh = 'https://github.com/EliazSelam/fault-hunter';
+  content.innerHTML = `<section class="about">
+    <p class="kb">על הפרויקט</p><h2>מהרכיב למכונה</h2>
+    <p class="lead">פרויקט אישי של <b lang="en">Eliaz Selam</b>, מהנדס חשמל (<span lang="en">B.Sc.</span>) עם התמחות בבקרה ועיבוד אותות.</p>
+    <p>מערכת לימוד אינטראקטיבית שמלמדת איך עובדות מכונות AOI ו-AOS לייצור לוחות: מהרכיב הבודד, דרך המעגלים והמנגנונים, ועד המערכות שעובדות יחד כדי לסרוק פאנל, למצוא חוסר או עודף נחושת ולתקן. כל נושא נלמד בעומקים שונים: אינטואיציה, פיתוח, סימולציה, עץ תקלה ושאלות.</p>
+    <div class="aboutbtns"><a class="abtn li" href="${li}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.5c0-1.31-.02-3-1.83-3-1.83 0-2.11 1.43-2.11 2.9V21H9z"/></svg> LinkedIn</a>
+      <a class="abtn gh" href="${gh}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg> GitHub</a></div>
+    <h3>איך זה נבנה</h3>
+    <p>אני הגדרתי את הארכיטקטורה ואת מודל הלמידה, בחרתי מה נכנס, ובדקתי כל מודל וכל מספר. בינה מלאכותית (<span lang="en">Claude</span>) שימשה כשותפה לכתיבת קוד וטיוטות. כל טענה במערכת עוברת בדיקות אוטומטיות, ובמהלך העבודה הבדיקות תפסו גם טעויות שה-<span lang="en">AI</span> עשה.</p>
+    <div class="aboutstats">${[[ZOOM.length, 'נושאים בזום'], [wins, 'חלונות, לכל אחד בית אחד'], [TOPICS.length, 'תהליכים בסימולטור'], [COMPONENTS.length, 'רכיבים'], [QB.length, 'שאלות טכניות'], [SCN.length, 'תקלות שטח'], [10, 'חבילות בדיקה אוטומטיות'], ['1795', 'בדיקות מודל']].map(([n, t]) => `<div><b>${n}</b><small>${t}</small></div>`).join('')}</div>
+    <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
+  setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
+}
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 const NAV_GROUPS = [
-  ['start', 'מתחילים', 'זום במכונה, מסלול, סימולטור', ['zoom', 'path', 'topic', 'pri']],
+  ['start', 'מתחילים', 'זום במכונה, על הפרויקט, מסלול', ['zoom', 'about', 'path', 'topic', 'pri']],
   ['base', 'יסודות', 'שרטוט, רכיבים, מדידה', ['b', 'dig', 's1', 'lab']],
   ['mach', 'מערכות ומכונות', 'מנועים, אופטיקה, AOI', ['mot', 'opt', 's2', 'pcb', 'brd', 'int', 's3']],
   ['practice', 'תרגול', 'שאלות ותקלות', ['qb', 'ch']],
@@ -9155,7 +9382,7 @@ function showS0() {
 
 function go(sheet, arg) {
   document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet));
-  ({ zoom: (a) => showZoom(a), path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
+  ({ zoom: (a) => showZoom(a), about: showAbout, path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
   if (sheet === 's3' || sheet === 's4') markVisit(sheet);
   if (FH_RET && sheet !== 'ch') { const r = FH_RET; const bar = document.createElement('div'); bar.className = 'retbar'; bar.innerHTML = `<button type="button" class="btn primary">חזרה לתקלה ${r}</button>`; bar.querySelector('button').addEventListener('click', () => { FH_RET = null; playScn(r); }); content.prepend(bar); }
   window.scrollTo(0, 0);
@@ -9210,7 +9437,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.22.0';
+const APP_VERSION = '2.23.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

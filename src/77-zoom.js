@@ -7,33 +7,56 @@
 const ZLEVELS = [[1, 'רכיבים', 'נגד, סליל, קבל, דיודה, טרנזיסטור'], [2, 'מעגל קטן', 'ממסר, אנקודר, מנוע, דרייבר'], [3, 'מנגנון ועיקרון', 'סנכרון, יישור, בקרה, שליטה'], [4, 'מערכות במקביל', 'מצלמה, ציר, ואקום, בטיחות, לייזר'], [5, 'התהליך', 'סריקה, מציאת פגם, תיקון']];
 const ZN = (id, level, t, core, around, parts = []) => ({ id, level, t, core, around, parts });
 const ZOOM = [
-  ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ'], ['cam', 'servo', 'vac', 'safety', 'laser']),
-  ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ'], ['trig', 'optics', 'reg']),
-  ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ'], ['loop', 'trans']),
-  ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ'], ['valve']),
-  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ'], ['interlock']),
-  ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ'], ['laserunit']),
-  ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'mosfet']),
-  ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:bench', 'c:thermal:formulas']),
+  /* 5 · the process: scan, find, repair; and the work around it */
+  ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ', 'p:s2/machine'], ['cam', 'servo', 'vac', 'safety', 'laser', 'pwr', 'ecat']),
+  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas']),
+  ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi'], []),
+  /* 4 · systems working in parallel */
+  ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ', 'p:opt/ov', 'p:opt/q', 'p:opt/ch'], ['trig', 'optics', 'reg']),
+  ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ', 'p:s2/servo'], ['loop', 'trans']),
+  ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ', 'p:s2/vac'], ['valve']),
+  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock']),
+  ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ', 'p:s2/aos'], ['laserunit', 'reg']),
+  ZN('pwr', 4, 'ספק 24V וחלוקת מתח', 't:pwr:scene', ['t:pwr:flow', 't:pwr:rev', 't:pwr:quiz', 't:pwr:math:*', 't:pwr:fault:*', 't:pwr:integ', 'p:mot/wire', 'p:mot/tri', 'p:mot/energy', 'p:mot/sims'], ['psu']),
+  ZN('ecat', 4, 'בקרה ותקשורת EtherCAT', 't:ecat:scene', ['t:ecat:flow', 't:ecat:rev', 't:ecat:quiz', 't:ecat:math:*', 't:ecat:fault:*', 't:ecat:integ', 'p:mot/iface'], ['iocards']),
+  /* 3 · mechanisms and principles */
+  ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'logic', 'mosfet']),
+  ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:steps', 'c:thermal:bench', 'c:thermal:formulas', 'c:thermal:wrong']),
   ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong']),
   ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake']),
-  ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong']),
-  ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay']),
-  ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong'], ['relay']),
+  ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong'], ['fits']),
+  ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay', 'sensors']),
+  ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong', 'p:s2/interlock'], ['relay', 'switch']),
   ZN('laserunit', 3, 'מקור לייזר, אופטיקה ותריס', 'c:laser:story', ['c:laser:steps', 'c:laser:bench', 'c:laser:numbers', 'c:laser:formulas', 'c:laser:wrong']),
-  ZN('relay', 2, 'ממסר עם דרייבר ודיודה', 'fig:relay', ['c:relay:story', 'c:relay:steps', 'c:relay:bench', 'c:relay:numbers', 'c:relay:formulas', 'c:relay:wrong'], ['coil', 'diode', 'mosfet', 'resistor']),
+  ZN('psu', 3, 'ספק ממותג, נפילת מתח והגנות', 'c:psu:story', ['c:psu:steps', 'c:psu:bench', 'c:psu:numbers', 'c:psu:formulas', 'c:psu:wrong', 'p:mot/conv', 'p:lib/psu'], ['fuse', 'source', 'xfmr', 'diode', 'capacitor']),
+  ZN('iocards', 3, 'כרטיסי קלט/פלט וחקר כשל', 's:card', ['p:brd/steps', 'p:brd/lib', 'p:brd/bench', 'p:brd/fa', 'p:lib/di', 'p:lib/do', 'p:lib/ai', 'p:lib/drive', 'p:lib/comm', 'p:lib/led', 'p:b/board', 'p:b/set', 'c:loop:story', 'c:loop:steps', 'c:loop:bench', 'c:loop:formulas', 'c:loop:wrong', 'p:s2/card', 'p:brd/q', 'p:brd/ch'], ['logic', 'relay', 'meas', 'connector']),
+  /* 2 · small circuits */
+  ZN('relay', 2, 'ממסר עם דרייבר ודיודה', 'fig:relay', ['a:ממסר / מגען', 'c:relay:story', 'c:relay:steps', 'c:relay:bench', 'c:relay:numbers', 'c:relay:formulas', 'c:relay:wrong'], ['coil', 'diode', 'mosfet', 'resistor', 'capacitor']),
   ZN('enc', 2, 'אנקודר', 'c:encoder:story', ['c:encoder:steps', 'c:encoder:bench', 'c:encoder:formulas', 'c:encoder:wrong']),
-  ZN('motor', 2, 'מנוע DC', 'm:why:simple', ['m:why:deriv', 'm:why:formulas', 'sim:mlab'], ['coil']),
+  ZN('motor', 2, 'מנוע: DC, צעד, השראה וסנכרוני', 'm:why:simple', ['m:why:deriv', 'm:why:formulas', 'sim:mlab', 'p:mot/parts', 'p:mot/types', 'p:mot/dcm', 'p:mot/ind', 'p:mot/sync', 'p:mot/q', 'a:מנוע'], ['coil']),
   ZN('pwm', 2, 'PWM וגשר H', 'c:pwm:story', ['c:pwm:steps', 'c:pwm:bench', 'c:pwm:formulas', 'c:pwm:wrong'], ['mosfet']),
   ZN('brake', 2, 'בלם החזקה', 'c:brake:story', ['c:brake:steps', 'c:brake:bench', 'c:brake:formulas', 'c:brake:wrong'], ['coil']),
-  ZN('resistor', 1, 'נגד', 'a:נגד', []),
+  ZN('fits', 2, 'התאמות, טולרנסים ושרטוט מכני', 'c:fits:story', ['c:fits:steps', 'c:fits:bench', 'c:fits:formulas', 'c:fits:wrong', 'p:b/mech', 'p:b/mdrill']),
+  ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q']),
+  ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire'], ['sensors']),
+  ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall']),
+  /* 1 · components */
+  ZN('resistor', 1, 'נגד', 'a:נגד', ['p:b/decode']),
   ZN('capacitor', 1, 'קבל', 'a:קבל קרמי (לא מקוטב)', ['a:קבל אלקטרוליטי (מקוטב)']),
   ZN('coil', 1, 'סליל', 'a:סליל (משרן)', []),
-  ZN('diode', 1, 'דיודה', 'a:דיודה', ['a:זנר / TVS']),
-  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', [], [])
+  ZN('diode', 1, 'דיודה ו-LED', 'a:דיודה', ['a:זנר / TVS', 'a:נורית LED']),
+  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', []),
+  ZN('fuse', 1, 'פיוז', 'a:פיוז', []),
+  ZN('switch', 1, 'מתג ולחצן', 'a:מתג ולחצן', []),
+  ZN('source', 1, 'מקור מתח והארקה', 'a:ספק ומקור מתח', ['a:הארקות ו-0V']),
+  ZN('xfmr', 1, 'שנאי', 'a:שנאי', ['p:mot/xfmr']),
+  ZN('connector', 1, 'הדקים ומחברים', 'a:הדקים ומחברים', []),
 ];
-/* capacitors are part of the relay's driver in practice and of the strobe's driver */
-ZOOM.find(n => n.id === 'relay').parts.push('capacitor');
+/* the chain from the drawing is the core of each scale; the rest are expansions around it */
+const ZCORE = new Set(['proc', 'cam', 'vac', 'trig', 'valve', 'relay', 'resistor', 'coil', 'capacitor']);
+const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 'AOS' };
+/* windows that are a whole existing page, and resources that serve every scale */
+const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
 /* expand wildcards into concrete window ids */
@@ -71,7 +94,7 @@ function zCapture() {
   ZCAP.done = true;
 }
 /* every window: a title, a kind, and how it is shown */
-const ZKIND = { story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
+const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
 function zInfo(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {
@@ -86,6 +109,7 @@ function zInfo(w) {
   if (k === 'sim') return { kind: 'sim', t: { scan3d: 'ראש הסריקה: רצועות ותפרים', cr3d: 'מכתש הלייזר', bs3d: 'backlash בהיפוך כיוון', mlab: 'מעבדת מנוע DC' }[a] };
   if (k === 'm') return { kind: { simple: 'story', deriv: 'derivation', formulas: 'formulas' }[b], t: 'מנוע DC' };
   if (k === 'a') return { kind: 'card', t: a };
+  if (k === 'p') return { kind: 'page', t: zRouteTitle(w.slice(2)) };
   return { kind: 'card', t: w };
 }
 function zMount(w, el) {
@@ -103,8 +127,28 @@ function zMount(w, el) {
   } else if (k === 's') active = bench(SYSTEMS.find(s => s.id === a), el);
   else if (k === 'fig') { el.innerHTML = anatBlock(a); mountAnat(el); }
   else if (k === 'sim') ({ scan3d: scanSim, cr3d: craterSim, bs3d: bsSim, mlab: motorLab })[a](el);
+  else if (k === 'p') { const r = w.slice(2); el.innerHTML = `<p>${zRouteTitle(r)}: חלון קיים בגודל עמוד. הוא נפתח במקומו, ויש דרך חזרה לכאן.</p><p><button type="button" class="zgo" data-route="${r}">פתח ←</button></p>`; el.querySelector('.zgo').addEventListener('click', () => zOpenPage(r)); }
   else { zCapture(); el.innerHTML = ZCAP[w] || ''; }
 }
+
+function zRouteTitle(r) {
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
+  if (hubs[h]) { const x = sub ? hubs[h].find(n => n[0] === sub) : hubs[h][0]; if (x) return x[1]; }
+  if (h === 's2' && SYSX[sub]) return SYSX[sub].title; if (h === 'lib') { const B = BOARDS.find(x => x.id === sub); return B ? (B.name || B.t || sub).replace(/<[^>]+>/g, '') : sub; }
+  const bt = { board: 'קריאת כרטיס אמיתי', set: 'סט שרטוטים מלא', mech: 'שרטוט מכני מאפס', mdrill: 'קריאת שרטוט ייצור', decode: 'מפענחי ערכים', grammar: 'דקדוק של סכמה', quiz: 'חידון סמלים' };
+  if (h === 'b' && bt[sub]) return bt[sub];
+  const tb = document.querySelector(`nav.sheets [data-sheet="${h}"]`); return tb ? tb.firstChild.textContent.trim() : r;
+}
+/* leaving the zoom for a whole page keeps the way back */
+const ZBACK = { node: null };
+function zOpenPage(r) { ZBACK.node = ZS.node; routeGo(r); setTimeout(zBackBar, 0); }
+function zBackBar() {
+  if (!ZBACK.node || (location.hash || '').startsWith('#/zoom')) return;
+  const c = document.getElementById('content'); if (c.querySelector(':scope > .zback')) return;
+  c.insertAdjacentHTML('afterbegin', `<nav class="zback"><button type="button" id="zBack">← חזרה לזום: ${zNode(ZBACK.node).t}</button></nav>`);
+  document.getElementById('zBack').addEventListener('click', () => { const n = ZBACK.node; ZBACK.node = null; go('zoom', n); });
+}
+new MutationObserver(() => { if (typeof active !== 'undefined' && ZBACK.node) zBackBar(); }).observe(document.getElementById('content'), { childList: true });
 
 /* ---- the view ---- */
 const ZS = { node: 'proc', dir: 0, open: new Set() };

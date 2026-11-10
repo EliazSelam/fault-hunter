@@ -370,6 +370,23 @@ nav.sheets button[hidden]{display:none}
 .zaround{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:0 12px}.zaround .zwin.open{grid-column:1/-1}.zring{margin:18px 0 4px;font-size:15px;color:var(--muted)}
 @keyframes zIn{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}@keyframes zOut{from{transform:scale(1.12);opacity:0}to{transform:none;opacity:1}}@keyframes zFade{from{opacity:0}to{opacity:1}}
 .zanim{animation:zFade .35s ease-out}.zanim.zin{animation:zIn .45s ease-out}.zanim.zout{animation:zOut .45s ease-out}@media (prefers-reduced-motion:reduce){.zanim,.zanim.zin,.zanim.zout{animation:none}}
+.zsub{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}.zsub button{font:inherit;font-size:14px;padding:6px 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.zsub button[aria-current="page"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.zback{position:sticky;top:0;z-index:5;margin:0 0 10px}.zback button,.zgo{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.ztsum{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}.ztsum div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;background:var(--sheet)}.ztsum small{display:block;color:var(--muted)}
+.ztbar,.ztbranch{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0}.ztbar input{font:inherit;padding:6px 10px;border:1px solid var(--line);border-radius:8px;min-width:200px;background:var(--sheet);color:var(--text)}
+.ztbar button,.ztbranch button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.ztbar button[aria-pressed="true"],.ztbranch button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.ztctx{display:inline-flex;gap:4px}
+.ztcols{display:grid;grid-template-columns:repeat(5,minmax(170px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}.ztcol{border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--tint)}
+.ztch{font-size:15px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:baseline}.ztch span{background:var(--ink);color:var(--sheet);border-radius:999px;padding:0 8px}.ztch small{width:100%;font-weight:400;font-size:12px;color:var(--muted)}
+.ztcard{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:0 0 8px;background:var(--sheet)}.ztcard.core{border:2px solid var(--live)}.ztcard header{display:flex;justify-content:space-between;gap:6px;font-size:11px}.zid{font-family:ui-monospace,monospace;color:var(--muted);font-size:11px}
+.zbadge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:0 6px;color:var(--muted)}.ztcard.core .zbadge{border-color:var(--live);color:var(--live);font-weight:600}.ztcard h3{font-size:15px;margin:6px 0 2px}.zmeta{font-size:12px;color:var(--muted);margin:0}
+.zlink{font-size:12px;margin:4px 0}.zlink button{font:inherit;font-size:12px;border:1px solid var(--line);border-radius:6px;background:none;color:var(--live);cursor:pointer;margin:2px}.zopen2{font:inherit;font-size:13px;border:0;background:none;color:var(--live);cursor:pointer;padding:0;font-weight:600}
+.z3bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.z3bar button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.z3bar button[aria-pressed="true"]{background:var(--ink);color:var(--sheet)}
+.z3stage{border:1px solid var(--line);border-radius:14px;background:var(--sheet);overflow:hidden}.z3stage canvas{width:100%;height:auto;display:block;cursor:grab;touch-action:none}
+.zrule{display:grid;grid-template-columns:1fr 1fr;gap:10px}.zrule>div{border:1.5px solid var(--line);border-radius:12px;padding:8px 14px}.zrule .ok{border-color:var(--live)}.zrule .no{border-color:var(--mech)}.zrule h3{font-size:16px;margin:4px 0}
+.zlive{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:12px 0}.zlive button{font:inherit;font-weight:600;padding:8px 14px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.zlog{border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin:10px 0;background:var(--sheet)}.zlog.legit{border-style:dashed}.zlog header{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.zlog p{margin:6px 0}
+.about{max-width:860px}.aboutbtns{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.abtn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:16px;padding:10px 20px;border-radius:12px;text-decoration:none;color:#fff}.abtn.li{background:#3078B0}.abtn.gh{background:#1B2F5A}.abtn:hover{filter:brightness(1.12)}
+.aboutstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.aboutstats div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--sheet)}.aboutstats b{display:block;font-size:24px;color:var(--ink)}.aboutstats small{color:var(--muted)}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -429,6 +446,7 @@ ol.tsteps .ts{color:var(--live-text)}
 <nav class="sheets" role="tablist" aria-label="גיליונות">
   <button role="tab" data-sheet="path" aria-selected="true">מסלול<small>מאיפה מתחילים</small></button>
   <button role="tab" data-sheet="zoom" aria-selected="false">זום במכונה<small>מהרכיב לתהליך</small></button>
+  <button role="tab" data-sheet="about" aria-selected="false">על הפרויקט<small>Eliaz Selam</small></button>
   <button role="tab" data-sheet="topic" aria-selected="false">סימולטור תהליך<small>מהמהות לפיתוח</small></button>
   <button role="tab" data-sheet="pri" aria-selected="false">12 עקרונות<small>להבין, לא לשנן</small></button>
   <button role="tab" data-sheet="lab" aria-selected="false">מעבדה<small>מכשירי מדידה וחיישנים</small></button>

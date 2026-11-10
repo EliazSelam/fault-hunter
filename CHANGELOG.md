@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.23.0] — 2026-11-10
+
+**The architecture is complete, with no duplicates.**
+
+- Every existing window and page now has one home in the zoom: 39 topics across five scales and 304 windows. At the top: the process (scan, find, repair), first power-up with ATP and the field, and the production line. New systems: 24 V power and EtherCAT. New mechanisms: the switching supply and the I/O cards. New small circuits: tolerances, digital logic and measurement. New components: fuse, switch, voltage source and ground, transformer, connectors, sensors, and every atlas card. All 122 existing pages are accounted for: 75 in the tree, 36 the same content under another address, 11 shared resources (test, challenge, glossary, interview and the like). The only page that was missing a home, the lab hub, turned out to equal its first page, and is counted once.
+- Three views from the Google version, rebuilt on the real tree: a **tree by scale** (a column for each scale, core and expansion badges, "part of" links, filters by name, core only, machine and branch), a **3D stack** (five planes, a core axis through them, the parts linked to their wholes; drag to turn, wheel to zoom, click a topic to open it, focus on one scale), and a **duplicates report** (the rule, a live check, full coverage and a log of the duplicates found and merged, each with a jump to its node).
+- New tab **About the project**: whose it is, what it is, how it was built (architecture and validation by me, Claude as a pair for code and drafts), live numbers, and LinkedIn and GitHub buttons.
+- The zoom suite now checks coverage of every page, the tree filters, a click in the 3D view, the live duplicates check and the about tab (14,421 checks).
+
 ## [2.22.0] — 2026-11-10
 
 **The zoom: from a component to the whole process.** The idea of "Powers of Ten", on the machine.
