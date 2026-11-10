@@ -33,6 +33,9 @@ A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `ana
 ## Zoom
 `src/77-zoom.js` (tab `zoom`, first under "getting started") is the system zoom, like "Powers of Ten": five scales (1 components, 2 small circuits, 3 mechanisms and principles, 4 systems working in parallel, 5 the process), each made of the one below. `ZOOM` lists the nodes; a node has a core window and windows around it, and `parts` (zoom in; the parents are derived for zoom out). A window is a unit that already exists in the project (lesson part via `zParts`, `formBox`, `bench`, a system bench, a live figure, a 3D sim, a topic scene, flow, derivation, fault tree, quiz, an atlas card, a motor window captured once by `zCapture`). Every window has exactly one home; several windows on one subject at different depths are fine, the same content twice is a duplicate. `tests/zoom_audit.mjs` checks homes, rendering, duplicate content, structure, navigation and authorship.
 
+## Zoom views and about
+`src/78-zoom-views.js`: inside the zoom tab, a views bar (zoom · tree by scale · 3D stack · duplicates report). `zCoverage()` accounts for every existing page (in the tree, the same content under another address, or a shared resource in `ZRES`); `zDupCheck()` is the live duplicates check. `ZCORE` marks the core chain of each scale, `ZCTX` the AOI/AOS-only topics. Tab `about`: the project and its author, with LinkedIn and GitHub buttons (GitHub only there).
+
 ## Master map
 `MASTER` in `src/73-master-map.js` places every asset on a level of its subject's cone (16 subjects in 3 tracks, plus shared resources; 8 levels from essence to integration). `tests/master_map.mjs` fails if any page, system stage, topic level, simulation, figure, CircuitJS circuit, question or fault is unplaced, or if a ref points at nothing, and writes `docs/MASTER_MAP.md`. Data only for now: the interface does not read it yet.
 
