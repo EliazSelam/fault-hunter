@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.29.0] — 2026-11-11
+
+**Two machines, and every simulation one click away.**
+
+- The 3D view no longer merges AOI and AOS into one machine. A switch at the bottom shows **the AOI machine** (line-scan camera, lens, strobe), **the AOS machine** (laser head, laser source, registration camera) or **the whole line**: both machines side by side with the verification station between them and the panel's path along the floor. Click a machine on the line to enter it; select an AOS part from anywhere and the view switches to AOS. The parts list shows only the machine on screen.
+- **All simulations** (new view): 30 simulations, live figures and process scenes, grouped AOI / AOS / shared, with search. A click opens the simulation already expanded in its topic and scrolls to it. Search "מכתש" and the laser crater opens in "laser repair (AOS)". The finder in the machine finds simulations too.
+- Zoom suite: the two machines, the line, the click into a machine, the gallery and opening the crater in place.
+
 ## [2.28.0] — 2026-11-11
 
 **Nothing swallowed, easy to move, inviting to explore.**

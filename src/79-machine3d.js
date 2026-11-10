@@ -92,17 +92,19 @@ function zMachineView() {
     if (MS.path.length) return drawInner(ctx);
     const selNode = MS.sel ? MPARTS.find(p => p.id === MS.sel).node : null;
     const items = [];
-    MPARTS.forEach(p => { const dim = MS.sel && p.id !== MS.sel && !(selNode && p.node === selNode); const hl = p.id === MS.hover || p.id === MS.sel; if (p.id === 'door' && MS.sel && MS.sel !== 'door') return;
-      p.boxes.forEach(b => { const P = []; mShape(P, [b[0] + MS.E * p.ex[0], b[1] + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2]], MSHAPE[p.id], col(b[6]), (p.id === 'door' ? 0.07 : 0.95) * (dim ? 0.12 : 1), p.id === 'door' ? '#D6E8F7' : line);
-        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, part: p, hl }); }); }); });
-    if (!MS.sel) mFloor(ctx, proj, [0.6, 0, -0.5], 4.2);
-    mPaint(ctx, items); items.forEach(({ q, part }) => { if (part.node) MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, part.id]); });
+    mCopies().forEach(({ p, dx, m }) => { const dim = MS.sel && p.id !== MS.sel && !(selNode && p.node === selNode); const hl = p.id === MS.hover || p.id === MS.sel || MS.hover === 'M:' + m; if (p.id === 'door' && MS.sel && MS.sel !== 'door') return;
+      p.boxes.forEach(b => { const P = []; mShape(P, [b[0] + dx + MS.E * p.ex[0], b[1] + dx + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2]], MSHAPE[p.id], col(b[6]), (p.id === 'door' ? 0.07 : 0.95) * (dim ? 0.12 : 1), p.id === 'door' ? '#D6E8F7' : line);
+        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, part: p, hl, m }); }); }); });
+    if (MS.machine === 'line') mLineExtras(items, proj, col, line);
+    if (!MS.sel) (MS.machine === 'line' ? [-6.5, 7.5] : [0.6]).forEach(x => mFloor(ctx, proj, [x, 0, -0.5], 4.2));
+    mPaint(ctx, items); items.forEach(({ q, part, m }) => { if (part.node || MS.machine === 'line') MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, MS.machine === 'line' ? 'M:' + m : part.id]); });
     /* vacuum zones on the table */
-    if (!MS.sel || MS.sel === 'table') { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
+    if (MS.machine !== 'line' && (!MS.sel || MS.sel === 'table')) { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
     /* names: the hovered and the selected part, and every part while exploded */
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
+    if (MS.machine === 'line') { mLineLabels(ctx, proj); ctx.direction = 'ltr'; ctx.textAlign = 'left'; return; }
     if (MS.hover && !MS.path.length) { const hp = MPARTS.find(x => x.id === MS.hover); if (hp && hp.node && typeof zTeaser === 'function') { const tz = zTeaser(hp.node), ex = zExplored().has(hp.node); if (tz) { ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.font = '13px system-ui, sans-serif'; const w = Math.min(cv.width - 40, ctx.measureText(tz).width + 24); ctx.fillStyle = 'rgba(27,47,90,0.92)'; ctx.fillRect(cv.width - w - 18, cv.height - 58, w, 40); ctx.fillStyle = '#D6E8F7'; ctx.fillText((ex ? '' : '● ') + tz, cv.width - 30, cv.height - 33); ctx.direction = 'ltr'; ctx.textAlign = 'left'; } } }
-    MPARTS.forEach(p => { if (!p.node) return; const big = ['table', 'gantry', 'cam', 'laser', 'cab', 'door', 'motor', 'valve'].includes(p.id); const show = p.id === MS.hover || p.id === MS.sel || (MS.E > 0.55 && !MS.sel && big); if (!show) return; const c = mCenter(p), q = proj([c[0], c[1], c[2] + 0.35]); const w = ctx.measureText(p.t).width + 14;
+    MPARTS.forEach(p => { if (!p.node || !mVis(p)) return; const big = ['table', 'gantry', 'cam', 'laser', 'cab', 'door', 'motor', 'valve'].includes(p.id); const show = p.id === MS.hover || p.id === MS.sel || (MS.E > 0.55 && !MS.sel && big); if (!show) return; const c = mCenter(p), q = proj([c[0], c[1], c[2] + 0.35]); const w = ctx.measureText(p.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = p.id === MS.sel ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(p.t, q[0], q[1] - 4); });
     ctx.direction = 'ltr'; ctx.textAlign = 'left';
   }
@@ -124,7 +126,7 @@ function zMachineView() {
   window.mPickAt = (id) => { const p = MS.polys.filter(x => x[2] === id); if (!p.length) return null; const q = p[p.length - 1][0]; const r = cv.getBoundingClientRect(); const cx = q.reduce((s, v) => s + v[0], 0) / 4, cy = q.reduce((s, v) => s + v[1], 0) / 4; return [r.left + cx * r.width / cv.width, r.top + cy * r.height / cv.height]; };
   let down = null;
   cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
-  cv.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved > 4) return; const id = pick(e); if (MS.path.length) { MS.isel = id ? +id.slice(3) : null; mSide(); } else mSelect(id); });
+  cv.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved > 4) return; const id = pick(e); if (MS.path.length) { MS.isel = id ? +id.slice(3) : null; mSide(); } else if (id && id.startsWith('M:')) mSetMachine(id.slice(2)); else mSelect(id); });
   cv.addEventListener('pointermove', e => { if (down) return; const id = pick(e); if (id !== MS.hover) { MS.hover = id; cv.style.cursor = id ? 'pointer' : 'grab'; } });
   cv.addEventListener('wheel', e => { e.preventDefault(); MS.distT = Math.max(4, Math.min(24, MS.distT + Math.sign(e.deltaY) * 0.8)); }, { passive: false });
   $('#mE').addEventListener('input', e => { MS.assembling = false; MS.target = MS.E = +e.target.value; });
@@ -172,7 +174,7 @@ function mSide() {
       ${sel ? mNodeBlock(zNode(sel.node), sel.t) : `<h3>${zNode(top).t}: מפורק לחלקים</h3><p>לחצו על חלק כדי לראות מה הוא, ואם יש לו חלקים משלו, לפרק גם אותו.</p><ul class="mlist">${INNER[top].map((ip, i) => `<li><button type="button" class="linkbtn" data-mi="${i}">${ip.t}</button></li>`).join('')}</ul>`}
       <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`;
   } else if (!MS.sel) {
-    S.innerHTML = `<h3>מכונת בדיקה שלמה</h3><p>המכונה נבנית מול העיניים, חלק אחרי חלק. כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><ul class="mlist">${MPARTS.filter(p => p.node).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
+    S.innerHTML = `<h3>מכונת בדיקה שלמה</h3><p>המכונה נבנית מול העיניים, חלק אחרי חלק. כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
       <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`;
   } else {
     const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);
