@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.28.0] — 2026-11-11
+
+**Nothing swallowed, easy to move, inviting to explore.**
+
+- **Audit: no simulation was lost in the merge.** A new suite instruments every interactive builder (component and system benches, live figures, 3D simulations, labs), opens all 122 old pages, then mounts every zoom window and every page it opens. All 38 builders used on the old pages are reached from the zoom. The same audit found text that *had* been left behind on the old component pages: what's inside, the words, try it yourself, check yourself, the worked numbers for six components, the advanced reading, the interview line, and each topic's per-step numbers with its explanation and Feynman exercise. They are now windows (444 in total, from 304).
+- **Moving around.** Every topic page shows the path from the machine down to it, every part clickable, and its neighbours at the same scale. Arrow keys: up zooms out, down zooms in, left and right move along the scale. In the machine, a finder ("חפש חלק") jumps to any topic: a part flies into view, a component inside a part is opened down to it.
+- **Curiosity.** Topics you open are counted as explored; the machine shows how much you have explored and suggests the next topic, one step from what you know, with a question about it. Hovering a part shows one of its questions before you open it (an information gap, after Loewenstein).
+- **The look.** The machine sits on a dark stage in the palette's blues; faces are shaded by a light from the upper left; round parts (motor, screw, brake, encoder, lens, coils, capacitors, resistors, diodes) are cylinders; the hovered part glows; parts cast a soft shadow on the floor.
+- 11 suites.
+
 ## [2.27.0] — 2026-11-10
 
 **Everything around the machine.**

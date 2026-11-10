@@ -50,6 +50,28 @@ const INNER = {
   safety: [IB('interlock', 'מתג interlock בדלת', [-0.2, 0.2, -0.1, 0.1, 0.3, 0.6], [0, -0.8, 0.4]), IB('relay', 'ממסר בטיחות', [0.4, 0.8, -0.2, 0.2, 0, 0.4], [0.9, 0, 0], 'live'), IB('switch', 'לחצן עצירת חירום', [-0.8, -0.5, -0.15, 0.15, 0, 0.3], [-0.9, 0, 0], 'mech'), IB('safety', 'דלת ומעטפת', [-1.2, 1.2, 0.5, 0.55, -0.6, 0.8], [0, 0.9, 0], 'tint')],
   ecat: [IB('ecat', 'מעבד הבקר', [-0.4, 0.4, -0.3, 0.3, 0, 0.3], [0, 0, 0.6]), IB('connector', 'פורטי EtherCAT', [0.5, 0.8, -0.4, 0.4, 0, 0.15], [0.9, 0, 0], 'live')]
 };
+/* materials: light from the upper left, cylinders for round parts, a soft shadow on the floor */
+const LDIR = (() => { const v = [-0.45, -0.6, 0.78], m = Math.hypot(...v); return v.map(x => x / m); })();
+function shadeCol(c, k) { if (!/^#[0-9a-f]{6}$/i.test(c)) return c; const n = parseInt(c.slice(1), 16), f = v => Math.max(0, Math.min(255, Math.round(v * k))); return `rgb(${f(n >> 16 & 255)},${f(n >> 8 & 255)},${f(n & 255)})`; }
+function faceLight(pts) { if (pts.length < 3) return 1; const a = [0, 1, 2].map(i => pts[1][i] - pts[0][i]), b = [0, 1, 2].map(i => pts[2][i] - pts[0][i]); const n = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], m = Math.hypot(...n) || 1; return 0.6 + 0.55 * Math.abs((n[0] * LDIR[0] + n[1] * LDIR[1] + n[2] * LDIR[2]) / m); }
+function tCyl(P, x0, x1, y0, y1, z0, z1, ax, fill, alpha, stroke, N = 18) {
+  const c = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], h = [(x1 - x0) / 2, (y1 - y0) / 2, (z1 - z0) / 2], ai = { x: 0, y: 1, z: 2 }[ax], [u, v] = [0, 1, 2].filter(i => i !== ai);
+  const ring = s => Array.from({ length: N }, (_, k) => { const t = 2 * Math.PI * k / N, p = [0, 0, 0]; p[ai] = c[ai] + s * h[ai]; p[u] = c[u] + h[u] * Math.cos(t); p[v] = c[v] + h[v] * Math.sin(t); return p; });
+  const A = ring(-1), Bq = ring(1);
+  for (let k = 0; k < N; k++) { const k2 = (k + 1) % N; P.push({ pts: [A[k], A[k2], Bq[k2], Bq[k]], fill, alpha, stroke: null }); }
+  P.push({ pts: A, fill, alpha, stroke }, { pts: Bq, fill, alpha, stroke });
+}
+const MSHAPE = { screw: 'y', motor: 'y', brake: 'y', enc: 'y', lens: 'z' };
+const ROUND = /סליל|קבל|עדשה|בוכנה|רוטור|מיסבים|נגד|דיודה|בורג|אום|דיסקת|כבל|ליפופי|פיוז|לחצן/;
+const longAxis = b => { const d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]]; return 'xyz'[d.indexOf(Math.max(...d))]; };
+function mShape(P, b, shape, fill, alpha, stroke) { if (shape) tCyl(P, b[0], b[1], b[2], b[3], b[4], b[5], shape, fill, alpha, stroke); else tBox(P, b[0], b[1], b[2], b[3], b[4], b[5], fill, alpha, stroke); }
+function mPaint(ctx, items) {
+  items.sort((a, b) => b.d - a.d);
+  items.forEach(({ q, f, hl }) => { ctx.beginPath(); q.forEach((x, k) => k ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath();
+    ctx.globalAlpha = f.alpha; ctx.fillStyle = shadeCol(f.fill, faceLight(f.pts)); if (hl) { ctx.shadowColor = '#3078B0'; ctx.shadowBlur = 16; } ctx.fill(); ctx.shadowBlur = 0;
+    if (f.stroke) { ctx.globalAlpha = hl ? 0.9 : 0.35; ctx.lineWidth = hl ? 1.8 : 0.8; ctx.strokeStyle = hl ? '#D6E8F7' : f.stroke; ctx.stroke(); } ctx.globalAlpha = 1; });
+}
+function mFloor(ctx, proj, at, r) { const c = proj(at), e = proj([at[0] + r, at[1], at[2]]), rx = Math.max(40, Math.abs(e[0] - c[0]) * 1.4); const g = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], rx); g.addColorStop(0, 'rgba(0,0,0,0.38)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, rx * 0.36, 0, 0, Math.PI * 2); ctx.fill(); }
 const MS = { E: 1, target: 0, sel: null, rot: true, C: [0.5, 0, 1.0], Ct: [0.5, 0, 1.0], dist: 12, distT: 12, hover: null, polys: [], assembling: true, path: [], IE: 0, isel: null };
 const mCenter = p => { const b = p.boxes, n = b.length; return [b.reduce((s, x) => s + (x[0] + x[1]) / 2, 0) / n + MS.E * p.ex[0], b.reduce((s, x) => s + (x[2] + x[3]) / 2, 0) / n + MS.E * p.ex[1], b.reduce((s, x) => s + (x[4] + x[5]) / 2, 0) / n + MS.E * p.ex[2]]; };
 /* windows in two layers: layer 1 shows and simulates, layer 2 explains */
@@ -71,14 +93,15 @@ function zMachineView() {
     const selNode = MS.sel ? MPARTS.find(p => p.id === MS.sel).node : null;
     const items = [];
     MPARTS.forEach(p => { const dim = MS.sel && p.id !== MS.sel && !(selNode && p.node === selNode); const hl = p.id === MS.hover || p.id === MS.sel; if (p.id === 'door' && MS.sel && MS.sel !== 'door') return;
-      p.boxes.forEach(b => { const P = []; tBox(P, b[0] + MS.E * p.ex[0], b[1] + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2], col(b[6]), (p.id === 'door' ? 0.05 : 0.92) * (dim ? 0.12 : 1), hl ? col('live') : line);
-        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / 4, f, part: p, hl }); }); }); });
-    items.sort((a, b) => b.d - a.d);
-    items.forEach(({ q, f, part, hl }) => { ctx.beginPath(); q.forEach((x, i) => i ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath(); ctx.globalAlpha = f.alpha; ctx.fillStyle = f.fill; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = hl ? 2 : 0.8; ctx.strokeStyle = f.stroke; ctx.stroke(); if (part.node) MS.polys.push([q, (q[0][2] + q[2][2]) / 2, part.id]); });
+      p.boxes.forEach(b => { const P = []; mShape(P, [b[0] + MS.E * p.ex[0], b[1] + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2]], MSHAPE[p.id], col(b[6]), (p.id === 'door' ? 0.07 : 0.95) * (dim ? 0.12 : 1), p.id === 'door' ? '#D6E8F7' : line);
+        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, part: p, hl }); }); }); });
+    if (!MS.sel) mFloor(ctx, proj, [0.6, 0, -0.5], 4.2);
+    mPaint(ctx, items); items.forEach(({ q, part }) => { if (part.node) MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, part.id]); });
     /* vacuum zones on the table */
     if (!MS.sel || MS.sel === 'table') { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
     /* names: the hovered and the selected part, and every part while exploded */
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
+    if (MS.hover && !MS.path.length) { const hp = MPARTS.find(x => x.id === MS.hover); if (hp && hp.node && typeof zTeaser === 'function') { const tz = zTeaser(hp.node), ex = zExplored().has(hp.node); if (tz) { ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.font = '13px system-ui, sans-serif'; const w = Math.min(cv.width - 40, ctx.measureText(tz).width + 24); ctx.fillStyle = 'rgba(27,47,90,0.92)'; ctx.fillRect(cv.width - w - 18, cv.height - 58, w, 40); ctx.fillStyle = '#D6E8F7'; ctx.fillText((ex ? '' : '● ') + tz, cv.width - 30, cv.height - 33); ctx.direction = 'ltr'; ctx.textAlign = 'left'; } } }
     MPARTS.forEach(p => { if (!p.node) return; const big = ['table', 'gantry', 'cam', 'laser', 'cab', 'door', 'motor', 'valve'].includes(p.id); const show = p.id === MS.hover || p.id === MS.sel || (MS.E > 0.55 && !MS.sel && big); if (!show) return; const c = mCenter(p), q = proj([c[0], c[1], c[2] + 0.35]); const w = ctx.measureText(p.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = p.id === MS.sel ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(p.t, q[0], q[1] - 4); });
     ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -86,10 +109,11 @@ function zMachineView() {
   function drawInner(ctx) {
     const node = MS.path[MS.path.length - 1], parts = INNER[node], S = 1.25, items = [];
     parts.forEach((ip, i) => { const b = ip.b, e = MS.IE, P = [], hl = MS.isel === i || MS.hover === 'in:' + i;
-      tBox(P, S * (b[0] + e * ip.ex[0]), S * (b[1] + e * ip.ex[0]), S * (b[2] + e * ip.ex[1]), S * (b[3] + e * ip.ex[1]), S * (b[4] + e * ip.ex[2]), S * (b[5] + e * ip.ex[2]), col(ip.c), ip.c === 'tint' ? 0.5 : 0.92, hl ? col('live') : line);
-      P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / 4, f, i, hl }); }); });
-    items.sort((a, b) => b.d - a.d);
-    items.forEach(({ q, f, i, hl }) => { ctx.beginPath(); q.forEach((x, k) => k ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath(); ctx.globalAlpha = f.alpha; ctx.fillStyle = f.fill; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = hl ? 2.2 : 0.9; ctx.strokeStyle = f.stroke; ctx.stroke(); MS.polys.push([q, (q[0][2] + q[2][2]) / 2, 'in:' + i]); });
+      const bb = [S * (b[0] + e * ip.ex[0]), S * (b[1] + e * ip.ex[0]), S * (b[2] + e * ip.ex[1]), S * (b[3] + e * ip.ex[1]), S * (b[4] + e * ip.ex[2]), S * (b[5] + e * ip.ex[2])];
+      mShape(P, bb, ROUND.test(ip.t) ? longAxis(b) : null, col(ip.c), ip.c === 'tint' ? 0.5 : 0.95, line);
+      P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, i, hl }); }); });
+    mFloor(ctx, proj, [0, 0, -1.4], 2.2);
+    mPaint(ctx, items); items.forEach(({ q, i }) => MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, 'in:' + i]));
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
     parts.forEach((ip, i) => { const b = ip.b, e = MS.IE, c = [S * ((b[0] + b[1]) / 2 + e * ip.ex[0]), S * ((b[2] + b[3]) / 2 + e * ip.ex[1]), S * (b[5] + e * ip.ex[2]) + 0.25], q = proj(c), w = ctx.measureText(ip.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.93; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = MS.isel === i ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(ip.t, q[0], q[1] - 4); });

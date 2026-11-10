@@ -393,10 +393,15 @@ nav.sheets button[hidden]{display:none}
 .ztstart{font:inherit;font-size:14px;font-weight:700;padding:6px 14px;border:1.5px solid var(--live);border-radius:999px;background:var(--live);color:#fff;cursor:pointer;margin-inline-start:auto}.ztstart.big{font-size:16px;padding:10px 20px;margin:0}
 @media (max-width:820px){.zstack{flex-direction:row;overflow-x:auto;perspective:none;position:static}.zplane{transform:none;flex:0 0 auto}.zplane:hover,.zplane.cur{transform:none}.zplane small{display:none}}
 .mwrap{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}@media (max-width:900px){.mwrap{grid-template-columns:1fr}}
-.mstage{border:1px solid var(--line);border-radius:14px;background:var(--sheet);overflow:hidden;position:relative}.mstage canvas{width:100%;height:auto;display:block;cursor:grab;touch-action:none}
-.mbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid var(--line)}.mbar button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.mbar #mAsm{background:var(--ink);color:var(--sheet);border-color:var(--ink);font-weight:700}.mbar label{font-size:13px;display:flex;gap:6px;align-items:center}
-.mhint{font-size:12px;color:var(--muted);margin:0;padding:0 12px 8px}.mside{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--sheet);position:sticky;top:10px;max-height:calc(100vh - 30px);overflow:auto}
+.mstage{border:1px solid #1B2F5A;border-radius:16px;background:radial-gradient(120% 95% at 50% 32%, rgba(48,120,176,.55) 0%, #1B2F5A 68%);overflow:hidden;position:relative}.mstage canvas{width:100%;height:auto;display:block;cursor:grab;touch-action:none}
+.mbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 12px;border-top:1px solid rgba(214,232,247,.25);background:rgba(27,47,90,.6)}.mbar label{color:#D6E8F7}.mbar button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.mbar #mAsm{background:var(--ink);color:var(--sheet);border-color:var(--ink);font-weight:700}.mbar label{font-size:13px;display:flex;gap:6px;align-items:center}
+.mhint{font-size:12px;color:#D6E8F7;margin:0;padding:0 12px 8px;background:rgba(27,47,90,.6)}.mside{border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:var(--sheet);position:sticky;top:10px;max-height:calc(100vh - 30px);overflow:auto}
 .mside h3{margin:4px 0}.mwhole{border-bottom:1px solid var(--line);margin:0 0 10px;padding:0 0 8px}.mwhole p{margin:4px 0}.mcrumb{font-size:13px;margin:0 0 8px}.mact{display:flex;flex-wrap:wrap;gap:6px}.mside h4{font-size:14px;margin:12px 0 4px;color:var(--ink)}.mnode{color:var(--muted);margin:0 0 6px}.mlist{columns:2;padding-inline-start:16px;font-size:14px}.mwl{list-style:none;padding:0;margin:0;font-size:13px}.mwl li{margin:3px 0}.mup{font-size:13px}
+.mfind input{font:inherit;font-size:13px;padding:5px 10px;border:1px solid rgba(214,232,247,.5);border-radius:999px;background:rgba(251,250,247,.95);color:var(--text);min-width:210px}
+.mexp{border-bottom:1px solid var(--line);margin:0 0 10px;padding:0 0 10px}.mexpn{margin:0 0 6px}.mexpbar{height:8px;border-radius:999px;background:var(--tint);overflow:hidden}.mexpbar i{display:block;height:100%;background:linear-gradient(90deg,#3078B0,#1B2F5A);border-radius:999px;transition:width .6s}
+.mnext{font-size:14px;margin:8px 0 0}.mteaser{display:block;font-size:13px;color:var(--muted);margin-top:4px;border-inline-start:3px solid var(--live);padding-inline-start:8px}
+.zpath{font-size:14px;margin:0 0 6px;display:flex;flex-wrap:wrap;gap:2px;align-items:center}.zpath button{font:inherit;border:0;background:none;color:var(--live);cursor:pointer;padding:2px 4px;border-radius:6px}.zpath button[aria-current="page"]{color:var(--ink);font-weight:700}.zpath button:hover{background:var(--livetint)}
+.zsibs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 12px}.zsibs button{font:inherit;font-size:13px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.zsibs button.cur{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.zsibs button.seen{border-color:var(--live)}.zsibs .zarrow{font-weight:700;padding:4px 10px}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -8452,7 +8457,7 @@ function showAbout() {
       <a class="abtn gh" href="${gh}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg> GitHub</a></div>
     <h3>איך זה נבנה</h3>
     <p>אני הגדרתי את הארכיטקטורה ואת מודל הלמידה, בחרתי מה נכנס, ובדקתי כל מודל וכל מספר. בינה מלאכותית (<span lang="en">Claude</span>) שימשה כשותפה לכתיבת קוד וטיוטות. כל טענה במערכת עוברת בדיקות אוטומטיות, ובמהלך העבודה הבדיקות תפסו גם טעויות שה-<span lang="en">AI</span> עשה.</p>
-    <div class="aboutstats">${[[ZOOM.length, 'נושאים בזום'], [wins, 'חלונות, לכל אחד בית אחד'], [TOPICS.length, 'תהליכים בסימולטור'], [COMPONENTS.length, 'רכיבים'], [QB.length, 'שאלות טכניות'], [SCN.length, 'תקלות שטח'], [10, 'חבילות בדיקה אוטומטיות'], ['1795', 'בדיקות מודל']].map(([n, t]) => `<div><b>${n}</b><small>${t}</small></div>`).join('')}</div>
+    <div class="aboutstats">${[[ZOOM.length, 'נושאים בזום'], [wins, 'חלונות, לכל אחד בית אחד'], [TOPICS.length, 'תהליכים בסימולטור'], [COMPONENTS.length, 'רכיבים'], [QB.length, 'שאלות טכניות'], [SCN.length, 'תקלות שטח'], [11, 'חבילות בדיקה אוטומטיות'], ['1795', 'בדיקות מודל']].map(([n, t]) => `<div><b>${n}</b><small>${t}</small></div>`).join('')}</div>
     <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
   setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
 }
@@ -8541,6 +8546,28 @@ const INNER = {
   safety: [IB('interlock', 'מתג interlock בדלת', [-0.2, 0.2, -0.1, 0.1, 0.3, 0.6], [0, -0.8, 0.4]), IB('relay', 'ממסר בטיחות', [0.4, 0.8, -0.2, 0.2, 0, 0.4], [0.9, 0, 0], 'live'), IB('switch', 'לחצן עצירת חירום', [-0.8, -0.5, -0.15, 0.15, 0, 0.3], [-0.9, 0, 0], 'mech'), IB('safety', 'דלת ומעטפת', [-1.2, 1.2, 0.5, 0.55, -0.6, 0.8], [0, 0.9, 0], 'tint')],
   ecat: [IB('ecat', 'מעבד הבקר', [-0.4, 0.4, -0.3, 0.3, 0, 0.3], [0, 0, 0.6]), IB('connector', 'פורטי EtherCAT', [0.5, 0.8, -0.4, 0.4, 0, 0.15], [0.9, 0, 0], 'live')]
 };
+/* materials: light from the upper left, cylinders for round parts, a soft shadow on the floor */
+const LDIR = (() => { const v = [-0.45, -0.6, 0.78], m = Math.hypot(...v); return v.map(x => x / m); })();
+function shadeCol(c, k) { if (!/^#[0-9a-f]{6}$/i.test(c)) return c; const n = parseInt(c.slice(1), 16), f = v => Math.max(0, Math.min(255, Math.round(v * k))); return `rgb(${f(n >> 16 & 255)},${f(n >> 8 & 255)},${f(n & 255)})`; }
+function faceLight(pts) { if (pts.length < 3) return 1; const a = [0, 1, 2].map(i => pts[1][i] - pts[0][i]), b = [0, 1, 2].map(i => pts[2][i] - pts[0][i]); const n = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], m = Math.hypot(...n) || 1; return 0.6 + 0.55 * Math.abs((n[0] * LDIR[0] + n[1] * LDIR[1] + n[2] * LDIR[2]) / m); }
+function tCyl(P, x0, x1, y0, y1, z0, z1, ax, fill, alpha, stroke, N = 18) {
+  const c = [(x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2], h = [(x1 - x0) / 2, (y1 - y0) / 2, (z1 - z0) / 2], ai = { x: 0, y: 1, z: 2 }[ax], [u, v] = [0, 1, 2].filter(i => i !== ai);
+  const ring = s => Array.from({ length: N }, (_, k) => { const t = 2 * Math.PI * k / N, p = [0, 0, 0]; p[ai] = c[ai] + s * h[ai]; p[u] = c[u] + h[u] * Math.cos(t); p[v] = c[v] + h[v] * Math.sin(t); return p; });
+  const A = ring(-1), Bq = ring(1);
+  for (let k = 0; k < N; k++) { const k2 = (k + 1) % N; P.push({ pts: [A[k], A[k2], Bq[k2], Bq[k]], fill, alpha, stroke: null }); }
+  P.push({ pts: A, fill, alpha, stroke }, { pts: Bq, fill, alpha, stroke });
+}
+const MSHAPE = { screw: 'y', motor: 'y', brake: 'y', enc: 'y', lens: 'z' };
+const ROUND = /סליל|קבל|עדשה|בוכנה|רוטור|מיסבים|נגד|דיודה|בורג|אום|דיסקת|כבל|ליפופי|פיוז|לחצן/;
+const longAxis = b => { const d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]]; return 'xyz'[d.indexOf(Math.max(...d))]; };
+function mShape(P, b, shape, fill, alpha, stroke) { if (shape) tCyl(P, b[0], b[1], b[2], b[3], b[4], b[5], shape, fill, alpha, stroke); else tBox(P, b[0], b[1], b[2], b[3], b[4], b[5], fill, alpha, stroke); }
+function mPaint(ctx, items) {
+  items.sort((a, b) => b.d - a.d);
+  items.forEach(({ q, f, hl }) => { ctx.beginPath(); q.forEach((x, k) => k ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath();
+    ctx.globalAlpha = f.alpha; ctx.fillStyle = shadeCol(f.fill, faceLight(f.pts)); if (hl) { ctx.shadowColor = '#3078B0'; ctx.shadowBlur = 16; } ctx.fill(); ctx.shadowBlur = 0;
+    if (f.stroke) { ctx.globalAlpha = hl ? 0.9 : 0.35; ctx.lineWidth = hl ? 1.8 : 0.8; ctx.strokeStyle = hl ? '#D6E8F7' : f.stroke; ctx.stroke(); } ctx.globalAlpha = 1; });
+}
+function mFloor(ctx, proj, at, r) { const c = proj(at), e = proj([at[0] + r, at[1], at[2]]), rx = Math.max(40, Math.abs(e[0] - c[0]) * 1.4); const g = ctx.createRadialGradient(c[0], c[1], 0, c[0], c[1], rx); g.addColorStop(0, 'rgba(0,0,0,0.38)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(c[0], c[1], rx, rx * 0.36, 0, 0, Math.PI * 2); ctx.fill(); }
 const MS = { E: 1, target: 0, sel: null, rot: true, C: [0.5, 0, 1.0], Ct: [0.5, 0, 1.0], dist: 12, distT: 12, hover: null, polys: [], assembling: true, path: [], IE: 0, isel: null };
 const mCenter = p => { const b = p.boxes, n = b.length; return [b.reduce((s, x) => s + (x[0] + x[1]) / 2, 0) / n + MS.E * p.ex[0], b.reduce((s, x) => s + (x[2] + x[3]) / 2, 0) / n + MS.E * p.ex[1], b.reduce((s, x) => s + (x[4] + x[5]) / 2, 0) / n + MS.E * p.ex[2]]; };
 /* windows in two layers: layer 1 shows and simulates, layer 2 explains */
@@ -8562,14 +8589,15 @@ function zMachineView() {
     const selNode = MS.sel ? MPARTS.find(p => p.id === MS.sel).node : null;
     const items = [];
     MPARTS.forEach(p => { const dim = MS.sel && p.id !== MS.sel && !(selNode && p.node === selNode); const hl = p.id === MS.hover || p.id === MS.sel; if (p.id === 'door' && MS.sel && MS.sel !== 'door') return;
-      p.boxes.forEach(b => { const P = []; tBox(P, b[0] + MS.E * p.ex[0], b[1] + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2], col(b[6]), (p.id === 'door' ? 0.05 : 0.92) * (dim ? 0.12 : 1), hl ? col('live') : line);
-        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / 4, f, part: p, hl }); }); }); });
-    items.sort((a, b) => b.d - a.d);
-    items.forEach(({ q, f, part, hl }) => { ctx.beginPath(); q.forEach((x, i) => i ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath(); ctx.globalAlpha = f.alpha; ctx.fillStyle = f.fill; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = hl ? 2 : 0.8; ctx.strokeStyle = f.stroke; ctx.stroke(); if (part.node) MS.polys.push([q, (q[0][2] + q[2][2]) / 2, part.id]); });
+      p.boxes.forEach(b => { const P = []; mShape(P, [b[0] + MS.E * p.ex[0], b[1] + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2]], MSHAPE[p.id], col(b[6]), (p.id === 'door' ? 0.07 : 0.95) * (dim ? 0.12 : 1), p.id === 'door' ? '#D6E8F7' : line);
+        P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, part: p, hl }); }); }); });
+    if (!MS.sel) mFloor(ctx, proj, [0.6, 0, -0.5], 4.2);
+    mPaint(ctx, items); items.forEach(({ q, part }) => { if (part.node) MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, part.id]); });
     /* vacuum zones on the table */
     if (!MS.sel || MS.sel === 'table') { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
     /* names: the hovered and the selected part, and every part while exploded */
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
+    if (MS.hover && !MS.path.length) { const hp = MPARTS.find(x => x.id === MS.hover); if (hp && hp.node && typeof zTeaser === 'function') { const tz = zTeaser(hp.node), ex = zExplored().has(hp.node); if (tz) { ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.font = '13px system-ui, sans-serif'; const w = Math.min(cv.width - 40, ctx.measureText(tz).width + 24); ctx.fillStyle = 'rgba(27,47,90,0.92)'; ctx.fillRect(cv.width - w - 18, cv.height - 58, w, 40); ctx.fillStyle = '#D6E8F7'; ctx.fillText((ex ? '' : '● ') + tz, cv.width - 30, cv.height - 33); ctx.direction = 'ltr'; ctx.textAlign = 'left'; } } }
     MPARTS.forEach(p => { if (!p.node) return; const big = ['table', 'gantry', 'cam', 'laser', 'cab', 'door', 'motor', 'valve'].includes(p.id); const show = p.id === MS.hover || p.id === MS.sel || (MS.E > 0.55 && !MS.sel && big); if (!show) return; const c = mCenter(p), q = proj([c[0], c[1], c[2] + 0.35]); const w = ctx.measureText(p.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = p.id === MS.sel ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(p.t, q[0], q[1] - 4); });
     ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -8577,10 +8605,11 @@ function zMachineView() {
   function drawInner(ctx) {
     const node = MS.path[MS.path.length - 1], parts = INNER[node], S = 1.25, items = [];
     parts.forEach((ip, i) => { const b = ip.b, e = MS.IE, P = [], hl = MS.isel === i || MS.hover === 'in:' + i;
-      tBox(P, S * (b[0] + e * ip.ex[0]), S * (b[1] + e * ip.ex[0]), S * (b[2] + e * ip.ex[1]), S * (b[3] + e * ip.ex[1]), S * (b[4] + e * ip.ex[2]), S * (b[5] + e * ip.ex[2]), col(ip.c), ip.c === 'tint' ? 0.5 : 0.92, hl ? col('live') : line);
-      P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / 4, f, i, hl }); }); });
-    items.sort((a, b) => b.d - a.d);
-    items.forEach(({ q, f, i, hl }) => { ctx.beginPath(); q.forEach((x, k) => k ? ctx.lineTo(x[0], x[1]) : ctx.moveTo(x[0], x[1])); ctx.closePath(); ctx.globalAlpha = f.alpha; ctx.fillStyle = f.fill; ctx.fill(); ctx.globalAlpha = 1; ctx.lineWidth = hl ? 2.2 : 0.9; ctx.strokeStyle = f.stroke; ctx.stroke(); MS.polys.push([q, (q[0][2] + q[2][2]) / 2, 'in:' + i]); });
+      const bb = [S * (b[0] + e * ip.ex[0]), S * (b[1] + e * ip.ex[0]), S * (b[2] + e * ip.ex[1]), S * (b[3] + e * ip.ex[1]), S * (b[4] + e * ip.ex[2]), S * (b[5] + e * ip.ex[2])];
+      mShape(P, bb, ROUND.test(ip.t) ? longAxis(b) : null, col(ip.c), ip.c === 'tint' ? 0.5 : 0.95, line);
+      P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, i, hl }); }); });
+    mFloor(ctx, proj, [0, 0, -1.4], 2.2);
+    mPaint(ctx, items); items.forEach(({ q, i }) => MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, 'in:' + i]));
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
     parts.forEach((ip, i) => { const b = ip.b, e = MS.IE, c = [S * ((b[0] + b[1]) / 2 + e * ip.ex[0]), S * ((b[2] + b[3]) / 2 + e * ip.ex[1]), S * (b[5] + e * ip.ex[2]) + 0.25], q = proj(c), w = ctx.measureText(ip.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.93; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = MS.isel === i ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(ip.t, q[0], q[1] - 4); });
@@ -8731,6 +8760,108 @@ function mReach() {
 /* appendices: no old indexes, only what is outside the machine and what serves the whole book */
 const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 zAppxView = (function (orig) { return function () { orig(); const tiles = content.querySelectorAll('.ztile[data-route]'); tiles.forEach(t => { if (!ZRES_SHOWN.some(([r]) => r.slice(2) === t.dataset.route)) t.remove(); }); }; })(zAppxView);
+/* ============ Nothing swallowed, easy to move, inviting to explore ============ */
+
+/* 1. windows the merge had left on the old pages only: every section of a component lesson, and each topic's numbers and explanation */
+const CSECT = [['numbers', 'דוגמה עם מספרים'], ['parts', 'מה יש בפנים'], ['words', 'המילים'], ['schematic', 'הסכמה'], ['tryit', 'נסה בעצמך'], ['drills', 'בדוק את עצמך'], ['full', 'קריאה מתקדמת'], ['say', 'המשפט לראיון']];
+ZOOM.forEach(n => {
+  const comps = [...new Set(n.around.concat(n.core).filter(w => w.startsWith('c:')).map(w => w.split(':')[1]))];
+  comps.forEach(c => { const Z = zParts(c), C = COMPONENTS.find(x => x.id === c); CSECT.forEach(([k]) => {
+    const has = k === 'schematic' ? !!(C && C.schematic) : k === 'full' ? !!(C && C.how && C.how.length) : !!Z[k];
+    const w = `c:${c}:${k}`; if (has && !n.around.includes(w)) n.around.push(w); }); });
+  const ts = [...new Set(n.around.concat(n.core).filter(w => /^t:\w+:scene$/.test(w)).map(w => w.split(':')[1]))];
+  ts.forEach(t => { const w = `t:${t}:eng`; if (!n.around.includes(w)) n.around.push(w); });
+});
+Object.assign(ZKIND, { parts: ['מה יש בפנים', 2], words: ['מילים', 2], schematic: ['סכמה', 1], tryit: ['נסה בעצמך', 3], drills: ['בדוק את עצמך', 8], reading: ['קריאה מתקדמת', 9], say: ['לראיון', 9], eng: ['מספרים והסבר', 4] });
+LAYER1.add('tryit'); LAYER1.add('drills'); LAYER1.add('schematic');
+zInfo = (function (orig) {
+  return w => { const [k, a, b] = w.split(':');
+    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a); return { kind: { full: 'reading' }[b] || b, t: C ? C.name.replace(/<[^>]+>/g, '') : a }; }
+    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); return { kind: 'eng', t: 'מספרים בכל שלב והסבר במילים שלך: ' + T.t }; }
+    return orig(w); };
+})(zInfo);
+zMount = (function (orig) {
+  return (w, el) => { const [k, a, b] = w.split(':');
+    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a), Z = zParts(a);
+      if (b === 'schematic') el.innerHTML = C && C.schematic ? `<div class="scheme">${C.schematic()}</div>` : '';
+      else if (b === 'full') el.innerHTML = C ? `<div class="cols"><div><h3>אופן פעולה</h3>${ol(C.how || [])}</div><div><h3>מגבלות</h3>${ul(C.limits || [])}</div></div>${Z.full || ''}` : '';
+      else el.innerHTML = Z[{ numbers: 'numbers', parts: 'parts', words: 'words', tryit: 'tryit', drills: 'drills', say: 'say' }[b]] || '';
+      return; }
+    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); TSTATE.topic = T.id; topicEng(el, T); return; }
+    orig(w, el); };
+})(zMount);
+
+/* 2. moving around: one main path from the machine down to any topic, and its neighbours at the same scale */
+const zMainParent = id => { const ps = zParents(id); return ps.length ? ps.sort((a, b) => b.level - a.level)[0] : null; };
+const zMainPath = id => { const p = []; let n = zNode(id); const seen = new Set(); while (n && !seen.has(n.id)) { seen.add(n.id); p.unshift(n); n = zMainParent(n.id); } return p; };
+const zSiblings = id => { const p = zMainParent(id); return p ? p.parts.map(zNode).filter(Boolean) : ZOOM.filter(z => z.level === zNode(id).level && !ZAPPX.has(z.id)); };
+zNodeView = (function (orig) {
+  return function (id) {
+    orig(id); zMarkExplored(id);
+    const n = zNode(id), path = zMainPath(id), sibs = zSiblings(id), i = sibs.findIndex(s => s.id === id);
+    const prev = sibs[(i - 1 + sibs.length) % sibs.length], next = sibs[(i + 1) % sibs.length];
+    const bar = `<nav class="zpath" aria-label="איפה אני במכונה"><button type="button" data-zv="machine" class="zpm">המכונה</button>${path.map(p => ` › <button type="button" data-zn="${p.id}"${p.id === id ? ' aria-current="page"' : ''}>${p.t}</button>`).join('')}</nav>
+      ${sibs.length > 1 ? `<nav class="zsibs" aria-label="באותה רמה"><button type="button" class="zarrow" data-zn="${next.id}" title="הבא באותה רמה (חץ שמאלה)">‹</button>${sibs.map(s => `<button type="button" data-zn="${s.id}" class="${s.id === id ? 'cur' : zExplored().has(s.id) ? 'seen' : ''}">${s.t}</button>`).join('')}<button type="button" class="zarrow" data-zn="${prev.id}" title="הקודם באותה רמה (חץ ימינה)">›</button></nav>` : ''}`;
+    const main = content.querySelector('.zmain'); if (main) main.insertAdjacentHTML('afterbegin', bar);
+    content.querySelectorAll('.zpath [data-zn], .zsibs [data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn); ZS.dir = t ? Math.sign(n.level - t.level) : 0; go('zoom', b.dataset.zn); }));
+    content.querySelectorAll('.zpath [data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', 'machine')));
+  };
+})(zNodeView);
+/* arrow keys: up = out, down = in, left/right = next/previous at the same scale */
+document.addEventListener('keydown', e => {
+  if (!(location.hash || '').startsWith('#/zoom/') || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || ZT_STATE.i >= 0 || e.altKey || e.ctrlKey || e.metaKey) return;
+  const id = ZS.node, n = zNode(id); if (!n || !(location.hash === '#/zoom/' + id)) return;
+  let t = null;
+  if (e.key === 'ArrowUp') t = zMainParent(id); else if (e.key === 'ArrowDown') t = zNode(n.parts[0]);
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { const s = zSiblings(id), i = s.findIndex(x => x.id === id); if (s.length > 1) t = s[(i + (e.key === 'ArrowLeft' ? 1 : -1) + s.length) % s.length]; }
+  if (t) { e.preventDefault(); ZS.dir = Math.sign(n.level - t.level); go('zoom', t.id); }
+});
+
+/* 3. curiosity: what you have explored, a question on hover, and where to go next */
+const ZEX_KEY = 'fh-explored';
+function zExplored() { try { return new Set(JSON.parse(localStorage.getItem(ZEX_KEY) || '[]')); } catch (e) { return new Set(); } }
+function zMarkExplored(id) { const s = zExplored(); if (s.has(id)) return; s.add(id); try { localStorage.setItem(ZEX_KEY, JSON.stringify([...s])); } catch (e) { } }
+const zMachineTopics = () => ZOOM.filter(z => !ZAPPX.has(z.id));
+/* a question that opens a gap: from the topic's own questions, else the component's self-check */
+function zTeaser(id) {
+  const n = zNode(id); if (!n) return '';
+  const tw = zWindows(n).find(w => /^t:\w+:scene$/.test(w)) || zWindows(n).find(w => /^t:\w+:quiz$/.test(w)); if (tw) { const T = TOPICS.find(t => t.id === tw.split(':')[1]); if (T && T.quiz && T.quiz[0]) return T.quiz[0][0]; }
+  const cw = zWindows(n).find(w => w.startsWith('c:')); if (cw) { const c = cw.split(':')[1]; const t = TEACH[c]; if (t && t.check && t.check[0]) return t.check[0][0]; }
+  return '';
+}
+/* the next topic worth exploring: unexplored, and one step from something you already know */
+function zNextToExplore() {
+  const ex = zExplored(), all = zMachineTopics().filter(z => !ex.has(z.id));
+  const near = all.filter(z => zParents(z.id).some(p => ex.has(p.id)) || z.parts.some(p => ex.has(p)));
+  return (near[0] || all.sort((a, b) => b.level - a.level)[0]) || null;
+}
+const _mSide81 = mSide;
+mSide = function () {
+  _mSide81();
+  const S = $('#mside'); if (!S) return;
+  if (MS.sel && !MS.path.length) { const p = MPARTS.find(x => x.id === MS.sel); if (p && p.node) zMarkExplored(p.node); }
+  if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); }
+  if (MS.sel || MS.path.length) return;
+  const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
+  S.insertAdjacentHTML('afterbegin', `<div class="mexp"><p class="mexpn"><b>חקרת ${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לחקור: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>חקרת את כל המכונה.</p>'}</div>`);
+  const b = S.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } });
+};
+/* finder: type a topic, jump to it in the machine */
+zMachineView = (function (orig) {
+  return function () {
+    orig();
+    const bar = content.querySelector('.mbar'); if (!bar) return;
+    bar.insertAdjacentHTML('beforeend', `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}</datalist></label>`);
+    $('#mFind').addEventListener('change', e => { const z = zMachineTopics().find(x => x.t === e.target.value.trim()) || zMachineTopics().find(x => x.t.includes(e.target.value.trim())); if (!z) return; e.target.value = ''; mJump(z.id); });
+  };
+})(zMachineView);
+/* jump to a topic inside the machine: a part, or the part that contains it, opened down to it */
+function mJump(id) {
+  const direct = MPARTS.find(p => p.node === id); if (direct) { MS.path = []; mSelect(direct.id); return true; }
+  const route = (() => { for (const p of MPARTS.filter(p => p.node && INNER[p.node])) { const stack = [[p.node, [p.node]]]; const seen = new Set(); while (stack.length) { const [n, path] = stack.pop(); if (seen.has(n)) continue; seen.add(n); for (const [i, ip] of (INNER[n] || []).entries()) { if (ip.node === id) return { part: p, path, i }; if (INNER[ip.node] && ip.node !== n) stack.push([ip.node, path.concat(ip.node)]); } } } return null; })();
+  if (!route) { ZS.dir = 1; go('zoom', id); return false; }
+  MS.path = []; mSelect(route.part.id); route.path.forEach(n => mOpen(n)); MS.isel = route.i; MS.IE = 1; mSide(); return true;
+}
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -9723,7 +9854,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.27.0';
+const APP_VERSION = '2.28.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
