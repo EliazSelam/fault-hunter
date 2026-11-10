@@ -1,10 +1,9 @@
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
+/* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
-  ['start', 'מתחילים', 'זום במכונה, על הפרויקט, מסלול', ['zoom', 'about', 'path', 'topic', 'pri']],
-  ['base', 'יסודות', 'שרטוט, רכיבים, מדידה', ['b', 'dig', 's1', 'lab']],
-  ['mach', 'מערכות ומכונות', 'מנועים, אופטיקה, AOI', ['mot', 'opt', 's2', 'pcb', 'brd', 'int', 's3']],
-  ['practice', 'תרגול', 'שאלות ותקלות', ['qb', 'ch']],
-  ['ref', 'עיון', 'מושגים, תקנים, ראיון', ['gl', 's4', 's0']]
+  ['machine', 'המכונה', 'בתלת-ממד, עץ, זום', ['zoom']],
+  ['appx', 'נספחים', 'תרגול, עקרונות, מילון, ראיון', ['qb', 'ch', 'pri', 'gl', 's4', 's0']],
+  ['about', 'על הפרויקט', 'Eliaz Selam', ['about']]
 ];
 const groupOf = sheet => (NAV_GROUPS.find(g => g[3].includes(sheet)) || NAV_GROUPS[0])[0];
 (function buildNav() {
@@ -29,7 +28,7 @@ const _setTabNav = setTab;
 setTab = function (s) { _setTabNav(s); if (s) syncGroup(s); };
 const _goNav = go;
 go = function (sheet, arg) { _goNav(sheet, arg); syncGroup(sheet); };
-syncGroup((document.querySelector('nav.sheets [aria-selected="true"]') || {}).dataset?.sheet || 'path');
+syncGroup((document.querySelector('nav.sheets [aria-selected="true"]') || {}).dataset?.sheet || 'zoom');
 
 /* search index: built once, on first use */
 let SIDX = null;

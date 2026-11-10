@@ -85,7 +85,14 @@ await pg.evaluate(() => document.querySelector('#mside .zgo[data-zn]').click());
 ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.zring')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.zring')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
 await pg.evaluate(() => { const s = document.getElementById('mE'); }); 
 await pg.evaluate(() => go('zoom', 'appx')); await pg.waitForTimeout(150);
-ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES.length), 'appendices: the topics outside the machine and the shared resources');
+ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES_SHOWN.length && !document.querySelector('.ztile[data-route="path"], .ztile[data-route="topic"]')), 'appendices: the topics outside the machine and the shared resources, without the old indexes');
+/* everything around the machine */
+ok(await pg.evaluate(() => mReach().missing.length === 0), `every machine topic is reachable inside the 3D machine (missing: ${await pg.evaluate(() => mReach().missing.join(', '))})`);
+ok(await pg.evaluate(() => NAV_GROUPS.map(g => g[0]).join() === 'machine,appx,about'), 'navigation: the machine, appendices, about');
+ok(await pg.evaluate(() => { const shown = new Set(NAV_GROUPS.flatMap(g => g[3])); return [...document.querySelectorAll('nav.sheets button')].every(b => shown.has(b.dataset.sheet) || b.hidden); }), 'navigation: every other tab is reached from inside the machine, not from the top bar');
+{ const p2 = await b.newPage(); await p2.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href); await p2.waitForTimeout(500); ok(await p2.evaluate(() => !!document.getElementById('mc') && document.querySelector('.navgroups [aria-pressed="true"]').dataset.grp === 'machine'), 'with no address the book opens on the machine'); await p2.close(); }
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => !!document.querySelector('#mside .mwhole [data-zn="proc"]') && !!document.querySelector('#mside .mwhole [data-zn="bringup"]')), 'the whole machine offers its cycle and its bring-up');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
