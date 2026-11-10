@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.27.0] — 2026-11-10
+
+**Everything around the machine.**
+
+- The book opens on the machine. The top bar has three groups instead of five: **the machine** (3D, tree, zoom), **appendices** (practice, principles, glossary, standards, interview) and **about**. The other tabs (foundations, components, systems, optics, motors, labs, boards, integration, the process simulator, the path) no longer compete with the machine as parallel entries: their pages are reached from inside it, through its windows, with a way back. Deep links still work.
+- Every topic of the machine is now reachable inside the 3D machine. New part: the servo drive in the cabinet, holding the control loop. New inner assemblies: the drive (PID, H-bridge and PWM, encoder input, motor output), the H-bridge (four transistors, PWM generator), the transmission (ball screw, ball nut, bearings and fits), the brake (coil, friction disc and springs).
+- With nothing selected, the side panel offers the machine's own two topics: its cycle (scan, find, repair) and its bring-up (first power-up, ATP, field).
+- The appendices no longer list the old indexes (path, process simulator).
+- Zoom suite: every topic reachable in 3D, the new navigation, the book opening on the machine.
+
 ## [2.26.0] — 2026-11-10
 
 **Multi-level disassembly.** A part of the machine now opens into the parts it is made of, and those open further, down to the components.

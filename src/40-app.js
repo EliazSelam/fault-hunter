@@ -236,5 +236,6 @@ $('#themeBtn').addEventListener('click', () => {
   try { localStorage.setItem('theme', dark ? 'light' : 'dark'); } catch (e) { }
 });
 try { const t = localStorage.getItem('theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }
-go('path');
+/* with no address the book opens on the machine; an address is routed right after this */
+go(location.hash && location.hash !== '#/' ? 'path' : 'zoom');
 requestAnimationFrame(loop);

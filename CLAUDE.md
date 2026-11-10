@@ -36,6 +36,9 @@ A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `ana
 ## The machine in 3D (main layer)
 `src/79-machine3d.js`: the zoom tab opens on one complete inspection machine in 3D (`MPARTS`: each part is boxes, an explode direction and a zoom node). It assembles itself on open, explodes with a slider, turns, zooms, and a click flies to a part and lists its windows in two layers: layer 1 shows and simulates (`LAYER1` kinds), layer 2 explains. Node pages show layer 1 before layer 2. `INNER` (keyed by topic) holds inner assemblies: opening a part explodes it into the parts it is made of, recursively (`mOpen`, `mUp`, `MS.path`); every inner part must be the topic itself or a part of it in the zoom tree, and the zoom suite checks it. `ZAPPX` holds the topics that are not parts of the machine (production line, digital logic, measurement); they are appendices, not parts of anything.
 
+## The machine leads
+The book opens on the machine (`go('zoom')` in 40-app when there is no address). The top bar has three groups: the machine, appendices (practice, principles, glossary, standards, interview), about. Every other tab is still a page, reached from inside the machine (windows, back bars, search), not from the top bar. `src/80-integrate.js`: the servo drive holds the control loop; `mReach()` must find every non-appendix topic as a machine part or inside an opened part.
+
 ## Zoom views and about
 `src/78-zoom-views.js`: inside the zoom tab, a views bar (zoom · tree by scale · 3D stack · duplicates report). `zCoverage()` accounts for every existing page (in the tree, the same content under another address, or a shared resource in `ZRES`); `zDupCheck()` is the live duplicates check. `ZCORE` marks the core chain of each scale, `ZCTX` the AOI/AOS-only topics. Tab `about`: the project and its author, with LinkedIn and GitHub buttons (GitHub only there).
 
