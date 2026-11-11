@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.32.0] — 2026-11-11
+
+The three priorities: the right layers first, information bundled, the visual and the simulations carried further.
+
+- **Layers of the site.** The views bar now leads with what a learner needs: the machine in 3D, a world map, all simulations, the last topic, appendices. The method's proofs (the tree by scale, the 3D layers, the duplicates report) moved into a "behind the scenes" menu, so the duplicates report is no longer among the first things a learner meets.
+- **World map with statistics.** A new view: each system of the machine is a continent, and what it is made of are cities around it, farther out as they get smaller, down to the components; a city's size is its number of windows, and it fills with colour once explored. Above it: topics explored, simulations, animations, windows, and the topics unique to each machine. Any city opens its topic.
+- **Information bundled.** Inside a hub, windows are grouped by subject (the lens, alignment and tilt, thermal expansion), and each is named by what it is, or by its title when several are of the same kind. Long text windows open as a summary first, with "show all the text".
+- **Four more animated derivations:** encoder quadrature (two channels, four counts per line, direction, 1 µm per count, 250 kHz at 1500 rpm), PWM (average voltage and current ripple V·D(1−D)/(L·f)), cable voltage drop (why to measure at the load; the same 22.88 V as the power model, maximum cable length) and EtherCAT frame time (the same 11 µs as the EtherCAT model, overrun past 80%). Ten animations in all.
+
 ## [2.31.0] — 2026-11-11
 
 **A topic as an object, with its ways of understanding around it.**
