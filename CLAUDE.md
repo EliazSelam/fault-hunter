@@ -36,6 +36,9 @@ A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `ana
 ## The machine in 3D (main layer)
 `src/79-machine3d.js`: the zoom tab opens on one complete inspection machine in 3D (`MPARTS`: each part is boxes, an explode direction and a zoom node). It assembles itself on open, explodes with a slider, turns, zooms, and a click flies to a part and lists its windows in two layers: layer 1 shows and simulates (`LAYER1` kinds), layer 2 explains. Node pages show layer 1 before layer 2. `INNER` (keyed by topic) holds inner assemblies: opening a part explodes it into the parts it is made of, recursively (`mOpen`, `mUp`, `MS.path`); every inner part must be the topic itself or a part of it in the zoom tree, and the zoom suite checks it. `ZAPPX` holds the topics that are not parts of the machine (production line, digital logic, measurement); they are appendices, not parts of anything.
 
+## Next: stage 2
+The plan for stage 2 (one registration point for views, window kinds, page sections, activity snapshots, permanent links) is in `docs/STAGE2_PLAN.md`. Follow its steps in order and keep every suite green after each.
+
 ## Continuity rules
 Arrow keys belong to an activity when the focus is in it; the page's level navigation answers only from the page or its navigation (`81-polish.js`). A hub window's state (step, controls, animation step and parameters) is saved before it is replaced or the topic is left, and restored when it opens again (`winSave`/`winRestore` in `84-hub.js`). Animations run on a simulation clock that pause freezes. The topic object is still during an activity and turns only under the pointer or with the focus; it is a keyboard button with a visible button beside it. Visits are called visits ("ביקרת"), not understanding. Each finding from the external review (F01–F06, F08, F10) has its own behaviour check in the zoom suite.
 
