@@ -208,6 +208,12 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
   ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
+/* stage 2, step 4: activity handles */
+const badH = await pg.evaluate(() => { const bad = []; for (const w of ZOOM.flatMap(zWindows)) { const el = document.createElement('div'); document.body.appendChild(el); try { const h = zMount(w, el); if (!h || el.act !== h || ['getState', 'setState', 'pause', 'resume', 'destroy'].some(k => typeof h[k] !== 'function') || h.getState().v !== 1) bad.push(w); } catch (e) { bad.push(w + ': ' + e.message); } el.remove(); } return bad.slice(0, 6); });
+ok(badH.length === 0, `step 4: every window returns an activity handle (not: ${badH.join(', ')})`);
+await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(500);
+ok(await pg.evaluate(() => { const el = document.querySelector('#hubpanel .zbody'); el.act.setState({ v: 1, step: 2, camera: [{ yaw: 1.1, pitch: 0.9, dist: 8 }] }); const c = el.querySelector('canvas')._V.st, s = el.act.getState(); return Math.abs(c.yaw - 1.1) < 1e-9 && Math.abs(c.pitch - 0.9) < 1e-9 && c.dist === 8 && s.step === '2' && s.camera[0].yaw === 1.1; }), 'step 4: a 3D scene\u2019s camera and step are read and set through its handle');
+ok(await pg.evaluate(() => { const h = HS.snap; return Object.values(h).every(s => s.v === 1 && typeof s.w === 'string'); }), 'step 4: saved snapshots carry a version and their window');
 /* stage 2, step 3: sections */
 ok(await pg.evaluate(() => NODE_SECTIONS.map(s => s.id).join() === 'visit,path,crumb,title,hub,children'), 'step 3: the topic page is the sections visit, path, crumb, title, hub, children, in that order');
 await pg.evaluate(() => go('zoom', 'relay')); await pg.waitForTimeout(250);

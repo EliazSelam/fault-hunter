@@ -105,11 +105,35 @@ const WIN = {
   add(spec) { this.kinds.push(spec); return spec; },
   of(w) { for (let i = this.kinds.length - 1; i >= 0; i--) if (this.kinds[i].test(w)) return this.kinds[i]; return null; },
   info(w) { return this.of(w).info(w); },
-  mount(w, el) { return this.of(w).mount(w, el); },
+  /* mounts a window and gives back its activity handle (also kept as el.act) */
+  mount(w, el) { const h = this.of(w).mount(w, el); el.act = actHandle(el, h); return el.act; },
   ctx(w, node) { const k = this.of(w); return k && k.ctx ? k.ctx(w, node) : zCtx(node); }
 };
 function zInfo(w) { return WIN.info(w); }
 function zMount(w, el) { return WIN.mount(w, el); }
+/* an activity handle: what a mounted window can tell and be told, so the page keeps your place.
+   handle = { getState() -> snapshot, setState(snapshot), pause(), resume(), destroy() }
+   snapshot = { v: 1, step?, params?, inputs?, camera? }; every field is optional.
+   A window may return its own handle from its mount; otherwise one is built from what it shows:
+   its step buttons, its controls in order, and the camera of every 3D view in it. */
+function actHandle(el, own) {
+  const g = {
+    getState() {
+      const s = { v: 1 }, ins = [...el.querySelectorAll('input, select')]; if (ins.length) s.inputs = ins.map(i => i.type === 'checkbox' ? i.checked : i.value);
+      const st = el.querySelector('[data-s][aria-current="step"]'); if (st) s.step = st.dataset.s;
+      const cams = [...el.querySelectorAll('canvas')].filter(c => c._V).map(c => { const t = c._V.st; return { yaw: t.yaw, pitch: t.pitch, dist: t.dist }; }); if (cams.length) s.camera = cams;
+      return s;
+    },
+    setState(s) {
+      const ins = [...el.querySelectorAll('input, select')];
+      if (s.inputs && ins.length === s.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = s.inputs[k]; else i.value = s.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
+      if (s.step != null) { const b = el.querySelector(`[data-s="${s.step}"]`); if (b) b.click(); }
+      if (s.camera) [...el.querySelectorAll('canvas')].filter(c => c._V).forEach((c, k) => { const t = s.camera[k]; if (t) { Object.assign(c._V.st, t); c._V.redraw(); } });
+    },
+    pause() { }, resume() { }, destroy() { }
+  };
+  return Object.assign(g, own || {});
+}
 function zInfoBase(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {

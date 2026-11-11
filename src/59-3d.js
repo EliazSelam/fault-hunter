@@ -16,7 +16,8 @@ function view3(cv, opts = {}) {
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove);
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => cv.addEventListener(ev, () => st.drag = null));
   cv.addEventListener('keydown', e => { const m = { ArrowLeft: [-0.1, 0], ArrowRight: [0.1, 0], ArrowUp: [0, -0.08], ArrowDown: [0, 0.08] }[e.key]; if (m) { st.yaw += m[0]; st.pitch = Math.max(-0.2, Math.min(1.35, st.pitch + m[1])); e.preventDefault(); if (opts.onView) opts.onView(); } });
-  return { st, ctx, proj };
+  const V = { st, ctx, proj, redraw: () => { if (opts.onView) opts.onView(); } }; cv._V = V;
+  return V;
 }
 function cssv(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#1B2F5A'; }
 /* draw a list of polygons sorted far to near */
