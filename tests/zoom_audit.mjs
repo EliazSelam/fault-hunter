@@ -30,21 +30,21 @@ const ws = Object.keys(text);
 for (let i = 0; i < ws.length; i++) for (let j = i + 1; j < ws.length; j++) ok(text[ws[i]] !== text[ws[j]], `duplicate content: ${ws[i]} and ${ws[j]}`);
 /* navigation */
 await pg.evaluate(() => go('zoom', 'proc')); await pg.waitForTimeout(150);
-ok(await pg.evaluate(() => document.querySelectorAll('.zdown').length === 7 && !!document.querySelector('.zsub') && !!document.querySelector('.zwin.core .zbody').innerHTML.trim()), 'process: its core window is open, the views bar is there, and it zooms into 7 systems');
+ok(await pg.evaluate(() => document.querySelectorAll('.zdown').length === 7 && !!document.querySelector('.zsub') && !!document.querySelector('#hubpanel .zwin .zbody').innerHTML.trim()), 'process: its first window is open, the views bar is there, and it zooms into 7 systems');
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="vac"]').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => ZS.node === 'vac' && !!document.querySelector('.zmain.zin')), 'zoom in goes down one scale, with the zoom-in motion');
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="valve"]').click()); await pg.waitForTimeout(150);
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="relay"]').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => [...document.querySelectorAll('.zup')].map(b => b.dataset.zn).sort().join() === 'interlock,iocards,valve'), 'the relay shows every mechanism it is part of');
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="coil"]').click()); await pg.waitForTimeout(150);
-ok(await pg.evaluate(() => ZS.node === 'coil' && /סליל/.test(document.querySelector('.zwin.core').textContent)), 'down to the component: the coil card');
+ok(await pg.evaluate(() => ZS.node === 'coil' && /סליל/.test(document.querySelector('#hubpanel').textContent)), 'down to the component: the coil card');
 await pg.evaluate(() => document.querySelector('.zup').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => !!document.querySelector('.zmain.zout')), 'zoom out goes up, with the zoom-out motion');
 await pg.evaluate(() => document.querySelector('.zplane[data-zl="4"]').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => document.querySelectorAll('.ztile').length === ZOOM.filter(z => z.level === 4 && !ZAPPX.has(z.id)).length), 'the level stack opens a scale with its nodes');
 await pg.evaluate(() => go('zoom', 'trig')); await pg.waitForTimeout(150);
-const before = await pg.evaluate(() => document.querySelectorAll('.zwin.open').length); await pg.evaluate(() => document.querySelector('.zwin:not(.core) .zopen').click()); await pg.waitForTimeout(150);
-ok(await pg.evaluate(b => document.querySelectorAll('.zwin.open').length === b + 1 && !!document.querySelector('.zwin.open .zbody').innerHTML.trim(), before), 'a window around the core opens in place');
+const before = await pg.evaluate(() => document.querySelector('#hubpanel .zwin').dataset.w); await pg.evaluate(() => document.querySelector('.hubpills button[aria-pressed="false"]').click()); await pg.waitForTimeout(150);
+ok(await pg.evaluate(b => document.querySelector('#hubpanel .zwin').dataset.w !== b && !!document.querySelector('#hubpanel .zwin .zbody').innerHTML.trim() && document.querySelectorAll('#hubpanel .zwin').length === 1, before), 'another window of the hub opens in its place, one at a time');
 /* authorship */
 ok(await pg.evaluate(() => { const a = document.querySelector('.byline a'); return !!a && a.href.includes('linkedin.com/in/eliaz-selam') && /Eliaz Selam/.test(document.querySelector('.byline').textContent); }), 'header byline: name and LinkedIn');
 ok(await pg.evaluate(() => /Eliaz Selam/.test(document.getElementById('titleblock').textContent) && !!document.querySelector('#titleblock a[href*="linkedin"]')), 'title block: designed and drawn by, with LinkedIn');
@@ -82,7 +82,7 @@ ok(await pg.evaluate(() => [...new Set(MPARTS.filter(p => p.node).map(p => p.nod
 const mp = await pg.evaluate(() => mPickAt('table')); ok(!!mp, 'the vacuum table can be clicked');
 if (mp) { await pg.mouse.click(mp[0], mp[1]); await pg.waitForTimeout(300); ok(await pg.evaluate(() => MS.sel === 'table' && /שכבה 1/.test(document.getElementById('mside').textContent) && /שכבה 2/.test(document.getElementById('mside').textContent)), 'clicking a part selects it and lists its two layers'); }
 await pg.evaluate(() => document.querySelector('#mside .zgo[data-zn]').click()); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.zring')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.zring')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
+ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.hubbtn small')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.hubbtn small')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
 await pg.evaluate(() => { const s = document.getElementById('mE'); }); 
 await pg.evaluate(() => go('zoom', 'appx')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES_SHOWN.length && !document.querySelector('.ztile[data-route="path"], .ztile[data-route="topic"]')), 'appendices: the topics outside the machine and the shared resources, without the old indexes');
@@ -140,6 +140,13 @@ await pg.evaluate(() => zOpenWindow('laser', 'anim:crater')); await pg.waitForTi
 const an = await pg.evaluate(() => { const el = [...document.querySelectorAll('.zwin')].find(s => s.dataset.w === 'anim:crater').querySelector('.zbody'); const first = el.querySelector('.asteps li.cur').dataset.as; el.querySelector('[data-ab="next"]').click(); const second = el.querySelector('.asteps li.cur').dataset.as; const r = el.querySelector('[data-ap="E"]'); r.value = 8; r.dispatchEvent(new Event('input')); return [first, second, el.querySelector('.asteps li[data-as="1"]').textContent, !!el.querySelector('canvas')]; });
 ok(an[0] === '0' && an[1] === '1' && /14\.1/.test(an[2]) && an[3], `the crater animation steps forward and its formulas follow the slider (${an[2].slice(0, 60)})`);
 ok(await pg.evaluate(() => zSimList().filter(s => s.kind === 'anim').length === Object.keys(ANIMS).length), 'the animations are in the simulations gallery');
+/* each topic as an object with its hubs */
+for (const id of await pg.evaluate(() => ZOOM.filter(z => !ZAPPX.has(z.id)).map(z => z.id))) {
+  await pg.evaluate(id => go('zoom', id), id); await pg.waitForTimeout(60);
+  ok(await pg.evaluate(() => !!document.querySelector('.hubobj') && document.querySelectorAll('.hubbtn').length >= 1 && document.querySelectorAll('#hubpanel .zwin').length === 1 && !document.querySelector('.zaround')), `${id}: an object in the middle, hubs around it, one window open`);
+}
+ok(await pg.evaluate(() => { let n = 0; ZOOM.forEach(z => { const by = {}; zWindows(z).forEach(w => by[hubOf(w)] = 1); n += Object.keys(by).length; }); return n > 0 && ZOOM.every(z => zWindows(z).every(w => HUBS.some(h => h[0] === hubOf(w)))); }), 'every window belongs to a hub');
+{ const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp(ns.join('|')).test(document.documentElement.innerHTML), names), 'no company or product names'); }
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

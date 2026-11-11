@@ -63,7 +63,8 @@ function tCyl(P, x0, x1, y0, y1, z0, z1, ax, fill, alpha, stroke, N = 18) {
 }
 const MSHAPE = { screw: 'y', motor: 'y', brake: 'y', enc: 'y', lens: 'z' };
 const ROUND = /סליל|קבל|עדשה|בוכנה|רוטור|מיסבים|נגד|דיודה|בורג|אום|דיסקת|כבל|ליפופי|פיוז|לחצן/;
-const longAxis = b => { const d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]]; return 'xyz'[d.indexOf(Math.max(...d))]; };
+/* a round part turns about its odd dimension: the long one for a rod or a coil, the short one for a disc or a lens */
+const longAxis = b => { const d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]], eq = (i, j) => Math.abs(d[i] - d[j]) < 1e-6 * Math.max(...d); if (eq(0, 1) && !eq(1, 2)) return 'z'; if (eq(0, 2) && !eq(0, 1)) return 'y'; if (eq(1, 2) && !eq(0, 1)) return 'x'; return 'xyz'[d.indexOf(Math.max(...d))]; };
 function mShape(P, b, shape, fill, alpha, stroke) { if (shape) tCyl(P, b[0], b[1], b[2], b[3], b[4], b[5], shape, fill, alpha, stroke); else tBox(P, b[0], b[1], b[2], b[3], b[4], b[5], fill, alpha, stroke); }
 function mPaint(ctx, items) {
   items.sort((a, b) => b.d - a.d);

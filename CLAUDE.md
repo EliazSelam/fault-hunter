@@ -36,6 +36,9 @@ A topic in `src/66-topics.js` starts at the essence and widens: `punch` and `ana
 ## The machine in 3D (main layer)
 `src/79-machine3d.js`: the zoom tab opens on one complete inspection machine in 3D (`MPARTS`: each part is boxes, an explode direction and a zoom node). It assembles itself on open, explodes with a slider, turns, zooms, and a click flies to a part and lists its windows in two layers: layer 1 shows and simulates (`LAYER1` kinds), layer 2 explains. Node pages show layer 1 before layer 2. `INNER` (keyed by topic) holds inner assemblies: opening a part explodes it into the parts it is made of, recursively (`mOpen`, `mUp`, `MS.path`); every inner part must be the topic itself or a part of it in the zoom tree, and the zoom suite checks it. `ZAPPX` holds the topics that are not parts of the machine (production line, digital logic, measurement); they are appendices, not parts of anything.
 
+## A topic as an object with hubs
+`src/84-hub.js`: a topic page shows the topic's own 3D object in the middle (`hubGeometry`: its inner parts exploded, its machine part, or the part it sits in) and six hubs around it (`HUBS`: demo and simulation, physics and math, reverse engineering and faults, what's inside, questions, reading), each window in exactly one hub by its kind (`hubOf`). A hub opens one window at a time, with pills to switch. No company or product names anywhere in the book or the repository notes.
+
 ## The physics and math layer, animated
 `src/83-anim.js`: `ANIMS` holds animated derivations (a list of steps that each render their own numbers, a canvas `draw(ctx, W, H, P, V, step, time)` that shows what the current step says, and sliders). They are windows `anim:<id>` of their topics, first in the theory layer, and in the gallery. Their `calc` must use the model constants (LZ, VT/vacCalc, SV), and the zoom suite checks that they reproduce the models' numbers.
 

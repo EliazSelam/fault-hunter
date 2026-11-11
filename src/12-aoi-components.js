@@ -111,15 +111,19 @@ COMPONENTS.push({
     { id: 'sig', label: 'רעש מדידת fiducial (σ)', min: 0, max: 5, step: 0.25, val: 1, unit: 'µm' },
     { id: 'mode', label: 'תיקון', type: 'select', val: 'affine', opts: [['none', 'ללא: קואורדינטות נומינליות'], ['shift', 'הזזה בלבד (fiducial ממוצע)'], ['affine', 'אפיני מלא: 4 fiducials, ריבועים פחותים']] }],
   render(s, stage, out) {
-    const r = fidCalc(s.ppm, s.urad, s.sig, s.mode), tol = 10;
-    const X0 = 70, Y0 = 50, Sx = 1, k = 0.6;
+    const r = fidCalc(s.ppm, s.urad, s.sig, s.mode), raw = fidCalc(s.ppm, s.urad, 0, 'none'), tol = 10;
+    /* before: where each CAM point really is on this panel (exaggerated); after: what is left once corrected (magnified more) */
+    const X0 = 70, Y0 = 50, Sx = 1, kb = 0.8, ka = s.mode === 'none' ? kb : 8;
     const mp = ([x, y]) => [X0 + 250 + x * Sx, Y0 + 200 - y * Sx];
-    let g = `<rect x="${X0}" y="${Y0}" width="500" height="400" class="thin"/><text x="${X0}" y="${Y0 + 446}" class="lblm">Panel 500 × 400 mm · arrows = residual error × ${k} px/µm</text>`;
+    const corner = [[-250, 200], [250, 200], [250, -200], [-250, -200]].map(c => { const e = raw.pts.reduce((b, q) => Math.hypot(q[0][0] - c[0], q[0][1] - c[1]) < Math.hypot(b[0][0] - c[0], b[0][1] - c[1]) ? q : b)[1]; const [x, y] = mp(c); return `${(x + e[0] * kb).toFixed(1)},${(y - e[1] * kb).toFixed(1)}`; }).join(' ');
+    let g = `<rect x="${X0}" y="${Y0}" width="500" height="400" class="thin" stroke-dasharray="5 4"/><polygon points="${corner}" class="fill-tint" opacity="0.55"/><polygon points="${corner}" fill="none" class="live"/>`;
+    raw.pts.forEach(([p, e]) => { const [x, y] = mp(p); if (s.mode !== 'none') g += `<line x1="${x}" y1="${y}" x2="${(x + e[0] * kb).toFixed(1)}" y2="${(y - e[1] * kb).toFixed(1)}" class="gridl"/>`; });
     FIDS.forEach(p => { const [x, y] = mp(p); g += `<path d="M${x - 8} ${y}H${x + 8}M${x} ${y - 8}V${y + 8}" class="ink"/><circle cx="${x}" cy="${y}" r="5" class="ink"/>`; });
-    r.pts.forEach(([p, e]) => { const [x, y] = mp(p), n = Math.hypot(e[0], e[1]); g += `<circle cx="${x}" cy="${y}" r="1.6" class="fill-ink"/>` + (n > 0.3 ? `<line x1="${x}" y1="${y}" x2="${(x + e[0] * k).toFixed(1)}" y2="${(y - e[1] * k).toFixed(1)}" class="${n > tol ? 'faults' : 'live'}"/>` : ''); });
-    stage.innerHTML = SVG(640, 510, g, 'Residual registration error map');
+    r.pts.forEach(([p, e]) => { const [x, y] = mp(p), n = Math.hypot(e[0], e[1]); g += `<circle cx="${x}" cy="${y}" r="1.6" class="fill-ink"/>` + (n > 0.05 ? `<line x1="${x}" y1="${y}" x2="${(x + e[0] * ka).toFixed(1)}" y2="${(y - e[1] * ka).toFixed(1)}" class="${n > tol ? 'faults' : 'ink'}" stroke-width="2"/>` : ''); });
+    g += `<text x="${X0}" y="${Y0 + 436}" class="lblm">dashed = the panel as the CAM file expects it · blue = as it lies on the table (× ${kb} px/µm)</text><text x="${X0}" y="${Y0 + 454}" class="lblm">${s.mode === 'none' ? `arrows = error left, uncorrected (× ${kb} px/µm)` : `grey = error before correction (× ${kb}) · dark = error left after correction (× ${ka}, magnified)`}</text>`;
+    stage.innerHTML = SVG(640, 510, g, 'Registration: the panel as expected and as placed, before and after correction');
     const ok = r.max <= tol;
-    out.innerHTML = `שגיאה מקסימלית אחרי תיקון: <span class="${ok ? 'num' : 'bad'}">${fmt(r.max, 1)} µm</span> · RMS: <span class="num">${fmt(r.rms, 1)} µm</span> · סף לדוגמה: ${tol} µm<br>` +
+    out.innerHTML = `<b>למה זה חשוב:</b> המכונה משווה את התמונה לקובץ התכנון (CAM). אם הפאנל מונח מעט מסובב או מתוח, כל קו ייראה זז, ו-AOI תתריע על פגמים שאינם קיימים, ו-AOS תירה ליד הקצר ולא עליו. לכן מצלמים ארבעה סימני יישור (✛ בפינות), ומחשבים מהם איך להזיז, לסובב ולמתוח את הקובץ כך שיתאים לפאנל.<br>` + `שגיאה מקסימלית אחרי תיקון: <span class="${ok ? 'num' : 'bad'}">${fmt(r.max, 1)} µm</span> · RMS: <span class="num">${fmt(r.rms, 1)} µm</span> · סף לדוגמה: ${tol} µm<br>` +
       (s.mode === 'none' ? '<span class="bad">בלי תיקון:</span> השגיאה גדלה עם המרחק מהמרכז. קנה מידה של 100 ppm על חצי אלכסון של 320 mm הוא 32 µm, יותר ממוליך HDI שלם.' :
         s.mode === 'shift' ? '<span class="bad">הזזה בלבד:</span> מבטלת את ההיסט הקבוע, אבל לא קנה מידה וסיבוב. השגיאה בפינות נשארת.' :
           ok ? '<span class="good">אפיני מלא:</span> הטרנספורמציה לומדת קנה מידה, סיבוב, גזירה והזזה. מה שנשאר הוא רעש המדידה של ה-fiducials. לכן איכות התמונה של ה-fiducial היא חלק מהדיוק.' :

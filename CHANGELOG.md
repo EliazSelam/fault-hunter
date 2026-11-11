@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.31.0] — 2026-11-11
+
+**A topic as an object, with its ways of understanding around it.**
+
+- Every topic page is rebuilt after the drawing: the topic's own object turns in the middle (its inner parts exploded, its part of the machine, or the part it sits inside; the lens, for example, now opens into front, middle and rear glass, mount and tilt, focus drive), and six hubs sit around it, linked by lines: demo and simulation, physics and math, reverse engineering and faults, what's inside, questions, reading. Each hub says which layer it belongs to. A hub opens one window at a time, with pills to move between its windows, instead of dozens of cards. Clicking the object finds it in the 3D machine.
+- **Registration, explained.** The fiducial simulation now says why it matters (comparing the image to the CAM file, and firing the laser on the short and not beside it), draws the panel as the file expects it and as it lies on the table, and shows the error before correction next to what is left after, magnified so it can be seen.
+- **No company or product names.** The notes on real machines are removed, from the book and from the repository notes; the zoom suite checks that none appear.
+- Round parts turn about their odd dimension, so discs and lenses are drawn as discs.
+
 ## [2.30.0] — 2026-11-11
 
 **The physics and math layer, animated.** Six derivations that unfold step by step next to a drawing that shows what each step says, with sliders that change the numbers in the formulas and in the drawing at once.
