@@ -24,20 +24,12 @@ function mSetMachine(m) {
   if (m === 'verify') { ZS.dir = 1; go('zoom', 'proc'); return; }
   MS.machine = m; MS.sel = null; MS.path = []; MS.Ct = m === 'line' ? [0.5, 0, 1.0] : [0.5, 0, 1.0]; MS.distT = m === 'line' ? 24 : 12;
   document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === m)); mSide();
+  MHOOK.afterMachine.forEach(f => f(m));
 }
 msideSection('line', 30, ['line'], {
   html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
         <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
   wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const bar = content.querySelector('.mbar'); if (!bar) return;
-    bar.insertAdjacentHTML('afterbegin', `<span class="mmach" role="group" aria-label="איזו מכונה">${[['aoi', 'מכונת AOI'], ['aos', 'מכונת AOS'], ['line', 'הקו כולו']].map(([k, t]) => `<button type="button" data-mm="${k}" aria-pressed="${MS.machine === k}">${t}</button>`).join('')}</span>`);
-    bar.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm)));
-    if (MS.machine === 'line') { MS.distT = 24; MS.dist = 24; }
-  };
-})(zMachineView);
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
@@ -74,20 +66,19 @@ function zSimsView() {
 function zOpenWindow(node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
 /* the views bar gets the gallery; the machine finder also finds simulations */
 ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const dl = $('#mFindList'), inp = $('#mFind'); if (!dl || !inp) return;
-    const sims = zSimList(); dl.insertAdjacentHTML('beforeend', sims.map(s => `<option value="${s.t}">סימולציה</option>`).join(''));
-    inp.addEventListener('change', e => { const v = e.target.value.trim(), s = sims.find(x => x.t === v); if (s) { e.target.value = ''; zOpenWindow(s.node, s.w); } }, true);
-  };
-})(zMachineView);
 
+/* the bar tools: which machine, and the finder (topics and simulations) */
+MBAR_TOOLS.push({ id: 'machine', slot: 'start',
+  html: () => `<span class="mmach" role="group" aria-label="איזו מכונה">${[['aoi', 'מכונת AOI'], ['aos', 'מכונת AOS'], ['line', 'הקו כולו']].map(([k, t]) => `<button type="button" data-mm="${k}" aria-pressed="${MS.machine === k}">${t}</button>`).join('')}</span>`,
+  wire: bar => { bar.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm))); if (MS.machine === 'line') { MS.distT = 24; MS.dist = 24; } } });
+MBAR_TOOLS.push({ id: 'finder', slot: 'end',
+  html: () => `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}${zSimList().map(s => `<option value="${s.t}">סימולציה</option>`).join('')}</datalist></label>`,
+  wire: () => { const sims = zSimList();
+    $('#mFind').addEventListener('change', e => { const v = e.target.value.trim(); if (!v) return;
+      const s = sims.find(x => x.t === v); if (s) { e.target.value = ''; zOpenWindow(s.node, s.w); return; }
+      const z = zMachineTopics().find(x => x.t === v) || zMachineTopics().find(x => x.t.includes(v)); if (!z) return; e.target.value = ''; mJump(z.id); }); } });
 /* selecting a part shows the machine it belongs to */
-mSelect = (function (orig) {
-  return function (id) {
-    const p = id ? MPARTS.find(x => x.id === id) : null;
-    if (p) { const want = MCTX[p.id] ? MCTX[p.id].toLowerCase() : (MS.machine === 'line' ? 'aoi' : MS.machine); if (want !== MS.machine) { MS.machine = want; document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === want)); } }
-    orig(id);
-  };
-})(mSelect);
+MHOOK.beforeSelect.push(id => {
+  const p = id ? MPARTS.find(x => x.id === id) : null;
+  if (p) { const want = MCTX[p.id] ? MCTX[p.id].toLowerCase() : (MS.machine === 'line' ? 'aoi' : MS.machine); if (want !== MS.machine) { MS.machine = want; document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === want)); } }
+});

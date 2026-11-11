@@ -208,6 +208,23 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
   ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
+/* stage 2, step 6: nothing in the zoom tab is reassigned after load */
+{ const src = require('fs').readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const re = /^(zNodeView|zMount|zInfo|mSide|zSubnav|zWireSub|showZoom|zMachineView|zTreeView|zAppxView|mSelect|mSetMachine|zOpenWindow|showAbout|zWinCtx) = /m;
+  ok(!re.test(src), 'step 6: no function of the zoom tab is reassigned (found: ' + (src.match(re) || [''])[0] + ')');
+  const zsrc = ['77-zoom', '78-zoom-views', '79-machine3d', '80-integrate', '81-polish', '82-machines', '83-anim', '84-hub', '85-layers', '86-links'].map(f => require('fs').readFileSync(path.join(ROOT, 'src', f + '.js'), 'utf8')).join('\n');
+  ok(!/\(function \(orig\)|^const _\w+ = (z|m)[A-Za-z]+;/m.test(zsrc), 'step 6: the zoom source files have no wrapper pattern'); }
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => !!document.querySelector('.mbar .mmach') && !!document.getElementById('mFind') && MBAR_TOOLS.map(t => t.id).join() === 'machine,finder'), 'step 6: the machine bar tools are in place (machine switch, finder)');
+await pg.evaluate(() => { const i = document.getElementById('mFind'); i.value = zSimList().find(s => s.w === 'sim:cr3d').t; i.dispatchEvent(new Event('change')); }); await pg.waitForTimeout(500);
+ok(await pg.evaluate(() => ZS.node === 'laser' && !!document.querySelector('#hubpanel .zwin canvas')), 'step 6: the finder opens a simulation in place');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
+await pg.evaluate(() => { const i = document.getElementById('mFind'); i.value = 'שסתום הוואקום: מהבקר לאוויר'; i.dispatchEvent(new Event('change')); }); await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => MS.sel === 'valve'), 'step 6: the finder jumps to a topic in the machine');
+ok(await pg.evaluate(() => { MS.sel = null; MS.machine = 'aoi'; mSelect('laser'); return MS.machine === 'aos' && /machine\?/.test(location.hash) && /sel=laser/.test(location.hash) && /m=aos/.test(location.hash); }), 'step 6: selecting an AOS part switches the machine and writes the address, through the hooks');
+await pg.evaluate(() => go('about')); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => { document.querySelector('.about [data-tour]').click(); const on = !!document.getElementById('ztour'); document.getElementById('ztClose').click(); return on; }), 'step 6: the about page starts the tour');
+await pg.evaluate(() => { MS.sel = null; MS.path = []; });
 /* stage 2, step 4: activity handles */
 const badH = await pg.evaluate(() => { const bad = []; for (const w of ZOOM.flatMap(zWindows)) { const el = document.createElement('div'); document.body.appendChild(el); try { const h = zMount(w, el); if (!h || el.act !== h || ['getState', 'setState', 'pause', 'resume', 'destroy'].some(k => typeof h[k] !== 'function') || h.getState().v !== 1) bad.push(w); } catch (e) { bad.push(w + ': ' + e.message); } el.remove(); } return bad.slice(0, 6); });
 ok(badH.length === 0, `step 4: every window returns an activity handle (not: ${badH.join(', ')})`);

@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.35.0] — 2026-11-11
+
+Stage 2 completed: the zoom tab no longer wraps functions. No screen changed; the six screens compared before and after each step (machine, world, simulations, cam, relay, laser) are pixel-identical apart from animation noise.
+
+- **Window kinds** in one registry (`WIN`): how a window is named, mounted and filed by machine is one registration per kind, instead of three chains of wrappers.
+- **Views** in one registry (`ZVIEW`): the views bar is generated from it, and `showZoom` only parses the address.
+- **The topic page and the machine side panel are ordered lists of sections** (`NODE_SECTIONS`, `MSIDE`), the machine bar has registered tools, and selecting a part and switching machine have hooks. The layer-split code and the old card list, which the hub had already replaced, are gone; the core window is no longer mounted into a card that was then thrown away.
+- **Activity handles.** Every window returns `getState/setState/pause/resume/destroy`; animations return their own, the rest get one built from their step buttons, their controls and the camera of every 3D view in them (the camera of a 3D scene now survives switching a hub). Saved snapshots carry a version.
+- Fixes found on the way: the "המכונה" button on the path bar was wired twice; the tree and the appendices view now leave out what they should by themselves, instead of removing it after drawing.
+- Zoom suite: 45,738 checks, including that no function of the zoom tab is reassigned (built file and sources), that every window returns a handle, the section order, and the machine bar tools, finder and hooks.
+
 ## [2.34.0] — 2026-11-11
 
 Stage 2, a lighter pass by choice: the parts that change the experience now; the internal cleanup later.

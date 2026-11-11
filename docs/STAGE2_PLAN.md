@@ -1,5 +1,7 @@
 # Stage 2 — one registration point for views, and permanent links
 
+**Status: done in v2.35.0.** Differences from the plan: permanent links and the back button were built first (v2.34.0, `86-links.js`); `GO_BEFORE` is declared in `77-zoom.js` because the build loads `40-app.js` last; the activity snapshot includes the 3D camera through `cv._V`; the shell's `go`/`setTab`/`routeGo` wrappers and the legacy simulator tab's wrappers were left as they are.
+
 Planned on v2.33.0 (architecture: Opus). To be implemented step by step (Sonnet), keeping every suite green at every step.
 Scope: infrastructure only. No new design, no new content, no change in what a learner sees except that links and the back button start to work.
 

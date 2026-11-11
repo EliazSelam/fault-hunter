@@ -15,8 +15,9 @@ function zRouteDeep() {
   return false;
 }
 function mWriteAddress() { const q = new URLSearchParams(); if (MS.machine && MS.machine !== 'aoi') q.set('m', MS.machine); if (MS.sel) q.set('sel', MS.sel); const s = q.toString(); zSetAddress('#/zoom/machine' + (s ? '?' + s : '')); }
-mSetMachine = (function (orig) { return function (m) { orig(m); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSetMachine);
-mSelect = (function (orig) { return function (id) { orig(id); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSelect);
+const onMachineHash = () => (location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom';
+MHOOK.afterMachine.push(() => { if (onMachineHash()) mWriteAddress(); });
+MHOOK.afterSelect.push(() => { if (onMachineHash()) mWriteAddress(); });
 window.addEventListener('hashchange', () => zRouteDeep());
 window.addEventListener('popstate', () => { if (!zRouteDeep()) { const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:.-]+))?$/); if (m && document.querySelector(`nav.sheets [data-sheet="${m[1]}"]`)) go(m[1], m[2]); } });
 /* a deep address at load: open it once the whole book is ready */
