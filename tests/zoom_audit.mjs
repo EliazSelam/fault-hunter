@@ -147,6 +147,22 @@ for (const id of await pg.evaluate(() => ZOOM.filter(z => !ZAPPX.has(z.id)).map(
 }
 ok(await pg.evaluate(() => { let n = 0; ZOOM.forEach(z => { const by = {}; zWindows(z).forEach(w => by[hubOf(w)] = 1); n += Object.keys(by).length; }); return n > 0 && ZOOM.every(z => zWindows(z).every(w => HUBS.some(h => h[0] === hubOf(w)))); }), 'every window belongs to a hub');
 { const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp(ns.join('|')).test(document.documentElement.innerHTML), names), 'no company or product names'); }
+/* the right layers first: the views bar and the world map */
+await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'machine,world,sims,node,appx' && back.join() === 'tree,3d,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree, layers and duplicates behind the scenes');
+ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === zMachineTopics().length && document.querySelectorAll('.wstat').length >= 5), 'world map: a city for every topic of the machine, and the statistics');
+await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => ZS.node === 'relay'), 'world map: a city opens its topic');
+/* information bundled */
+await pg.evaluate(() => go('zoom', 'optics')); await pg.waitForTimeout(250); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="inside"]').click()); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => document.querySelectorAll('.hubpills .hubgrp').length >= 2 && document.querySelectorAll('.hubpills .hubgt').length >= 2), 'a hub groups its windows by subject');
+ok(await pg.evaluate(() => { const g = [...document.querySelectorAll('.hubpills .hubgrp')]; return g.every(x => { const l = [...x.querySelectorAll('button')].map(b => b.textContent); return new Set(l).size === l.length; }); }), 'within a subject, every window has a distinct name');
+/* the four new animations reproduce the models */
+const AV2 = await pg.evaluate(() => Object.fromEntries(['quad', 'pwmr', 'drop', 'frame'].map(k => [k, ANIMS[k].calc(Object.fromEntries(ANIMS[k].params.map(p => [p[0], p[5]])))])));
+ok(Math.abs(AV2.quad.res - 1) < 1e-9 && Math.abs(AV2.quad.fc - 250) < 1e-9, 'animation quad: 10 mm lead / (4 × 2500) = 1 µm per count, 250 kHz counts at 1500 rpm');
+ok(Math.abs(AV2.pwmr.Vavg - 14.4) < 1e-9 && Math.abs(AV2.pwmr.dI - 0.288) < 1e-9, 'animation pwm: V_avg = D·V = 14.4 V, ripple V·D(1−D)/(L·f) = 288 mA');
+ok(await pg.evaluate(() => { const v = ANIMS.drop.calc({ I: 2, Lc: 12, A: 0.75 }); const m = pwrCalc().branches[1]; return Math.abs(v.Vend - m.Vend) < 1e-9; }), 'animation drop: the same voltage at the I/O branch end as the power model');
+ok(await pg.evaluate(() => Math.abs(ANIMS.frame.calc({ bytes: 0, Tc: 1 }).tF - ecatCalc().tFrame * 1e6) < 1e-9 && ANIMS.frame.calc({ bytes: 10500, Tc: 1 }).over), 'animation frame: the same frame time as the EtherCAT model, and overrun with 10,500 extra bytes');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

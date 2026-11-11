@@ -67,6 +67,7 @@ zNodeView = (function (orig) {
         <section class="zwin open" data-w="${w}"><header><span class="kb">${(ZKIND[zInfo(w).kind] || [''])[0]}</span> <h3 class="zwt">${zInfo(w).t}</h3></header><div class="zbody"></div></section>`;
       zMount(w, panel.querySelector('.zbody'));
       panel.querySelectorAll('[data-hw]').forEach(b => b.addEventListener('click', () => { HS.win[id] = b.dataset.hw; showHub(h); }));
+      if (typeof hubAfterRender === 'function') hubAfterRender(id, h, showHub);
     };
     main.querySelectorAll('.hubbtn').forEach(b => b.addEventListener('click', () => showHub(b.dataset.hub)));
     showHub(HS.hub[id]);
