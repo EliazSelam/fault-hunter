@@ -209,17 +209,8 @@ function zAppxView() {
 }
 
 /* ---- wiring into the zoom tab ---- */
-zSubnav = (function (orig) {
-  return cur => { const h = orig(cur === 'machine' || cur === 'appx' ? 'none' : cur); return h.replace('<nav class="zsub" aria-label="תצוגות הזום">', `<nav class="zsub" aria-label="תצוגות הזום"><button type="button" data-zv="machine" aria-current="${cur === 'machine' ? 'page' : 'false'}">המכונה בתלת-ממד</button>`).replace('<button type="button" class="ztstart"', `<button type="button" data-zv="appx" aria-current="${cur === 'appx' ? 'page' : 'false'}">נספחים</button><button type="button" class="ztstart"`); };
-})(zSubnav);
-zWireSub = (function (orig) { return () => { content.querySelectorAll('[data-zv="machine"],[data-zv="appx"]').forEach(b => b.addEventListener('click', e => { e.stopImmediatePropagation(); go('zoom', b.dataset.zv); }, true)); orig(); }; })(zWireSub);
-showZoom = (function (orig) {
-  return function (arg) {
-    if (!arg || arg === 'machine') { active = null; setTab('zoom'); markVisit('zoom'); zMachineView(); window.scrollTo(0, 0); return; }
-    if (arg === 'appx') { active = null; setTab('zoom'); markVisit('zoom'); zAppxView(); window.scrollTo(0, 0); return; }
-    orig(arg);
-  };
-})(showZoom);
+ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
+ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
 /* a node page shows layer 1 before layer 2 */
 zNodeView = (function (orig) {
   return function (id) {

@@ -2,10 +2,6 @@
    #/zoom/<node>/<hub>/<window>   a topic with one window open (window id URL-encoded)
    #/zoom/machine?m=aos&sel=laser the machine view with its machine and selected part
    Changing topic or view pushes a history entry; changing hub or window inside a topic replaces it. */
-const ZVIEW = {
-  list: [['machine', 'המכונה בתלת-ממד', 'main'], ['world', 'מפת עולם', 'main'], ['sims', 'כל הסימולציות', 'main'], ['node', null, 'main'], ['appx', 'נספחים', 'main'], ['tree', 'עץ נושאים לפי רמות', 'back'], ['3d', 'שכבות בתלת-ממד', 'back'], ['dedup', 'דו"ח כפילויות ושיבוץ', 'back']],
-  add(id, title, group = 'main') { if (!this.list.some(v => v[0] === id)) this.list.splice(group === 'main' ? this.list.findIndex(v => v[2] === 'back') : this.list.length, 0, [id, title, group]); }
-};
 function zSetAddress(h) { try { if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { } }
 /* the address of an open hub and window */
 function zWindowAddress(id, hub, w) { return `#/zoom/${id}/${hub}/${encodeURIComponent(w)}`; }

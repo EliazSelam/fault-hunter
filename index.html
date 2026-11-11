@@ -8331,21 +8331,39 @@ function zWire() {
   content.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn), c = zNode(ZS.node); ZS.dir = c && t ? Math.sign(c.level - t.level) : 0; go('zoom', b.dataset.zn); }));
   content.querySelectorAll('[data-zl]').forEach(b => b.addEventListener('click', () => { ZS.dir = 0; go('zoom', 'L' + b.dataset.zl); }));
 }
+/* views of the zoom tab: one place to add a view; the bar is built from it */
+const ZVIEW = {
+  views: {},
+  add(id, spec) { this.views[id] = Object.assign({ group: 'hidden', order: 99 }, spec); },
+  get list() { return Object.entries(this.views).filter(([, v]) => v.group !== 'hidden').sort((a, b) => a[1].group === b[1].group ? a[1].order - b[1].order : (a[1].group === 'main' ? -1 : 1)).map(([id, v]) => [id, v.title, v.group]); },
+  show(id, arg) { const v = this.views[id]; v.render(arg); if (v.bar) { content.insertAdjacentHTML('afterbegin', zSubnav('node')); zWireSub(); } }
+};
 function showZoom(arg) {
   active = null; setTab('zoom'); markVisit('zoom');
-  if (arg && /^L[1-5]$/.test(arg)) return zLevelView(+arg.slice(1));
-  ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); window.scrollTo(0, 0);
+  const id = !arg ? 'machine' : /^L[1-5]$/.test(arg) ? 'level' : (ZVIEW.views[arg] && arg !== 'node' && arg !== 'level') ? arg : 'node';
+  ZVIEW.show(id, arg); window.scrollTo(0, 0);
 }
+ZVIEW.add('node', { group: 'main', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
+ZVIEW.add('level', { bar: true, render: arg => zLevelView(+arg.slice(1)) });
 /* ============ Zoom views: tree by scale, 3D stack, duplicates report; and "about the project" ============ */
 const zVis = () => ZOOM.filter(z => !(typeof ZAPPX !== 'undefined' && ZAPPX.has(z.id)));
 const zLevelName = l => ZLEVELS.find(x => x[0] === l)[1];
 const zCtx = id => ZCTX[id] || 'SHARED';
 const zDesc = id => { const seen = new Set(), out = []; const w = x => { if (seen.has(x)) return; seen.add(x); out.push(x); zNode(x).parts.forEach(w); }; w(id); return out; };
 const zAnc = id => { const seen = new Set(); const w = x => zParents(x).forEach(p => { if (!seen.has(p.id)) { seen.add(p.id); w(p.id); } }); w(id); return [...seen]; };
+/* the views bar: what a learner needs first; the method's proofs behind the scenes */
 function zSubnav(cur) {
-  return `<nav class="zsub" aria-label="תצוגות הזום">${[['node', 'זום'], ['tree', 'עץ נושאים לפי רמות'], ['3d', 'שכבות בתלת-ממד'], ['dedup', 'דו"ח כפילויות ושיבוץ']].map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</nav>`;
+  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
+  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
+  const inBack = back.some(b => b[0] === cur);
+  return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
+    <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
+    <button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>`;
 }
-function zWireSub() { content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv))); }
+function zWireSub() {
+  content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));
+  content.querySelectorAll('.zsub [data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0)));
+}
 
 /* coverage of every existing page: placed in the tree, a shared resource, or the same content under another address */
 function zCoverage() {
@@ -8478,12 +8496,9 @@ function zDedupView() {
 }
 
 /* ---- route the zoom tab ---- */
-const _showZoom78 = showZoom;
-showZoom = function (arg) {
-  if (arg === 'tree' || arg === '3d' || arg === 'dedup') { active = null; setTab('zoom'); markVisit('zoom'); ({ tree: zTreeView, '3d': z3dView, dedup: zDedupView })[arg](); window.scrollTo(0, 0); return; }
-  _showZoom78(arg);
-  content.insertAdjacentHTML('afterbegin', zSubnav(arg && /^L[1-5]$/.test(arg) ? 'node' : 'node')); zWireSub();
-};
+ZVIEW.add('tree', { group: 'back', order: 1, title: 'עץ נושאים לפי רמות', render: () => zTreeView() });
+ZVIEW.add('3d', { group: 'back', order: 2, title: 'שכבות בתלת-ממד', render: () => z3dView() });
+ZVIEW.add('dedup', { group: 'back', order: 3, title: 'דו"ח כפילויות ושיבוץ', render: () => zDedupView() });
 
 /* ---- about the project ---- */
 function showAbout() {
@@ -8529,10 +8544,6 @@ function zTourShow() {
 function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
 document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
 /* start buttons: in the zoom's views bar and on the about page */
-const _zSubnav78 = zSubnav;
-zSubnav = cur => _zSubnav78(cur).replace('</nav>', '<button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>');
-const _zWireSub78 = zWireSub;
-zWireSub = () => { _zWireSub78(); content.querySelectorAll('[data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0))); };
 const _showAbout78 = showAbout;
 showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };
 /* ============ The machine in 3D: assemble, explode, click a part to go inside ============
@@ -8746,17 +8757,8 @@ function zAppxView() {
 }
 
 /* ---- wiring into the zoom tab ---- */
-zSubnav = (function (orig) {
-  return cur => { const h = orig(cur === 'machine' || cur === 'appx' ? 'none' : cur); return h.replace('<nav class="zsub" aria-label="תצוגות הזום">', `<nav class="zsub" aria-label="תצוגות הזום"><button type="button" data-zv="machine" aria-current="${cur === 'machine' ? 'page' : 'false'}">המכונה בתלת-ממד</button>`).replace('<button type="button" class="ztstart"', `<button type="button" data-zv="appx" aria-current="${cur === 'appx' ? 'page' : 'false'}">נספחים</button><button type="button" class="ztstart"`); };
-})(zSubnav);
-zWireSub = (function (orig) { return () => { content.querySelectorAll('[data-zv="machine"],[data-zv="appx"]').forEach(b => b.addEventListener('click', e => { e.stopImmediatePropagation(); go('zoom', b.dataset.zv); }, true)); orig(); }; })(zWireSub);
-showZoom = (function (orig) {
-  return function (arg) {
-    if (!arg || arg === 'machine') { active = null; setTab('zoom'); markVisit('zoom'); zMachineView(); window.scrollTo(0, 0); return; }
-    if (arg === 'appx') { active = null; setTab('zoom'); markVisit('zoom'); zAppxView(); window.scrollTo(0, 0); return; }
-    orig(arg);
-  };
-})(showZoom);
+ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
+ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
 /* a node page shows layer 1 before layer 2 */
 zNodeView = (function (orig) {
   return function (id) {
@@ -8998,8 +9000,7 @@ zNodeView = (function (orig) {
   };
 })(zNodeView);
 /* the views bar gets the gallery; the machine finder also finds simulations */
-zSubnav = (function (orig) { return cur => orig(cur === 'sims' ? 'none' : cur).replace('<button type="button" data-zv="node"', `<button type="button" data-zv="sims" aria-current="${cur === 'sims' ? 'page' : 'false'}">כל הסימולציות</button><button type="button" data-zv="node"`); })(zSubnav);
-showZoom = (function (orig) { return function (arg) { if (arg === 'sims') { active = null; setTab('zoom'); markVisit('zoom'); zSimsView(); window.scrollTo(0, 0); return; } orig(arg); }; })(showZoom);
+ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
 zMachineView = (function (orig) {
   return function () {
     orig();
@@ -9282,19 +9283,6 @@ zOpenWindow = function (node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
 /* ============ The right layers first, information bundled, more of the physics animated ============ */
 
 /* ---- 1. the views bar: what a learner needs first; the method's proofs behind the scenes ---- */
-zSubnav = function (cur) {
-  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
-  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
-  const inBack = back.some(b => b[0] === cur);
-  return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
-    <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
-    <button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>`;
-};
-zWireSub = function () {
-  content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));
-  content.querySelectorAll('.zsub [data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0)));
-};
-
 /* ---- 2. a world map of the topics, with the numbers that matter ---- */
 function zWorldView() {
   const topics = zMachineTopics(), ex = zExplored(), sims = zSimList(), wins = new Set(ZOOM.flatMap(zWindows));
@@ -9322,7 +9310,7 @@ function zWorldView() {
   content.querySelectorAll('.wcity').forEach(g => { const open = () => { ZS.dir = 1; go('zoom', g.dataset.zn); }; g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
   setTitle('זום', 'מפת עולם', `${got} מתוך ${topics.length} נחקרו`);
 }
-showZoom = (function (orig) { return function (arg) { if (arg === 'world') { active = null; setTab('zoom'); markVisit('zoom'); zWorldView(); window.scrollTo(0, 0); return; } orig(arg); }; })(showZoom);
+ZVIEW.add('world', { group: 'main', order: 2, title: 'מפת עולם', render: () => zWorldView() });
 
 /* ---- 3. information bundled: windows grouped by subject inside a hub, long text as a summary first ---- */
 const winSubject = w => { const [k, a] = w.split(':'); if (k === 'c') { const C = COMPONENTS.find(x => x.id === a); return C ? C.name.replace(/<[^>]+>/g, '').split(':')[0] : a; } if (k === 't') { const T = TOPICS.find(x => x.id === a); return T ? T.t.split(':')[0] : a; } return ''; };
@@ -9428,10 +9416,6 @@ Object.assign(ANIMS, {
    #/zoom/<node>/<hub>/<window>   a topic with one window open (window id URL-encoded)
    #/zoom/machine?m=aos&sel=laser the machine view with its machine and selected part
    Changing topic or view pushes a history entry; changing hub or window inside a topic replaces it. */
-const ZVIEW = {
-  list: [['machine', 'המכונה בתלת-ממד', 'main'], ['world', 'מפת עולם', 'main'], ['sims', 'כל הסימולציות', 'main'], ['node', null, 'main'], ['appx', 'נספחים', 'main'], ['tree', 'עץ נושאים לפי רמות', 'back'], ['3d', 'שכבות בתלת-ממד', 'back'], ['dedup', 'דו"ח כפילויות ושיבוץ', 'back']],
-  add(id, title, group = 'main') { if (!this.list.some(v => v[0] === id)) this.list.splice(group === 'main' ? this.list.findIndex(v => v[2] === 'back') : this.list.length, 0, [id, title, group]); }
-};
 function zSetAddress(h) { try { if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { } }
 /* the address of an open hub and window */
 function zWindowAddress(id, hub, w) { return `#/zoom/${id}/${hub}/${encodeURIComponent(w)}`; }

@@ -198,8 +198,17 @@ function zWire() {
   content.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn), c = zNode(ZS.node); ZS.dir = c && t ? Math.sign(c.level - t.level) : 0; go('zoom', b.dataset.zn); }));
   content.querySelectorAll('[data-zl]').forEach(b => b.addEventListener('click', () => { ZS.dir = 0; go('zoom', 'L' + b.dataset.zl); }));
 }
+/* views of the zoom tab: one place to add a view; the bar is built from it */
+const ZVIEW = {
+  views: {},
+  add(id, spec) { this.views[id] = Object.assign({ group: 'hidden', order: 99 }, spec); },
+  get list() { return Object.entries(this.views).filter(([, v]) => v.group !== 'hidden').sort((a, b) => a[1].group === b[1].group ? a[1].order - b[1].order : (a[1].group === 'main' ? -1 : 1)).map(([id, v]) => [id, v.title, v.group]); },
+  show(id, arg) { const v = this.views[id]; v.render(arg); if (v.bar) { content.insertAdjacentHTML('afterbegin', zSubnav('node')); zWireSub(); } }
+};
 function showZoom(arg) {
   active = null; setTab('zoom'); markVisit('zoom');
-  if (arg && /^L[1-5]$/.test(arg)) return zLevelView(+arg.slice(1));
-  ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); window.scrollTo(0, 0);
+  const id = !arg ? 'machine' : /^L[1-5]$/.test(arg) ? 'level' : (ZVIEW.views[arg] && arg !== 'node' && arg !== 'level') ? arg : 'node';
+  ZVIEW.show(id, arg); window.scrollTo(0, 0);
 }
+ZVIEW.add('node', { group: 'main', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
+ZVIEW.add('level', { bar: true, render: arg => zLevelView(+arg.slice(1)) });

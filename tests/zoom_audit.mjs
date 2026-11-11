@@ -208,6 +208,9 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
   ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
+/* stage 2, step 2: views */
+for (const v of await pg.evaluate(() => Object.keys(ZVIEW.views).filter(v => v !== 'node' && v !== 'level'))) { await pg.evaluate(v => go('zoom', v), v); await pg.waitForTimeout(120); ok(await pg.evaluate(v => !!document.querySelector(`.zsub [data-zv="${v}"][aria-current="page"]`), v), `step 2: view ${v} renders with its bar`); }
+await pg.evaluate(() => go('zoom', 'L2')); await pg.waitForTimeout(120); ok(await pg.evaluate(() => !!document.querySelector('.zsub') && document.querySelectorAll('.ztile').length > 0), 'step 2: a scale view renders with the bar');
 /* stage 2, step 1: window kinds */
 ok(await pg.evaluate(() => { const all = new Set(ZOOM.flatMap(zWindows)); return [...all].every(w => !!WIN.of(w)) && [...all].filter(w => w.startsWith('anim:')).every(w => WIN.of(w).id === 'anim') && [...all].filter(w => /^c:[^:]+:(parts|words|tryit|drills|say|full|schematic|numbers)$/.test(w)).every(w => WIN.of(w).id === 'sections') && WIN.of('t:cam:scene').id === 'base'; }), 'step 1: every window resolves to one kind, and the right one');
 /* multi-level disassembly */

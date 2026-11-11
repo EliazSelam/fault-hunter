@@ -4,10 +4,19 @@ const zLevelName = l => ZLEVELS.find(x => x[0] === l)[1];
 const zCtx = id => ZCTX[id] || 'SHARED';
 const zDesc = id => { const seen = new Set(), out = []; const w = x => { if (seen.has(x)) return; seen.add(x); out.push(x); zNode(x).parts.forEach(w); }; w(id); return out; };
 const zAnc = id => { const seen = new Set(); const w = x => zParents(x).forEach(p => { if (!seen.has(p.id)) { seen.add(p.id); w(p.id); } }); w(id); return [...seen]; };
+/* the views bar: what a learner needs first; the method's proofs behind the scenes */
 function zSubnav(cur) {
-  return `<nav class="zsub" aria-label="תצוגות הזום">${[['node', 'זום'], ['tree', 'עץ נושאים לפי רמות'], ['3d', 'שכבות בתלת-ממד'], ['dedup', 'דו"ח כפילויות ושיבוץ']].map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</nav>`;
+  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
+  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
+  const inBack = back.some(b => b[0] === cur);
+  return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
+    <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
+    <button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>`;
 }
-function zWireSub() { content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv))); }
+function zWireSub() {
+  content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));
+  content.querySelectorAll('.zsub [data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0)));
+}
 
 /* coverage of every existing page: placed in the tree, a shared resource, or the same content under another address */
 function zCoverage() {
@@ -140,12 +149,9 @@ function zDedupView() {
 }
 
 /* ---- route the zoom tab ---- */
-const _showZoom78 = showZoom;
-showZoom = function (arg) {
-  if (arg === 'tree' || arg === '3d' || arg === 'dedup') { active = null; setTab('zoom'); markVisit('zoom'); ({ tree: zTreeView, '3d': z3dView, dedup: zDedupView })[arg](); window.scrollTo(0, 0); return; }
-  _showZoom78(arg);
-  content.insertAdjacentHTML('afterbegin', zSubnav(arg && /^L[1-5]$/.test(arg) ? 'node' : 'node')); zWireSub();
-};
+ZVIEW.add('tree', { group: 'back', order: 1, title: 'עץ נושאים לפי רמות', render: () => zTreeView() });
+ZVIEW.add('3d', { group: 'back', order: 2, title: 'שכבות בתלת-ממד', render: () => z3dView() });
+ZVIEW.add('dedup', { group: 'back', order: 3, title: 'דו"ח כפילויות ושיבוץ', render: () => zDedupView() });
 
 /* ---- about the project ---- */
 function showAbout() {
@@ -191,9 +197,5 @@ function zTourShow() {
 function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
 document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
 /* start buttons: in the zoom's views bar and on the about page */
-const _zSubnav78 = zSubnav;
-zSubnav = cur => _zSubnav78(cur).replace('</nav>', '<button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>');
-const _zWireSub78 = zWireSub;
-zWireSub = () => { _zWireSub78(); content.querySelectorAll('[data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0))); };
 const _showAbout78 = showAbout;
 showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };
