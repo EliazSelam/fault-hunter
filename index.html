@@ -8228,7 +8228,19 @@ function zCapture() {
 }
 /* every window: a title, a kind, and how it is shown */
 const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
-function zInfo(w) {
+/* window kinds: one place to add how a window is named, mounted and filed by machine.
+   Later additions are checked first; the base kind below answers everything else. */
+const WIN = {
+  kinds: [],
+  add(spec) { this.kinds.push(spec); return spec; },
+  of(w) { for (let i = this.kinds.length - 1; i >= 0; i--) if (this.kinds[i].test(w)) return this.kinds[i]; return null; },
+  info(w) { return this.of(w).info(w); },
+  mount(w, el) { return this.of(w).mount(w, el); },
+  ctx(w, node) { const k = this.of(w); return k && k.ctx ? k.ctx(w, node) : zCtx(node); }
+};
+function zInfo(w) { return WIN.info(w); }
+function zMount(w, el) { return WIN.mount(w, el); }
+function zInfoBase(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {
     if (b === 'scene') return { kind: 'scene', t: T.t };
@@ -8245,7 +8257,7 @@ function zInfo(w) {
   if (k === 'p') return { kind: 'page', t: zRouteTitle(w.slice(2)) };
   return { kind: 'card', t: w };
 }
-function zMount(w, el) {
+function zMountBase(w, el) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a);
   if (T) { TSTATE.topic = T.id; TSTATE.sim = null; }
   if (k === 't') {
@@ -8263,6 +8275,7 @@ function zMount(w, el) {
   else if (k === 'p') { const r = w.slice(2); el.innerHTML = `<p>${zRouteTitle(r)}: חלון קיים בגודל עמוד. הוא נפתח במקומו, ויש דרך חזרה לכאן.</p><p><button type="button" class="zgo" data-route="${r}">פתח ←</button></p>`; el.querySelector('.zgo').addEventListener('click', () => zOpenPage(r)); }
   else { zCapture(); el.innerHTML = ZCAP[w] || ''; }
 }
+const WIN_BASE = WIN.add({ id: 'base', test: () => true, info: zInfoBase, mount: zMountBase });
 
 function zRouteTitle(r) {
   const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
@@ -8806,22 +8819,17 @@ ZOOM.forEach(n => {
 });
 Object.assign(ZKIND, { parts: ['מה יש בפנים', 2], words: ['מילים', 2], schematic: ['סכמה', 1], tryit: ['נסה בעצמך', 3], drills: ['בדוק את עצמך', 8], reading: ['קריאה מתקדמת', 9], say: ['לראיון', 9], eng: ['מספרים והסבר', 4] });
 LAYER1.add('tryit'); LAYER1.add('drills'); LAYER1.add('schematic');
-zInfo = (function (orig) {
-  return w => { const [k, a, b] = w.split(':');
-    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a); return { kind: { full: 'reading' }[b] || b, t: C ? C.name.replace(/<[^>]+>/g, '') : a }; }
-    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); return { kind: 'eng', t: 'מספרים בכל שלב והסבר במילים שלך: ' + T.t }; }
-    return orig(w); };
-})(zInfo);
-zMount = (function (orig) {
-  return (w, el) => { const [k, a, b] = w.split(':');
-    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a), Z = zParts(a);
-      if (b === 'schematic') el.innerHTML = C && C.schematic ? `<div class="scheme">${C.schematic()}</div>` : '';
-      else if (b === 'full') el.innerHTML = C ? `<div class="cols"><div><h3>אופן פעולה</h3>${ol(C.how || [])}</div><div><h3>מגבלות</h3>${ul(C.limits || [])}</div></div>${Z.full || ''}` : '';
-      else el.innerHTML = Z[{ numbers: 'numbers', parts: 'parts', words: 'words', tryit: 'tryit', drills: 'drills', say: 'say' }[b]] || '';
-      return; }
-    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); TSTATE.topic = T.id; topicEng(el, T); return; }
-    orig(w, el); };
-})(zMount);
+WIN.add({ id: 'sections',
+  test: w => { const [k, a, b] = w.split(':'); return (k === 'c' && CSECT.some(x => x[0] === b)) || (k === 't' && b === 'eng'); },
+  info: w => { const [k, a, b] = w.split(':');
+    if (k === 't') { const T = TOPICS.find(t => t.id === a); return { kind: 'eng', t: 'מספרים בכל שלב והסבר במילים שלך: ' + T.t }; }
+    const C = COMPONENTS.find(x => x.id === a); return { kind: { full: 'reading' }[b] || b, t: C ? C.name.replace(/<[^>]+>/g, '') : a }; },
+  mount: (w, el) => { const [k, a, b] = w.split(':');
+    if (k === 't') { const T = TOPICS.find(t => t.id === a); TSTATE.topic = T.id; topicEng(el, T); return; }
+    const C = COMPONENTS.find(x => x.id === a), Z = zParts(a);
+    if (b === 'schematic') el.innerHTML = C && C.schematic ? `<div class="scheme">${C.schematic()}</div>` : '';
+    else if (b === 'full') el.innerHTML = C ? `<div class="cols"><div><h3>אופן פעולה</h3>${ol(C.how || [])}</div><div><h3>מגבלות</h3>${ul(C.limits || [])}</div></div>${Z.full || ''}` : '';
+    else el.innerHTML = Z[{ numbers: 'numbers', parts: 'parts', words: 'words', tryit: 'tryit', drills: 'drills', say: 'say' }[b]] || ''; } });
 
 /* 2. moving around: one main path from the machine down to any topic, and its neighbours at the same scale */
 const zMainParent = id => { const ps = zParents(id); return ps.length ? ps.sort((a, b) => b.level - a.level)[0] : null; };
@@ -8949,7 +8957,8 @@ zMachineView = (function (orig) {
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
-function zWinCtx(w, node) {
+function zWinCtx(w, node) { return WIN.ctx(w, node); }
+WIN_BASE.ctx = function (w, node) {
   const [k, a] = w.split(':');
   if (k === 't') return ({ aoi: 'AOI', cam: 'AOI', aos: 'AOS' })[a] || (node === 'laser' ? 'AOS' : 'SHARED');
   if (k === 'c') return ({ linescan: 'AOI', strobe: 'AOI', lens: 'AOI', tilt: 'AOI', laser: 'AOS' })[a] || zCtx(node);
@@ -9169,9 +9178,7 @@ function animMount(id, el) {
 Object.entries(ANIMS).forEach(([id, A]) => { const n = zNode(A.node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
 ZKIND.anim = ['הנפשת פיזיקה ומתמטיקה', -1];
 SIMKINDS.add('anim');
-zInfo = (function (orig) { return w => w.startsWith('anim:') ? { kind: 'anim', t: ANIMS[w.slice(5)].t } : orig(w); })(zInfo);
-zMount = (function (orig) { return (w, el) => w.startsWith('anim:') ? animMount(w.slice(5), el) : orig(w, el); })(zMount);
-zWinCtx = (function (orig) { return (w, node) => w.startsWith('anim:') ? ({ scan: 'AOI', dof: 'AOI', crater: 'AOS' })[w.slice(5)] || zCtx(node) : orig(w, node); })(zWinCtx);
+WIN.add({ id: 'anim', test: w => w.startsWith('anim:'), info: w => ({ kind: 'anim', t: ANIMS[w.slice(5)].t }), mount: (w, el) => animMount(w.slice(5), el), ctx: (w, node) => ({ scan: 'AOI', dof: 'AOI', crater: 'AOS' })[w.slice(5)] || zCtx(node) });
 /* ============ A topic as an object with its ways of understanding around it ============
    The topic's own object in the middle (its part of the machine, or its parts exploded), and six hubs around it.
    A hub opens one window at a time; less text on screen, more to look at. */

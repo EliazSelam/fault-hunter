@@ -51,7 +51,8 @@ zMachineView = (function (orig) {
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
-function zWinCtx(w, node) {
+function zWinCtx(w, node) { return WIN.ctx(w, node); }
+WIN_BASE.ctx = function (w, node) {
   const [k, a] = w.split(':');
   if (k === 't') return ({ aoi: 'AOI', cam: 'AOI', aos: 'AOS' })[a] || (node === 'laser' ? 'AOS' : 'SHARED');
   if (k === 'c') return ({ linescan: 'AOI', strobe: 'AOI', lens: 'AOI', tilt: 'AOI', laser: 'AOS' })[a] || zCtx(node);

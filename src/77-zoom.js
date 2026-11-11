@@ -95,7 +95,19 @@ function zCapture() {
 }
 /* every window: a title, a kind, and how it is shown */
 const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
-function zInfo(w) {
+/* window kinds: one place to add how a window is named, mounted and filed by machine.
+   Later additions are checked first; the base kind below answers everything else. */
+const WIN = {
+  kinds: [],
+  add(spec) { this.kinds.push(spec); return spec; },
+  of(w) { for (let i = this.kinds.length - 1; i >= 0; i--) if (this.kinds[i].test(w)) return this.kinds[i]; return null; },
+  info(w) { return this.of(w).info(w); },
+  mount(w, el) { return this.of(w).mount(w, el); },
+  ctx(w, node) { const k = this.of(w); return k && k.ctx ? k.ctx(w, node) : zCtx(node); }
+};
+function zInfo(w) { return WIN.info(w); }
+function zMount(w, el) { return WIN.mount(w, el); }
+function zInfoBase(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {
     if (b === 'scene') return { kind: 'scene', t: T.t };
@@ -112,7 +124,7 @@ function zInfo(w) {
   if (k === 'p') return { kind: 'page', t: zRouteTitle(w.slice(2)) };
   return { kind: 'card', t: w };
 }
-function zMount(w, el) {
+function zMountBase(w, el) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a);
   if (T) { TSTATE.topic = T.id; TSTATE.sim = null; }
   if (k === 't') {
@@ -130,6 +142,7 @@ function zMount(w, el) {
   else if (k === 'p') { const r = w.slice(2); el.innerHTML = `<p>${zRouteTitle(r)}: חלון קיים בגודל עמוד. הוא נפתח במקומו, ויש דרך חזרה לכאן.</p><p><button type="button" class="zgo" data-route="${r}">פתח ←</button></p>`; el.querySelector('.zgo').addEventListener('click', () => zOpenPage(r)); }
   else { zCapture(); el.innerHTML = ZCAP[w] || ''; }
 }
+const WIN_BASE = WIN.add({ id: 'base', test: () => true, info: zInfoBase, mount: zMountBase });
 
 function zRouteTitle(r) {
   const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');

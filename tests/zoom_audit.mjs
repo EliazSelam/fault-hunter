@@ -208,6 +208,8 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
   ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
+/* stage 2, step 1: window kinds */
+ok(await pg.evaluate(() => { const all = new Set(ZOOM.flatMap(zWindows)); return [...all].every(w => !!WIN.of(w)) && [...all].filter(w => w.startsWith('anim:')).every(w => WIN.of(w).id === 'anim') && [...all].filter(w => /^c:[^:]+:(parts|words|tryit|drills|say|full|schematic|numbers)$/.test(w)).every(w => WIN.of(w).id === 'sections') && WIN.of('t:cam:scene').id === 'base'; }), 'step 1: every window resolves to one kind, and the right one');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

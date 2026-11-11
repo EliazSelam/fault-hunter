@@ -12,22 +12,17 @@ ZOOM.forEach(n => {
 });
 Object.assign(ZKIND, { parts: ['מה יש בפנים', 2], words: ['מילים', 2], schematic: ['סכמה', 1], tryit: ['נסה בעצמך', 3], drills: ['בדוק את עצמך', 8], reading: ['קריאה מתקדמת', 9], say: ['לראיון', 9], eng: ['מספרים והסבר', 4] });
 LAYER1.add('tryit'); LAYER1.add('drills'); LAYER1.add('schematic');
-zInfo = (function (orig) {
-  return w => { const [k, a, b] = w.split(':');
-    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a); return { kind: { full: 'reading' }[b] || b, t: C ? C.name.replace(/<[^>]+>/g, '') : a }; }
-    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); return { kind: 'eng', t: 'מספרים בכל שלב והסבר במילים שלך: ' + T.t }; }
-    return orig(w); };
-})(zInfo);
-zMount = (function (orig) {
-  return (w, el) => { const [k, a, b] = w.split(':');
-    if (k === 'c' && CSECT.some(s => s[0] === b)) { const C = COMPONENTS.find(x => x.id === a), Z = zParts(a);
-      if (b === 'schematic') el.innerHTML = C && C.schematic ? `<div class="scheme">${C.schematic()}</div>` : '';
-      else if (b === 'full') el.innerHTML = C ? `<div class="cols"><div><h3>אופן פעולה</h3>${ol(C.how || [])}</div><div><h3>מגבלות</h3>${ul(C.limits || [])}</div></div>${Z.full || ''}` : '';
-      else el.innerHTML = Z[{ numbers: 'numbers', parts: 'parts', words: 'words', tryit: 'tryit', drills: 'drills', say: 'say' }[b]] || '';
-      return; }
-    if (k === 't' && b === 'eng') { const T = TOPICS.find(t => t.id === a); TSTATE.topic = T.id; topicEng(el, T); return; }
-    orig(w, el); };
-})(zMount);
+WIN.add({ id: 'sections',
+  test: w => { const [k, a, b] = w.split(':'); return (k === 'c' && CSECT.some(x => x[0] === b)) || (k === 't' && b === 'eng'); },
+  info: w => { const [k, a, b] = w.split(':');
+    if (k === 't') { const T = TOPICS.find(t => t.id === a); return { kind: 'eng', t: 'מספרים בכל שלב והסבר במילים שלך: ' + T.t }; }
+    const C = COMPONENTS.find(x => x.id === a); return { kind: { full: 'reading' }[b] || b, t: C ? C.name.replace(/<[^>]+>/g, '') : a }; },
+  mount: (w, el) => { const [k, a, b] = w.split(':');
+    if (k === 't') { const T = TOPICS.find(t => t.id === a); TSTATE.topic = T.id; topicEng(el, T); return; }
+    const C = COMPONENTS.find(x => x.id === a), Z = zParts(a);
+    if (b === 'schematic') el.innerHTML = C && C.schematic ? `<div class="scheme">${C.schematic()}</div>` : '';
+    else if (b === 'full') el.innerHTML = C ? `<div class="cols"><div><h3>אופן פעולה</h3>${ol(C.how || [])}</div><div><h3>מגבלות</h3>${ul(C.limits || [])}</div></div>${Z.full || ''}` : '';
+    else el.innerHTML = Z[{ numbers: 'numbers', parts: 'parts', words: 'words', tryit: 'tryit', drills: 'drills', say: 'say' }[b]] || ''; } });
 
 /* 2. moving around: one main path from the machine down to any topic, and its neighbours at the same scale */
 const zMainParent = id => { const ps = zParents(id); return ps.length ? ps.sort((a, b) => b.level - a.level)[0] : null; };
