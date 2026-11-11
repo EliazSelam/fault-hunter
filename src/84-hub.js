@@ -16,18 +16,13 @@ const hubOf = w => { const k = zInfo(w).kind; const h = HUBS.find(x => x[3].incl
 const HS = { hub: {}, win: {}, snap: {} };
 /* a window's state, kept when it is closed and given back when it opens again: its step, its controls, its animation */
 function winSave(panel) {
-  const sec = panel && panel.querySelector('.zwin'); if (!sec) return; const body = sec.querySelector('.zbody'), w = sec.dataset.w; if (!body || !w) return;
-  const snap = { inputs: [...body.querySelectorAll('input, select')].map(i => i.type === 'checkbox' ? i.checked : i.value) };
-  const st = body.querySelector('[data-s][aria-current="step"]'); if (st) snap.step = st.dataset.s;
-  if (body.animApi) snap.anim = { step: body.animApi.step, P: Object.assign({}, body.animApi.P) };
-  HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
+  const sec = panel && panel.querySelector('.zwin'); if (!sec) return; const body = sec.querySelector('.zbody'), w = sec.dataset.w; if (!body || !w || !body.act) return;
+  const snap = Object.assign(body.act.getState(), { w }); HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
 }
 function winRestore(panel) {
-  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (w && !HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } } const snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
-  if (snap.anim && body.animApi) { Object.entries(snap.anim.P).forEach(([k, v]) => body.animApi.setParam(k, v)); body.animApi.go(snap.anim.step); return; }
-  const ins = [...body.querySelectorAll('input, select')];
-  if (ins.length === snap.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = snap.inputs[k]; else i.value = snap.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
-  if (snap.step != null) { const b = body.querySelector(`[data-s="${snap.step}"]`); if (b) b.click(); }
+  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (!w) return;
+  if (!HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } }
+  const snap = HS.snap[w], body = sec.querySelector('.zbody'); if (snap && body.act) body.act.setState(snap);
 }
 /* leaving a topic keeps its open window too */
 go = (function (orig) { return function (sheet, arg) { const p = document.getElementById('hubpanel'); if (p) winSave(p); return orig(sheet, arg); }; })(go);

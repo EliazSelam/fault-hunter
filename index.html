@@ -6396,7 +6396,8 @@ function view3(cv, opts = {}) {
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove);
   ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => cv.addEventListener(ev, () => st.drag = null));
   cv.addEventListener('keydown', e => { const m = { ArrowLeft: [-0.1, 0], ArrowRight: [0.1, 0], ArrowUp: [0, -0.08], ArrowDown: [0, 0.08] }[e.key]; if (m) { st.yaw += m[0]; st.pitch = Math.max(-0.2, Math.min(1.35, st.pitch + m[1])); e.preventDefault(); if (opts.onView) opts.onView(); } });
-  return { st, ctx, proj };
+  const V = { st, ctx, proj, redraw: () => { if (opts.onView) opts.onView(); } }; cv._V = V;
+  return V;
 }
 function cssv(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '#1B2F5A'; }
 /* draw a list of polygons sorted far to near */
@@ -8239,11 +8240,35 @@ const WIN = {
   add(spec) { this.kinds.push(spec); return spec; },
   of(w) { for (let i = this.kinds.length - 1; i >= 0; i--) if (this.kinds[i].test(w)) return this.kinds[i]; return null; },
   info(w) { return this.of(w).info(w); },
-  mount(w, el) { return this.of(w).mount(w, el); },
+  /* mounts a window and gives back its activity handle (also kept as el.act) */
+  mount(w, el) { const h = this.of(w).mount(w, el); el.act = actHandle(el, h); return el.act; },
   ctx(w, node) { const k = this.of(w); return k && k.ctx ? k.ctx(w, node) : zCtx(node); }
 };
 function zInfo(w) { return WIN.info(w); }
 function zMount(w, el) { return WIN.mount(w, el); }
+/* an activity handle: what a mounted window can tell and be told, so the page keeps your place.
+   handle = { getState() -> snapshot, setState(snapshot), pause(), resume(), destroy() }
+   snapshot = { v: 1, step?, params?, inputs?, camera? }; every field is optional.
+   A window may return its own handle from its mount; otherwise one is built from what it shows:
+   its step buttons, its controls in order, and the camera of every 3D view in it. */
+function actHandle(el, own) {
+  const g = {
+    getState() {
+      const s = { v: 1 }, ins = [...el.querySelectorAll('input, select')]; if (ins.length) s.inputs = ins.map(i => i.type === 'checkbox' ? i.checked : i.value);
+      const st = el.querySelector('[data-s][aria-current="step"]'); if (st) s.step = st.dataset.s;
+      const cams = [...el.querySelectorAll('canvas')].filter(c => c._V).map(c => { const t = c._V.st; return { yaw: t.yaw, pitch: t.pitch, dist: t.dist }; }); if (cams.length) s.camera = cams;
+      return s;
+    },
+    setState(s) {
+      const ins = [...el.querySelectorAll('input, select')];
+      if (s.inputs && ins.length === s.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = s.inputs[k]; else i.value = s.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
+      if (s.step != null) { const b = el.querySelector(`[data-s="${s.step}"]`); if (b) b.click(); }
+      if (s.camera) [...el.querySelectorAll('canvas')].filter(c => c._V).forEach((c, k) => { const t = s.camera[k]; if (t) { Object.assign(c._V.st, t); c._V.redraw(); } });
+    },
+    pause() { }, resume() { }, destroy() { }
+  };
+  return Object.assign(g, own || {});
+}
 function zInfoBase(w) {
   const [k, a, b, c] = w.split(':'), T = TOPICS.find(t => t.id === a), C = COMPONENTS.find(x => x.id === a), cn = C ? C.name.replace(/<[^>]+>/g, '') : '';
   if (k === 't') {
@@ -9129,11 +9154,13 @@ function animMount(id, el) {
   el.querySelector('[data-ab="play"]').addEventListener('click', () => { playing = !playing; frozen = !playing; if (playing && step === A.steps.length - 1) go(0); lastAdv = performance.now(); V = render(); });
   el.querySelectorAll('[data-as]').forEach(li => li.addEventListener('click', () => { playing = false; go(+li.dataset.as); }));
   el.querySelectorAll('[data-ap]').forEach(r => r.addEventListener('input', () => { P[r.dataset.ap] = +r.value; V = render(); }));
+  const handle = { getState: () => ({ v: 1, step, params: Object.assign({}, P) }), setState: st => { if (st.params) Object.entries(st.params).forEach(([k, v]) => el.animApi.setParam(k, v)); if (st.step != null) go(st.step); }, pause: () => { frozen = true; playing = false; V = render(); }, resume: () => { frozen = false; V = render(); }, destroy: () => { frozen = true; playing = false; } };
   el.animApi = { go, get step() { return step; }, P, calc: () => A.calc(P), get simTime() { return sim; }, get frozen() { return frozen; }, setParam: (k, v) => { P[k] = v; const r = el.querySelector(`[data-ap="${k}"]`); if (r) r.value = v; V = render(); } };
   const tick = now => { if (!document.body.contains(cv)) return; const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now; if (!frozen) sim += dt; tStep = sim;
     if (playing && now - lastAdv > 3800) { lastAdv = now; if (step < A.steps.length - 1) go(step + 1); else { playing = false; V = render(); } }
     ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left'; A.draw(ctx, cv.width, cv.height, P, V, step, matchMedia('(prefers-reduced-motion: reduce)').matches ? 99 : tStep); requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
+  return handle;
 }
 /* the animations are windows of their topics, first in the theory layer */
 Object.entries(ANIMS).forEach(([id, A]) => { const n = zNode(A.node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
@@ -9158,18 +9185,13 @@ const hubOf = w => { const k = zInfo(w).kind; const h = HUBS.find(x => x[3].incl
 const HS = { hub: {}, win: {}, snap: {} };
 /* a window's state, kept when it is closed and given back when it opens again: its step, its controls, its animation */
 function winSave(panel) {
-  const sec = panel && panel.querySelector('.zwin'); if (!sec) return; const body = sec.querySelector('.zbody'), w = sec.dataset.w; if (!body || !w) return;
-  const snap = { inputs: [...body.querySelectorAll('input, select')].map(i => i.type === 'checkbox' ? i.checked : i.value) };
-  const st = body.querySelector('[data-s][aria-current="step"]'); if (st) snap.step = st.dataset.s;
-  if (body.animApi) snap.anim = { step: body.animApi.step, P: Object.assign({}, body.animApi.P) };
-  HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
+  const sec = panel && panel.querySelector('.zwin'); if (!sec) return; const body = sec.querySelector('.zbody'), w = sec.dataset.w; if (!body || !w || !body.act) return;
+  const snap = Object.assign(body.act.getState(), { w }); HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
 }
 function winRestore(panel) {
-  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (w && !HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } } const snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
-  if (snap.anim && body.animApi) { Object.entries(snap.anim.P).forEach(([k, v]) => body.animApi.setParam(k, v)); body.animApi.go(snap.anim.step); return; }
-  const ins = [...body.querySelectorAll('input, select')];
-  if (ins.length === snap.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = snap.inputs[k]; else i.value = snap.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
-  if (snap.step != null) { const b = body.querySelector(`[data-s="${snap.step}"]`); if (b) b.click(); }
+  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (!w) return;
+  if (!HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } }
+  const snap = HS.snap[w], body = sec.querySelector('.zbody'); if (snap && body.act) body.act.setState(snap);
 }
 /* leaving a topic keeps its open window too */
 go = (function (orig) { return function (sheet, arg) { const p = document.getElementById('hubpanel'); if (p) winSave(p); return orig(sheet, arg); }; })(go);

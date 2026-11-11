@@ -149,11 +149,13 @@ function animMount(id, el) {
   el.querySelector('[data-ab="play"]').addEventListener('click', () => { playing = !playing; frozen = !playing; if (playing && step === A.steps.length - 1) go(0); lastAdv = performance.now(); V = render(); });
   el.querySelectorAll('[data-as]').forEach(li => li.addEventListener('click', () => { playing = false; go(+li.dataset.as); }));
   el.querySelectorAll('[data-ap]').forEach(r => r.addEventListener('input', () => { P[r.dataset.ap] = +r.value; V = render(); }));
+  const handle = { getState: () => ({ v: 1, step, params: Object.assign({}, P) }), setState: st => { if (st.params) Object.entries(st.params).forEach(([k, v]) => el.animApi.setParam(k, v)); if (st.step != null) go(st.step); }, pause: () => { frozen = true; playing = false; V = render(); }, resume: () => { frozen = false; V = render(); }, destroy: () => { frozen = true; playing = false; } };
   el.animApi = { go, get step() { return step; }, P, calc: () => A.calc(P), get simTime() { return sim; }, get frozen() { return frozen; }, setParam: (k, v) => { P[k] = v; const r = el.querySelector(`[data-ap="${k}"]`); if (r) r.value = v; V = render(); } };
   const tick = now => { if (!document.body.contains(cv)) return; const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now; if (!frozen) sim += dt; tStep = sim;
     if (playing && now - lastAdv > 3800) { lastAdv = now; if (step < A.steps.length - 1) go(step + 1); else { playing = false; V = render(); } }
     ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left'; A.draw(ctx, cv.width, cv.height, P, V, step, matchMedia('(prefers-reduced-motion: reduce)').matches ? 99 : tStep); requestAnimationFrame(tick); };
   requestAnimationFrame(tick);
+  return handle;
 }
 /* the animations are windows of their topics, first in the theory layer */
 Object.entries(ANIMS).forEach(([id, A]) => { const n = zNode(A.node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
