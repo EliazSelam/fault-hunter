@@ -2,7 +2,6 @@
    Layer 1 (main): the whole inspection machine with its simulations and 3D. Layer 2 (inner): the theory that meets it.
    Every part is a zoom node; clicking it flies to the part and opens its windows, simulations first, theory after.
    Topics that are not part of the machine are appendices. */
-const ZAPPX = new Set(['ind', 'logic', 'meas']);
 /* appendices leave the machine tree: they are no longer parts of anything */
 ZOOM.forEach(n => { n.parts = n.parts.filter(p => !ZAPPX.has(p)); });
 const MPARTS = [
@@ -166,38 +165,48 @@ function mNodeBlock(n, title) {
     <h4>שכבה 2: תוכן עיוני (${l2.length})</h4><ul class="mwl">${l2.slice(0, 4).map(item).join('')}${l2.length > 4 ? `<li>ועוד ${l2.length - 4}</li>` : ''}</ul>`;
 }
 /* the side panel: the selected part's node, layer 1 first, then layer 2 */
+/* the machine side panel: an ordered list of sections, each shown in some modes.
+   modes: whole (nothing selected), part (a part selected), inner (a part opened), line (the whole line). */
+const MSIDE = [];
+function msideSection(id, order, modes, spec) { MSIDE.push(Object.assign({ id, order, modes }, spec)); MSIDE.sort((a, b) => a.order - b.order); }
+const mMode = () => MS.path.length ? 'inner' : MS.sel ? 'part' : (MS.machine === 'line' ? 'line' : 'whole');
 function mSide() {
   const S = $('#mside'); if (!S) return;
-  if (MS.path.length) {
-    const top = MS.path[MS.path.length - 1], crumbs = ['המכונה', ...MS.path.map(id => zNode(id).t)];
-    const sel = MS.isel != null ? INNER[top][MS.isel] : null;
-    S.innerHTML = `<nav class="mcrumb" aria-label="איפה אני במכונה">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<button type="button" class="linkbtn" data-mlv="${i}">${c}</button> ›` : `<b>${c}</b>`).join(' ')}</nav>
+  const cx = { S, mode: mMode() }, secs = MSIDE.filter(s => s.modes.includes(cx.mode));
+  S.innerHTML = secs.map(s => s.html ? `<div class="msec" data-sec="${s.id}">${s.html(cx)}</div>` : '').join('');
+  secs.forEach(s => { if (s.wire) s.wire(s.html ? S.querySelector(`[data-sec="${s.id}"]`) : null, cx); });
+}
+/* the controls every part, inner part and whole-machine view share */
+function mWireBase(el) {
+  el.querySelectorAll('[data-mp]').forEach(b => b.addEventListener('click', () => mSelect(b.dataset.mp || null)));
+  el.querySelectorAll('[data-mo]').forEach(b => b.addEventListener('click', () => mOpen(b.dataset.mo)));
+  el.querySelectorAll('[data-mi]').forEach(b => b.addEventListener('click', () => { MS.isel = +b.dataset.mi; mSide(); }));
+  el.querySelectorAll('[data-mup]').forEach(b => b.addEventListener('click', mUp));
+  el.querySelectorAll('[data-mlv]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.mlv; while (MS.path.length > k) mUp(); }));
+  el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
+  el.querySelectorAll('[data-zv2]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv2)));
+}
+msideSection('inner', 30, ['inner'], { wire: mWireBase, html: () => {
+  const top = MS.path[MS.path.length - 1], crumbs = ['המכונה', ...MS.path.map(id => zNode(id).t)];
+  const sel = MS.isel != null ? INNER[top][MS.isel] : null;
+  return `<nav class="mcrumb" aria-label="איפה אני במכונה">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<button type="button" class="linkbtn" data-mlv="${i}">${c}</button> ›` : `<b>${c}</b>`).join(' ')}</nav>
       ${sel ? mNodeBlock(zNode(sel.node), sel.t) : `<h3>${zNode(top).t}: מפורק לחלקים</h3><p>לחצו על חלק כדי לראות מה הוא, ואם יש לו חלקים משלו, לפרק גם אותו.</p><ul class="mlist">${INNER[top].map((ip, i) => `<li><button type="button" class="linkbtn" data-mi="${i}">${ip.t}</button></li>`).join('')}</ul>`}
-      <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`;
-  } else if (!MS.sel) {
-    const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
-    S.innerHTML = `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
-      <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`;
-  } else {
-    const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);
-    const kids = n.parts.map(zNode).filter(Boolean), ups = zParents(n.id);
-    const item = w => { const i = zInfo(w); return `<li><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t}</li>`; };
-    S.innerHTML = `<p class="kb">רמה ${n.level} · ${zLevelName(n.level)}</p><h3>${p.t}</h3><p class="mnode">${n.t}</p>
+      <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`; } });
+msideSection('whole', 30, ['whole'], { wire: mWireBase, html: () => {
+  const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
+  return `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
+      <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`; } });
+msideSection('part', 30, ['part'], { wire: mWireBase, html: () => {
+  const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);
+  const kids = n.parts.map(zNode).filter(Boolean), ups = zParents(n.id);
+  const item = w => { const i = zInfo(w); return `<li><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t}</li>`; };
+  return `<p class="kb">רמה ${n.level} · ${zLevelName(n.level)}</p><h3>${p.t}</h3><p class="mnode">${n.t}</p>
       ${ups.length ? `<p class="mup">חלק מ: ${ups.map(u => `<button type="button" class="linkbtn" data-zn="${u.id}">${u.t}</button>`).join(' · ')}</p>` : ''}
       <p class="mact">${INNER[n.id] ? `<button type="button" class="zgo" data-mo="${n.id}">פרק לחלקים ⤢</button> ` : ''}<button type="button" class="zgo" data-zn="${n.id}">היכנס לחלק ←</button></p>
       <h4>שכבה 1: סימולציות והדמיות (${l1.length})</h4><ul class="mwl">${l1.slice(0, 6).map(item).join('')}${l1.length > 6 ? `<li>ועוד ${l1.length - 6}</li>` : ''}</ul>
       <h4>שכבה 2: תוכן עיוני (${l2.length})</h4><ul class="mwl">${l2.slice(0, 5).map(item).join('')}${l2.length > 5 ? `<li>ועוד ${l2.length - 5}</li>` : ''}</ul>
       ${kids.length ? `<h4>בנוי מ</h4><p>${kids.map(k => { const mp = MPARTS.find(x => x.node === k.id); return mp ? `<button type="button" class="linkbtn" data-mp="${mp.id}">${k.t}</button>` : `<button type="button" class="linkbtn" data-zn="${k.id}">${k.t}</button>`; }).join(' · ')}</p>` : ''}
-      <p><button type="button" class="linkbtn" data-mp="">← חזרה למכונה כולה</button></p>`;
-  }
-  S.querySelectorAll('[data-mp]').forEach(b => b.addEventListener('click', () => mSelect(b.dataset.mp || null)));
-  S.querySelectorAll('[data-mo]').forEach(b => b.addEventListener('click', () => mOpen(b.dataset.mo)));
-  S.querySelectorAll('[data-mi]').forEach(b => b.addEventListener('click', () => { MS.isel = +b.dataset.mi; mSide(); }));
-  S.querySelectorAll('[data-mup]').forEach(b => b.addEventListener('click', mUp));
-  S.querySelectorAll('[data-mlv]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.mlv; while (MS.path.length > k) mUp(); }));
-  S.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-  S.querySelectorAll('[data-zv2]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv2)));
-}
+      <p><button type="button" class="linkbtn" data-mp="">← חזרה למכונה כולה</button></p>`; } });
 /* ---- appendices: what is not a part of the machine ---- */
 function zAppxView() {
   const nodes = ZOOM.filter(n => ZAPPX.has(n.id));
@@ -211,22 +220,6 @@ function zAppxView() {
 /* ---- wiring into the zoom tab ---- */
 ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
 ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
-/* a node page shows layer 1 before layer 2 */
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id);
-    const ar = content.querySelector('.zaround'); if (!ar) return;
-    const l1 = [...ar.children].filter(s => zLayer(s.dataset.w) === 1), l2 = [...ar.children].filter(s => zLayer(s.dataset.w) === 2);
-    const ring = content.querySelector('.zring');
-    const box1 = document.createElement('div'), box2 = document.createElement('div'); box1.className = box2.className = 'zaround';
-    l1.forEach(x => box1.appendChild(x)); l2.forEach(x => box2.appendChild(x));
-    const h1 = document.createElement('h3'), h2 = document.createElement('h3'); h1.className = h2.className = 'zring';
-    h1.textContent = `שכבה 1: סימולציות והדמיות (${l1.length})`; h2.textContent = `שכבה 2: תוכן עיוני (${l2.length})`;
-    if (ring) ring.remove();
-    ar.replaceWith(...[l1.length ? h1 : null, l1.length ? box1 : null, l2.length ? h2 : null, l2.length ? box2 : null].filter(Boolean));
-    if (ZAPPX.has(id)) content.querySelector('.zmain h2').insertAdjacentHTML('afterbegin', '<span class="kb">נספח</span> ');
-  };
-})(zNodeView);
 /* the tree and the 3D layers show the machine; appendices are counted on their own */
 zTreeView = (function (orig) { return function () { orig(); content.querySelectorAll('.ztcard').forEach(c => { const id = c.querySelector('.zid').textContent.toLowerCase(); if (ZAPPX.has(id)) c.remove(); }); }; })(zTreeView);
 /* the tour starts at the machine */

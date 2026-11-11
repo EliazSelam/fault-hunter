@@ -208,6 +208,18 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
   ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
+/* stage 2, step 3: sections */
+ok(await pg.evaluate(() => NODE_SECTIONS.map(s => s.id).join() === 'visit,path,crumb,title,hub,children'), 'step 3: the topic page is the sections visit, path, crumb, title, hub, children, in that order');
+await pg.evaluate(() => go('zoom', 'relay')); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => [...document.querySelector('.zmain').children].map(e => e.className.split(' ')[0] || e.tagName).join() === 'zpath,zsibs,zcrumb,H2,hub,zring,ztiles'), 'step 3: the topic page has the same elements in the same order as before');
+await pg.evaluate(() => { document.querySelector('.zpath [data-zn="vac"]').click(); }); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => ZS.node === 'vac'), 'step 3: a path button moves once, to that topic');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); mSetMachine('aoi'); }); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => MSIDE.map(s => s.id).join() === 'visit,mexp,mwhole,inner,whole,part,line' && [...document.querySelectorAll('#mside .msec')].map(e => e.dataset.sec).join() === 'mexp,mwhole,whole'), 'step 3: the machine panel is a list of sections; with nothing selected: progress, the machine\u2019s topics, the machine');
+await pg.evaluate(() => mSelect('table')); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => [...document.querySelectorAll('#mside .msec')].map(e => e.dataset.sec).join() === 'part'), 'step 3: a selected part shows only its section');
+await pg.evaluate(() => { MS.sel = null; mSide(); });
+const built = await pg.evaluate(() => document.documentElement.outerHTML.length);
 /* stage 2, step 2: views */
 for (const v of await pg.evaluate(() => Object.keys(ZVIEW.views).filter(v => v !== 'node' && v !== 'level'))) { await pg.evaluate(v => go('zoom', v), v); await pg.waitForTimeout(120); ok(await pg.evaluate(v => !!document.querySelector(`.zsub [data-zv="${v}"][aria-current="page"]`), v), `step 2: view ${v} renders with its bar`); }
 await pg.evaluate(() => go('zoom', 'L2')); await pg.waitForTimeout(120); ok(await pg.evaluate(() => !!document.querySelector('.zsub') && document.querySelectorAll('.ztile').length > 0), 'step 2: a scale view renders with the bar');

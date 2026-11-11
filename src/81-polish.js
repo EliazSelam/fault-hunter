@@ -28,18 +28,12 @@ WIN.add({ id: 'sections',
 const zMainParent = id => { const ps = zParents(id); return ps.length ? ps.sort((a, b) => b.level - a.level)[0] : null; };
 const zMainPath = id => { const p = []; let n = zNode(id); const seen = new Set(); while (n && !seen.has(n.id)) { seen.add(n.id); p.unshift(n); n = zMainParent(n.id); } return p; };
 const zSiblings = id => { const p = zMainParent(id); return p ? p.parts.map(zNode).filter(Boolean) : ZOOM.filter(z => z.level === zNode(id).level && !ZAPPX.has(z.id)); };
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id); zMarkExplored(id);
-    const n = zNode(id), path = zMainPath(id), sibs = zSiblings(id), i = sibs.findIndex(s => s.id === id);
-    const prev = sibs[(i - 1 + sibs.length) % sibs.length], next = sibs[(i + 1) % sibs.length];
-    const bar = `<nav class="zpath" aria-label="איפה אני במכונה"><button type="button" data-zv="machine" class="zpm">המכונה</button>${path.map(p => ` › <button type="button" data-zn="${p.id}"${p.id === id ? ' aria-current="page"' : ''}>${p.t}</button>`).join('')}</nav>
-      ${sibs.length > 1 ? `<nav class="zsibs" aria-label="באותה רמה"><button type="button" class="zarrow" data-zn="${next.id}" title="הבא באותה רמה (חץ שמאלה)">‹</button>${sibs.map(s => `<button type="button" data-zn="${s.id}" class="${s.id === id ? 'cur' : zExplored().has(s.id) ? 'seen' : ''}">${s.t}</button>`).join('')}<button type="button" class="zarrow" data-zn="${prev.id}" title="הקודם באותה רמה (חץ ימינה)">›</button></nav>` : ''}`;
-    const main = content.querySelector('.zmain'); if (main) main.insertAdjacentHTML('afterbegin', bar);
-    content.querySelectorAll('.zpath [data-zn], .zsibs [data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn); ZS.dir = t ? Math.sign(n.level - t.level) : 0; go('zoom', b.dataset.zn); }));
-    content.querySelectorAll('.zpath [data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', 'machine')));
-  };
-})(zNodeView);
+nodeSection('visit', 5, { wire: ({ id }) => zMarkExplored(id) });
+nodeSection('path', 10, { html: ({ id, node: n }) => {
+  const path = zMainPath(id), sibs = zSiblings(id), i = sibs.findIndex(s => s.id === id);
+  const prev = sibs[(i - 1 + sibs.length) % sibs.length], next = sibs[(i + 1) % sibs.length];
+  return `<nav class="zpath" aria-label="איפה אני במכונה"><button type="button" data-zv="machine" class="zpm">המכונה</button>${path.map(p => ` › <button type="button" data-zn="${p.id}"${p.id === id ? ' aria-current="page"' : ''}>${p.t}</button>`).join('')}</nav>
+      ${sibs.length > 1 ? `<nav class="zsibs" aria-label="באותה רמה"><button type="button" class="zarrow" data-zn="${next.id}" title="הבא באותה רמה (חץ שמאלה)">‹</button>${sibs.map(s => `<button type="button" data-zn="${s.id}" class="${s.id === id ? 'cur' : zExplored().has(s.id) ? 'seen' : ''}">${s.t}</button>`).join('')}<button type="button" class="zarrow" data-zn="${prev.id}" title="הקודם באותה רמה (חץ ימינה)">›</button></nav>` : ''}`; } });
 /* arrow keys: up = out, down = in, left/right = next/previous at the same scale */
 document.addEventListener('keydown', e => {
   if (!(location.hash || '').startsWith('#/zoom/') || e.defaultPrevented || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || ZT_STATE.i >= 0 || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -70,17 +64,13 @@ function zNextToExplore() {
   const near = all.filter(z => zParents(z.id).some(p => ex.has(p.id)) || z.parts.some(p => ex.has(p)));
   return (near[0] || all.sort((a, b) => b.level - a.level)[0]) || null;
 }
-const _mSide81 = mSide;
-mSide = function () {
-  _mSide81();
-  const S = $('#mside'); if (!S) return;
+msideSection('visit', 1, ['part', 'inner'], { wire: () => {
   if (MS.sel && !MS.path.length) { const p = MPARTS.find(x => x.id === MS.sel); if (p && p.node) zMarkExplored(p.node); }
-  if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); }
-  if (MS.sel || MS.path.length) return;
-  const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
-  S.insertAdjacentHTML('afterbegin', `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`);
-  const b = S.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } });
-};
+  if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); } } });
+msideSection('mexp', 10, ['whole'], {
+  html: () => { const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
+    return `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`; },
+  wire: el => { const b = el.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } }); } });
 /* finder: type a topic, jump to it in the machine */
 zMachineView = (function (orig) {
   return function () {
