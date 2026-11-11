@@ -13,7 +13,24 @@ const HUBS = [
   ['read', 'קריאה והרחבה', 2, ['reading', 'page', 'say'], '#4A4540']
 ];
 const hubOf = w => { const k = zInfo(w).kind; const h = HUBS.find(x => x[3].includes(k)); return h ? h[0] : 'read'; };
-const HS = { hub: {}, win: {} };
+const HS = { hub: {}, win: {}, snap: {} };
+/* a window's state, kept when it is closed and given back when it opens again: its step, its controls, its animation */
+function winSave(panel) {
+  const sec = panel && panel.querySelector('.zwin'); if (!sec) return; const body = sec.querySelector('.zbody'), w = sec.dataset.w; if (!body || !w) return;
+  const snap = { inputs: [...body.querySelectorAll('input, select')].map(i => i.type === 'checkbox' ? i.checked : i.value) };
+  const st = body.querySelector('[data-s][aria-current="step"]'); if (st) snap.step = st.dataset.s;
+  if (body.animApi) snap.anim = { step: body.animApi.step, P: Object.assign({}, body.animApi.P) };
+  HS.snap[w] = snap;
+}
+function winRestore(panel) {
+  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w, snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
+  if (snap.anim && body.animApi) { Object.entries(snap.anim.P).forEach(([k, v]) => body.animApi.setParam(k, v)); body.animApi.go(snap.anim.step); return; }
+  const ins = [...body.querySelectorAll('input, select')];
+  if (ins.length === snap.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = snap.inputs[k]; else i.value = snap.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
+  if (snap.step != null) { const b = body.querySelector(`[data-s="${snap.step}"]`); if (b) b.click(); }
+}
+/* leaving a topic keeps its open window too */
+go = (function (orig) { return function (sheet, arg) { const p = document.getElementById('hubpanel'); if (p) winSave(p); return orig(sheet, arg); }; })(go);
 /* the topic's object: its inner parts exploded, its part of the machine, or the part it is inside */
 function hubGeometry(id) {
   if (INNER[id]) return INNER[id].map(ip => ({ b: ip.b.map((v, i) => v + 0.9 * ip.ex[Math.floor(i / 2)]), c: ip.c, sh: ROUND.test(ip.t) ? longAxis(ip.b) : null }));
@@ -30,8 +47,9 @@ function hubObject(cv, id) {
   function draw() { const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const items = [];
     G.forEach(g => { const P = []; mShape(P, g.b, g.sh, col(g.c), g.c === 'tint' ? 0.55 : 0.95, 'rgba(27,47,90,.35)'); P.forEach(f => { const q = f.pts.map(p => V.proj(p)); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, hl: false }); }); });
     mFloor(ctx, p => V.proj(p), [0, 0, -1.3], 2.0); mPaint(ctx, items); }
-  let t0 = performance.now();
-  const tick = now => { if (!document.body.contains(cv)) return; if (!matchMedia('(prefers-reduced-motion: reduce)').matches) V.st.yaw += (now - t0) / 1000 * 0.35; t0 = now; draw(); requestAnimationFrame(tick); };
+  let t0 = performance.now(), spin = false; cv._V = V;
+  cv.addEventListener('pointerenter', () => spin = true); cv.addEventListener('pointerleave', () => spin = false); cv.addEventListener('focus', () => spin = true); cv.addEventListener('blur', () => spin = false);
+  const tick = now => { if (!document.body.contains(cv)) return; if (spin && !matchMedia('(prefers-reduced-motion: reduce)').matches) { V.st.yaw += (now - t0) / 1000 * 0.35; draw(); } t0 = now; requestAnimationFrame(tick); };
   draw(); requestAnimationFrame(tick);
 }
 /* rebuild the middle of a topic page as the object and its hubs */
@@ -49,15 +67,19 @@ zNodeView = (function (orig) {
     const hubBtn = h => `<button type="button" class="hubbtn" data-hub="${h[0]}" aria-pressed="${HS.hub[id] === h[0]}" style="--hc:${h[4]}"><b>${h[1]}</b><small>${by[h[0]].length} · שכבה ${h[2]}</small></button>`;
     const html = `<section class="hub" aria-label="הנושא ודרכי ההבנה שלו">
       <div class="hubstage"><div class="hubcol">${left.map(hubBtn).join('')}</div>
-        <div class="hubmid"><canvas class="hubobj" width="420" height="300" aria-label="The topic as an object; click to find it in the machine"></canvas><p class="hubcap">לחצו על האובייקט כדי למצוא אותו במכונה</p></div>
+        <div class="hubmid"><canvas class="hubobj" width="420" height="300" tabindex="0" role="button" aria-label="${n.t}: מצא במכונה"></canvas><p class="hubcap"><button type="button" class="hubfind">מצא את החלק במכונה ←</button></p></div>
         <div class="hubcol">${right.map(hubBtn).join('')}</div>
         <svg class="hublines" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">${[...left.map((h, i) => [h, 86, 10 + i * 20]), ...right.map((h, i) => [h, 14, 10 + i * 20])].map(([h, x, y]) => `<path d="M50 30 C ${(50 + x) / 2} 30, ${(50 + x) / 2} ${y}, ${x} ${y}" stroke="${h[4]}" stroke-width="0.35" fill="none" stroke-dasharray="${HS.hub[id] === h[0] ? '' : '1.2 1'}" opacity="${HS.hub[id] === h[0] ? 0.9 : 0.45}"/>`).join('')}</svg></div>
       <div class="hubpanel" id="hubpanel"></div></section>`;
     const anchor = main.querySelector('h2'); anchor.insertAdjacentHTML('afterend', html);
     hubObject(main.querySelector('.hubobj'), id);
+    const findInMachine = () => main.querySelector('.hubobj').dispatchEvent(new Event('click'));
+    main.querySelector('.hubfind').addEventListener('click', findInMachine);
+    main.querySelector('.hubobj').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); findInMachine(); } });
     main.querySelector('.hubobj').addEventListener('click', () => { if (typeof mJump === 'function' && MPARTS.some(p => p.node === id) || Object.values(INNER).some(l => l.some(ip => ip.node === id))) { go('zoom', 'machine'); setTimeout(() => mJump(id), 50); } });
     const panel = main.querySelector('#hubpanel');
     const showHub = h => {
+      winSave(panel);
       HS.hub[id] = h; const list = by[h]; if (!HS.win[id] || !list.includes(HS.win[id])) HS.win[id] = list[0];
       main.querySelectorAll('.hubbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.hub === h));
       main.querySelectorAll('.hublines path').forEach((p, i) => { const hh = [...left, ...right][i]; p.setAttribute('stroke-dasharray', hh[0] === h ? '' : '1.2 1'); p.setAttribute('opacity', hh[0] === h ? 0.9 : 0.45); });
@@ -65,7 +87,7 @@ zNodeView = (function (orig) {
       panel.innerHTML = `<header class="hubhead" style="--hc:${H[4]}"><h3>${H[1]}</h3><span class="kb">שכבה ${H[2]}: ${H[2] === 1 ? 'רואים ומפעילים' : 'מבינים לעומק'}</span></header>
         ${list.length > 1 ? `<nav class="hubpills" aria-label="החלונות של ${H[1]}">${list.map(x => { const i = zInfo(x); return `<button type="button" data-hw="${x}" aria-pressed="${x === w}"><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t.length > 42 ? i.t.slice(0, 40) + '…' : i.t}</button>`; }).join('')}</nav>` : ''}
         <section class="zwin open" data-w="${w}"><header><span class="kb">${(ZKIND[zInfo(w).kind] || [''])[0]}</span> <h3 class="zwt">${zInfo(w).t}</h3></header><div class="zbody"></div></section>`;
-      zMount(w, panel.querySelector('.zbody'));
+      zMount(w, panel.querySelector('.zbody')); winRestore(panel);
       panel.querySelectorAll('[data-hw]').forEach(b => b.addEventListener('click', () => { HS.win[id] = b.dataset.hw; showHub(h); }));
       if (typeof hubAfterRender === 'function') hubAfterRender(id, h, showHub);
     };

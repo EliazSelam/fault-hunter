@@ -11,7 +11,7 @@ const ANIMS = {
       (P, V) => `שורות בשנייה: f = v / p = ${P.v} mm/s ÷ ${f1(P.p, 2)} µm = <b>${f1(V.f)} kHz</b>.`,
       (P, V) => `בזמן החשיפה הפאנל ממשיך לזוז: b = v · t = <b>${f1(V.b, 2)} µm</b>.`,
       (P, V) => `ביחידות של פיקסל: b / p = f · t = <b>${f1(V.bpx, 2)} פיקסל</b>.`,
-      (P, V) => `אור רציף מאיר כל זמן השורה, t = 1/f = ${f1(V.tcont)} µs, ולכן b = p: <b>טשטוש של פיקסל שלם</b>. בגלל זה מאירים בהבזק קצר.`],
+      (P, V) => `<b>הנחה:</b> אם האור רציף וגם החשיפה של המצלמה פתוחה כל זמן השורה, t = 1/f = ${f1(V.tcont)} µs, אז b = p: <b>טשטוש של פיקסל שלם</b>. יש שתי דרכים לקצר את חלון איסוף האור: הבזק קצר, או חשיפה אלקטרונית קצרה במצלמה שתומכת בכך, במחיר של פחות אור.`],
     draw(ctx, W, H, P, V, s, tm) {
       const y0 = 70, h = 120, sc = 9, xs = W * 0.55, shift = (tm * P.v * 0.12) % (P.p * sc * 6);
       ctx.fillStyle = AC.tint; ctx.fillRect(20, y0, W - 40, h);
@@ -131,7 +131,7 @@ const ANIMS = {
 };
 /* the player: steps, a drawing, sliders, play */
 function animMount(id, el) {
-  const A = ANIMS[id], P = Object.fromEntries(A.params.map(p => [p[0], p[5]])); let step = 0, playing = false, t0 = performance.now(), tStep = 0, lastAdv = performance.now();
+  const A = ANIMS[id], P = Object.fromEntries(A.params.map(p => [p[0], p[5]])); let step = 0, playing = false, frozen = false, sim = 0, lastNow = performance.now(), lastAdv = performance.now(); let tStep = 0;
   el.innerHTML = `<div class="anim"><div class="animL"><ol class="asteps">${A.steps.map((_, i) => `<li data-as="${i}"></li>`).join('')}</ol>
     <div class="actl"><button type="button" data-ab="prev" aria-label="הצעד הקודם">⏮</button><button type="button" data-ab="play">▶ נגן</button><button type="button" data-ab="next" aria-label="הצעד הבא">⏭</button></div>
     <div class="aprm">${A.params.map(([k, l, mn, mx, st, v, u]) => `<label>${l} <b data-av="${k}"></b><input type="range" data-ap="${k}" min="${mn}" max="${mx}" step="${st}" value="${v}"></label>`).join('')}</div></div>
@@ -143,14 +143,14 @@ function animMount(id, el) {
     el.querySelector('[data-ab="play"]').textContent = playing ? '❚❚ עצור' : '▶ נגן';
     return V; };
   let V = render();
-  const go = i => { step = Math.max(0, Math.min(A.steps.length - 1, i)); tStep = 0; t0 = performance.now(); V = render(); };
+  const go = i => { step = Math.max(0, Math.min(A.steps.length - 1, i)); sim = 0; V = render(); };
   el.querySelector('[data-ab="prev"]').addEventListener('click', () => { playing = false; go(step - 1); });
   el.querySelector('[data-ab="next"]').addEventListener('click', () => { playing = false; go(step + 1); });
-  el.querySelector('[data-ab="play"]').addEventListener('click', () => { playing = !playing; if (playing && step === A.steps.length - 1) go(0); lastAdv = performance.now(); V = render(); });
+  el.querySelector('[data-ab="play"]').addEventListener('click', () => { playing = !playing; frozen = !playing; if (playing && step === A.steps.length - 1) go(0); lastAdv = performance.now(); V = render(); });
   el.querySelectorAll('[data-as]').forEach(li => li.addEventListener('click', () => { playing = false; go(+li.dataset.as); }));
   el.querySelectorAll('[data-ap]').forEach(r => r.addEventListener('input', () => { P[r.dataset.ap] = +r.value; V = render(); }));
-  el.animApi = { go, get step() { return step; }, P, calc: () => A.calc(P) };
-  const tick = now => { if (!document.body.contains(cv)) return; tStep = (now - t0) / 1000;
+  el.animApi = { go, get step() { return step; }, P, calc: () => A.calc(P), get simTime() { return sim; }, get frozen() { return frozen; }, setParam: (k, v) => { P[k] = v; const r = el.querySelector(`[data-ap="${k}"]`); if (r) r.value = v; V = render(); } };
+  const tick = now => { if (!document.body.contains(cv)) return; const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now; if (!frozen) sim += dt; tStep = sim;
     if (playing && now - lastAdv > 3800) { lastAdv = now; if (step < A.steps.length - 1) go(step + 1); else { playing = false; V = render(); } }
     ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left'; A.draw(ctx, cv.width, cv.height, P, V, step, matchMedia('(prefers-reduced-motion: reduce)').matches ? 99 : tStep); requestAnimationFrame(tick); };
   requestAnimationFrame(tick);

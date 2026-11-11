@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.33.0] — 2026-11-11
+
+Stage 1 after the external review of 2.32.0: continuity fixes, no new design. Both findings the review reproduced were reproduced here first, then fixed.
+
+- **F01, arrow keys:** an arrow inside an activity (the camera demo, for example) stays in the activity; the page's level navigation answers only when the focus is on the page or its navigation.
+- **F02, losing your place:** a window's state is kept when another hub or another topic replaces it, and given back when it opens again: the demo's step, a simulation's controls, an animation's step and parameters.
+- **F03, the exposure assumption:** the line-scan animation now states the continuous-light case as an assumption (exposure open for the whole line), and names the two ways to shorten the light-collection window: a short flash, or a short electronic exposure in a camera that supports it, at the cost of light.
+- **F04, pause:** animations run on a simulation clock; pause freezes both the steps and the drawing.
+- **F05, AOS context:** the side panel names and explains the machine on screen (AOI finds defects, AOS repairs shorts) and marks the shared axis, table and cabinet as a teaching simplification.
+- **F06, visits:** opening a topic counts as a visit ("ביקרת"), not as understanding.
+- **F08, a still object:** the topic object no longer spins while an activity is open; it turns under the pointer or with the focus, and is smaller.
+- **F10, access:** the topic object is a keyboard button with a visible "find the part in the machine" button; the world map is a group of buttons and has a full list of topics as an alternative.
+- Each fix has its own behaviour check in the zoom suite (45,708 checks). F07 (the depth path) and F09 (permanent links) are planned for stages 3 and 2.
+
 ## [2.32.0] — 2026-11-11
 
 The three priorities: the right layers first, information bundled, the visual and the simulations carried further.
