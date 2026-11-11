@@ -25,20 +25,10 @@ function mSetMachine(m) {
   MS.machine = m; MS.sel = null; MS.path = []; MS.Ct = m === 'line' ? [0.5, 0, 1.0] : [0.5, 0, 1.0]; MS.distT = m === 'line' ? 24 : 12;
   document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === m)); mSide();
 }
-mSide = (function (orig) {
-  return function () {
-    orig();
-    const S = $('#mside'); if (!S || MS.sel || MS.path.length) return;
-    if (MS.machine === 'line') {
-      S.innerHTML = `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
-        <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`;
-      S.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2)));
-      S.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn)));
-      return;
-    }
-    return;
-  };
-})(mSide);
+msideSection('line', 30, ['line'], {
+  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
+        <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
+  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
 zMachineView = (function (orig) {
   return function () {
     orig();
@@ -82,15 +72,6 @@ function zSimsView() {
 }
 /* open a topic with one of its windows already open, and scroll to it */
 function zOpenWindow(node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id);
-    const w = ZS.openW; ZS.openW = null; if (!w) return;
-    const sec = [...content.querySelectorAll('.zwin')].find(s => s.dataset.w === w); if (!sec) return;
-    const btn = sec.querySelector('.zopen'); if (btn && btn.getAttribute('aria-expanded') !== 'true') btn.click();
-    sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60);
-  };
-})(zNodeView);
 /* the views bar gets the gallery; the machine finder also finds simulations */
 ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
 zMachineView = (function (orig) {

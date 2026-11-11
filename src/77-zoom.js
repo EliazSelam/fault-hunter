@@ -57,6 +57,9 @@ const ZCORE = new Set(['proc', 'cam', 'vac', 'trig', 'valve', 'relay', 'resistor
 const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 'AOS' };
 /* windows that are a whole existing page, and resources that serve every scale */
 const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
+/* topics that are not parts of the machine are appendices; the appendices view shows only the shared resources that are not old indexes */
+const ZAPPX = new Set(['ind', 'logic', 'meas']);
+const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
 /* expand wildcards into concrete window ids */
@@ -173,27 +176,24 @@ function zLevelView(level) {
   content.innerHTML = `<div class="zwrap"><div class="zmain zanim"><h2>רמה ${level}: ${L[1]}</h2><p class="lead">${L[2]}. בחר נושא כדי להיכנס אליו.</p><div class="ztiles">${ZOOM.filter(n => n.level === level && !(typeof ZAPPX !== 'undefined' && ZAPPX.has(n.id))).map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות${n.parts.length ? ` · בנוי מ-${n.parts.length}` : ''}</small></button>`).join('')}</div></div>${zStack(level)}</div>`;
   zWire(); setTitle('זום', `רמה ${level}`, L[1]);
 }
+/* the topic page: an ordered list of sections. A section gives HTML for the main column and may wire it once it is in the page.
+   To add something to a topic page, register a section here; nothing wraps zNodeView. */
+const NODE_SECTIONS = [];
+function nodeSection(id, order, spec) { NODE_SECTIONS.push(Object.assign({ id, order }, spec)); NODE_SECTIONS.sort((a, b) => a.order - b.order); }
 function zNodeView(id) {
   zCapture();
   const n = zNode(id); if (!n) return zLevelView(5);
-  const ups = zParents(id), downs = n.parts.map(zNode).filter(Boolean), wins = zWindows(n);
-  const around = wins.slice(1).map(w => [w, zInfo(w)]).sort((x, y) => (ZKIND[x[1].kind] || [0, 9])[1] - (ZKIND[y[1].kind] || [0, 9])[1]);
-  const card = (w, info, core) => `<section class="zwin ${core ? 'core' : ''}" data-w="${w}"><header><span class="kb">${(ZKIND[info.kind] || [info.kind])[0]}</span> <h3 class="zwt">${info.t}</h3>${core ? '' : ' <button type="button" class="zopen" aria-expanded="false">פתח</button>'}</header><div class="zbody"></div></section>`;
-  content.innerHTML = `<div class="zwrap"><div class="zmain zanim ${ZS.dir > 0 ? 'zin' : ZS.dir < 0 ? 'zout' : ''}">
-    <nav class="zcrumb" aria-label="איפה אני">${ups.length ? `<span class="kb">חלק מ</span> ${ups.map(u => `<button type="button" class="zup" data-zn="${u.id}">↑ ${u.t}</button>`).join(' ')}` : '<span class="kb">הרמה העליונה</span>'}</nav>
-    <h2><span class="kb">רמה ${n.level} · ${ZLEVELS.find(x => x[0] === n.level)[1]}</span> ${n.t}</h2>
-    ${card(n.core, zInfo(n.core), true)}
-    ${around.length ? `<h3 class="zring">מהגרעין החוצה</h3><div class="zaround">${around.map(([w, i]) => card(w, i, false)).join('')}</div>` : ''}
-    ${downs.length ? `<h3 class="zring">בנוי מ: זום פנימה</h3><div class="ztiles">${downs.map(d => `<button type="button" class="ztile zdown" data-zn="${d.id}"><b>↓ ${d.t}</b><small>רמה ${d.level} · ${zWindows(d).length} חלונות</small></button>`).join('')}</div>` : ''}
+  const cx = { id, node: n, openW: ZS.openW }; ZS.openW = null;
+  content.innerHTML = `<div class="zwrap"><div class="zmain zanim ${ZS.dir > 0 ? 'zin' : ZS.dir < 0 ? 'zout' : ''}">${NODE_SECTIONS.map(s => s.html ? s.html(cx) : '').join('\n    ')}
   </div>${zStack(n.level)}</div>`;
-  const coreBody = content.querySelector('.zwin.core .zbody'); zMount(n.core, coreBody);
-  content.querySelectorAll('.zwin:not(.core) .zopen').forEach(b => b.addEventListener('click', () => {
-    const sec = b.closest('.zwin'), body = sec.querySelector('.zbody'), open = b.getAttribute('aria-expanded') === 'true';
-    if (open) { body.innerHTML = ''; b.setAttribute('aria-expanded', 'false'); b.textContent = 'פתח'; sec.classList.remove('open'); }
-    else { zMount(sec.dataset.w, body); b.setAttribute('aria-expanded', 'true'); b.textContent = 'סגור'; sec.classList.add('open'); }
-  }));
+  cx.main = content.querySelector('.zmain');
   zWire(); setTitle('זום', n.t, `רמה ${n.level}`);
+  NODE_SECTIONS.forEach(s => { if (s.wire) s.wire(cx); });
 }
+nodeSection('crumb', 20, { html: ({ id }) => { const ups = zParents(id); return `<nav class="zcrumb" aria-label="איפה אני">${ups.length ? `<span class="kb">חלק מ</span> ${ups.map(u => `<button type="button" class="zup" data-zn="${u.id}">↑ ${u.t}</button>`).join(' ')}` : '<span class="kb">הרמה העליונה</span>'}</nav>`; } });
+nodeSection('title', 30, { html: ({ id, node: n }) => `<h2>${ZAPPX.has(id) ? '<span class="kb">נספח</span> ' : ''}<span class="kb">רמה ${n.level} · ${ZLEVELS.find(x => x[0] === n.level)[1]}</span> ${n.t}</h2>` });
+nodeSection('children', 90, { html: ({ node: n }) => { const downs = n.parts.map(zNode).filter(Boolean); return downs.length ? `<h3 class="zring">בנוי מ: זום פנימה</h3><div class="ztiles">${downs.map(d => `<button type="button" class="ztile zdown" data-zn="${d.id}"><b>↓ ${d.t}</b><small>רמה ${d.level} · ${zWindows(d).length} חלונות</small></button>`).join('')}</div>` : ''; } });
+
 function zWire() {
   content.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn), c = zNode(ZS.node); ZS.dir = c && t ? Math.sign(c.level - t.level) : 0; go('zoom', b.dataset.zn); }));
   content.querySelectorAll('[data-zl]').forEach(b => b.addEventListener('click', () => { ZS.dir = 0; go('zoom', 'L' + b.dataset.zl); }));

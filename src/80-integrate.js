@@ -8,13 +8,9 @@ Object.assign(INNER, {
   brake: [IB('coil', 'סליל הבלם', [-0.4, 0.4, -0.1, 0.1, -0.4, 0.4], [0, 0, 0.7], 'mech'), IB('brake', 'דיסקת חיכוך וקפיצים', [-0.45, 0.45, 0.2, 0.3, -0.45, 0.45], [0, 0.8, 0], 'text')]
 });
 /* the whole machine also has two topics of its own: the cycle it runs and the way it is brought up */
-const _mSide80 = mSide;
-mSide = function () {
-  _mSide80();
-  const S = $('#mside'); if (!S || MS.sel || MS.path.length) return;
-  S.insertAdjacentHTML('afterbegin', `<div class="mwhole"><p class="kb">המכונה כולה</p><p><button type="button" class="zgo" data-zn="proc">המחזור: סריקה, מציאה ותיקון ←</button></p><p><button type="button" class="zgo" data-zn="bringup">הפעלה ראשונה, ATP ושטח ←</button></p></div>`);
-  S.querySelectorAll('.mwhole [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-};
+msideSection('mwhole', 20, ['whole'], {
+  html: () => `<div class="mwhole"><p class="kb">המכונה כולה</p><p><button type="button" class="zgo" data-zn="proc">המחזור: סריקה, מציאה ותיקון ←</button></p><p><button type="button" class="zgo" data-zn="bringup">הפעלה ראשונה, ATP ושטח ←</button></p></div>`,
+  wire: el => el.querySelectorAll('.mwhole [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); })) });
 /* every topic of the machine is reachable inside the 3D machine */
 function mReach() {
   const got = new Set(['proc', 'bringup']), open = [];
@@ -23,5 +19,4 @@ function mReach() {
   return { got, missing: ZOOM.filter(z => !ZAPPX.has(z.id) && !got.has(z.id)).map(z => z.id) };
 }
 /* appendices: no old indexes, only what is outside the machine and what serves the whole book */
-const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 zAppxView = (function (orig) { return function () { orig(); const tiles = content.querySelectorAll('.ztile[data-route]'); tiles.forEach(t => { if (!ZRES_SHOWN.some(([r]) => r.slice(2) === t.dataset.route)) t.remove(); }); }; })(zAppxView);

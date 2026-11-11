@@ -426,6 +426,7 @@ nav.sheets button[hidden]{display:none}
 .wlegend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}.wlegend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--c);margin-inline-end:6px;vertical-align:-1px}.wlegend .hollow::before{background:#FBFAF7;border:1.5px solid #1B2F5A}
 .hubgrp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 6px}.hubgt{font-size:12px;font-weight:700;color:var(--muted);margin-inline-end:4px}
 .zbody.clamp{max-height:380px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}.clampmore button{font:inherit;font-size:14px;padding:6px 14px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
+.msec{display:contents}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -8190,6 +8191,9 @@ const ZCORE = new Set(['proc', 'cam', 'vac', 'trig', 'valve', 'relay', 'resistor
 const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 'AOS' };
 /* windows that are a whole existing page, and resources that serve every scale */
 const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
+/* topics that are not parts of the machine are appendices; the appendices view shows only the shared resources that are not old indexes */
+const ZAPPX = new Set(['ind', 'logic', 'meas']);
+const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
 /* expand wildcards into concrete window ids */
@@ -8306,27 +8310,24 @@ function zLevelView(level) {
   content.innerHTML = `<div class="zwrap"><div class="zmain zanim"><h2>רמה ${level}: ${L[1]}</h2><p class="lead">${L[2]}. בחר נושא כדי להיכנס אליו.</p><div class="ztiles">${ZOOM.filter(n => n.level === level && !(typeof ZAPPX !== 'undefined' && ZAPPX.has(n.id))).map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות${n.parts.length ? ` · בנוי מ-${n.parts.length}` : ''}</small></button>`).join('')}</div></div>${zStack(level)}</div>`;
   zWire(); setTitle('זום', `רמה ${level}`, L[1]);
 }
+/* the topic page: an ordered list of sections. A section gives HTML for the main column and may wire it once it is in the page.
+   To add something to a topic page, register a section here; nothing wraps zNodeView. */
+const NODE_SECTIONS = [];
+function nodeSection(id, order, spec) { NODE_SECTIONS.push(Object.assign({ id, order }, spec)); NODE_SECTIONS.sort((a, b) => a.order - b.order); }
 function zNodeView(id) {
   zCapture();
   const n = zNode(id); if (!n) return zLevelView(5);
-  const ups = zParents(id), downs = n.parts.map(zNode).filter(Boolean), wins = zWindows(n);
-  const around = wins.slice(1).map(w => [w, zInfo(w)]).sort((x, y) => (ZKIND[x[1].kind] || [0, 9])[1] - (ZKIND[y[1].kind] || [0, 9])[1]);
-  const card = (w, info, core) => `<section class="zwin ${core ? 'core' : ''}" data-w="${w}"><header><span class="kb">${(ZKIND[info.kind] || [info.kind])[0]}</span> <h3 class="zwt">${info.t}</h3>${core ? '' : ' <button type="button" class="zopen" aria-expanded="false">פתח</button>'}</header><div class="zbody"></div></section>`;
-  content.innerHTML = `<div class="zwrap"><div class="zmain zanim ${ZS.dir > 0 ? 'zin' : ZS.dir < 0 ? 'zout' : ''}">
-    <nav class="zcrumb" aria-label="איפה אני">${ups.length ? `<span class="kb">חלק מ</span> ${ups.map(u => `<button type="button" class="zup" data-zn="${u.id}">↑ ${u.t}</button>`).join(' ')}` : '<span class="kb">הרמה העליונה</span>'}</nav>
-    <h2><span class="kb">רמה ${n.level} · ${ZLEVELS.find(x => x[0] === n.level)[1]}</span> ${n.t}</h2>
-    ${card(n.core, zInfo(n.core), true)}
-    ${around.length ? `<h3 class="zring">מהגרעין החוצה</h3><div class="zaround">${around.map(([w, i]) => card(w, i, false)).join('')}</div>` : ''}
-    ${downs.length ? `<h3 class="zring">בנוי מ: זום פנימה</h3><div class="ztiles">${downs.map(d => `<button type="button" class="ztile zdown" data-zn="${d.id}"><b>↓ ${d.t}</b><small>רמה ${d.level} · ${zWindows(d).length} חלונות</small></button>`).join('')}</div>` : ''}
+  const cx = { id, node: n, openW: ZS.openW }; ZS.openW = null;
+  content.innerHTML = `<div class="zwrap"><div class="zmain zanim ${ZS.dir > 0 ? 'zin' : ZS.dir < 0 ? 'zout' : ''}">${NODE_SECTIONS.map(s => s.html ? s.html(cx) : '').join('\n    ')}
   </div>${zStack(n.level)}</div>`;
-  const coreBody = content.querySelector('.zwin.core .zbody'); zMount(n.core, coreBody);
-  content.querySelectorAll('.zwin:not(.core) .zopen').forEach(b => b.addEventListener('click', () => {
-    const sec = b.closest('.zwin'), body = sec.querySelector('.zbody'), open = b.getAttribute('aria-expanded') === 'true';
-    if (open) { body.innerHTML = ''; b.setAttribute('aria-expanded', 'false'); b.textContent = 'פתח'; sec.classList.remove('open'); }
-    else { zMount(sec.dataset.w, body); b.setAttribute('aria-expanded', 'true'); b.textContent = 'סגור'; sec.classList.add('open'); }
-  }));
+  cx.main = content.querySelector('.zmain');
   zWire(); setTitle('זום', n.t, `רמה ${n.level}`);
+  NODE_SECTIONS.forEach(s => { if (s.wire) s.wire(cx); });
 }
+nodeSection('crumb', 20, { html: ({ id }) => { const ups = zParents(id); return `<nav class="zcrumb" aria-label="איפה אני">${ups.length ? `<span class="kb">חלק מ</span> ${ups.map(u => `<button type="button" class="zup" data-zn="${u.id}">↑ ${u.t}</button>`).join(' ')}` : '<span class="kb">הרמה העליונה</span>'}</nav>`; } });
+nodeSection('title', 30, { html: ({ id, node: n }) => `<h2>${ZAPPX.has(id) ? '<span class="kb">נספח</span> ' : ''}<span class="kb">רמה ${n.level} · ${ZLEVELS.find(x => x[0] === n.level)[1]}</span> ${n.t}</h2>` });
+nodeSection('children', 90, { html: ({ node: n }) => { const downs = n.parts.map(zNode).filter(Boolean); return downs.length ? `<h3 class="zring">בנוי מ: זום פנימה</h3><div class="ztiles">${downs.map(d => `<button type="button" class="ztile zdown" data-zn="${d.id}"><b>↓ ${d.t}</b><small>רמה ${d.level} · ${zWindows(d).length} חלונות</small></button>`).join('')}</div>` : ''; } });
+
 function zWire() {
   content.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn), c = zNode(ZS.node); ZS.dir = c && t ? Math.sign(c.level - t.level) : 0; go('zoom', b.dataset.zn); }));
   content.querySelectorAll('[data-zl]').forEach(b => b.addEventListener('click', () => { ZS.dir = 0; go('zoom', 'L' + b.dataset.zl); }));
@@ -8550,7 +8551,6 @@ showAbout = function () { _showAbout78(); const btns = content.querySelector('.a
    Layer 1 (main): the whole inspection machine with its simulations and 3D. Layer 2 (inner): the theory that meets it.
    Every part is a zoom node; clicking it flies to the part and opens its windows, simulations first, theory after.
    Topics that are not part of the machine are appendices. */
-const ZAPPX = new Set(['ind', 'logic', 'meas']);
 /* appendices leave the machine tree: they are no longer parts of anything */
 ZOOM.forEach(n => { n.parts = n.parts.filter(p => !ZAPPX.has(p)); });
 const MPARTS = [
@@ -8714,38 +8714,48 @@ function mNodeBlock(n, title) {
     <h4>שכבה 2: תוכן עיוני (${l2.length})</h4><ul class="mwl">${l2.slice(0, 4).map(item).join('')}${l2.length > 4 ? `<li>ועוד ${l2.length - 4}</li>` : ''}</ul>`;
 }
 /* the side panel: the selected part's node, layer 1 first, then layer 2 */
+/* the machine side panel: an ordered list of sections, each shown in some modes.
+   modes: whole (nothing selected), part (a part selected), inner (a part opened), line (the whole line). */
+const MSIDE = [];
+function msideSection(id, order, modes, spec) { MSIDE.push(Object.assign({ id, order, modes }, spec)); MSIDE.sort((a, b) => a.order - b.order); }
+const mMode = () => MS.path.length ? 'inner' : MS.sel ? 'part' : (MS.machine === 'line' ? 'line' : 'whole');
 function mSide() {
   const S = $('#mside'); if (!S) return;
-  if (MS.path.length) {
-    const top = MS.path[MS.path.length - 1], crumbs = ['המכונה', ...MS.path.map(id => zNode(id).t)];
-    const sel = MS.isel != null ? INNER[top][MS.isel] : null;
-    S.innerHTML = `<nav class="mcrumb" aria-label="איפה אני במכונה">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<button type="button" class="linkbtn" data-mlv="${i}">${c}</button> ›` : `<b>${c}</b>`).join(' ')}</nav>
+  const cx = { S, mode: mMode() }, secs = MSIDE.filter(s => s.modes.includes(cx.mode));
+  S.innerHTML = secs.map(s => s.html ? `<div class="msec" data-sec="${s.id}">${s.html(cx)}</div>` : '').join('');
+  secs.forEach(s => { if (s.wire) s.wire(s.html ? S.querySelector(`[data-sec="${s.id}"]`) : null, cx); });
+}
+/* the controls every part, inner part and whole-machine view share */
+function mWireBase(el) {
+  el.querySelectorAll('[data-mp]').forEach(b => b.addEventListener('click', () => mSelect(b.dataset.mp || null)));
+  el.querySelectorAll('[data-mo]').forEach(b => b.addEventListener('click', () => mOpen(b.dataset.mo)));
+  el.querySelectorAll('[data-mi]').forEach(b => b.addEventListener('click', () => { MS.isel = +b.dataset.mi; mSide(); }));
+  el.querySelectorAll('[data-mup]').forEach(b => b.addEventListener('click', mUp));
+  el.querySelectorAll('[data-mlv]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.mlv; while (MS.path.length > k) mUp(); }));
+  el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
+  el.querySelectorAll('[data-zv2]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv2)));
+}
+msideSection('inner', 30, ['inner'], { wire: mWireBase, html: () => {
+  const top = MS.path[MS.path.length - 1], crumbs = ['המכונה', ...MS.path.map(id => zNode(id).t)];
+  const sel = MS.isel != null ? INNER[top][MS.isel] : null;
+  return `<nav class="mcrumb" aria-label="איפה אני במכונה">${crumbs.map((c, i) => i < crumbs.length - 1 ? `<button type="button" class="linkbtn" data-mlv="${i}">${c}</button> ›` : `<b>${c}</b>`).join(' ')}</nav>
       ${sel ? mNodeBlock(zNode(sel.node), sel.t) : `<h3>${zNode(top).t}: מפורק לחלקים</h3><p>לחצו על חלק כדי לראות מה הוא, ואם יש לו חלקים משלו, לפרק גם אותו.</p><ul class="mlist">${INNER[top].map((ip, i) => `<li><button type="button" class="linkbtn" data-mi="${i}">${ip.t}</button></li>`).join('')}</ul>`}
-      <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`;
-  } else if (!MS.sel) {
-    const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
-    S.innerHTML = `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
-      <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`;
-  } else {
-    const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);
-    const kids = n.parts.map(zNode).filter(Boolean), ups = zParents(n.id);
-    const item = w => { const i = zInfo(w); return `<li><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t}</li>`; };
-    S.innerHTML = `<p class="kb">רמה ${n.level} · ${zLevelName(n.level)}</p><h3>${p.t}</h3><p class="mnode">${n.t}</p>
+      <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`; } });
+msideSection('whole', 30, ['whole'], { wire: mWireBase, html: () => {
+  const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
+  return `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
+      <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`; } });
+msideSection('part', 30, ['part'], { wire: mWireBase, html: () => {
+  const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);
+  const kids = n.parts.map(zNode).filter(Boolean), ups = zParents(n.id);
+  const item = w => { const i = zInfo(w); return `<li><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t}</li>`; };
+  return `<p class="kb">רמה ${n.level} · ${zLevelName(n.level)}</p><h3>${p.t}</h3><p class="mnode">${n.t}</p>
       ${ups.length ? `<p class="mup">חלק מ: ${ups.map(u => `<button type="button" class="linkbtn" data-zn="${u.id}">${u.t}</button>`).join(' · ')}</p>` : ''}
       <p class="mact">${INNER[n.id] ? `<button type="button" class="zgo" data-mo="${n.id}">פרק לחלקים ⤢</button> ` : ''}<button type="button" class="zgo" data-zn="${n.id}">היכנס לחלק ←</button></p>
       <h4>שכבה 1: סימולציות והדמיות (${l1.length})</h4><ul class="mwl">${l1.slice(0, 6).map(item).join('')}${l1.length > 6 ? `<li>ועוד ${l1.length - 6}</li>` : ''}</ul>
       <h4>שכבה 2: תוכן עיוני (${l2.length})</h4><ul class="mwl">${l2.slice(0, 5).map(item).join('')}${l2.length > 5 ? `<li>ועוד ${l2.length - 5}</li>` : ''}</ul>
       ${kids.length ? `<h4>בנוי מ</h4><p>${kids.map(k => { const mp = MPARTS.find(x => x.node === k.id); return mp ? `<button type="button" class="linkbtn" data-mp="${mp.id}">${k.t}</button>` : `<button type="button" class="linkbtn" data-zn="${k.id}">${k.t}</button>`; }).join(' · ')}</p>` : ''}
-      <p><button type="button" class="linkbtn" data-mp="">← חזרה למכונה כולה</button></p>`;
-  }
-  S.querySelectorAll('[data-mp]').forEach(b => b.addEventListener('click', () => mSelect(b.dataset.mp || null)));
-  S.querySelectorAll('[data-mo]').forEach(b => b.addEventListener('click', () => mOpen(b.dataset.mo)));
-  S.querySelectorAll('[data-mi]').forEach(b => b.addEventListener('click', () => { MS.isel = +b.dataset.mi; mSide(); }));
-  S.querySelectorAll('[data-mup]').forEach(b => b.addEventListener('click', mUp));
-  S.querySelectorAll('[data-mlv]').forEach(b => b.addEventListener('click', () => { const k = +b.dataset.mlv; while (MS.path.length > k) mUp(); }));
-  S.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-  S.querySelectorAll('[data-zv2]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv2)));
-}
+      <p><button type="button" class="linkbtn" data-mp="">← חזרה למכונה כולה</button></p>`; } });
 /* ---- appendices: what is not a part of the machine ---- */
 function zAppxView() {
   const nodes = ZOOM.filter(n => ZAPPX.has(n.id));
@@ -8759,22 +8769,6 @@ function zAppxView() {
 /* ---- wiring into the zoom tab ---- */
 ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
 ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
-/* a node page shows layer 1 before layer 2 */
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id);
-    const ar = content.querySelector('.zaround'); if (!ar) return;
-    const l1 = [...ar.children].filter(s => zLayer(s.dataset.w) === 1), l2 = [...ar.children].filter(s => zLayer(s.dataset.w) === 2);
-    const ring = content.querySelector('.zring');
-    const box1 = document.createElement('div'), box2 = document.createElement('div'); box1.className = box2.className = 'zaround';
-    l1.forEach(x => box1.appendChild(x)); l2.forEach(x => box2.appendChild(x));
-    const h1 = document.createElement('h3'), h2 = document.createElement('h3'); h1.className = h2.className = 'zring';
-    h1.textContent = `שכבה 1: סימולציות והדמיות (${l1.length})`; h2.textContent = `שכבה 2: תוכן עיוני (${l2.length})`;
-    if (ring) ring.remove();
-    ar.replaceWith(...[l1.length ? h1 : null, l1.length ? box1 : null, l2.length ? h2 : null, l2.length ? box2 : null].filter(Boolean));
-    if (ZAPPX.has(id)) content.querySelector('.zmain h2').insertAdjacentHTML('afterbegin', '<span class="kb">נספח</span> ');
-  };
-})(zNodeView);
 /* the tree and the 3D layers show the machine; appendices are counted on their own */
 zTreeView = (function (orig) { return function () { orig(); content.querySelectorAll('.ztcard').forEach(c => { const id = c.querySelector('.zid').textContent.toLowerCase(); if (ZAPPX.has(id)) c.remove(); }); }; })(zTreeView);
 /* the tour starts at the machine */
@@ -8790,13 +8784,9 @@ Object.assign(INNER, {
   brake: [IB('coil', 'סליל הבלם', [-0.4, 0.4, -0.1, 0.1, -0.4, 0.4], [0, 0, 0.7], 'mech'), IB('brake', 'דיסקת חיכוך וקפיצים', [-0.45, 0.45, 0.2, 0.3, -0.45, 0.45], [0, 0.8, 0], 'text')]
 });
 /* the whole machine also has two topics of its own: the cycle it runs and the way it is brought up */
-const _mSide80 = mSide;
-mSide = function () {
-  _mSide80();
-  const S = $('#mside'); if (!S || MS.sel || MS.path.length) return;
-  S.insertAdjacentHTML('afterbegin', `<div class="mwhole"><p class="kb">המכונה כולה</p><p><button type="button" class="zgo" data-zn="proc">המחזור: סריקה, מציאה ותיקון ←</button></p><p><button type="button" class="zgo" data-zn="bringup">הפעלה ראשונה, ATP ושטח ←</button></p></div>`);
-  S.querySelectorAll('.mwhole [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-};
+msideSection('mwhole', 20, ['whole'], {
+  html: () => `<div class="mwhole"><p class="kb">המכונה כולה</p><p><button type="button" class="zgo" data-zn="proc">המחזור: סריקה, מציאה ותיקון ←</button></p><p><button type="button" class="zgo" data-zn="bringup">הפעלה ראשונה, ATP ושטח ←</button></p></div>`,
+  wire: el => el.querySelectorAll('.mwhole [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); })) });
 /* every topic of the machine is reachable inside the 3D machine */
 function mReach() {
   const got = new Set(['proc', 'bringup']), open = [];
@@ -8805,7 +8795,6 @@ function mReach() {
   return { got, missing: ZOOM.filter(z => !ZAPPX.has(z.id) && !got.has(z.id)).map(z => z.id) };
 }
 /* appendices: no old indexes, only what is outside the machine and what serves the whole book */
-const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 zAppxView = (function (orig) { return function () { orig(); const tiles = content.querySelectorAll('.ztile[data-route]'); tiles.forEach(t => { if (!ZRES_SHOWN.some(([r]) => r.slice(2) === t.dataset.route)) t.remove(); }); }; })(zAppxView);
 /* ============ Nothing swallowed, easy to move, inviting to explore ============ */
 
@@ -8837,18 +8826,12 @@ WIN.add({ id: 'sections',
 const zMainParent = id => { const ps = zParents(id); return ps.length ? ps.sort((a, b) => b.level - a.level)[0] : null; };
 const zMainPath = id => { const p = []; let n = zNode(id); const seen = new Set(); while (n && !seen.has(n.id)) { seen.add(n.id); p.unshift(n); n = zMainParent(n.id); } return p; };
 const zSiblings = id => { const p = zMainParent(id); return p ? p.parts.map(zNode).filter(Boolean) : ZOOM.filter(z => z.level === zNode(id).level && !ZAPPX.has(z.id)); };
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id); zMarkExplored(id);
-    const n = zNode(id), path = zMainPath(id), sibs = zSiblings(id), i = sibs.findIndex(s => s.id === id);
-    const prev = sibs[(i - 1 + sibs.length) % sibs.length], next = sibs[(i + 1) % sibs.length];
-    const bar = `<nav class="zpath" aria-label="איפה אני במכונה"><button type="button" data-zv="machine" class="zpm">המכונה</button>${path.map(p => ` › <button type="button" data-zn="${p.id}"${p.id === id ? ' aria-current="page"' : ''}>${p.t}</button>`).join('')}</nav>
-      ${sibs.length > 1 ? `<nav class="zsibs" aria-label="באותה רמה"><button type="button" class="zarrow" data-zn="${next.id}" title="הבא באותה רמה (חץ שמאלה)">‹</button>${sibs.map(s => `<button type="button" data-zn="${s.id}" class="${s.id === id ? 'cur' : zExplored().has(s.id) ? 'seen' : ''}">${s.t}</button>`).join('')}<button type="button" class="zarrow" data-zn="${prev.id}" title="הקודם באותה רמה (חץ ימינה)">›</button></nav>` : ''}`;
-    const main = content.querySelector('.zmain'); if (main) main.insertAdjacentHTML('afterbegin', bar);
-    content.querySelectorAll('.zpath [data-zn], .zsibs [data-zn]').forEach(b => b.addEventListener('click', () => { const t = zNode(b.dataset.zn); ZS.dir = t ? Math.sign(n.level - t.level) : 0; go('zoom', b.dataset.zn); }));
-    content.querySelectorAll('.zpath [data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', 'machine')));
-  };
-})(zNodeView);
+nodeSection('visit', 5, { wire: ({ id }) => zMarkExplored(id) });
+nodeSection('path', 10, { html: ({ id, node: n }) => {
+  const path = zMainPath(id), sibs = zSiblings(id), i = sibs.findIndex(s => s.id === id);
+  const prev = sibs[(i - 1 + sibs.length) % sibs.length], next = sibs[(i + 1) % sibs.length];
+  return `<nav class="zpath" aria-label="איפה אני במכונה"><button type="button" data-zv="machine" class="zpm">המכונה</button>${path.map(p => ` › <button type="button" data-zn="${p.id}"${p.id === id ? ' aria-current="page"' : ''}>${p.t}</button>`).join('')}</nav>
+      ${sibs.length > 1 ? `<nav class="zsibs" aria-label="באותה רמה"><button type="button" class="zarrow" data-zn="${next.id}" title="הבא באותה רמה (חץ שמאלה)">‹</button>${sibs.map(s => `<button type="button" data-zn="${s.id}" class="${s.id === id ? 'cur' : zExplored().has(s.id) ? 'seen' : ''}">${s.t}</button>`).join('')}<button type="button" class="zarrow" data-zn="${prev.id}" title="הקודם באותה רמה (חץ ימינה)">›</button></nav>` : ''}`; } });
 /* arrow keys: up = out, down = in, left/right = next/previous at the same scale */
 document.addEventListener('keydown', e => {
   if (!(location.hash || '').startsWith('#/zoom/') || e.defaultPrevented || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || ZT_STATE.i >= 0 || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -8879,17 +8862,13 @@ function zNextToExplore() {
   const near = all.filter(z => zParents(z.id).some(p => ex.has(p.id)) || z.parts.some(p => ex.has(p)));
   return (near[0] || all.sort((a, b) => b.level - a.level)[0]) || null;
 }
-const _mSide81 = mSide;
-mSide = function () {
-  _mSide81();
-  const S = $('#mside'); if (!S) return;
+msideSection('visit', 1, ['part', 'inner'], { wire: () => {
   if (MS.sel && !MS.path.length) { const p = MPARTS.find(x => x.id === MS.sel); if (p && p.node) zMarkExplored(p.node); }
-  if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); }
-  if (MS.sel || MS.path.length) return;
-  const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
-  S.insertAdjacentHTML('afterbegin', `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`);
-  const b = S.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } });
-};
+  if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); } } });
+msideSection('mexp', 10, ['whole'], {
+  html: () => { const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
+    return `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`; },
+  wire: el => { const b = el.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } }); } });
 /* finder: type a topic, jump to it in the machine */
 zMachineView = (function (orig) {
   return function () {
@@ -8933,20 +8912,10 @@ function mSetMachine(m) {
   MS.machine = m; MS.sel = null; MS.path = []; MS.Ct = m === 'line' ? [0.5, 0, 1.0] : [0.5, 0, 1.0]; MS.distT = m === 'line' ? 24 : 12;
   document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === m)); mSide();
 }
-mSide = (function (orig) {
-  return function () {
-    orig();
-    const S = $('#mside'); if (!S || MS.sel || MS.path.length) return;
-    if (MS.machine === 'line') {
-      S.innerHTML = `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
-        <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`;
-      S.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2)));
-      S.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn)));
-      return;
-    }
-    return;
-  };
-})(mSide);
+msideSection('line', 30, ['line'], {
+  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
+        <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
+  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
 zMachineView = (function (orig) {
   return function () {
     orig();
@@ -8990,15 +8959,6 @@ function zSimsView() {
 }
 /* open a topic with one of its windows already open, and scroll to it */
 function zOpenWindow(node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
-zNodeView = (function (orig) {
-  return function (id) {
-    orig(id);
-    const w = ZS.openW; ZS.openW = null; if (!w) return;
-    const sec = [...content.querySelectorAll('.zwin')].find(s => s.dataset.w === w); if (!sec) return;
-    const btn = sec.querySelector('.zopen'); if (btn && btn.getAttribute('aria-expanded') !== 'true') btn.click();
-    sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60);
-  };
-})(zNodeView);
 /* the views bar gets the gallery; the machine finder also finds simulations */
 ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
 zMachineView = (function (orig) {
@@ -9235,49 +9195,50 @@ function hubObject(cv, id) {
   draw(); requestAnimationFrame(tick);
 }
 /* rebuild the middle of a topic page as the object and its hubs */
-zNodeView = (function (orig) {
-  return function (id) {
-    const openW = ZS.openW; orig(id);
-    const main = content.querySelector('.zmain'); if (!main) return;
-    const n = zNode(id), wins = zWindows(n), by = {}; wins.forEach(w => (by[hubOf(w)] = by[hubOf(w)] || []).push(w));
-    const hubs = HUBS.filter(h => by[h[0]]); if (!hubs.length) return;
-    if (openW && wins.includes(openW)) { HS.hub[id] = hubOf(openW); HS.win[id] = openW; }
-    if (!HS.hub[id] || !by[HS.hub[id]]) HS.hub[id] = (by.demo ? 'demo' : hubs[0][0]);
-    /* remove the long lists of cards; keep the path, the neighbours, the title and the zoom in */
-    main.querySelectorAll(':scope > .zwin, :scope > .zaround, :scope > .zring').forEach(el => { if (!(el.classList.contains('zring') && /בנוי מ/.test(el.textContent))) el.remove(); });
-    const left = hubs.filter((_, i) => i % 2 === 0), right = hubs.filter((_, i) => i % 2 === 1);
-    const hubBtn = h => `<button type="button" class="hubbtn" data-hub="${h[0]}" aria-pressed="${HS.hub[id] === h[0]}" style="--hc:${h[4]}"><b>${h[1]}</b><small>${by[h[0]].length} · שכבה ${h[2]}</small></button>`;
-    const html = `<section class="hub" aria-label="הנושא ודרכי ההבנה שלו">
+/* the hub: the topic's object, six hubs around it, and one window open */
+function hubHtml(cx) {
+  const { id, node: n, openW } = cx, wins = zWindows(n), by = {}; wins.forEach(w => (by[hubOf(w)] = by[hubOf(w)] || []).push(w));
+  const hubs = HUBS.filter(h => by[h[0]]); if (!hubs.length) return '';
+  if (openW && wins.includes(openW)) { HS.hub[id] = hubOf(openW); HS.win[id] = openW; }
+  if (!HS.hub[id] || !by[HS.hub[id]]) HS.hub[id] = (by.demo ? 'demo' : hubs[0][0]);
+  const left = hubs.filter((_, i) => i % 2 === 0), right = hubs.filter((_, i) => i % 2 === 1);
+  cx.hub = { wins, by, hubs, left, right };
+  const hubBtn = h => `<button type="button" class="hubbtn" data-hub="${h[0]}" aria-pressed="${HS.hub[id] === h[0]}" style="--hc:${h[4]}"><b>${h[1]}</b><small>${by[h[0]].length} · שכבה ${h[2]}</small></button>`;
+  return `<section class="hub" aria-label="הנושא ודרכי ההבנה שלו">
       <div class="hubstage"><div class="hubcol">${left.map(hubBtn).join('')}</div>
         <div class="hubmid"><canvas class="hubobj" width="420" height="300" tabindex="0" role="button" aria-label="${n.t}: מצא במכונה"></canvas><p class="hubcap"><button type="button" class="hubfind">מצא את החלק במכונה ←</button></p></div>
         <div class="hubcol">${right.map(hubBtn).join('')}</div>
         <svg class="hublines" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">${[...left.map((h, i) => [h, 86, 10 + i * 20]), ...right.map((h, i) => [h, 14, 10 + i * 20])].map(([h, x, y]) => `<path d="M50 30 C ${(50 + x) / 2} 30, ${(50 + x) / 2} ${y}, ${x} ${y}" stroke="${h[4]}" stroke-width="0.35" fill="none" stroke-dasharray="${HS.hub[id] === h[0] ? '' : '1.2 1'}" opacity="${HS.hub[id] === h[0] ? 0.9 : 0.45}"/>`).join('')}</svg></div>
       <div class="hubpanel" id="hubpanel"></div></section>`;
-    const anchor = main.querySelector('h2'); anchor.insertAdjacentHTML('afterend', html);
-    hubObject(main.querySelector('.hubobj'), id);
-    const findInMachine = () => main.querySelector('.hubobj').dispatchEvent(new Event('click'));
-    main.querySelector('.hubfind').addEventListener('click', findInMachine);
-    main.querySelector('.hubobj').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); findInMachine(); } });
-    main.querySelector('.hubobj').addEventListener('click', () => { if (typeof mJump === 'function' && MPARTS.some(p => p.node === id) || Object.values(INNER).some(l => l.some(ip => ip.node === id))) { go('zoom', 'machine'); setTimeout(() => mJump(id), 50); } });
-    const panel = main.querySelector('#hubpanel');
-    const showHub = h => {
-      winSave(panel);
-      HS.hub[id] = h; const list = by[h]; if (!HS.win[id] || !list.includes(HS.win[id])) HS.win[id] = list[0];
-      main.querySelectorAll('.hubbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.hub === h));
-      main.querySelectorAll('.hublines path').forEach((p, i) => { const hh = [...left, ...right][i]; p.setAttribute('stroke-dasharray', hh[0] === h ? '' : '1.2 1'); p.setAttribute('opacity', hh[0] === h ? 0.9 : 0.45); });
-      const H = HUBS.find(x => x[0] === h), w = HS.win[id];
-      panel.innerHTML = `<header class="hubhead" style="--hc:${H[4]}"><h3>${H[1]}</h3><span class="kb">שכבה ${H[2]}: ${H[2] === 1 ? 'רואים ומפעילים' : 'מבינים לעומק'}</span></header>
+}
+function hubWire(cx) {
+  if (!cx.hub) return;
+  const { id, main, openW } = cx, { wins, by, left, right } = cx.hub;
+  hubObject(main.querySelector('.hubobj'), id);
+  const findInMachine = () => main.querySelector('.hubobj').dispatchEvent(new Event('click'));
+  main.querySelector('.hubfind').addEventListener('click', findInMachine);
+  main.querySelector('.hubobj').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); findInMachine(); } });
+  main.querySelector('.hubobj').addEventListener('click', () => { if (typeof mJump === 'function' && MPARTS.some(p => p.node === id) || Object.values(INNER).some(l => l.some(ip => ip.node === id))) { go('zoom', 'machine'); setTimeout(() => mJump(id), 50); } });
+  const panel = main.querySelector('#hubpanel');
+  const showHub = h => {
+    winSave(panel);
+    HS.hub[id] = h; const list = by[h]; if (!HS.win[id] || !list.includes(HS.win[id])) HS.win[id] = list[0];
+    main.querySelectorAll('.hubbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.hub === h));
+    main.querySelectorAll('.hublines path').forEach((p, i) => { const hh = [...left, ...right][i]; p.setAttribute('stroke-dasharray', hh[0] === h ? '' : '1.2 1'); p.setAttribute('opacity', hh[0] === h ? 0.9 : 0.45); });
+    const H = HUBS.find(x => x[0] === h), w = HS.win[id];
+    panel.innerHTML = `<header class="hubhead" style="--hc:${H[4]}"><h3>${H[1]}</h3><span class="kb">שכבה ${H[2]}: ${H[2] === 1 ? 'רואים ומפעילים' : 'מבינים לעומק'}</span></header>
         ${list.length > 1 ? `<nav class="hubpills" aria-label="החלונות של ${H[1]}">${list.map(x => { const i = zInfo(x); return `<button type="button" data-hw="${x}" aria-pressed="${x === w}"><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t.length > 42 ? i.t.slice(0, 40) + '…' : i.t}</button>`; }).join('')}</nav>` : ''}
         <section class="zwin open" data-w="${w}"><header><span class="kb">${(ZKIND[zInfo(w).kind] || [''])[0]}</span> <h3 class="zwt">${zInfo(w).t}</h3></header><div class="zbody"></div></section>`;
-      zMount(w, panel.querySelector('.zbody')); winRestore(panel);
-      panel.querySelectorAll('[data-hw]').forEach(b => b.addEventListener('click', () => { HS.win[id] = b.dataset.hw; showHub(h); }));
-      if (typeof hubAfterRender === 'function') hubAfterRender(id, h, showHub);
-    };
-    main.querySelectorAll('.hubbtn').forEach(b => b.addEventListener('click', () => showHub(b.dataset.hub)));
-    showHub(HS.hub[id]);
-    if (openW && wins.includes(openW)) { const sec = panel.querySelector('.zwin'); sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60); }
+    zMount(w, panel.querySelector('.zbody')); winRestore(panel);
+    panel.querySelectorAll('[data-hw]').forEach(b => b.addEventListener('click', () => { HS.win[id] = b.dataset.hw; showHub(h); }));
+    hubAfterRender(id, h, showHub);
   };
-})(zNodeView);
+  main.querySelectorAll('.hubbtn').forEach(b => b.addEventListener('click', () => showHub(b.dataset.hub)));
+  showHub(HS.hub[id]);
+  if (openW && wins.includes(openW)) { const sec = panel.querySelector('.zwin'); sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60); }
+}
+nodeSection('hub', 40, { html: hubHtml, wire: hubWire });
+
 /* the window-opening helper now goes through the hubs */
 zOpenWindow = function (node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); };
 /* ============ The right layers first, information bundled, more of the physics animated ============ */
