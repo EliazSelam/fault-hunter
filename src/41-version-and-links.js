@@ -1,9 +1,10 @@
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.33.0';
+const APP_VERSION = '2.34.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
-  const setHash = h => { try { if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { } };
+  const base = h => h.split('?')[0].split('/').slice(0, 3).join('/');
+  const setHash = h => { try { if (location.hash === h) return; if (base(location.hash || '') === base(h) || !location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch (e) { } };
   const _go = go; go = function (sheet, arg) { _go(sheet, arg); setHash('#/' + sheet + (typeof arg === 'string' && arg ? '/' + arg : '')); };
   const _q = showQ; showQ = function (id, seq) { _q(id, seq); setHash('#/q/' + id); };
   const _p = playScn; playScn = function (id) { _p(id); setHash('#/scn/' + id); };

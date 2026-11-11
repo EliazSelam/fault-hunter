@@ -192,6 +192,22 @@ ok(yaw[0] === yaw[1], 'F08: the topic object stays still while an activity is op
 ok(await pg.evaluate(() => { const o = document.querySelector('.hubobj'); return o.getAttribute('role') === 'button' && o.tabIndex === 0 && !!document.querySelector('.hubfind'); }), 'F10: the topic object is a keyboard button, with a visible button beside it');
 await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') === 'group' && document.querySelectorAll('.wlist [data-zn]').length >= zMachineTopics().length), 'F10: the world map has every topic as a list too');
+/* stage 2: permanent links and the back button (F09) */
+{ const p3 = await b.newPage({ viewport: { width: 1200, height: 900 } }); const base = url.pathToFileURL(path.join(ROOT, 'index.html')).href;
+  await p3.goto(base + '#/zoom/laser/math/anim%3Acrater'); await p3.waitForTimeout(700);
+  ok(await p3.evaluate(() => ZS.node === 'laser' && document.querySelector('#hubpanel .zwin').dataset.w === 'anim:crater'), 'F09: a link opens the topic with that window');
+  await p3.evaluate(() => { const x = document.querySelector('#hubpanel .zbody').animApi; x.setParam('E', 6); x.go(3); });
+  const len0 = await p3.evaluate(() => history.length); await p3.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await p3.waitForTimeout(150);
+  ok(await p3.evaluate(n => history.length === n && /^#\/zoom\/laser\/demo\//.test(location.hash), len0), 'F09: changing the hub updates the address without a new history entry');
+  await p3.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await p3.waitForTimeout(150);
+  await p3.reload(); await p3.waitForTimeout(800);
+  ok(await p3.evaluate(() => { const x = document.querySelector('#hubpanel .zbody').animApi; return x && x.step === 3 && x.P.E === 6; }), 'F09: reloading the link returns to the same attempt');
+  await p3.evaluate(() => go('zoom', 'relay')); await p3.waitForTimeout(250); await p3.goBack(); await p3.waitForTimeout(500);
+  ok(await p3.evaluate(() => ZS.node === 'laser'), 'F09: back after moving to another topic returns to the first');
+  await p3.goto(base + '#/zoom/machine?m=aos&sel=laser'); await p3.waitForTimeout(700);
+  ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
+  ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
+  await p3.close(); }
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
@@ -215,7 +231,7 @@ await pg.evaluate(() => go('about')); await pg.waitForTimeout(150); await pg.cli
 const tourWant = ['#/zoom/machine', '#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
 for (let i = 0; i < tourWant.length; i++) {
   const r = await pg.evaluate(() => [location.hash, !!document.getElementById('ztour'), document.querySelector('#ztour .ztn').textContent]);
-  ok(r[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);
+  ok(r[0].split('?')[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);
   if (i === 1) { await pg.waitForTimeout(4200); ok(await pg.evaluate(() => MS.path.join('>') === 'vac>valve>relay'), 'tour: the disassembly step opens the table, the valve and the relay'); }
   if (i === 9) { await pg.waitForTimeout(500); ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent)), 'tour: the duplicates step runs the live check'); }
   await pg.click('#ztNext'); await pg.waitForTimeout(250);

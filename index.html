@@ -9194,10 +9194,10 @@ function winSave(panel) {
   const snap = { inputs: [...body.querySelectorAll('input, select')].map(i => i.type === 'checkbox' ? i.checked : i.value) };
   const st = body.querySelector('[data-s][aria-current="step"]'); if (st) snap.step = st.dataset.s;
   if (body.animApi) snap.anim = { step: body.animApi.step, P: Object.assign({}, body.animApi.P) };
-  HS.snap[w] = snap;
+  HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
 }
 function winRestore(panel) {
-  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w, snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
+  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (w && !HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } } const snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
   if (snap.anim && body.animApi) { Object.entries(snap.anim.P).forEach(([k, v]) => body.animApi.setParam(k, v)); body.animApi.go(snap.anim.step); return; }
   const ins = [...body.querySelectorAll('input, select')];
   if (ins.length === snap.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = snap.inputs[k]; else i.value = snap.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });
@@ -9276,8 +9276,8 @@ zOpenWindow = function (node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
 
 /* ---- 1. the views bar: what a learner needs first; the method's proofs behind the scenes ---- */
 zSubnav = function (cur) {
-  const main = [['machine', 'המכונה בתלת-ממד'], ['world', 'מפת עולם'], ['sims', 'כל הסימולציות'], ['node', ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום'], ['appx', 'נספחים']];
-  const back = [['tree', 'עץ נושאים לפי רמות'], ['3d', 'שכבות בתלת-ממד'], ['dedup', 'דו"ח כפילויות ושיבוץ']];
+  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
+  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
   const inBack = back.some(b => b[0] === cur);
   return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
     <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
@@ -9321,6 +9321,7 @@ showZoom = (function (orig) { return function (arg) { if (arg === 'world') { act
 const winSubject = w => { const [k, a] = w.split(':'); if (k === 'c') { const C = COMPONENTS.find(x => x.id === a); return C ? C.name.replace(/<[^>]+>/g, '').split(':')[0] : a; } if (k === 't') { const T = TOPICS.find(x => x.id === a); return T ? T.t.split(':')[0] : a; } return ''; };
 /* after a hub opens: its pills grouped by subject, each pill named by what it is (or by its title when that is not enough) */
 function hubAfterRender(id, h, showHub) {
+  if ((location.hash || '').startsWith('#/zoom/' + id) && HS.win[id]) zSetAddress(zWindowAddress(id, h, HS.win[id]));
   const nav = content.querySelector('.hubpills');
   if (nav) {
     const btns = [...nav.querySelectorAll('button')], groups = {};
@@ -9416,6 +9417,33 @@ Object.assign(ANIMS, {
     } }
 });
 ['quad', 'pwmr', 'drop', 'frame'].forEach(id => { const n = zNode(ANIMS[id].node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
+/* ============ Permanent links and the back button (stage 2, review F09) ============
+   #/zoom/<node>/<hub>/<window>   a topic with one window open (window id URL-encoded)
+   #/zoom/machine?m=aos&sel=laser the machine view with its machine and selected part
+   Changing topic or view pushes a history entry; changing hub or window inside a topic replaces it. */
+const ZVIEW = {
+  list: [['machine', 'המכונה בתלת-ממד', 'main'], ['world', 'מפת עולם', 'main'], ['sims', 'כל הסימולציות', 'main'], ['node', null, 'main'], ['appx', 'נספחים', 'main'], ['tree', 'עץ נושאים לפי רמות', 'back'], ['3d', 'שכבות בתלת-ממד', 'back'], ['dedup', 'דו"ח כפילויות ושיבוץ', 'back']],
+  add(id, title, group = 'main') { if (!this.list.some(v => v[0] === id)) this.list.splice(group === 'main' ? this.list.findIndex(v => v[2] === 'back') : this.list.length, 0, [id, title, group]); }
+};
+function zSetAddress(h) { try { if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { } }
+/* the address of an open hub and window */
+function zWindowAddress(id, hub, w) { return `#/zoom/${id}/${hub}/${encodeURIComponent(w)}`; }
+/* read a zoom address with more than two parts, or with a query, and open what it names */
+function zRouteDeep() {
+  const h = location.hash || '';
+  let m = h.match(/^#\/zoom\/([\w.-]+)\/([\w-]+)(?:\/([^/?#]+))?$/);
+  if (m && zNode(m[1])) { const [, id, hub, w] = m; HS.hub[id] = hub; if (w) { HS.win[id] = decodeURIComponent(w); ZS.openW = HS.win[id]; } go('zoom', id); if (w) zSetAddress(zWindowAddress(id, hub, HS.win[id])); return true; }
+  m = h.match(/^#\/zoom\/machine\?(.+)$/);
+  if (m) { const q = new URLSearchParams(m[1]); go('zoom', 'machine'); if (q.get('m')) mSetMachine(q.get('m')); if (q.get('sel')) mSelect(q.get('sel')); mWriteAddress(); return true; }
+  return false;
+}
+function mWriteAddress() { const q = new URLSearchParams(); if (MS.machine && MS.machine !== 'aoi') q.set('m', MS.machine); if (MS.sel) q.set('sel', MS.sel); const s = q.toString(); zSetAddress('#/zoom/machine' + (s ? '?' + s : '')); }
+mSetMachine = (function (orig) { return function (m) { orig(m); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSetMachine);
+mSelect = (function (orig) { return function (id) { orig(id); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSelect);
+window.addEventListener('hashchange', () => zRouteDeep());
+window.addEventListener('popstate', () => { if (!zRouteDeep()) { const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:.-]+))?$/); if (m && document.querySelector(`nav.sheets [data-sheet="${m[1]}"]`)) go(m[1], m[2]); } });
+/* a deep address at load: open it once the whole book is ready */
+setTimeout(() => { if (/^#\/zoom\/[^/]+\/|^#\/zoom\/machine\?/.test(location.hash || '')) zRouteDeep(); }, 0);
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -10408,11 +10436,12 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.33.0';
+const APP_VERSION = '2.34.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
-  const setHash = h => { try { if (location.hash !== h) history.replaceState(null, '', h); } catch (e) { } };
+  const base = h => h.split('?')[0].split('/').slice(0, 3).join('/');
+  const setHash = h => { try { if (location.hash === h) return; if (base(location.hash || '') === base(h) || !location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch (e) { } };
   const _go = go; go = function (sheet, arg) { _go(sheet, arg); setHash('#/' + sheet + (typeof arg === 'string' && arg ? '/' + arg : '')); };
   const _q = showQ; showQ = function (id, seq) { _q(id, seq); setHash('#/q/' + id); };
   const _p = playScn; playScn = function (id) { _p(id); setHash('#/scn/' + id); };
