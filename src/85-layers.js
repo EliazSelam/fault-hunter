@@ -1,19 +1,6 @@
 /* ============ The right layers first, information bundled, more of the physics animated ============ */
 
 /* ---- 1. the views bar: what a learner needs first; the method's proofs behind the scenes ---- */
-zSubnav = function (cur) {
-  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
-  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
-  const inBack = back.some(b => b[0] === cur);
-  return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
-    <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
-    <button type="button" class="ztstart" data-tour="1">▶ סיור הדגמה</button></nav>`;
-};
-zWireSub = function () {
-  content.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));
-  content.querySelectorAll('.zsub [data-tour]').forEach(b => b.addEventListener('click', () => zTourGo(0)));
-};
-
 /* ---- 2. a world map of the topics, with the numbers that matter ---- */
 function zWorldView() {
   const topics = zMachineTopics(), ex = zExplored(), sims = zSimList(), wins = new Set(ZOOM.flatMap(zWindows));
@@ -41,7 +28,7 @@ function zWorldView() {
   content.querySelectorAll('.wcity').forEach(g => { const open = () => { ZS.dir = 1; go('zoom', g.dataset.zn); }; g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
   setTitle('זום', 'מפת עולם', `${got} מתוך ${topics.length} נחקרו`);
 }
-showZoom = (function (orig) { return function (arg) { if (arg === 'world') { active = null; setTab('zoom'); markVisit('zoom'); zWorldView(); window.scrollTo(0, 0); return; } orig(arg); }; })(showZoom);
+ZVIEW.add('world', { group: 'main', order: 2, title: 'מפת עולם', render: () => zWorldView() });
 
 /* ---- 3. information bundled: windows grouped by subject inside a hub, long text as a summary first ---- */
 const winSubject = w => { const [k, a] = w.split(':'); if (k === 'c') { const C = COMPONENTS.find(x => x.id === a); return C ? C.name.replace(/<[^>]+>/g, '').split(':')[0] : a; } if (k === 't') { const T = TOPICS.find(x => x.id === a); return T ? T.t.split(':')[0] : a; } return ''; };

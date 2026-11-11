@@ -92,8 +92,7 @@ zNodeView = (function (orig) {
   };
 })(zNodeView);
 /* the views bar gets the gallery; the machine finder also finds simulations */
-zSubnav = (function (orig) { return cur => orig(cur === 'sims' ? 'none' : cur).replace('<button type="button" data-zv="node"', `<button type="button" data-zv="sims" aria-current="${cur === 'sims' ? 'page' : 'false'}">כל הסימולציות</button><button type="button" data-zv="node"`); })(zSubnav);
-showZoom = (function (orig) { return function (arg) { if (arg === 'sims') { active = null; setTab('zoom'); markVisit('zoom'); zSimsView(); window.scrollTo(0, 0); return; } orig(arg); }; })(showZoom);
+ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
 zMachineView = (function (orig) {
   return function () {
     orig();
