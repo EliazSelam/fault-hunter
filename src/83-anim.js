@@ -159,6 +159,4 @@ function animMount(id, el) {
 Object.entries(ANIMS).forEach(([id, A]) => { const n = zNode(A.node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
 ZKIND.anim = ['הנפשת פיזיקה ומתמטיקה', -1];
 SIMKINDS.add('anim');
-zInfo = (function (orig) { return w => w.startsWith('anim:') ? { kind: 'anim', t: ANIMS[w.slice(5)].t } : orig(w); })(zInfo);
-zMount = (function (orig) { return (w, el) => w.startsWith('anim:') ? animMount(w.slice(5), el) : orig(w, el); })(zMount);
-zWinCtx = (function (orig) { return (w, node) => w.startsWith('anim:') ? ({ scan: 'AOI', dof: 'AOI', crater: 'AOS' })[w.slice(5)] || zCtx(node) : orig(w, node); })(zWinCtx);
+WIN.add({ id: 'anim', test: w => w.startsWith('anim:'), info: w => ({ kind: 'anim', t: ANIMS[w.slice(5)].t }), mount: (w, el) => animMount(w.slice(5), el), ctx: (w, node) => ({ scan: 'AOI', dof: 'AOI', crater: 'AOS' })[w.slice(5)] || zCtx(node) });
