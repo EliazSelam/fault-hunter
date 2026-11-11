@@ -175,7 +175,8 @@ function mSide() {
       ${sel ? mNodeBlock(zNode(sel.node), sel.t) : `<h3>${zNode(top).t}: מפורק לחלקים</h3><p>לחצו על חלק כדי לראות מה הוא, ואם יש לו חלקים משלו, לפרק גם אותו.</p><ul class="mlist">${INNER[top].map((ip, i) => `<li><button type="button" class="linkbtn" data-mi="${i}">${ip.t}</button></li>`).join('')}</ul>`}
       <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`;
   } else if (!MS.sel) {
-    S.innerHTML = `<h3>מכונת בדיקה שלמה</h3><p>המכונה נבנית מול העיניים, חלק אחרי חלק. כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
+    const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
+    S.innerHTML = `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
       <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`;
   } else {
     const p = MPARTS.find(x => x.id === MS.sel), n = zNode(p.node), wins = zWindows(n), l1 = wins.filter(w => zLayer(w) === 1), l2 = wins.filter(w => zLayer(w) === 2);

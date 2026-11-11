@@ -47,7 +47,9 @@ zNodeView = (function (orig) {
 })(zNodeView);
 /* arrow keys: up = out, down = in, left/right = next/previous at the same scale */
 document.addEventListener('keydown', e => {
-  if (!(location.hash || '').startsWith('#/zoom/') || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || ZT_STATE.i >= 0 || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (!(location.hash || '').startsWith('#/zoom/') || e.defaultPrevented || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '') || ZT_STATE.i >= 0 || e.altKey || e.ctrlKey || e.metaKey) return;
+  /* the arrows belong to an activity when the focus is in it; the page's arrows work only from the page or its navigation */
+  const a = document.activeElement; if (a && a !== document.body && !a.closest('.zpath, .zsibs, .zsub, .zcrumb, .hubbtn')) return;
   const id = ZS.node, n = zNode(id); if (!n || !(location.hash === '#/zoom/' + id)) return;
   let t = null;
   if (e.key === 'ArrowUp') t = zMainParent(id); else if (e.key === 'ArrowDown') t = zNode(n.parts[0]);
@@ -81,7 +83,7 @@ mSide = function () {
   if (MS.path.length && MS.isel != null) { const ip = INNER[MS.path[MS.path.length - 1]][MS.isel]; if (ip) zMarkExplored(ip.node); }
   if (MS.sel || MS.path.length) return;
   const ex = zExplored(), tot = zMachineTopics().length, got = zMachineTopics().filter(z => ex.has(z.id)).length, nx = zNextToExplore();
-  S.insertAdjacentHTML('afterbegin', `<div class="mexp"><p class="mexpn"><b>חקרת ${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לחקור: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>חקרת את כל המכונה.</p>'}</div>`);
+  S.insertAdjacentHTML('afterbegin', `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`);
   const b = S.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } });
 };
 /* finder: type a topic, jump to it in the machine */

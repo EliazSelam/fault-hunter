@@ -103,7 +103,7 @@ await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(150); await 
 ok(await pg.evaluate(() => ZS.node !== 'cam' && zNode(ZS.node).level === 4), 'arrow left moves to the next topic at the same scale');
 ok(await pg.evaluate(() => ['valve', 'vac', 'cam'].every(id => zExplored().has(id))), 'visited topics are counted as explored');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => /חקרת \d+ מתוך \d+/.test(document.querySelector('#mside .mexp').textContent) && !!document.querySelector('#mside [data-nx]')), 'the machine shows exploration progress and what to explore next');
+ok(await pg.evaluate(() => /ביקרת ב-\d+ מתוך \d+/.test(document.querySelector('#mside .mexp').textContent) && !!document.querySelector('#mside [data-nx]')), 'the machine shows exploration progress and what to explore next');
 ok(await pg.evaluate(() => MPARTS.filter(p => p.node).every(p => zTeaser(p.node) || !zWindows(zNode(p.node)).some(w => /^t:|^c:/.test(w)))), 'every part with questions has a teaser question');
 ok(await pg.evaluate(() => { mJump('diode'); return MS.path.length >= 1 && INNER[MS.path[MS.path.length - 1]][MS.isel].node === 'diode'; }), 'the finder jumps into the machine, opened down to a component');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; });
@@ -163,6 +163,35 @@ ok(Math.abs(AV2.quad.res - 1) < 1e-9 && Math.abs(AV2.quad.fc - 250) < 1e-9, 'ani
 ok(Math.abs(AV2.pwmr.Vavg - 14.4) < 1e-9 && Math.abs(AV2.pwmr.dI - 0.288) < 1e-9, 'animation pwm: V_avg = D·V = 14.4 V, ripple V·D(1−D)/(L·f) = 288 mA');
 ok(await pg.evaluate(() => { const v = ANIMS.drop.calc({ I: 2, Lc: 12, A: 0.75 }); const m = pwrCalc().branches[1]; return Math.abs(v.Vend - m.Vend) < 1e-9; }), 'animation drop: the same voltage at the I/O branch end as the power model');
 ok(await pg.evaluate(() => Math.abs(ANIMS.frame.calc({ bytes: 0, Tc: 1 }).tF - ecatCalc().tFrame * 1e6) < 1e-9 && ANIMS.frame.calc({ bytes: 10500, Tc: 1 }).over), 'animation frame: the same frame time as the EtherCAT model, and overrun with 10,500 extra bytes');
+/* stage 1 of the review: continuity fixes, each with its own behaviour check */
+await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(400);
+await pg.evaluate(() => { const c = document.querySelector('#hubpanel canvas'); c.setAttribute('tabindex', '0'); c.focus(); }); await pg.keyboard.press('ArrowLeft'); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => ZS.node === 'cam'), 'F01: an arrow key inside an activity stays in the activity');
+await pg.evaluate(() => document.activeElement.blur()); await pg.keyboard.press('ArrowLeft'); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => ZS.node !== 'cam'), 'F01: the same arrow from the page still moves along the level');
+await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(400);
+await pg.evaluate(() => document.querySelectorAll('#hubpanel [data-s]')[2].click()); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await pg.waitForTimeout(150);
+await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => document.querySelector('#hubpanel [data-s][aria-current="step"]').dataset.s === '2'), 'F02: back from another hub, the demo is on the same step');
+await pg.evaluate(() => go('zoom', 'laser')); await pg.waitForTimeout(250); await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(400);
+ok(await pg.evaluate(() => document.querySelector('#hubpanel [data-s][aria-current="step"]').dataset.s === '2'), 'F02: back from another topic, the demo is on the same step');
+await pg.evaluate(() => zOpenWindow('laser', 'anim:crater')); await pg.waitForTimeout(400);
+await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').animApi; a.setParam('E', 6); a.go(3); }); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await pg.waitForTimeout(150);
+await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').animApi; return a && a.step === 3 && a.P.E === 6; }), 'F02: an animation comes back with its step and its parameters');
+ok(await pg.evaluate(() => /הנחה:/.test(ANIMS.scan.steps[4]({ v: 250, p: 4.88, t: 2 }, ANIMS.scan.calc({ v: 250, p: 4.88, t: 2 }))) && /חשיפה אלקטרונית/.test(ANIMS.scan.steps[4]({ v: 250, p: 4.88, t: 2 }, ANIMS.scan.calc({ v: 250, p: 4.88, t: 2 })))), 'F03: the continuous-light case is stated as an assumption, with the electronic-shutter alternative');
+const clk = await pg.evaluate(async () => { const a = document.querySelector('#hubpanel .zbody').animApi, el = document.querySelector('#hubpanel .zbody'); el.querySelector('[data-ab="play"]').click(); el.querySelector('[data-ab="play"]').click(); const t1 = a.simTime; await new Promise(r => setTimeout(r, 350)); return [a.frozen, t1, a.simTime]; });
+ok(clk[0] && clk[1] === clk[2], 'F04: pausing an animation freezes its clock');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); mSetMachine('aos'); }); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => /AOS/.test(document.querySelector('#mside h3').textContent) && /פישוט לימודי/.test(document.getElementById('mside').textContent)), 'F05: the AOS machine is named and explained as AOS, with the shared parts marked as a simplification');
+await pg.evaluate(() => mSetMachine('aoi')); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => /ביקרת/.test(document.getElementById('mside').textContent) && !/חקרת/.test(document.getElementById('mside').textContent)), 'F06: visits are called visits');
+await pg.evaluate(() => go('zoom', 'relay')); await pg.waitForTimeout(300);
+const yaw = await pg.evaluate(async () => { const V = document.querySelector('.hubobj')._V, y1 = V.st.yaw; await new Promise(r => setTimeout(r, 300)); return [y1, V.st.yaw]; });
+ok(yaw[0] === yaw[1], 'F08: the topic object stays still while an activity is open');
+ok(await pg.evaluate(() => { const o = document.querySelector('.hubobj'); return o.getAttribute('role') === 'button' && o.tabIndex === 0 && !!document.querySelector('.hubfind'); }), 'F10: the topic object is a keyboard button, with a visible button beside it');
+await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') === 'group' && document.querySelectorAll('.wlist [data-zn]').length >= zMachineTopics().length), 'F10: the world map has every topic as a list too');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
