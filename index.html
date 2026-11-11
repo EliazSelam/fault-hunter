@@ -8233,6 +8233,8 @@ function zCapture() {
 }
 /* every window: a title, a kind, and how it is shown */
 const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
+/* things to do before the page is replaced by another (a registration, not a wrapper); go() in 40-app.js runs them */
+const GO_BEFORE = [];
 /* window kinds: one place to add how a window is named, mounted and filed by machine.
    Later additions are checked first; the base kind below answers everything else. */
 const WIN = {
@@ -8429,7 +8431,7 @@ function zDupCheck() {
 const ZT = { q: '', core: false, ctx: 'all', branch: null };
 function zTreeView() {
   const show = new Set(ZT.branch ? [...zDesc(ZT.branch), ...zAnc(ZT.branch)] : ZOOM.map(z => z.id));
-  const match = z => show.has(z.id) && (!ZT.core || ZCORE.has(z.id)) && (ZT.ctx === 'all' || zCtx(z.id) === ZT.ctx || (ZT.ctx !== 'SHARED' && zCtx(z.id) === 'SHARED')) && (!ZT.q || (z.t + ' ' + z.id).toLowerCase().includes(ZT.q.toLowerCase()));
+  const match = z => show.has(z.id) && !ZAPPX.has(z.id) && (!ZT.core || ZCORE.has(z.id)) && (ZT.ctx === 'all' || zCtx(z.id) === ZT.ctx || (ZT.ctx !== 'SHARED' && zCtx(z.id) === 'SHARED')) && (!ZT.q || (z.t + ' ' + z.id).toLowerCase().includes(ZT.q.toLowerCase()));
   const card = z => `<article class="ztcard ${ZCORE.has(z.id) ? 'core' : ''}"><header><span class="zid mono">${z.id.toUpperCase()}</span><span class="zbadge">${ZCORE.has(z.id) ? '★ גרעין' : 'הרחבה'}</span></header><h3>${z.t}</h3><p class="zmeta">${zWindows(z).length} חלונות · ${({ AOI: 'AOI', AOS: 'AOS', SHARED: 'משותף' })[zCtx(z.id)]}</p>${zParents(z.id).length ? `<p class="zlink">חלק מ: ${zParents(z.id).map(p => `<button type="button" data-zn="${p.id}">${p.t}</button>`).join(' ')}</p>` : ''}<p><button type="button" class="zopen2" data-zn="${z.id}">פתח ←</button></p></article>`;
   const branches = [['proc', 'כל המערכת'], ...ZOOM.filter(z => z.level === 4).map(z => [z.id, z.t])];
   content.innerHTML = zSubnav('tree') + `<h2>עץ הנושאים לפי רמות</h2>
@@ -8537,11 +8539,13 @@ function showAbout() {
     <p>מערכת לימוד אינטראקטיבית שמלמדת איך עובדות מכונות AOI ו-AOS לייצור לוחות: מהרכיב הבודד, דרך המעגלים והמנגנונים, ועד המערכות שעובדות יחד כדי לסרוק פאנל, למצוא חוסר או עודף נחושת ולתקן. כל נושא נלמד בעומקים שונים: אינטואיציה, פיתוח, סימולציה, עץ תקלה ושאלות.</p>
     <div class="aboutbtns"><a class="abtn li" href="${li}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.5c0-1.31-.02-3-1.83-3-1.83 0-2.11 1.43-2.11 2.9V21H9z"/></svg> LinkedIn</a>
       <a class="abtn gh" href="${gh}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg> GitHub</a></div>
+    <p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>
     <h3>איך זה נבנה</h3>
     <p>אני הגדרתי את הארכיטקטורה ואת מודל הלמידה, בחרתי מה נכנס, ובדקתי כל מודל וכל מספר. בינה מלאכותית (<span lang="en">Claude</span>) שימשה כשותפה לכתיבת קוד וטיוטות. כל טענה במערכת עוברת בדיקות אוטומטיות, ובמהלך העבודה הבדיקות תפסו גם טעויות שה-<span lang="en">AI</span> עשה.</p>
     <div class="aboutstats">${[[ZOOM.length, 'נושאים בזום'], [wins, 'חלונות, לכל אחד בית אחד'], [TOPICS.length, 'תהליכים בסימולטור'], [COMPONENTS.length, 'רכיבים'], [QB.length, 'שאלות טכניות'], [SCN.length, 'תקלות שטח'], [11, 'חבילות בדיקה אוטומטיות'], ['1795', 'בדיקות מודל']].map(([n, t]) => `<div><b>${n}</b><small>${t}</small></div>`).join('')}</div>
     <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
   setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
+  content.querySelector('.about [data-tour]').addEventListener('click', () => zTourGo(0));
 }
 
 /* ---- a two-minute demo tour: the same path every time, one click per step ---- */
@@ -8570,8 +8574,6 @@ function zTourShow() {
 function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
 document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
 /* start buttons: in the zoom's views bar and on the about page */
-const _showAbout78 = showAbout;
-showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };
 /* ============ The machine in 3D: assemble, explode, click a part to go inside ============
    Layer 1 (main): the whole inspection machine with its simulations and 3D. Layer 2 (inner): the theory that meets it.
    Every part is a zoom node; clicking it flies to the part and opens its windows, simulations first, theory after.
@@ -8652,9 +8654,12 @@ const mCenter = p => { const b = p.boxes, n = b.length; return [b.reduce((s, x) 
 const LAYER1 = new Set(['scene', 'sim', 'figure', 'flow', 'rev', 'fault', 'quiz', 'integ']);
 const zLayer = w => LAYER1.has(zInfo(w).kind) ? 1 : 2;
 
+/* tools on the machine bar: { id, slot: 'start' | 'end', html(), wire(bar) } */
+const MBAR_TOOLS = [];
+const mTools = slot => MBAR_TOOLS.filter(t => t.slot === slot).map(t => t.html()).join('');
 function zMachineView() {
   content.innerHTML = zSubnav('machine') + `<div class="mwrap"><div class="mstage"><canvas id="mc" width="1100" height="680" tabindex="0" aria-label="The inspection machine in 3D; click a part to open it"></canvas>
-    <div class="mbar"><button type="button" id="mAsm">▶ הרכב מההתחלה</button><label>פירוק <input type="range" id="mE" min="0" max="1" step="0.01" value="${MS.E}"></label><button type="button" id="mRot" aria-pressed="${MS.rot}">${MS.rot ? '❚❚ עצור סיבוב' : '↻ סיבוב'}</button><button type="button" id="mAll">המכונה כולה</button></div>
+    <div class="mbar">${mTools('start')}<button type="button" id="mAsm">▶ הרכב מההתחלה</button><label>פירוק <input type="range" id="mE" min="0" max="1" step="0.01" value="${MS.E}"></label><button type="button" id="mRot" aria-pressed="${MS.rot}">${MS.rot ? '❚❚ עצור סיבוב' : '↻ סיבוב'}</button><button type="button" id="mAll">המכונה כולה</button>${mTools('end')}</div>
     <p class="mhint">גרור כדי לסובב · גלגל כדי להתקרב · לחץ על חלק כדי להיכנס אליו</p></div>
     <aside class="mside" id="mside"></aside></div>`;
   zWireSub();
@@ -8717,12 +8722,17 @@ function zMachineView() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { MS.E = 0; MS.assembling = false; }
   draw(); requestAnimationFrame(tick); mSide();
   setTitle('זום', 'המכונה בתלת-ממד', 'שכבה ראשית');
+  const bar = content.querySelector('.mbar'); MBAR_TOOLS.forEach(t => { if (t.wire) t.wire(bar); });
 }
+/* hooks around selecting a part and switching machine: registrations, not wrappers */
+const MHOOK = { beforeSelect: [], afterSelect: [], afterMachine: [] };
 function mSelect(id) {
+  MHOOK.beforeSelect.forEach(f => f(id));
   MS.sel = id;
   if (id) { const p = MPARTS.find(x => x.id === id); MS.Ct = mCenter(p); MS.distT = 6.5; MS.rot = false; const b = $('#mRot'); if (b) { b.textContent = '↻ סיבוב'; b.setAttribute('aria-pressed', false); } }
   else { MS.Ct = [0.5, 0, 1.0]; MS.distT = 12; }
   mSide();
+  MHOOK.afterSelect.forEach(f => f(id));
 }
 /* open a topic's inner assembly (from a part of the machine, or from a part already opened) */
 function mOpen(node) {
@@ -8786,7 +8796,7 @@ function zAppxView() {
   const nodes = ZOOM.filter(n => ZAPPX.has(n.id));
   content.innerHTML = zSubnav('appx') + `<h2>נספחים</h2><p class="lead">נושאים שאינם חלק מהמכונה עצמה, אבל משיקים לה: ההקשר של קו הייצור, הלוגיקה שמאחורי מחלקי תדר ומונים, ומכשירי המדידה של מי שמתקן אותה. ולצידם, משאבים לכל הספר.</p>
     <div class="ztiles">${nodes.map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות</small></button>`).join('')}</div>
-    <h3>משאבים לכל הספר</h3><div class="ztiles">${ZRES.map(([r, t]) => `<button type="button" class="ztile" data-route="${r.slice(2)}"><b>${t}</b></button>`).join('')}</div>`;
+    <h3>משאבים לכל הספר</h3><div class="ztiles">${ZRES_SHOWN.map(([r, t]) => `<button type="button" class="ztile" data-route="${r.slice(2)}"><b>${t}</b></button>`).join('')}</div>`;
   zWireSub(); zWire(); content.querySelectorAll('[data-route]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.route)));
   setTitle('זום', 'נספחים', nodes.length + ' נושאים');
 }
@@ -8795,7 +8805,6 @@ function zAppxView() {
 ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
 ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
 /* the tree and the 3D layers show the machine; appendices are counted on their own */
-zTreeView = (function (orig) { return function () { orig(); content.querySelectorAll('.ztcard').forEach(c => { const id = c.querySelector('.zid').textContent.toLowerCase(); if (ZAPPX.has(id)) c.remove(); }); }; })(zTreeView);
 /* the tour starts at the machine */
 ZTOUR.unshift([() => { MS.E = 1; MS.target = 0; MS.assembling = true; MS.sel = null; MS.path = []; go('zoom', 'machine'); }, 'השכבה הראשית: מכונת בדיקה שלמה שנבנית מול העיניים, חלק אחרי חלק. כל חלק הוא נושא שאפשר להיכנס אליו.'],
   [() => { MS.E = 0; MS.assembling = false; MS.path = []; go('zoom', 'machine'); mSelect('table'); setTimeout(() => { mOpen('vac'); setTimeout(() => { mOpen('valve'); setTimeout(() => mOpen('relay'), 1300); }, 1300); }, 700); }, 'פירוק רב-שכבתי: שולחן הוואקום מתפרק לשסתום, השסתום לממסר, והממסר לרכיבים: סליל, דיודה, MOSFET, נגד וקבל.']);
@@ -8820,7 +8829,6 @@ function mReach() {
   return { got, missing: ZOOM.filter(z => !ZAPPX.has(z.id) && !got.has(z.id)).map(z => z.id) };
 }
 /* appendices: no old indexes, only what is outside the machine and what serves the whole book */
-zAppxView = (function (orig) { return function () { orig(); const tiles = content.querySelectorAll('.ztile[data-route]'); tiles.forEach(t => { if (!ZRES_SHOWN.some(([r]) => r.slice(2) === t.dataset.route)) t.remove(); }); }; })(zAppxView);
 /* ============ Nothing swallowed, easy to move, inviting to explore ============ */
 
 /* 1. windows the merge had left on the old pages only: every section of a component lesson, and each topic's numbers and explanation */
@@ -8895,14 +8903,6 @@ msideSection('mexp', 10, ['whole'], {
     return `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`; },
   wire: el => { const b = el.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } }); } });
 /* finder: type a topic, jump to it in the machine */
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const bar = content.querySelector('.mbar'); if (!bar) return;
-    bar.insertAdjacentHTML('beforeend', `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}</datalist></label>`);
-    $('#mFind').addEventListener('change', e => { const v = e.target.value.trim(); if (!v) return; const z = zMachineTopics().find(x => x.t === v) || zMachineTopics().find(x => x.t.includes(v)); if (!z) return; e.target.value = ''; mJump(z.id); });
-  };
-})(zMachineView);
 /* jump to a topic inside the machine: a part, or the part that contains it, opened down to it */
 function mJump(id) {
   const direct = MPARTS.find(p => p.node === id); if (direct) { MS.path = []; mSelect(direct.id); return true; }
@@ -8936,20 +8936,12 @@ function mSetMachine(m) {
   if (m === 'verify') { ZS.dir = 1; go('zoom', 'proc'); return; }
   MS.machine = m; MS.sel = null; MS.path = []; MS.Ct = m === 'line' ? [0.5, 0, 1.0] : [0.5, 0, 1.0]; MS.distT = m === 'line' ? 24 : 12;
   document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === m)); mSide();
+  MHOOK.afterMachine.forEach(f => f(m));
 }
 msideSection('line', 30, ['line'], {
   html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
         <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
   wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const bar = content.querySelector('.mbar'); if (!bar) return;
-    bar.insertAdjacentHTML('afterbegin', `<span class="mmach" role="group" aria-label="איזו מכונה">${[['aoi', 'מכונת AOI'], ['aos', 'מכונת AOS'], ['line', 'הקו כולו']].map(([k, t]) => `<button type="button" data-mm="${k}" aria-pressed="${MS.machine === k}">${t}</button>`).join('')}</span>`);
-    bar.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm)));
-    if (MS.machine === 'line') { MS.distT = 24; MS.dist = 24; }
-  };
-})(zMachineView);
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
@@ -8986,23 +8978,22 @@ function zSimsView() {
 function zOpenWindow(node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); }
 /* the views bar gets the gallery; the machine finder also finds simulations */
 ZVIEW.add('sims', { group: 'main', order: 3, title: 'כל הסימולציות', render: () => zSimsView() });
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const dl = $('#mFindList'), inp = $('#mFind'); if (!dl || !inp) return;
-    const sims = zSimList(); dl.insertAdjacentHTML('beforeend', sims.map(s => `<option value="${s.t}">סימולציה</option>`).join(''));
-    inp.addEventListener('change', e => { const v = e.target.value.trim(), s = sims.find(x => x.t === v); if (s) { e.target.value = ''; zOpenWindow(s.node, s.w); } }, true);
-  };
-})(zMachineView);
 
+/* the bar tools: which machine, and the finder (topics and simulations) */
+MBAR_TOOLS.push({ id: 'machine', slot: 'start',
+  html: () => `<span class="mmach" role="group" aria-label="איזו מכונה">${[['aoi', 'מכונת AOI'], ['aos', 'מכונת AOS'], ['line', 'הקו כולו']].map(([k, t]) => `<button type="button" data-mm="${k}" aria-pressed="${MS.machine === k}">${t}</button>`).join('')}</span>`,
+  wire: bar => { bar.querySelectorAll('[data-mm]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm))); if (MS.machine === 'line') { MS.distT = 24; MS.dist = 24; } } });
+MBAR_TOOLS.push({ id: 'finder', slot: 'end',
+  html: () => `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}${zSimList().map(s => `<option value="${s.t}">סימולציה</option>`).join('')}</datalist></label>`,
+  wire: () => { const sims = zSimList();
+    $('#mFind').addEventListener('change', e => { const v = e.target.value.trim(); if (!v) return;
+      const s = sims.find(x => x.t === v); if (s) { e.target.value = ''; zOpenWindow(s.node, s.w); return; }
+      const z = zMachineTopics().find(x => x.t === v) || zMachineTopics().find(x => x.t.includes(v)); if (!z) return; e.target.value = ''; mJump(z.id); }); } });
 /* selecting a part shows the machine it belongs to */
-mSelect = (function (orig) {
-  return function (id) {
-    const p = id ? MPARTS.find(x => x.id === id) : null;
-    if (p) { const want = MCTX[p.id] ? MCTX[p.id].toLowerCase() : (MS.machine === 'line' ? 'aoi' : MS.machine); if (want !== MS.machine) { MS.machine = want; document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === want)); } }
-    orig(id);
-  };
-})(mSelect);
+MHOOK.beforeSelect.push(id => {
+  const p = id ? MPARTS.find(x => x.id === id) : null;
+  if (p) { const want = MCTX[p.id] ? MCTX[p.id].toLowerCase() : (MS.machine === 'line' ? 'aoi' : MS.machine); if (want !== MS.machine) { MS.machine = want; document.querySelectorAll('.mmach [data-mm]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mm === want)); } }
+});
 /* ============ The physics and math layer, animated ============
    Each animation: a derivation in steps, a drawing that shows what the current step says, and sliders.
    The numbers come from the same constants as the simulations (LZ for the laser, VT/vacCalc for the vacuum, SV for the servo). */
@@ -9194,7 +9185,7 @@ function winRestore(panel) {
   const snap = HS.snap[w], body = sec.querySelector('.zbody'); if (snap && body.act) body.act.setState(snap);
 }
 /* leaving a topic keeps its open window too */
-go = (function (orig) { return function (sheet, arg) { const p = document.getElementById('hubpanel'); if (p) winSave(p); return orig(sheet, arg); }; })(go);
+GO_BEFORE.push(() => { const p = document.getElementById('hubpanel'); if (p) winSave(p); });
 /* the topic's object: its inner parts exploded, its part of the machine, or the part it is inside */
 function hubGeometry(id) {
   if (INNER[id]) return INNER[id].map(ip => ({ b: ip.b.map((v, i) => v + 0.9 * ip.ex[Math.floor(i / 2)]), c: ip.c, sh: ROUND.test(ip.t) ? longAxis(ip.b) : null }));
@@ -9260,9 +9251,6 @@ function hubWire(cx) {
   if (openW && wins.includes(openW)) { const sec = panel.querySelector('.zwin'); sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60); }
 }
 nodeSection('hub', 40, { html: hubHtml, wire: hubWire });
-
-/* the window-opening helper now goes through the hubs */
-zOpenWindow = function (node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); };
 /* ============ The right layers first, information bundled, more of the physics animated ============ */
 
 /* ---- 1. the views bar: what a learner needs first; the method's proofs behind the scenes ---- */
@@ -9412,8 +9400,9 @@ function zRouteDeep() {
   return false;
 }
 function mWriteAddress() { const q = new URLSearchParams(); if (MS.machine && MS.machine !== 'aoi') q.set('m', MS.machine); if (MS.sel) q.set('sel', MS.sel); const s = q.toString(); zSetAddress('#/zoom/machine' + (s ? '?' + s : '')); }
-mSetMachine = (function (orig) { return function (m) { orig(m); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSetMachine);
-mSelect = (function (orig) { return function (id) { orig(id); if ((location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom') mWriteAddress(); }; })(mSelect);
+const onMachineHash = () => (location.hash || '').startsWith('#/zoom/machine') || location.hash === '#/zoom';
+MHOOK.afterMachine.push(() => { if (onMachineHash()) mWriteAddress(); });
+MHOOK.afterSelect.push(() => { if (onMachineHash()) mWriteAddress(); });
 window.addEventListener('hashchange', () => zRouteDeep());
 window.addEventListener('popstate', () => { if (!zRouteDeep()) { const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:.-]+))?$/); if (m && document.querySelector(`nav.sheets [data-sheet="${m[1]}"]`)) go(m[1], m[2]); } });
 /* a deep address at load: open it once the whole book is ready */
@@ -10352,7 +10341,9 @@ function showS0() {
   setTitle('ראיון', 'System Integrator · תיאור משרה', 'Job description');
 }
 
+/* GO_BEFORE (declared in 77-zoom.js, which loads earlier): things to do before the page is replaced */
 function go(sheet, arg) {
+  GO_BEFORE.forEach(f => f(sheet, arg));
   document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet));
   ({ zoom: (a) => showZoom(a), about: showAbout, path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
   if (sheet === 's3' || sheet === 's4') markVisit(sheet);
@@ -10410,7 +10401,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.34.0';
+const APP_VERSION = '2.35.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

@@ -78,9 +78,12 @@ const mCenter = p => { const b = p.boxes, n = b.length; return [b.reduce((s, x) 
 const LAYER1 = new Set(['scene', 'sim', 'figure', 'flow', 'rev', 'fault', 'quiz', 'integ']);
 const zLayer = w => LAYER1.has(zInfo(w).kind) ? 1 : 2;
 
+/* tools on the machine bar: { id, slot: 'start' | 'end', html(), wire(bar) } */
+const MBAR_TOOLS = [];
+const mTools = slot => MBAR_TOOLS.filter(t => t.slot === slot).map(t => t.html()).join('');
 function zMachineView() {
   content.innerHTML = zSubnav('machine') + `<div class="mwrap"><div class="mstage"><canvas id="mc" width="1100" height="680" tabindex="0" aria-label="The inspection machine in 3D; click a part to open it"></canvas>
-    <div class="mbar"><button type="button" id="mAsm">▶ הרכב מההתחלה</button><label>פירוק <input type="range" id="mE" min="0" max="1" step="0.01" value="${MS.E}"></label><button type="button" id="mRot" aria-pressed="${MS.rot}">${MS.rot ? '❚❚ עצור סיבוב' : '↻ סיבוב'}</button><button type="button" id="mAll">המכונה כולה</button></div>
+    <div class="mbar">${mTools('start')}<button type="button" id="mAsm">▶ הרכב מההתחלה</button><label>פירוק <input type="range" id="mE" min="0" max="1" step="0.01" value="${MS.E}"></label><button type="button" id="mRot" aria-pressed="${MS.rot}">${MS.rot ? '❚❚ עצור סיבוב' : '↻ סיבוב'}</button><button type="button" id="mAll">המכונה כולה</button>${mTools('end')}</div>
     <p class="mhint">גרור כדי לסובב · גלגל כדי להתקרב · לחץ על חלק כדי להיכנס אליו</p></div>
     <aside class="mside" id="mside"></aside></div>`;
   zWireSub();
@@ -143,12 +146,17 @@ function zMachineView() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { MS.E = 0; MS.assembling = false; }
   draw(); requestAnimationFrame(tick); mSide();
   setTitle('זום', 'המכונה בתלת-ממד', 'שכבה ראשית');
+  const bar = content.querySelector('.mbar'); MBAR_TOOLS.forEach(t => { if (t.wire) t.wire(bar); });
 }
+/* hooks around selecting a part and switching machine: registrations, not wrappers */
+const MHOOK = { beforeSelect: [], afterSelect: [], afterMachine: [] };
 function mSelect(id) {
+  MHOOK.beforeSelect.forEach(f => f(id));
   MS.sel = id;
   if (id) { const p = MPARTS.find(x => x.id === id); MS.Ct = mCenter(p); MS.distT = 6.5; MS.rot = false; const b = $('#mRot'); if (b) { b.textContent = '↻ סיבוב'; b.setAttribute('aria-pressed', false); } }
   else { MS.Ct = [0.5, 0, 1.0]; MS.distT = 12; }
   mSide();
+  MHOOK.afterSelect.forEach(f => f(id));
 }
 /* open a topic's inner assembly (from a part of the machine, or from a part already opened) */
 function mOpen(node) {
@@ -212,7 +220,7 @@ function zAppxView() {
   const nodes = ZOOM.filter(n => ZAPPX.has(n.id));
   content.innerHTML = zSubnav('appx') + `<h2>נספחים</h2><p class="lead">נושאים שאינם חלק מהמכונה עצמה, אבל משיקים לה: ההקשר של קו הייצור, הלוגיקה שמאחורי מחלקי תדר ומונים, ומכשירי המדידה של מי שמתקן אותה. ולצידם, משאבים לכל הספר.</p>
     <div class="ztiles">${nodes.map(n => `<button type="button" class="ztile" data-zn="${n.id}"><b>${n.t}</b><small>${zWindows(n).length} חלונות</small></button>`).join('')}</div>
-    <h3>משאבים לכל הספר</h3><div class="ztiles">${ZRES.map(([r, t]) => `<button type="button" class="ztile" data-route="${r.slice(2)}"><b>${t}</b></button>`).join('')}</div>`;
+    <h3>משאבים לכל הספר</h3><div class="ztiles">${ZRES_SHOWN.map(([r, t]) => `<button type="button" class="ztile" data-route="${r.slice(2)}"><b>${t}</b></button>`).join('')}</div>`;
   zWireSub(); zWire(); content.querySelectorAll('[data-route]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.route)));
   setTitle('זום', 'נספחים', nodes.length + ' נושאים');
 }
@@ -221,7 +229,6 @@ function zAppxView() {
 ZVIEW.add('machine', { group: 'main', order: 1, title: 'המכונה בתלת-ממד', render: () => zMachineView() });
 ZVIEW.add('appx', { group: 'main', order: 5, title: 'נספחים', render: () => zAppxView() });
 /* the tree and the 3D layers show the machine; appendices are counted on their own */
-zTreeView = (function (orig) { return function () { orig(); content.querySelectorAll('.ztcard').forEach(c => { const id = c.querySelector('.zid').textContent.toLowerCase(); if (ZAPPX.has(id)) c.remove(); }); }; })(zTreeView);
 /* the tour starts at the machine */
 ZTOUR.unshift([() => { MS.E = 1; MS.target = 0; MS.assembling = true; MS.sel = null; MS.path = []; go('zoom', 'machine'); }, 'השכבה הראשית: מכונת בדיקה שלמה שנבנית מול העיניים, חלק אחרי חלק. כל חלק הוא נושא שאפשר להיכנס אליו.'],
   [() => { MS.E = 0; MS.assembling = false; MS.path = []; go('zoom', 'machine'); mSelect('table'); setTimeout(() => { mOpen('vac'); setTimeout(() => { mOpen('valve'); setTimeout(() => mOpen('relay'), 1300); }, 1300); }, 700); }, 'פירוק רב-שכבתי: שולחן הוואקום מתפרק לשסתום, השסתום לממסר, והממסר לרכיבים: סליל, דיודה, MOSFET, נגד וקבל.']);

@@ -19,4 +19,3 @@ function mReach() {
   return { got, missing: ZOOM.filter(z => !ZAPPX.has(z.id) && !got.has(z.id)).map(z => z.id) };
 }
 /* appendices: no old indexes, only what is outside the machine and what serves the whole book */
-zAppxView = (function (orig) { return function () { orig(); const tiles = content.querySelectorAll('.ztile[data-route]'); tiles.forEach(t => { if (!ZRES_SHOWN.some(([r]) => r.slice(2) === t.dataset.route)) t.remove(); }); }; })(zAppxView);

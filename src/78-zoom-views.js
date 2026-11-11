@@ -56,7 +56,7 @@ function zDupCheck() {
 const ZT = { q: '', core: false, ctx: 'all', branch: null };
 function zTreeView() {
   const show = new Set(ZT.branch ? [...zDesc(ZT.branch), ...zAnc(ZT.branch)] : ZOOM.map(z => z.id));
-  const match = z => show.has(z.id) && (!ZT.core || ZCORE.has(z.id)) && (ZT.ctx === 'all' || zCtx(z.id) === ZT.ctx || (ZT.ctx !== 'SHARED' && zCtx(z.id) === 'SHARED')) && (!ZT.q || (z.t + ' ' + z.id).toLowerCase().includes(ZT.q.toLowerCase()));
+  const match = z => show.has(z.id) && !ZAPPX.has(z.id) && (!ZT.core || ZCORE.has(z.id)) && (ZT.ctx === 'all' || zCtx(z.id) === ZT.ctx || (ZT.ctx !== 'SHARED' && zCtx(z.id) === 'SHARED')) && (!ZT.q || (z.t + ' ' + z.id).toLowerCase().includes(ZT.q.toLowerCase()));
   const card = z => `<article class="ztcard ${ZCORE.has(z.id) ? 'core' : ''}"><header><span class="zid mono">${z.id.toUpperCase()}</span><span class="zbadge">${ZCORE.has(z.id) ? '★ גרעין' : 'הרחבה'}</span></header><h3>${z.t}</h3><p class="zmeta">${zWindows(z).length} חלונות · ${({ AOI: 'AOI', AOS: 'AOS', SHARED: 'משותף' })[zCtx(z.id)]}</p>${zParents(z.id).length ? `<p class="zlink">חלק מ: ${zParents(z.id).map(p => `<button type="button" data-zn="${p.id}">${p.t}</button>`).join(' ')}</p>` : ''}<p><button type="button" class="zopen2" data-zn="${z.id}">פתח ←</button></p></article>`;
   const branches = [['proc', 'כל המערכת'], ...ZOOM.filter(z => z.level === 4).map(z => [z.id, z.t])];
   content.innerHTML = zSubnav('tree') + `<h2>עץ הנושאים לפי רמות</h2>
@@ -164,11 +164,13 @@ function showAbout() {
     <p>מערכת לימוד אינטראקטיבית שמלמדת איך עובדות מכונות AOI ו-AOS לייצור לוחות: מהרכיב הבודד, דרך המעגלים והמנגנונים, ועד המערכות שעובדות יחד כדי לסרוק פאנל, למצוא חוסר או עודף נחושת ולתקן. כל נושא נלמד בעומקים שונים: אינטואיציה, פיתוח, סימולציה, עץ תקלה ושאלות.</p>
     <div class="aboutbtns"><a class="abtn li" href="${li}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.5c0-1.31-.02-3-1.83-3-1.83 0-2.11 1.43-2.11 2.9V21H9z"/></svg> LinkedIn</a>
       <a class="abtn gh" href="${gh}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg> GitHub</a></div>
+    <p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>
     <h3>איך זה נבנה</h3>
     <p>אני הגדרתי את הארכיטקטורה ואת מודל הלמידה, בחרתי מה נכנס, ובדקתי כל מודל וכל מספר. בינה מלאכותית (<span lang="en">Claude</span>) שימשה כשותפה לכתיבת קוד וטיוטות. כל טענה במערכת עוברת בדיקות אוטומטיות, ובמהלך העבודה הבדיקות תפסו גם טעויות שה-<span lang="en">AI</span> עשה.</p>
     <div class="aboutstats">${[[ZOOM.length, 'נושאים בזום'], [wins, 'חלונות, לכל אחד בית אחד'], [TOPICS.length, 'תהליכים בסימולטור'], [COMPONENTS.length, 'רכיבים'], [QB.length, 'שאלות טכניות'], [SCN.length, 'תקלות שטח'], [11, 'חבילות בדיקה אוטומטיות'], ['1795', 'בדיקות מודל']].map(([n, t]) => `<div><b>${n}</b><small>${t}</small></div>`).join('')}</div>
     <p class="note">השרטוטים והערכים מייצגים תכנון תעשייתי טיפוסי ממקורות ציבוריים, ונועדו ללימוד.</p></section>`;
   setTitle('על הפרויקט', '<span lang="en">Eliaz Selam</span>', 'מהרכיב למכונה');
+  content.querySelector('.about [data-tour]').addEventListener('click', () => zTourGo(0));
 }
 
 /* ---- a two-minute demo tour: the same path every time, one click per step ---- */
@@ -197,5 +199,3 @@ function zTourShow() {
 function zTourGo(i) { ZT_STATE.i = i; if (i >= 0) { ZS.dir = 0; ZTOUR[i][0](); window.scrollTo(0, 0); } zTourShow(); }
 document.addEventListener('keydown', e => { if (ZT_STATE.i < 0 || /INPUT|TEXTAREA|SELECT/.test((e.target || {}).tagName || '')) return; if (e.key === 'Escape') zTourGo(-1); else if (e.key === 'ArrowLeft' && ZT_STATE.i < ZTOUR.length - 1) zTourGo(ZT_STATE.i + 1); else if (e.key === 'ArrowRight' && ZT_STATE.i > 0) zTourGo(ZT_STATE.i - 1); });
 /* start buttons: in the zoom's views bar and on the about page */
-const _showAbout78 = showAbout;
-showAbout = function () { _showAbout78(); const btns = content.querySelector('.aboutbtns'); if (btns) { btns.insertAdjacentHTML('afterend', '<p><button type="button" class="ztstart big" data-tour="1">▶ סיור הדגמה של שתי דקות</button></p>'); content.querySelector('[data-tour]').addEventListener('click', () => zTourGo(0)); } };

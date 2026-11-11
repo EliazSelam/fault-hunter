@@ -25,7 +25,7 @@ function winRestore(panel) {
   const snap = HS.snap[w], body = sec.querySelector('.zbody'); if (snap && body.act) body.act.setState(snap);
 }
 /* leaving a topic keeps its open window too */
-go = (function (orig) { return function (sheet, arg) { const p = document.getElementById('hubpanel'); if (p) winSave(p); return orig(sheet, arg); }; })(go);
+GO_BEFORE.push(() => { const p = document.getElementById('hubpanel'); if (p) winSave(p); });
 /* the topic's object: its inner parts exploded, its part of the machine, or the part it is inside */
 function hubGeometry(id) {
   if (INNER[id]) return INNER[id].map(ip => ({ b: ip.b.map((v, i) => v + 0.9 * ip.ex[Math.floor(i / 2)]), c: ip.c, sh: ROUND.test(ip.t) ? longAxis(ip.b) : null }));
@@ -91,6 +91,3 @@ function hubWire(cx) {
   if (openW && wins.includes(openW)) { const sec = panel.querySelector('.zwin'); sec.classList.add('zfocus'); setTimeout(() => sec.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60); }
 }
 nodeSection('hub', 40, { html: hubHtml, wire: hubWire });
-
-/* the window-opening helper now goes through the hubs */
-zOpenWindow = function (node, w) { ZS.openW = w; ZS.dir = 1; go('zoom', node); };

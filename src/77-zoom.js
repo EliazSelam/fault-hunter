@@ -98,6 +98,8 @@ function zCapture() {
 }
 /* every window: a title, a kind, and how it is shown */
 const ZKIND = { page: ['עמוד קיים', 6], story: ['בפשטות', 1], steps: ['שלב אחר שלב', 2], figure: ['איור חי', 0], scene: ['הדגמה', 0], sim: ['סימולציה', 3], numbers: ['דוגמה עם מספרים', 4], formulas: ['נוסחאות', 5], derivation: ['פיתוח', 5], flow: ['זרימה וממשקים', 2], rev: ['נתק ובדוק', 6], fault: ['עץ תקלה', 7], wrong: ['מה יכול להשתבש', 7], quiz: ['שאלות', 8], integ: ['אינטגרציה', 9], card: ['כרטיס רכיב', 0] };
+/* things to do before the page is replaced by another (a registration, not a wrapper); go() in 40-app.js runs them */
+const GO_BEFORE = [];
 /* window kinds: one place to add how a window is named, mounted and filed by machine.
    Later additions are checked first; the base kind below answers everything else. */
 const WIN = {

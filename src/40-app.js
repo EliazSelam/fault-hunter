@@ -221,7 +221,9 @@ function showS0() {
   setTitle('ראיון', 'System Integrator · תיאור משרה', 'Job description');
 }
 
+/* GO_BEFORE (declared in 77-zoom.js, which loads earlier): things to do before the page is replaced */
 function go(sheet, arg) {
+  GO_BEFORE.forEach(f => f(sheet, arg));
   document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet));
   ({ zoom: (a) => showZoom(a), about: showAbout, path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
   if (sheet === 's3' || sheet === 's4') markVisit(sheet);

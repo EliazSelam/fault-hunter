@@ -72,14 +72,6 @@ msideSection('mexp', 10, ['whole'], {
     return `<div class="mexp"><p class="mexpn"><b>ביקרת ב-${got} מתוך ${tot} נושאים במכונה</b></p><div class="mexpbar" role="progressbar" aria-valuemin="0" aria-valuemax="${tot}" aria-valuenow="${got}"><i style="width:${Math.round(100 * got / tot)}%"></i></div>${nx ? `<p class="mnext">הבא לבקר: <button type="button" class="linkbtn" data-nx="${nx.id}">${nx.t}</button>${zTeaser(nx.id) ? `<span class="mteaser">${zTeaser(nx.id)}</span>` : ''}</p>` : '<p>ביקרת בכל נושאי המכונה.</p>'}</div>`; },
   wire: el => { const b = el.querySelector('[data-nx]'); if (b) b.addEventListener('click', () => { const mp = MPARTS.find(x => x.node === b.dataset.nx); if (mp) mSelect(mp.id); else { ZS.dir = 1; go('zoom', b.dataset.nx); } }); } });
 /* finder: type a topic, jump to it in the machine */
-zMachineView = (function (orig) {
-  return function () {
-    orig();
-    const bar = content.querySelector('.mbar'); if (!bar) return;
-    bar.insertAdjacentHTML('beforeend', `<label class="mfind"><span class="vh">חיפוש חלק במכונה</span><input id="mFind" list="mFindList" placeholder="חפש חלק: סליל, שסתום, עדשה…"><datalist id="mFindList">${zMachineTopics().map(z => `<option value="${z.t}"></option>`).join('')}</datalist></label>`);
-    $('#mFind').addEventListener('change', e => { const v = e.target.value.trim(); if (!v) return; const z = zMachineTopics().find(x => x.t === v) || zMachineTopics().find(x => x.t.includes(v)); if (!z) return; e.target.value = ''; mJump(z.id); });
-  };
-})(zMachineView);
 /* jump to a topic inside the machine: a part, or the part that contains it, opened down to it */
 function mJump(id) {
   const direct = MPARTS.find(p => p.node === id); if (direct) { MS.path = []; mSelect(direct.id); return true; }
