@@ -20,10 +20,10 @@ function winSave(panel) {
   const snap = { inputs: [...body.querySelectorAll('input, select')].map(i => i.type === 'checkbox' ? i.checked : i.value) };
   const st = body.querySelector('[data-s][aria-current="step"]'); if (st) snap.step = st.dataset.s;
   if (body.animApi) snap.anim = { step: body.animApi.step, P: Object.assign({}, body.animApi.P) };
-  HS.snap[w] = snap;
+  HS.snap[w] = snap; try { sessionStorage.setItem('fh-snap:' + w, JSON.stringify(snap)); } catch (e) { }
 }
 function winRestore(panel) {
-  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w, snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
+  const sec = panel.querySelector('.zwin'), w = sec && sec.dataset.w; if (w && !HS.snap[w]) { try { const s = sessionStorage.getItem('fh-snap:' + w); if (s) HS.snap[w] = JSON.parse(s); } catch (e) { } } const snap = w && HS.snap[w]; if (!snap) return; const body = sec.querySelector('.zbody');
   if (snap.anim && body.animApi) { Object.entries(snap.anim.P).forEach(([k, v]) => body.animApi.setParam(k, v)); body.animApi.go(snap.anim.step); return; }
   const ins = [...body.querySelectorAll('input, select')];
   if (ins.length === snap.inputs.length) ins.forEach((i, k) => { if (i.type === 'checkbox') i.checked = snap.inputs[k]; else i.value = snap.inputs[k]; i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); });

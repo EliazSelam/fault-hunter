@@ -2,8 +2,8 @@
 
 /* ---- 1. the views bar: what a learner needs first; the method's proofs behind the scenes ---- */
 zSubnav = function (cur) {
-  const main = [['machine', 'המכונה בתלת-ממד'], ['world', 'מפת עולם'], ['sims', 'כל הסימולציות'], ['node', ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום'], ['appx', 'נספחים']];
-  const back = [['tree', 'עץ נושאים לפי רמות'], ['3d', 'שכבות בתלת-ממד'], ['dedup', 'דו"ח כפילויות ושיבוץ']];
+  const label = ([k, t]) => [k, k === 'node' ? (ZS.node && zNode(ZS.node) ? 'הנושא האחרון: ' + zNode(ZS.node).t.split(':')[0] : 'זום') : t];
+  const main = ZVIEW.list.filter(v => v[2] === 'main').map(label), back = ZVIEW.list.filter(v => v[2] === 'back').map(label);
   const inBack = back.some(b => b[0] === cur);
   return `<nav class="zsub" aria-label="תצוגות הזום">${main.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}
     <details class="zback2"${inBack ? ' open' : ''}><summary>מאחורי הקלעים</summary><div>${back.map(([k, t]) => `<button type="button" data-zv="${k}" aria-current="${k === cur ? 'page' : 'false'}">${t}</button>`).join('')}</div></details>
@@ -47,6 +47,7 @@ showZoom = (function (orig) { return function (arg) { if (arg === 'world') { act
 const winSubject = w => { const [k, a] = w.split(':'); if (k === 'c') { const C = COMPONENTS.find(x => x.id === a); return C ? C.name.replace(/<[^>]+>/g, '').split(':')[0] : a; } if (k === 't') { const T = TOPICS.find(x => x.id === a); return T ? T.t.split(':')[0] : a; } return ''; };
 /* after a hub opens: its pills grouped by subject, each pill named by what it is (or by its title when that is not enough) */
 function hubAfterRender(id, h, showHub) {
+  if ((location.hash || '').startsWith('#/zoom/' + id) && HS.win[id]) zSetAddress(zWindowAddress(id, h, HS.win[id]));
   const nav = content.querySelector('.hubpills');
   if (nav) {
     const btns = [...nav.querySelectorAll('button')], groups = {};

@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.34.0] — 2026-11-11
+
+Stage 2, a lighter pass by choice: the parts that change the experience now; the internal cleanup later.
+
+- **Permanent links (review F09).** Every topic, hub and window has an address, for example `#/zoom/laser/math/anim%3Acrater`, and the machine view has `#/zoom/machine?m=aos&sel=laser`. Opening a link goes straight there.
+- **The back button.** Moving to another topic or view adds a step to the history; changing a hub or a window inside a topic only updates the address. Back returns to the previous topic with the same window open.
+- **The same attempt after a reload.** A window's state (step, controls, animation step and parameters) is kept for the browser tab, so reloading a link returns to where you were.
+- **The views bar from one list,** so a new view is one entry.
+- Still open from the plan in `docs/STAGE2_PLAN.md`: the window-kind registry, page sections, activity handles, and removing the wrappers. The zoom suite checks links, history, reload and the machine link (45,714 checks).
+
 ## [2.33.0] — 2026-11-11
 
 Stage 1 after the external review of 2.32.0: continuity fixes, no new design. Both findings the review reproduced were reproduced here first, then fixed.
