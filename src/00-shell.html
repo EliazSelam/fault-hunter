@@ -411,6 +411,14 @@ nav.sheets button[hidden]{display:none}
 .asteps li.next{opacity:.38}.asteps li.done{opacity:.75}.asteps li.cur{background:var(--livetint);box-shadow:inset 3px 0 0 var(--live)}
 .actl{display:flex;gap:6px;margin:6px 0}.actl button{font:inherit;font-size:14px;padding:5px 12px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.actl [data-ab="play"]{background:var(--ink);color:var(--sheet);font-weight:700}
 .aprm{display:grid;gap:6px;font-size:13px}.aprm label{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}.aprm input{grid-column:1/-1;width:100%}
+.hub{margin:6px 0 10px}.hubstage{position:relative;display:grid;grid-template-columns:1fr minmax(260px,1.5fr) 1fr;gap:10px;align-items:center;min-height:330px}
+.hubcol{display:flex;flex-direction:column;gap:18px;z-index:1}.hubmid{text-align:center;z-index:1}.hubobj{width:100%;max-width:420px;height:auto;border-radius:50%;background:radial-gradient(circle at 50% 45%, rgba(214,232,247,.95) 0%, rgba(214,232,247,.35) 60%, transparent 72%);cursor:pointer}
+.hubcap{margin:0;font-size:12px;color:var(--muted)}.hublines{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.hubbtn{font:inherit;text-align:center;padding:12px 10px;border:2px solid var(--hc);border-radius:18px;background:var(--sheet);color:var(--ink);cursor:pointer;box-shadow:0 2px 0 rgba(27,47,90,.08);transition:transform .15s}
+.hubbtn b{display:block;font-size:16px}.hubbtn small{color:var(--muted)}.hubbtn:hover{transform:translateY(-2px)}.hubbtn[aria-pressed="true"]{background:var(--hc);color:#fff}.hubbtn[aria-pressed="true"] small{color:#EEE9E0}
+@media (max-width:760px){.hubstage{grid-template-columns:1fr 1fr}.hubmid{grid-column:1/-1;order:-1}.hublines{display:none}}
+.hubpanel{border-top:3px solid var(--line);padding-top:10px}.hubhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-inline-start:5px solid var(--hc);padding-inline-start:10px}.hubhead h3{margin:0}
+.hubpills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.hubpills button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.hubpills button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.hubpills button[aria-pressed="true"] .kb{color:var(--ink)}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
