@@ -417,7 +417,7 @@ nav.sheets button[hidden]{display:none}
 .hubbtn{font:inherit;text-align:center;padding:12px 10px;border:2px solid var(--hc);border-radius:18px;background:var(--sheet);color:var(--ink);cursor:pointer;box-shadow:0 2px 0 rgba(27,47,90,.08);transition:transform .15s}
 .hubbtn b{display:block;font-size:16px}.hubbtn small{color:var(--muted)}.hubbtn:hover{transform:translateY(-2px)}.hubbtn[aria-pressed="true"]{background:var(--hc);color:#fff}.hubbtn[aria-pressed="true"] small{color:#EEE9E0}
 @media (max-width:760px){.hubstage{grid-template-columns:1fr 1fr}.hubmid{grid-column:1/-1;order:-1}.hublines{display:none}}
-.hubpanel{border-top:3px solid var(--line);padding-top:10px}.hubhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-inline-start:5px solid var(--hc);padding-inline-start:10px}.hubhead h3{margin:0}
+.hubpanel{border-top:3px solid var(--line);padding-top:10px}.hubnext{text-align:center;margin:18px 0 4px}.hubnext button{font:inherit;font-weight:600;padding:9px 20px;border:1.5px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.hubnext button:hover{background:var(--ink);color:var(--sheet)}.hubhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-inline-start:5px solid var(--hc);padding-inline-start:10px}.hubhead h3{margin:0}
 .hubpills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.hubpills button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.hubpills button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}.hubpills button[aria-pressed="true"] .kb{color:var(--ink)}
 .zsub details.zback2{position:relative}.zsub details.zback2 summary{list-style:none;font:inherit;font-size:14px;padding:6px 14px;border:1.5px dashed var(--line);border-radius:999px;cursor:pointer;color:var(--muted)}.zsub details.zback2 summary::-webkit-details-marker{display:none}
 .zsub details.zback2[open] summary{color:var(--ink);border-style:solid}.zsub details.zback2 div{position:absolute;z-index:6;top:calc(100% + 6px);inset-inline-start:0;display:flex;flex-direction:column;gap:6px;padding:10px;background:var(--sheet);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(27,47,90,.15);min-width:220px}
@@ -427,6 +427,12 @@ nav.sheets button[hidden]{display:none}
 .hubgrp{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 6px}.hubgt{font-size:12px;font-weight:700;color:var(--muted);margin-inline-end:4px}
 .zbody.clamp{max-height:380px;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}.clampmore button{font:inherit;font-size:14px;padding:6px 14px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}
 .msec{display:contents}
+.wdark{background:radial-gradient(120% 100% at 50% 40%,#2a5584 0%,#1B2F5A 62%,#13234a 100%);border-color:#1B2F5A}.wdark .wmap{width:100%;height:auto;display:block}
+.wtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.wtools input{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--text);min-width:210px}.wtools button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.wtools button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);border-color:var(--ink)}
+.wdark .wcity text{font:11px system-ui,sans-serif;fill:#D6E8F7;opacity:0;pointer-events:none;paint-order:stroke;stroke:#1B2F5A;stroke-width:3px}.wdark .wcity.big text{opacity:1;font-weight:700;font-size:12.5px}.wdark .wcity.hot text,.wdark .wcity.nb text,.wdark .wcity.match text{opacity:1}
+.wdark .wcity circle{transition:stroke-width .15s,filter .15s}.wdark .wcity:hover circle,.wdark .wcity:focus circle,.wdark .wcity.hot circle{stroke-width:3;filter:drop-shadow(0 0 7px #D6E8F7)}.wdark .wcity.match circle{filter:drop-shadow(0 0 8px #D6E8F7)}
+.wmap.dim .wcity{opacity:.16}.wmap.dim .wcity.nb,.wmap.dim .wcity.hot{opacity:1}.wmap .wedges line{transition:stroke-opacity .15s}.wmap.dim .wedges line{stroke-opacity:.05}.wmap.dim .wedges line.hot{stroke-opacity:.85}
+.wmap .wcity.off,.wmap .wedges line.off{display:none}.wmap .wcity.nomatch{opacity:.14}.wl2{margin-top:8px}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -1198,7 +1204,7 @@ COMPONENTS.push({
     stage.innerHTML = SVG(640, 250, g, 'Laser fluence profile and ablation cross-section');
     const ok = r.wideOk && r.deepOk && r.clearOk;
     let msg;
-    if (ok) msg = '<span class="good">התיקון שלם:</span> הנחושת נחתכה עד הלמינציה לכל רוחב הגשר. הפער בין המוליכים נקי.';
+    if (ok) msg = '<span class="good">הגשר הוסר לפי המודל הגאומטרי:</span> הנחושת נחתכה עד הלמינציה לכל רוחב הגשר, והפער בין המוליכים נקי במודל. קבלה חשמלית ואיכות המוצר נבדקות בנפרד.';
     else if (r.off && r.deepOk) msg = '<span class="bad">שארית בצד אחד:</span> העומק מספיק והקוטר תקין, אבל המכתש מוזז. זה registration בין המצלמה ללייזר, לא הספק. בודקים בירי על דוגמית ומודדים את מרכז המכתש.';
     else if (!r.deepOk && r.wideOk) msg = '<span class="bad">מכתש רחב ורדוד:</span> האנרגיה מתפזרת על כתם גדול. זה החתימה של defocus: בדוק גובה Z, עובי פאנל במתכון, ו-autofocus.';
     else if (!r.deepOk && !r.wideOk) msg = '<span class="bad">מכתש צר ורדוד:</span> מגיעה פחות אנרגיה לפאנל. מודדים הספק במישור העבודה מול המקור: אם המקור תקין והמישור לא, החשוד הוא האופטיקה (חלון מגן, מראות).';
@@ -6759,8 +6765,8 @@ const { m: mM, i: mI, n: mN, o: mO, r: mR, f: mF, sub: mS } = MM;
 const AOI_STEPS = [
   { id: 'load', t: 'טעינה', lead: 'panel', dur: 3, what: 'רובוט או מפעיל מניח פאנל על השולחן. חיישן נוכחות מאשר שהפאנל במקום.', why: 'בלי פאנל במקום הנכון, כל מה שאחרי זה נמדד על משהו אחר.', num: 'פאנל 510×610 mm', check: 'חיישן נוכחות, פינים של עצירה' },
   { id: 'vac', t: 'ואקום', lead: 'zones', dur: 2.5, what: 'שסתום פותח ואקום לאזורים שמתחת לפאנל. מתג לחץ מאשר שהגענו לסף.', why: 'פאנל שלא שטוח ולא מוחזק יוצא מפוקוס וזז בזמן הסריקה.', num: 'ΔP ≈ 60 kPa → F ≈ 18.7 kN', check: 'מד ואקום, אזורים פתוחים מול גודל הפאנל' },
-  { id: 'home', t: 'Homing', lead: 'axes', dur: 3, what: 'הצירים נוסעים לחיישני הבית, והאנקודרים מתאפסים בנקודה ידועה.', why: 'בלי נקודת אפס, הקואורדינטות של הבקר לא קשורות לעולם האמיתי.', num: 'חזרתיות ±1–2 µm (טיפוסי)', check: 'חיישן home, ערוץ index של האנקודר' },
-  { id: 'fid', t: 'Fiducials', lead: 'camera', dur: 4, what: 'המצלמה ניגשת לשלושה סימני ייחוס, ומודדת איפה הם באמת. הבקר מחשב היסט, סיבוב וקנה מידה.', why: 'הפאנל אף פעם לא מונח בדיוק, וגם מתכווץ או מתרחב מעט. בלי התיקון, ההשוואה ל-CAM תיתן אלפי פגמים מדומים.', num: 'שארית < 5 µm', check: 'תאורה, פוקוס, סימן פגום, מתכון נכון' },
+  { id: 'home', t: 'Homing', lead: 'axes', dur: 3, what: 'הצירים נוסעים לחיישני הבית, והאנקודרים מתאפסים בנקודה ידועה.', why: 'בלי נקודת אפס, הקואורדינטות של הבקר לא קשורות לעולם האמיתי.', num: 'חזרתיות ±1–2 µm (ערך להמחשה)', check: 'חיישן home, ערוץ index של האנקודר' },
+  { id: 'fid', t: 'Fiducials', lead: 'camera', dur: 4, what: 'המצלמה ניגשת לסימני הייחוס (שלושה הם המינימום לתיקון affine, ובהדגמת הרישום כאן ארבעה בפינות), ומודדת איפה הם באמת. הבקר מחשב היסט, סיבוב וקנה מידה.', why: 'הפאנל אף פעם לא מונח בדיוק, וגם מתכווץ או מתרחב מעט. בלי התיקון, ההשוואה ל-CAM תיתן אלפי פגמים מדומים.', num: 'שארית < 5 µm (סף לדוגמה)', check: 'תאורה, פוקוס, סימן פגום, מתכון נכון' },
   { id: 'scan', t: 'סריקה', lead: 'swath', dur: 6, what: 'הראש סורק ברצועות. כל שורה בתמונה מצולמת לפי פולס מהאנקודר, לא לפי שעון.', why: 'טריגר לפי מיקום שומר על קנה מידה קבוע בכל מהירות.', num: '14 רצועות · 51 kHz · 39 s', check: 'קצב שורות, חפיפה, פוקוס לאורך הרצועה' },
   { id: 'cmp', t: 'השוואה', lead: 'defects', dur: 2.5, what: 'התמונה, אחרי התיקון הגיאומטרי, מושווית ל-CAM. כל הפרש מעל הסף הוא מועמד לפגם.', why: 'ההשוואה היא כל העבודה. כל מה שלפניה רק מכין אותה.', num: 'פגמים מסוג קצר, נתק, צרות', check: 'סף רגישות, false calls' },
   { id: 'rep', t: 'דוח ואימות', lead: 'list', dur: 2.5, what: 'רשימת הפגמים נשלחת לתחנת אימות. מפעיל מאשר מה אמיתי, ומה עובר ל-AOS לתיקון.', why: 'מכונה רגישה מספיק כדי לא לפספס, גם מוצאת דברים שאינם פגמים.', num: 'false calls לפאנל', check: 'תקשורת, מזהה פאנל' },
@@ -7597,7 +7603,7 @@ const CAM_STEPS = [
   { id: 'trig', t: 'טריגר', lead: 'encoder', dur: 2.5, what: 'כל פולס מהאנקודר אומר למצלמה: צלמי שורה עכשיו. השורה הבאה מגיעה אחרי 4.88 µm של תנועה.', why: 'לפי מיקום, לא לפי זמן: קנה המידה קבוע בכל מהירות.', num: '51.2 kHz ב-250 mm/s', check: 'מקור טריגר: אנקודר' },
   { id: 'exp', t: 'חשיפה והבזק', lead: 'strobe', dur: 3, what: 'האור מהבהב לזמן קצר בכל שורה. מספר האור שנאסף הוא עוצמה כפול זמן, והתנועה בזמן ההבזק היא המריחה.', why: 'הבזק קצר מקפיא תנועה. אבל קצר מדי = כהה.', num: 'הבזק 2 µs → מריחה 0.5 µm', check: 'עוצמה × זמן, בלי רוויה' },
   { id: 'read', t: 'קריאה', lead: 'sensor', dur: 2.5, what: 'החיישן מוציא שורה של 8192 ערכים. ה-frame grabber מצרף שורה לשורה לתמונה.', why: 'כל שורה צריכה להיקרא לפני שהבאה מגיעה.', num: 'שורה כל 19.5 µs', check: 'קצב שורות מתחת למקסימום המצלמה' },
-  { id: 'ff', t: 'תיקון שדה', lead: 'profile', dur: 3, what: 'התאורה והעדשה חלשות יותר בקצוות. תיקון flat-field מחלק כל פיקסל בתמונת ייחוס לבנה, וכך הקו אחיד.', why: 'בלי תיקון, אותה נחושת נראית כהה בקצה הרצועה, ונראית כמו פגם.', num: 'קצוות חלשים ב-35% לפני תיקון', check: 'white reference עדכני' },
+  { id: 'ff', t: 'תיקון שדה', lead: 'profile', dur: 3, what: 'התאורה והעדשה חלשות יותר בקצוות. תיקון flat-field מחלק כל פיקסל בתמונת ייחוס לבנה, וכך הקו אחיד. זה פישוט: בפועל מחסרים גם תמונת חושך ומנרמלים, והרוויה נבדקת בנפרד.', why: 'בלי תיקון, אותה נחושת נראית כהה בקצה הרצועה, ונראית כמו פגם.', num: 'קצוות חלשים ב-35% לפני תיקון', check: 'white reference עדכני' },
   { id: 'seg', t: 'הפרדה', lead: 'profile', dur: 2.5, what: 'סף באמצע בין נחושת ללמינציה מחליט לכל פיקסל: נחושת או לא.', why: 'ככל שהפער (margin) גדול, רעש קטן לא משנה את ההחלטה.', num: 'נחושת 200, למינציה 50: פער 150', check: 'margin מול הדרישה' },
   { id: 'img', t: 'התמונה', lead: 'image', dur: 2.5, what: 'התמונה הבינארית, נקייה וחדה, הולכת להשוואה ל-CAM.', why: 'כל שלב בשרשרת יכול לקלקל אותה. ההשוואה תראה את הקלקול כ"פגם".', num: 'פיקסל 4.88 µm', check: 'false calls' }
 ];
@@ -8777,7 +8783,7 @@ msideSection('inner', 30, ['inner'], { wire: mWireBase, html: () => {
       ${sel ? mNodeBlock(zNode(sel.node), sel.t) : `<h3>${zNode(top).t}: מפורק לחלקים</h3><p>לחצו על חלק כדי לראות מה הוא, ואם יש לו חלקים משלו, לפרק גם אותו.</p><ul class="mlist">${INNER[top].map((ip, i) => `<li><button type="button" class="linkbtn" data-mi="${i}">${ip.t}</button></li>`).join('')}</ul>`}
       <p><button type="button" class="linkbtn" data-mup="1">← רמה אחת למעלה</button></p>`; } });
 msideSection('whole', 30, ['whole'], { wire: mWireBase, html: () => {
-  const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם.'];
+  const MI = (typeof MS.machine === 'string' && MS.machine === 'aos') ? ['מכונת AOS: מתקנת קצרים', 'ראש הלייזר נוסע לפגם שאומת, מודד את הנחושת, ומסיר את העודף בפולסים קצרים, עד שהקצר נפתח. ההדגמה כאן היא הסרה בלבד: תיקון חוסר (הוספת חומר) הוא יכולת נפרדת שתלויה בדגם ובתצורה, ואינו מופיע בה.'] : ['מכונת AOI: מוצאת פגמים', 'המצלמה סורקת את הפאנל שורה אחרי שורה, והתמונה מושווית לקובץ התכנון. כל הבדל הוא חשד לפגם. מצלמת ה-line-scan היא בחירה של ההדגמה, לא הגדרה של AOI: יש מכונות עם מצלמת שטח.'];
   return `<h3>${MI[0]}</h3><p>${MI[1]} כל חלק הוא נושא: לחצו עליו כדי להיכנס.</p><p class="note">הציר, השולחן והארון זהים בשתי המכונות כאן. זה פישוט לימודי: במכונות אמיתיות כל אחת בנויה אחרת.</p><ul class="mlist">${MPARTS.filter(p => p.node && (typeof mVis !== 'function' || mVis(p))).map(p => `<li><button type="button" class="linkbtn" data-mp="${p.id}">${p.t}</button></li>`).join('')}</ul>
       <p class="note">את מה שאינו חלק מהמכונה, כמו קו הייצור, לוגיקה ספרתית ומכשירי מדידה, תמצאו ב<button type="button" class="linkbtn" data-zv2="appx">נספחים</button>.</p>`; } });
 msideSection('part', 30, ['part'], { wire: mWireBase, html: () => {
@@ -8939,9 +8945,10 @@ function mSetMachine(m) {
   MHOOK.afterMachine.forEach(f => f(m));
 }
 msideSection('line', 30, ['line'], {
-  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
+  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS. האימות יכול להיות תחנה נפרדת, חלק מהמכונה, או החלטה מרחוק על התמונה. הפאנל והמידע עליו נוסעים בשני מסלולים שונים.</p>
+        <p><button type="button" class="linkbtn" data-handoff="1">איך הפגם עובר מ-AOI ל-AOS ←</button></p>
         <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
-  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
+  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); el.querySelectorAll('[data-handoff]').forEach(b => b.addEventListener('click', () => zOpenWindow('proc', 'anim:handoff'))); } });
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
@@ -8955,7 +8962,7 @@ WIN_BASE.ctx = function (w, node) {
   return zCtx(node);
 }
 function zSimList() {
-  const out = []; ZOOM.forEach(n => zWindows(n).forEach(w => { const i = zInfo(w); if (SIMKINDS.has(i.kind)) out.push({ w, node: n.id, t: i.t, kind: i.kind, ctx: zWinCtx(w, n.id) }); }));
+  const out = []; ZOOM.forEach(n => zWindows(n).forEach(w => { const i = zInfo(w), an = w.startsWith('anim:'); if (an || SIMKINDS.has(i.kind)) out.push({ w, node: n.id, t: i.t, kind: an ? 'anim' : i.kind, ctx: zWinCtx(w, n.id) }); }));
   return out;
 }
 const ZG = { q: '', ctx: 'all' };
@@ -9164,15 +9171,20 @@ WIN.add({ id: 'anim', test: w => w.startsWith('anim:'), info: w => ({ kind: 'ani
 /* the lens is an assembly too */
 INNER.optics = [IB('optics', 'עדשה קדמית', [-0.55, 0.55, -0.55, 0.55, 0.55, 0.75], [0, 0, 0.8], 'tint'), IB('optics', 'עדשה אמצעית', [-0.45, 0.45, -0.45, 0.45, 0.1, 0.3], [0, 0, 0.3], 'live'), IB('optics', 'עדשה אחורית', [-0.4, 0.4, -0.4, 0.4, -0.35, -0.15], [0, 0, -0.2], 'tint'), IB('optics', 'גוף העדשה ותושבת הטיה', [-0.65, 0.65, -0.65, 0.65, -0.75, -0.55], [0, 0, -0.8], 'ink'), IB('optics', 'מנוע מיקוד', [0.8, 1.1, -0.15, 0.15, -0.3, 0.3], [0.9, 0, 0], 'mech')];
 INNER.optics.forEach(ip => { if (/עדשה/.test(ip.t) && !/גוף/.test(ip.t)) ip.t = ip.t; });
+/* the seven levels of depth, in the order a learner goes down: from the whole in action to how it connects to the rest.
+   [id, name, layer (1 = see and operate, 2 = understand), the kinds of windows that belong, colour, what the level is] */
 const HUBS = [
-  ['demo', 'הדגמה וסימולציה', 1, ['scene', 'sim', 'figure', 'tryit', 'schematic'], '#3078B0'],
-  ['math', 'פיזיקה ומתמטיקה', 2, ['anim', 'derivation', 'formulas', 'numbers', 'eng'], '#1B2F5A'],
-  ['rev', 'הנדסה לאחור ותקלות', 1, ['rev', 'flow', 'fault', 'wrong'], '#7B5A3C'],
-  ['inside', 'מה יש בפנים', 2, ['story', 'steps', 'parts', 'words', 'card'], '#3078B0'],
-  ['q', 'שאלות', 1, ['quiz', 'drills', 'integ'], '#7B5A3C'],
-  ['read', 'קריאה והרחבה', 2, ['reading', 'page', 'say'], '#4A4540']
+  ['show', 'תצוגת תכלית', 1, ['scene', 'sim', 'figure', 'card', 'tryit'], '#3078B0', 'מקצה לקצה'],
+  ['flow', 'זרימה וממשקים', 1, ['flow', 'schematic'], '#3078B0', 'רמת הארכיטקט'],
+  ['eng', 'רמת המהנדס', 2, ['story', 'steps', 'parts', 'words', 'numbers', 'eng'], '#1B2F5A', 'מספרים ופיינמן'],
+  ['math', 'פיתוח מתמטי', 2, ['anim', 'derivation', 'formulas'], '#1B2F5A', 'הנוסחאות'],
+  ['rev', 'הנדסה לאחור', 1, ['rev'], '#7B5A3C', 'נתק ובדוק'],
+  ['fault', 'תקלות ושאלות', 1, ['fault', 'wrong', 'quiz', 'drills'], '#7B5A3C', 'פתורה, מודרכת, לבד'],
+  ['integ', 'אינטגרציה', 2, ['integ', 'page', 'reading', 'say'], '#4A4540', 'בין מערכות ועיון']
 ];
-const hubOf = w => { const k = zInfo(w).kind; const h = HUBS.find(x => x[3].includes(k)); return h ? h[0] : 'read'; };
+const HUBW = { 'anim:handoff': 'flow' };
+const hubOf = w => { if (HUBW[w]) return HUBW[w]; const k = zInfo(w).kind; const h = HUBS.find(x => x[3].includes(k)); return h ? h[0] : 'integ'; };
+
 const HS = { hub: {}, win: {}, snap: {} };
 /* a window's state, kept when it is closed and given back when it opens again: its step, its controls, its animation */
 function winSave(panel) {
@@ -9213,15 +9225,15 @@ function hubHtml(cx) {
   const { id, node: n, openW } = cx, wins = zWindows(n), by = {}; wins.forEach(w => (by[hubOf(w)] = by[hubOf(w)] || []).push(w));
   const hubs = HUBS.filter(h => by[h[0]]); if (!hubs.length) return '';
   if (openW && wins.includes(openW)) { HS.hub[id] = hubOf(openW); HS.win[id] = openW; }
-  if (!HS.hub[id] || !by[HS.hub[id]]) HS.hub[id] = (by.demo ? 'demo' : hubs[0][0]);
-  const left = hubs.filter((_, i) => i % 2 === 0), right = hubs.filter((_, i) => i % 2 === 1);
+  if (!HS.hub[id] || !by[HS.hub[id]]) HS.hub[id] = (by.show ? 'show' : hubs[0][0]);
+  const half = Math.ceil(hubs.length / 2), left = hubs.slice(0, half), right = hubs.slice(half);
   cx.hub = { wins, by, hubs, left, right };
-  const hubBtn = h => `<button type="button" class="hubbtn" data-hub="${h[0]}" aria-pressed="${HS.hub[id] === h[0]}" style="--hc:${h[4]}"><b>${h[1]}</b><small>${by[h[0]].length} · שכבה ${h[2]}</small></button>`;
+  const hubBtn = h => `<button type="button" class="hubbtn" data-hub="${h[0]}" aria-pressed="${HS.hub[id] === h[0]}" style="--hc:${h[4]}"><b>${HUBS.indexOf(h)}. ${h[1]}</b><small>${h[5]} · ${by[h[0]].length}</small></button>`;
   return `<section class="hub" aria-label="הנושא ודרכי ההבנה שלו">
       <div class="hubstage"><div class="hubcol">${left.map(hubBtn).join('')}</div>
         <div class="hubmid"><canvas class="hubobj" width="420" height="300" tabindex="0" role="button" aria-label="${n.t}: מצא במכונה"></canvas><p class="hubcap"><button type="button" class="hubfind">מצא את החלק במכונה ←</button></p></div>
         <div class="hubcol">${right.map(hubBtn).join('')}</div>
-        <svg class="hublines" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">${[...left.map((h, i) => [h, 86, 10 + i * 20]), ...right.map((h, i) => [h, 14, 10 + i * 20])].map(([h, x, y]) => `<path d="M50 30 C ${(50 + x) / 2} 30, ${(50 + x) / 2} ${y}, ${x} ${y}" stroke="${h[4]}" stroke-width="0.35" fill="none" stroke-dasharray="${HS.hub[id] === h[0] ? '' : '1.2 1'}" opacity="${HS.hub[id] === h[0] ? 0.9 : 0.45}"/>`).join('')}</svg></div>
+        <svg class="hublines" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true">${[...left.map((h, i) => [h, 86, left.length < 2 ? 30 : 8 + i * 44 / (left.length - 1)]), ...right.map((h, i) => [h, 14, right.length < 2 ? 30 : 8 + i * 44 / (right.length - 1)])].map(([h, x, y]) => `<path d="M50 30 C ${(50 + x) / 2} 30, ${(50 + x) / 2} ${y}, ${x} ${y}" stroke="${h[4]}" stroke-width="0.35" fill="none" stroke-dasharray="${HS.hub[id] === h[0] ? '' : '1.2 1'}" opacity="${HS.hub[id] === h[0] ? 0.9 : 0.45}"/>`).join('')}</svg></div>
       <div class="hubpanel" id="hubpanel"></div></section>`;
 }
 function hubWire(cx) {
@@ -9239,10 +9251,12 @@ function hubWire(cx) {
     main.querySelectorAll('.hubbtn').forEach(b => b.setAttribute('aria-pressed', b.dataset.hub === h));
     main.querySelectorAll('.hublines path').forEach((p, i) => { const hh = [...left, ...right][i]; p.setAttribute('stroke-dasharray', hh[0] === h ? '' : '1.2 1'); p.setAttribute('opacity', hh[0] === h ? 0.9 : 0.45); });
     const H = HUBS.find(x => x[0] === h), w = HS.win[id];
-    panel.innerHTML = `<header class="hubhead" style="--hc:${H[4]}"><h3>${H[1]}</h3><span class="kb">שכבה ${H[2]}: ${H[2] === 1 ? 'רואים ומפעילים' : 'מבינים לעומק'}</span></header>
+    const order = [...left, ...right].map(x => x[0]), at = order.indexOf(h), nextH = order[at + 1] ? HUBS.find(x => x[0] === order[at + 1]) : null;
+    panel.innerHTML = `<header class="hubhead" style="--hc:${H[4]}"><h3>${HUBS.indexOf(H)}. ${H[1]}</h3><span class="kb">${H[5]}</span><span class="kb">שכבה ${H[2]}: ${H[2] === 1 ? 'רואים ומפעילים' : 'מבינים לעומק'}</span></header>
         ${list.length > 1 ? `<nav class="hubpills" aria-label="החלונות של ${H[1]}">${list.map(x => { const i = zInfo(x); return `<button type="button" data-hw="${x}" aria-pressed="${x === w}"><span class="kb">${(ZKIND[i.kind] || [i.kind])[0]}</span> ${i.t.length > 42 ? i.t.slice(0, 40) + '…' : i.t}</button>`; }).join('')}</nav>` : ''}
-        <section class="zwin open" data-w="${w}"><header><span class="kb">${(ZKIND[zInfo(w).kind] || [''])[0]}</span> <h3 class="zwt">${zInfo(w).t}</h3></header><div class="zbody"></div></section>`;
+        <section class="zwin open" data-w="${w}"><header><span class="kb">${(ZKIND[zInfo(w).kind] || [''])[0]}</span> <h3 class="zwt">${zInfo(w).t}</h3></header><div class="zbody"></div></section>${nextH ? `<p class="hubnext"><button type="button" data-next="${nextH[0]}">המשך למטה: ${HUBS.indexOf(nextH)}. ${nextH[1]} ↓</button></p>` : ''}`;
     zMount(w, panel.querySelector('.zbody')); winRestore(panel);
+    panel.querySelectorAll('[data-next]').forEach(b => b.addEventListener('click', () => { showHub(b.dataset.next); main.querySelector('.hubstage').scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }));
     panel.querySelectorAll('[data-hw]').forEach(b => b.addEventListener('click', () => { HS.win[id] = b.dataset.hw; showHub(h); }));
     hubAfterRender(id, h, showHub);
   };
@@ -9258,27 +9272,54 @@ nodeSection('hub', 40, { html: hubHtml, wire: hubWire });
 function zWorldView() {
   const topics = zMachineTopics(), ex = zExplored(), sims = zSimList(), wins = new Set(ZOOM.flatMap(zWindows));
   const anims = sims.filter(s => s.kind === 'anim').length, got = topics.filter(t => ex.has(t.id)).length;
-  /* continents: the systems; capital: the process; cities: what each system is made of, farther out as they get smaller */
-  const conts = ZOOM.filter(z => z.level === 4 && !ZAPPX.has(z.id)), W = 1000, H = 640, cx = W / 2, cy = H / 2;
-  const home = {}; topics.forEach(t => { if (t.level >= 4) return; let p = t; const seen = new Set(); while (p && p.level < 4 && !seen.has(p.id)) { seen.add(p.id); p = zMainParent(p.id); } home[t.id] = p && p.level === 4 ? p.id : conts[0].id; });
-  const pos = {}, R = 225; conts.forEach((c, i) => { const a = -Math.PI / 2 + 2 * Math.PI * i / conts.length; pos[c.id] = [cx + R * 1.5 * Math.cos(a), cy + R * Math.sin(a)]; });
-  conts.forEach(c => { const kids = topics.filter(t => home[t.id] === c.id).sort((a, b) => b.level - a.level); kids.forEach((k, j) => { const a = 2.39996 * j + c.id.length, r = 34 + (4 - k.level) * 26 + (j % 3) * 6; pos[k.id] = [pos[c.id][0] + r * Math.cos(a), pos[c.id][1] + r * 0.82 * Math.sin(a)]; }); });
-  topics.filter(t => t.level === 5).forEach((t, i) => { pos[t.id] = [cx + (i - 0.5) * 120, cy - 10 + (i % 2) * 40]; });
-  const size = t => 5 + Math.sqrt(zWindows(t).length) * 1.7;
-  const machine = id => zCtx(id) === 'AOS' ? '#7B5A3C' : zCtx(id) === 'AOI' ? '#3078B0' : '#1B2F5A';
-  const land = conts.map(c => { const [x, y] = pos[c.id], kids = topics.filter(t => home[t.id] === c.id), rx = 70 + Math.min(80, kids.length * 9); return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${rx * 0.72}" fill="${machine(c.id)}" opacity="0.10"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${rx * 0.72}" fill="none" stroke="${machine(c.id)}" stroke-opacity="0.35" stroke-dasharray="4 5"/>`; }).join('');
-  const roads = topics.flatMap(t => zParents(t.id).filter(p => pos[p.id] && !ZAPPX.has(p.id)).map(p => `<line x1="${pos[p.id][0].toFixed(1)}" y1="${pos[p.id][1].toFixed(1)}" x2="${pos[t.id][0].toFixed(1)}" y2="${pos[t.id][1].toFixed(1)}" stroke="#1B2F5A" stroke-opacity="0.12"/>`)).join('');
-  const cities = topics.map(t => { const [x, y] = pos[t.id], s = size(t), seen = ex.has(t.id); return `<g class="wcity" data-zn="${t.id}" tabindex="0" role="button" aria-label="${t.t}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${s.toFixed(1)}" fill="${seen ? machine(t.id) : '#FBFAF7'}" stroke="${machine(t.id)}" stroke-width="${t.level >= 4 ? 2.5 : 1.5}"/><text x="${x.toFixed(1)}" y="${(y + s + 13).toFixed(1)}" text-anchor="middle" class="wlbl${t.level >= 4 ? ' big' : ''}">${t.t.split(':')[0]}</text></g>`; }).join('');
+  const W = 1000, H = 640, id2i = new Map(topics.map((t, i) => [t.id, i])), deg = topics.map(() => 0), edges = [];
+  topics.forEach(t => t.parts.forEach(p => { if (id2i.has(p)) { const a = id2i.get(t.id), b = id2i.get(p); edges.push([a, b]); deg[a]++; deg[b]++; } }));
+  const col = id => zCtx(id) === 'AOS' ? '#7B5A3C' : zCtx(id) === 'AOI' ? '#3078B0' : '#D6E8F7';
+  /* the scales are the rings: the process in the middle, components at the rim */
+  const ringR = lvl => [0, 395, 315, 235, 150, 0][lvl];
+  const nodes = topics.map((t, i) => ({ t, i, x: W / 2 + Math.cos(i * 2.399) * (ringR(t.level) + 20), y: H / 2 + Math.sin(i * 2.399) * (ringR(t.level) + 20) * 0.72, vx: 0, vy: 0, r: 4.5 + t.level * 1.9 + Math.sqrt(deg[i]) * 1.1, fx: false }));
+  function tickSim(alpha) {
+    for (let a = 0; a < nodes.length; a++) for (let b = a + 1; b < nodes.length; b++) { const A = nodes[a], B = nodes[b]; let dx = A.x - B.x, dy = A.y - B.y, d2 = dx * dx + dy * dy + 0.01; if (d2 > 120000) continue; const f = 3800 / d2 * alpha, d = Math.sqrt(d2); dx /= d; dy /= d; A.vx += dx * f; A.vy += dy * f; B.vx -= dx * f; B.vy -= dy * f; }
+    edges.forEach(([a, b]) => { const A = nodes[a], B = nodes[b]; let dx = B.x - A.x, dy = B.y - A.y; const d = Math.sqrt(dx * dx + dy * dy) + 0.01, f = (d - 80) * 0.006 * alpha; dx /= d; dy /= d; A.vx += dx * f; A.vy += dy * f; B.vx -= dx * f; B.vy -= dy * f; });
+    nodes.forEach(n => { const dx = n.x - W / 2, dy = (n.y - H / 2) / 0.72, d = Math.sqrt(dx * dx + dy * dy) + 0.01, f = (ringR(n.t.level) - d) * 0.06 * alpha; n.vx += dx / d * f; n.vy += dy / d * f * 0.72; if (n.fx) { n.vx = n.vy = 0; return; } n.vx *= 0.8; n.vy *= 0.8; n.x = Math.max(30, Math.min(W - 30, n.x + n.vx)); n.y = Math.max(24, Math.min(H - 24, n.y + n.vy)); });
+  }
+  for (let k = 0; k < 420; k++) tickSim(Math.max(0.05, 1 - k / 420));
   const stat = (n, t, s = '') => `<div class="wstat"><b>${n}</b><span>${t}</span>${s ? `<small>${s}</small>` : ''}</div>`;
+  const lblBig = n => n.t.level >= 4;
   content.innerHTML = zSubnav('world') + `<h2>מפת עולם</h2>
     <div class="wstats">${stat(`${got}/${topics.length}`, 'נושאים שביקרת בהם', `${Math.round(100 * got / topics.length)}%`)}${stat(sims.length - anims, 'סימולציות והדגמות')}${stat(anims, 'הנפשות פיזיקה ומתמטיקה')}${stat(wins.size, 'חלונות, לכל אחד בית אחד')}${stat(topics.filter(t => zCtx(t.id) === 'AOI').length, 'נושאים ייחודיים ל-AOI')}${stat(topics.filter(t => zCtx(t.id) === 'AOS').length, 'נושאים ייחודיים ל-AOS')}</div>
-    <p class="lead">כל מערכת במכונה היא יבשת, וכל מה שהיא בנויה ממנו הוא עיר סביבה: ככל שהעיר רחוקה מהמרכז, היא קטנה יותר, עד הרכיב. עיר מלאה בצבע היא נושא שכבר ביקרת בו. גודל העיר הוא כמות החלונות בה.</p>
-    <div class="wmapwrap"><svg class="wmap" viewBox="0 0 ${W} ${H}" role="group" aria-label="מפת הנושאים: כל עיר היא כפתור"><rect width="${W}" height="${H}" fill="#EEE9E0" rx="18"/>${land}${roads}${cities}</svg></div>
-    <p class="wlegend"><span style="--c:#3078B0">AOI</span><span style="--c:#7B5A3C">AOS</span><span style="--c:#1B2F5A">משותף</span><span class="hollow">עוד לא ביקרת</span></p>
-    <details class="wlist"><summary>כל הנושאים כרשימה</summary><ul>${conts.map(c => `<li><button type="button" class="linkbtn" data-zn="${c.id}">${c.t}</button><ul>${topics.filter(t => home[t.id] === c.id).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></li>`).join('')}${topics.filter(t => t.level === 5).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button></li>`).join('')}</ul></details>`;
+    <p class="lead">כל נושא הוא נקודה, וכל קו הוא "בנוי מ". התהליך במרכז, והרכיבים בטבעת החיצונית. ריחוף על נקודה מאיר אותה ואת שכנותיה. גרירה מזיזה, ולחיצה פותחת. נקודה מלאה היא נושא שכבר ביקרת בו.</p>
+    <div class="wtools"><label class="vh" for="wq">חיפוש בגרף</label><input id="wq" type="search" placeholder="חיפוש נושא בגרף…"><span class="ztctx">${[['all', 'הכל'], ['AOI', 'AOI'], ['AOS', 'AOS'], ['SHARED', 'משותף']].map(([k, t]) => `<button type="button" data-wf="${k}" aria-pressed="${k === 'all'}">${t}</button>`).join('')}</span></div>
+    <div class="wmapwrap wdark"><svg class="wmap" viewBox="0 0 ${W} ${H}" role="group" aria-label="גרף הנושאים: כל נקודה היא כפתור">
+      <g class="wrings">${[1, 2, 3, 4].map(l => `<ellipse cx="${W / 2}" cy="${H / 2}" rx="${ringR(l)}" ry="${ringR(l) * 0.72}" fill="none" stroke="#D6E8F7" stroke-opacity="0.07"/>`).join('')}</g>
+      <g class="wedges">${edges.map(([a, b]) => `<line data-a="${a}" data-b="${b}" stroke="#D6E8F7" stroke-opacity="0.22"/>`).join('')}</g>
+      <g class="wnodes">${nodes.map(n => { const seen = ex.has(n.t.id); return `<g class="wcity${lblBig(n) ? ' big' : n.t.level === 4 ? ' lvl4' : ''}" data-zn="${n.t.id}" data-i="${n.i}" data-c="${zCtx(n.t.id)}" tabindex="0" role="button" aria-label="${n.t.t}"><circle r="${n.r.toFixed(1)}" fill="${seen ? col(n.t.id) : '#1B2F5A'}" stroke="${col(n.t.id)}" stroke-width="${seen ? 1 : 1.8}"/><text y="${(n.r + 12).toFixed(1)}" text-anchor="middle">${n.t.t.split(':')[0]}</text></g>`; }).join('')}</g></svg></div>
+    <p class="wlegend wl2"><span style="--c:#3078B0">AOI</span><span style="--c:#7B5A3C">AOS</span><span style="--c:#D6E8F7">משותף</span><span class="hollow">עוד לא ביקרת</span></p>
+    <details class="wlist"><summary>כל הנושאים כרשימה</summary><ul>${topics.filter(t => t.level >= 4).map(c => `<li><button type="button" class="linkbtn" data-zn="${c.id}">${c.t}</button>${ex.has(c.id) ? ' ✓' : ''}<ul>${topics.filter(t => t.level < 4 && zMainPath(t.id).some(p => p.id === c.id)).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></li>`).join('')}${topics.filter(t => t.level < 4 && !topics.some(c => c.level >= 4 && zMainPath(t.id).some(p => p.id === c.id))).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></details>`;
   zWireSub();
+  const svg = content.querySelector('.wmap'), gs = [...svg.querySelectorAll('.wcity')], ls = [...svg.querySelectorAll('.wedges line')];
+  const place = () => { gs.forEach((g, k) => g.setAttribute('transform', `translate(${nodes[k].x.toFixed(1)} ${nodes[k].y.toFixed(1)})`)); ls.forEach(l => { const a = nodes[+l.dataset.a], b = nodes[+l.dataset.b]; l.setAttribute('x1', a.x.toFixed(1)); l.setAttribute('y1', a.y.toFixed(1)); l.setAttribute('x2', b.x.toFixed(1)); l.setAttribute('y2', b.y.toFixed(1)); }); };
+  place();
+  const nb = i => new Set([i, ...edges.filter(([a, b]) => a === i || b === i).flatMap(e => e)]);
+  const focus = i => { svg.classList.add('dim'); const s = nb(i); gs.forEach((g, k) => { g.classList.toggle('nb', s.has(k)); g.classList.toggle('hot', k === i); }); ls.forEach(l => l.classList.toggle('hot', +l.dataset.a === i || +l.dataset.b === i)); };
+  const unfocus = () => { svg.classList.remove('dim'); gs.forEach(g => g.classList.remove('nb', 'hot')); ls.forEach(l => l.classList.remove('hot')); };
+  let drag = null, moved = false, raf = 0, alpha = 0;
+  const reheat = () => { alpha = 0.35; if (!raf) raf = requestAnimationFrame(loop); };
+  const loop = () => { raf = 0; if (!document.body.contains(svg)) return; tickSim(alpha); alpha *= 0.96; place(); if (alpha > 0.01 || drag) raf = requestAnimationFrame(loop); };
+  const pt = e => { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  gs.forEach((g, k) => {
+    g.addEventListener('pointerenter', () => focus(k)); g.addEventListener('pointerleave', unfocus); g.addEventListener('focus', () => focus(k)); g.addEventListener('blur', unfocus);
+    g.addEventListener('pointerdown', e => { drag = k; moved = false; nodes[k].fx = true; g.setPointerCapture && g.setPointerCapture(e.pointerId); });
+    g.addEventListener('pointermove', e => { if (drag !== k) return; const [x, y] = pt(e); if (Math.hypot(x - nodes[k].x, y - nodes[k].y) > 3) moved = true; nodes[k].x = Math.max(30, Math.min(W - 30, x)); nodes[k].y = Math.max(24, Math.min(H - 24, y)); reheat(); });
+    g.addEventListener('pointerup', () => { if (drag === k) { nodes[k].fx = false; drag = null; reheat(); } });
+    g.addEventListener('click', () => { if (moved) { moved = false; return; } ZS.dir = 1; go('zoom', g.dataset.zn); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ZS.dir = 1; go('zoom', g.dataset.zn); } });
+  });
   content.querySelectorAll('.wlist [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-  content.querySelectorAll('.wcity').forEach(g => { const open = () => { ZS.dir = 1; go('zoom', g.dataset.zn); }; g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
+  let flt = 'all', q = '';
+  const apply = () => { const qq = q.trim().toLowerCase(); gs.forEach((g, k) => { const okF = flt === 'all' || g.dataset.c === flt || (flt !== 'SHARED' && g.dataset.c === 'SHARED' && false), okQ = !qq || nodes[k].t.t.toLowerCase().includes(qq); g.classList.toggle('off', !okF); g.classList.toggle('match', !!qq && okQ && okF); g.classList.toggle('nomatch', !!qq && !okQ); }); ls.forEach(l => l.classList.toggle('off', gs[+l.dataset.a].classList.contains('off') || gs[+l.dataset.b].classList.contains('off'))); };
+  content.querySelectorAll('[data-wf]').forEach(b => b.addEventListener('click', () => { flt = b.dataset.wf; content.querySelectorAll('[data-wf]').forEach(x => x.setAttribute('aria-pressed', x === b)); apply(); }));
+  content.querySelector('#wq').addEventListener('input', e => { q = e.target.value; apply(); });
   setTitle('זום', 'מפת עולם', `${got} מתוך ${topics.length} נחקרו`);
 }
 ZVIEW.add('world', { group: 'main', order: 2, title: 'מפת עולם', render: () => zWorldView() });
@@ -9407,6 +9448,112 @@ window.addEventListener('hashchange', () => zRouteDeep());
 window.addEventListener('popstate', () => { if (!zRouteDeep()) { const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:.-]+))?$/); if (m && document.querySelector(`nav.sheets [data-sheet="${m[1]}"]`)) go(m[1], m[2]); } });
 /* a deep address at load: open it once the whole book is ready */
 setTimeout(() => { if (/^#\/zoom\/[^/]+\/|^#\/zoom\/machine\?/.test(location.hash || '')) zRouteDeep(); }, 0);
+/* ============ Four more animated windows ============
+   Same player and rules as 83-anim.js: steps that render their own numbers, a drawing that shows the current step, sliders.
+   Numbers come from the same models as the component pages (camera speed and pixel, thermal expansion, depth of field). */
+const STB = { v: 250, p: 4.88, Rth: 0.5, alpha: 23e-6, L: 0.1, dofHalf: 6.2 };      // mm/s, µm per pixel, °C/W, 1/K, m, µm
+Object.assign(ANIMS, {
+  strobe: { node: 'trig', t: 'סטרוב: למה הבזק קצר ולא אור רציף (סיבה ותוצאה)',
+    params: [['tp', 'חלון איסוף t', 2, 40, 1, 10, 'µs'], ['f', 'קצב שורות f', 5, 50, 1, 20, 'kHz'], ['Pp', 'הספק נדרש בחלון', 5, 60, 1, 15, 'W']],
+    calc: P => { const duty = Math.min(1, P.tp * 1e-6 * P.f * 1e3), Ps = P.Pp * duty, Pc = P.Pp, dTs = STB.Rth * Ps, dTc = STB.Rth * Pc, zs = STB.alpha * STB.L * dTs * 1e6, zc = STB.alpha * STB.L * dTc * 1e6, blur = STB.v * P.tp * 1e-3;
+      return { duty, Ps, Pc, dTs, dTc, zs, zc, blur, bpx: blur / STB.p, okS: zs <= STB.dofHalf, okC: zc <= STB.dofHalf }; },
+    steps: [(P, V) => `הסנסור צריך כמות אור בכל שורה, והתמונה נשארת חדה רק אם חלון האיסוף קצר: t = <b>${P.tp} µs</b>. בחלון הזה צריך הספק של <b>${P.Pp} W</b>. הטשטוש: b = v·t = <b>${f1(V.blur, 2)} µm</b> (${f1(V.bpx, 2)} פיקסל).`,
+      (P, V) => `הבזק נותן את ${P.Pp} W רק בתוך החלון, ובשאר הזמן כבוי. מחזור העבודה duty = t·f = <b>${f1(V.duty * 100)}%</b>, וההספק הממוצע P_avg = P·duty = <b>${f1(V.Ps, 1)} W</b>.`,
+      (P, V) => `אור רציף חייב לתת את אותם ${P.Pp} W בחלון, ולכן הוא דולק כל הזמן: P_avg = <b>${f1(V.Pc, 1)} W</b>. זה פי ${f1(V.Pc / Math.max(V.Ps, 1e-9), 1)} יותר חום מההבזק, בלי להוסיף אור שימושי.`,
+      (P, V) => `החום עובר לתושבת העדשה: ΔT = R_th · P_avg, עם R_th = ${STB.Rth} °C/W. הבזק: <b>${f1(V.dTs, 1)} °C</b>. רציף: <b>${f1(V.dTc, 1)} °C</b>.`,
+      (P, V) => `התושבת מתארכת: Δz = α·L·ΔT, עם α = 23·10⁻⁶ /K ו-L = 100 mm. הבזק: <b>${f1(V.zs, 1)} µm</b> (${V.okS ? 'בתוך' : '<b>מחוץ</b> ל'} עומק השדה ±${STB.dofHalf} µm). רציף: <b>${f1(V.zc, 1)} µm</b> (${V.okC ? 'בתוך' : '<b>מחוץ</b> ל'} עומק השדה). כך אור רציף מוציא את התמונה מפוקוס.`],
+    draw(ctx, W, H, P, V, s, tm) {
+      const x0 = 50, w = W - 100, per = Math.max(80, w / 5);
+      const win = Math.max(0.03, V.duty), off = (tm * 40) % per;
+      const lane = (y, label, strobe) => {
+        ctx.strokeStyle = AC.text; ctx.globalAlpha = 0.35; ctx.strokeRect(x0, y - 30, w, 46); ctx.globalAlpha = 1; ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(label, x0, y - 36);
+        ctx.fillStyle = 'rgba(48,120,176,.14)'; for (let k = 0; k * per < w + per; k++) { const xx = x0 + k * per - off, a = Math.max(x0, xx), b = Math.min(x0 + w, xx + per * win); if (b > a) ctx.fillRect(a, y - 30, b - a, 46); }
+        ctx.strokeStyle = AC.live; ctx.lineWidth = 2.5; ctx.beginPath(); for (let x = 0; x <= w; x++) { const u = ((((x + off) % per) + per) % per) / per, on = strobe ? u < win : true; const yy = on ? y - 26 : y + 10; x ? ctx.lineTo(x0 + x, yy) : ctx.moveTo(x0 + x, yy); } ctx.stroke(); ctx.lineWidth = 1; };
+      lane(70, 'LED current: flash (power only in the window)', true); lane(150, 'LED current: continuous (same power in the window, always on)', false);
+      /* two lens mounts coloured by temperature, with the drift against the depth-of-field band */
+      const mount = (cx, dT, z, ok, label) => { const heat = Math.max(0, Math.min(1, dT / 8)), r = Math.round(214 - heat * (214 - 123)), g = Math.round(232 - heat * (232 - 90)), b = Math.round(247 - heat * (247 - 60));
+        ctx.fillStyle = `rgb(${r},${g},${b})`; ctx.strokeStyle = AC.ink; ctx.lineWidth = 2; ctx.fillRect(cx - 38, 197, 76, 54); ctx.strokeRect(cx - 38, 197, 76, 54); ctx.lineWidth = 1;
+        ctx.fillStyle = AC.ink; ctx.beginPath(); ctx.ellipse(cx, 224, 24, 9, 0, 0, 7); ctx.fill();
+        const gy = 325, sc = 4; ctx.fillStyle = 'rgba(48,120,176,.18)'; ctx.fillRect(cx - 50, gy - STB.dofHalf * sc, 100, 2 * STB.dofHalf * sc); ctx.strokeStyle = AC.live; ctx.strokeRect(cx - 50, gy - STB.dofHalf * sc, 100, 2 * STB.dofHalf * sc);
+        const zy = gy - Math.min(z, 30) * sc; ctx.fillStyle = ok ? AC.ink : AC.mech; ctx.beginPath(); ctx.arc(cx, zy, 7, 0, 7); ctx.fill();
+        ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(label, cx, 188); ctx.fillText(`ΔT ${f1(dT, 1)} °C · Δz ${f1(z, 1)} µm ${ok ? '✓' : '✗'}`, cx, 372); ctx.textAlign = 'left'; };
+      if (s >= 3) { mount(W * 0.27, V.dTs, s >= 4 ? V.zs : 0, V.okS, 'flash'); mount(W * 0.73, V.dTc, s >= 4 ? V.zc : 0, V.okC, 'continuous'); }
+      ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; if (s >= 4) ctx.fillText(`blue band = depth of field ±${STB.dofHalf} µm; the dot is how far the focus has drifted`, x0, 392);
+    } },
+  na: { node: 'optics', t: 'NA: רזולוציה מול עומק שדה, איזון אחד',
+    params: [['NA', 'NA', 0.05, 0.4, 0.01, 0.2, ''], ['lam', 'אורך גל λ', 0.35, 0.65, 0.01, 0.5, 'µm']],
+    calc: P => { const r = 0.61 * P.lam / P.NA, dof = P.lam / (P.NA * P.NA), sigma = 0.21 * P.lam / P.NA; return { r, dof, sigma, th: Math.asin(Math.min(1, P.NA)) * 180 / Math.PI, r2: 0.61 * P.lam / (2 * P.NA), dof2: P.lam / (4 * P.NA * P.NA) }; },
+    steps: [(P, V) => `העדשה אוספת אור בחרוט בזווית θ = ${f1(V.th)}°, ו-NA = sin θ = <b>${P.NA}</b>. ככל שהחרוט רחב יותר, יותר אור נאסף.`,
+      (P, V) => `נקודה אחת לא נראית כנקודה: היא מתפזרת לכתם. גודלו נקבע על ידי האור: הפרט הקטן ביותר שעדיין נפרד הוא r = 0.61·λ/NA = <b>${f1(V.r, 2)} µm</b>.`,
+      (P, V) => `מה שמעבר לכתם ברור, ומה שקרוב ממנו מתמזג. בציור: שתי נקודות במרחק 2 µm. ${2 >= V.r ? '<b>עדיין נפרדות.</b>' : '<b>התמזגו לכתם אחד.</b>'}`,
+      (P, V) => `המחיר: עומק השדה, הגובה שבו התמונה עדיין חדה, הוא DOF ≈ λ/NA² = <b>${f1(V.dof, 1)} µm</b>.`,
+      (P, V) => `מכפילים NA: הרזולוציה משתפרת פי 2 (${f1(V.r, 2)} → ${f1(V.r2, 2)} µm), אבל עומק השדה קטן פי 4 (${f1(V.dof, 1)} → ${f1(V.dof2, 1)} µm). לכן בוחרים NA כך שהפרט הקטן נראה, ופאנל לא שטוח לגמרי עדיין בפוקוס.`],
+    draw(ctx, W, H, P, V, s, tm) {
+      const cx = W * 0.27, top = 40, fy = 150, half = (fy - top) * Math.tan(Math.asin(P.NA)) * 1.6;
+      ctx.fillStyle = 'rgba(48,120,176,.2)'; ctx.beginPath(); ctx.moveTo(cx - half, top); ctx.lineTo(cx + half, top); ctx.lineTo(cx, fy); ctx.closePath(); ctx.fill(); ctx.strokeStyle = AC.live; ctx.beginPath(); ctx.moveTo(cx - half, top); ctx.lineTo(cx, fy); ctx.lineTo(cx + half, top); ctx.stroke();
+      ctx.fillStyle = AC.ink; ctx.beginPath(); ctx.ellipse(cx, top, half + 14, 7, 0, 0, 7); ctx.fill(); ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('lens', cx + half + 22, top + 4); ctx.fillText(`NA ${P.NA} · θ ${f1(V.th)}°`, cx - 40, fy + 20);
+      /* two points 2 µm apart, each a blob of width set by the optics; the sum is what the sensor sees */
+      const gx = W * 0.5, gy = 175, gw = W * 0.45, sc = gw / 8, g = (x, m) => Math.exp(-0.5 * Math.pow((x - m) / V.sigma, 2));
+      ctx.strokeStyle = AC.text; ctx.globalAlpha = 0.4; ctx.strokeRect(gx, gy - 110, gw, 110); ctx.globalAlpha = 1;
+      if (s >= 1) { const curve = (m, c, a) => { ctx.strokeStyle = c; ctx.globalAlpha = a; ctx.beginPath(); for (let i = 0; i <= 160; i++) { const x = -4 + 8 * i / 160, y = g(x, m); i ? ctx.lineTo(gx + (x + 4) * sc, gy - 100 * y) : ctx.moveTo(gx + (x + 4) * sc, gy - 100 * y); } ctx.stroke(); ctx.globalAlpha = 1; }; curve(-1, AC.live, 0.45); curve(1, AC.live, 0.45);
+        if (s >= 2) { ctx.strokeStyle = AC.ink; ctx.lineWidth = 2.5; ctx.beginPath(); for (let i = 0; i <= 160; i++) { const x = -4 + 8 * i / 160, y = Math.min(1.1, g(x, -1) + g(x, 1)) / 1.1; i ? ctx.lineTo(gx + (x + 4) * sc, gy - 100 * y) : ctx.moveTo(gx + (x + 4) * sc, gy - 100 * y); } ctx.stroke(); ctx.lineWidth = 1; } }
+      ctx.fillStyle = AC.mech; for (const m of [-1, 1]) { ctx.beginPath(); ctx.arc(gx + (m + 4) * sc, gy + 10, 4, 0, 7); ctx.fill(); }
+      ctx.fillStyle = AC.text; ctx.fillText('two points 2 µm apart, as the sensor sees them', gx, gy - 118);
+      /* the trade: two bars */
+      const by = 250, bw = W - 120, bar = (y, label, v, vmax, col) => { ctx.fillStyle = AC.tint; ctx.fillRect(60, y, bw, 22); ctx.fillStyle = col; ctx.fillRect(60, y, bw * Math.min(1, v / vmax), 22); ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(label, 60, y - 6); };
+      if (s >= 1) bar(by, `resolution r = ${f1(V.r, 2)} µm (shorter = finer detail)`, V.r, 6, AC.ink);
+      if (s >= 3) bar(by + 56, `depth of field = ${f1(V.dof, 1)} µm (longer = more forgiving)`, V.dof, 40, AC.live);
+      if (s >= 4) { ctx.fillStyle = AC.mech; ctx.font = '600 13px system-ui, sans-serif'; ctx.fillText('NA × 2:  r ÷ 2  and  DOF ÷ 4', 60, by + 118); }
+    } },
+  tilt: { node: 'optics', t: 'יישור והטיה: מתאמים שימים עד שכל השדה חד',
+    params: [['zL', 'שים שמאלי', -40, 40, 1, -30, 'µm'], ['zR', 'שים ימני', -40, 40, 1, 30, 'µm'], ['NA', 'NA', 0.1, 0.35, 0.01, 0.25, '']],
+    calc: P => { const B = 100, FOV = 32, theta = (P.zR - P.zL) * 1e-6 / (B * 1e-3), d0 = (P.zL + P.zR) / 2, dof = 0.5 / (P.NA * P.NA), half = dof / 2, edge = Math.abs(d0) + Math.abs(theta) * (FOV / 2) * 1e-3 * 1e6; const dz = x => d0 + theta * x * 1e-3 * 1e6; let ok = 0; for (let i = 0; i <= 64; i++) if (Math.abs(dz(-FOV / 2 + FOV * i / 64)) <= half) ok++; return { theta: theta * 1e3, d0, dof, half, edge, dz, frac: ok / 65, B, FOV, aligned: ok / 65 > 0.999 }; },
+    steps: [(P, V) => `הצילום בשורה אחת על פני ${V.FOV} mm. מישור הפוקוס של המצלמה צריך לשכב על הפאנל. התושבת נשענת על שני שימים במרחק ${V.B} mm זה מזה.`,
+      (P, V) => `ההטיה נקבעת מהפרש השימים: θ = (z_R − z_L)/B = <b>${f1(V.theta, 2)} mrad</b>. הגובה במרכז: Δz₀ = (z_L + z_R)/2 = <b>${f1(V.d0, 1)} µm</b>.`,
+      (P, V) => `לאורך השדה המישור מוסט: Δz(x) = Δz₀ + θ·x. בקצה הוא <b>${f1(V.edge, 1)} µm</b> מהפאנל.`,
+      (P, V) => `חד רק איפה ש-|Δz| ≤ DOF/2 = λ/(2NA²) = <b>${f1(V.half, 1)} µm</b>. כרגע חדים <b>${f1(V.frac * 100)}%</b> מהשדה.`,
+      (P, V) => V.aligned ? `<b>מיושר.</b> כל השדה בתוך עומק השדה. כך עובדים בפועל: מודדים חדות בשני הקצוות, מסיטים שימים עד ששניהם שווים, ואז מהדקים ובודקים שוב.` : `הזיזו את השימים עד שהפס כולו כחול: קודם מקטינים את ההפרש ביניהם (ההטיה), אחר כך מקרבים את הממוצע לאפס (הגובה).`],
+    draw(ctx, W, H, P, V, s, tm) {
+      const x0 = 60, w = W - 120, y = 150;
+      ctx.fillStyle = AC.mech; ctx.fillRect(x0, y + 40, w, 6); ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('panel', x0, y + 62);
+      const k = 3.2, zAt = x => y - V.dz(x) * k * 0.9; const px = u => x0 + w * (u + V.FOV / 2) / V.FOV;
+      if (s >= 3) { ctx.fillStyle = 'rgba(48,120,176,.18)'; ctx.beginPath(); ctx.moveTo(x0, y + 43 - V.half * k); ctx.lineTo(x0 + w, y + 43 - V.half * k); ctx.lineTo(x0 + w, y + 43 + V.half * k); ctx.lineTo(x0, y + 43 + V.half * k); ctx.closePath(); ctx.fill(); }
+      ctx.strokeStyle = AC.live; ctx.lineWidth = 3; ctx.beginPath(); for (let i = 0; i <= 64; i++) { const u = -V.FOV / 2 + V.FOV * i / 64; const yy = y + 43 - V.dz(u) * k; i ? ctx.lineTo(px(u), yy) : ctx.moveTo(px(u), yy); } ctx.stroke(); ctx.lineWidth = 1;
+      ctx.fillStyle = AC.ink; ctx.fillRect(x0 + w * 0.3, 40, w * 0.4, 36); ctx.fillStyle = AC.cream; ctx.font = '13px system-ui, sans-serif'; ctx.fillText('camera', x0 + w * 0.45, 63);
+      const sh = (xx, z, lab) => { ctx.fillStyle = AC.mech; ctx.fillRect(xx - 12, 76, 24, 18 + z * 0.12); ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(`${lab} ${z > 0 ? '+' : ''}${z} µm`, xx - 34, 118); };
+      sh(x0 + w * 0.3, P.zL, 'z_L'); sh(x0 + w * 0.7, P.zR, 'z_R');
+      const sy = 255, n = 64; for (let i = 0; i < n; i++) { const u = -V.FOV / 2 + V.FOV * (i + 0.5) / n, sharp = Math.abs(V.dz(u)) <= V.half; ctx.fillStyle = sharp ? AC.live : AC.mech; ctx.fillRect(x0 + w * i / n, sy, w / n + 1, 34); }
+      ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('focus map across the field: blue = sharp, brown = out of depth of field', x0, sy - 8);
+      ctx.font = '600 14px system-ui, sans-serif'; ctx.fillStyle = V.aligned ? AC.ink : AC.mech; ctx.fillText(V.aligned ? 'aligned ✓' : `sharp: ${f1(V.frac * 100)}%  ·  tilt ${f1(V.theta, 2)} mrad  ·  centre offset ${f1(V.d0, 1)} µm`, x0, sy + 62);
+    } },
+  handoff: { node: 'proc', t: 'מסירת פגם מ-AOI ל-AOS: מסלול הפאנל ומסלול המידע',
+    params: [['mode', 'איפה האימות: 0 תחנה · 1 בתוך המכונה · 2 מרחוק', 0, 2, 1, 0, ''], ['e', 'שארית הרישום ב-AOS', 0, 12, 0.5, 2, 'µm']],
+    calc: P => { const margin = 3; return { hit: P.e <= margin, margin, modeName: ['תחנת אימות נפרדת', 'אימות בתוך מכונת ה-AOI', 'אימות מרחוק על התמונה'][P.mode | 0] }; },
+    steps: [(P, V) => `AOI מוצאת חשד ויוצרת רשומה: מזהה פאנל, שכבה, מזהה פגם, מיקום (x, y) במסגרת הפאנל, חתך תמונה וסיווג ראשוני. זה <b>מידע</b>. הפאנל עצמו ממשיך להיות חומר פיזי.`,
+      (P, V) => `אימות: <b>${V.modeName}</b>. ${P.mode == 0 ? 'הפאנל נוסע לתחנה, ואדם או מודל מחליטים.' : P.mode == 1 ? 'ההחלטה נעשית על המכונה, והפאנל לא זז בשביל זה.' : 'רק חתך התמונה נשלח. הפאנל יכול להמשיך לעמדה הבאה בזמן ההחלטה.'}`,
+      (P, V) => `שני מסלולים שונים: הפאנל נוסע על מסוע או ביד (חום, מקווקו), והרשומה נוסעת ברשת (כחול). הם נפגשים רק ב-AOS, וחייבים להתאים זה לזה לפי מזהה הפאנל והשכבה.`,
+      (P, V) => `ה-AOS לא יורה על הקואורדינטה שהגיעה: היא במסגרת הפאנל, לא במסגרת הצירים שלה. היא מוצאת סימני ייחוס משלה ומחשבת טרנספורמציה. נשארת שארית רישום <b>${f1(P.e, 1)} µm</b>.`,
+      (P, V) => `הירי נופל במרחק ${f1(P.e, 1)} µm מהפגם. עם מרווח לדוגמה של ${V.margin} µm: <b>${V.hit ? 'פגיעה' : 'החטאה, והתיקון זז לצד'}</b>. אחר כך בדיקה אחרי תיקון, והתוצאה נכתבת בחזרה לאותה רשומה.`],
+    draw(ctx, W, H, P, V, s, tm) {
+      const aoiX = W * 0.12, midX = W * 0.5, aosX = W * 0.88, yP = 120, yD = 255;
+      const box = (x, y, t, col) => { ctx.fillStyle = col; ctx.globalAlpha = 0.9; ctx.fillRect(x - 46, y - 24, 92, 48); ctx.globalAlpha = 1; ctx.strokeStyle = AC.ink; ctx.strokeRect(x - 46, y - 24, 92, 48); ctx.fillStyle = AC.ink; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(t, x, y + 5); ctx.textAlign = 'left'; };
+      ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('physical path: the panel', 30, yP - 46); ctx.fillText('data path: the record', 30, yD - 46);
+      ctx.setLineDash([8, 6]); ctx.strokeStyle = AC.mech; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(aoiX + 46, yP); ctx.lineTo(aosX - 46, yP); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1;
+      ctx.strokeStyle = AC.live; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(aoiX + 46, yD); ctx.lineTo(aosX - 46, yD); ctx.stroke(); ctx.lineWidth = 1;
+      box(aoiX, yP, 'AOI', AC.tint); box(aosX, yP, 'AOS', AC.tint); box(aoiX, yD, 'AOI data', AC.cream); box(aosX, yD, 'AOS data', AC.cream);
+      const station = P.mode == 0; if (station) box(midX, yP, 'verify', AC.tint); else if (P.mode == 2) box(midX, yD, 'remote review', AC.tint);
+      const u = (tm * 0.18) % 1, ph = s === 0 ? 0 : s === 1 ? 0.35 : s === 2 ? 0.6 : 1, pu = s <= 1 ? Math.min(ph, u * 0.4 + ph * 0.6) : ph * (0.7 + 0.3 * u);
+      const span = aosX - aoiX - 150, pxPanel = aoiX + 75 + span * (P.mode == 1 ? Math.max(0, ph - 0.15) : ph), pxData = aoiX + 75 + span * Math.min(1, ph + (P.mode == 2 ? 0.1 : 0));
+      ctx.fillStyle = AC.mech; ctx.fillRect(pxPanel - 22, yP - 12, 44, 24); ctx.fillStyle = AC.cream; ctx.font = '11px system-ui, sans-serif'; ctx.fillText('panel', pxPanel - 15, yP + 4);
+      ctx.fillStyle = AC.live; ctx.fillRect(pxData - 24, yD - 12, 48, 24); ctx.fillStyle = AC.cream; ctx.fillText('record', pxData - 17, yD + 4);
+      if (s >= 3) { const cx2 = aosX - 130, cy2 = 188, k = 5; ctx.strokeStyle = AC.ink; ctx.beginPath(); ctx.arc(cx2, cy2, 26, 0, 7); ctx.stroke(); ctx.fillStyle = AC.ink; ctx.beginPath(); ctx.arc(cx2, cy2, 4, 0, 7); ctx.fill(); ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('defect (zoom)', cx2 - 40, cy2 - 34); if (s >= 4) { ctx.fillStyle = V.hit ? AC.live : AC.mech; ctx.beginPath(); ctx.arc(cx2 + P.e * k, cy2, 6, 0, 7); ctx.fill(); ctx.fillStyle = AC.text; ctx.fillText(V.hit ? 'laser hit ✓' : 'laser miss ✗', cx2 + 40, cy2 + 4); } }
+      ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText(`verification: ${['separate station', 'inside the AOI machine', 'remote review of the image'][P.mode | 0]}`, 30, H - 22);
+    } }
+});
+/* the new windows lead their topic's theory layer; the handoff belongs to the flow level */
+['strobe', 'na', 'tilt', 'handoff'].forEach(id => { const n = zNode(ANIMS[id].node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
+ANIMS.handoff.kind = 'flow';
+WIN.add({ id: 'anim', test: w => w.startsWith('anim:'), info: w => ({ kind: ANIMS[w.slice(5)].kind || 'anim', t: ANIMS[w.slice(5)].t }), mount: (w, el) => animMount(w.slice(5), el), ctx: (w, node) => ({ scan: 'AOI', dof: 'AOI', crater: 'AOS', strobe: 'AOI', na: 'AOI', tilt: 'AOI' })[w.slice(5)] || zCtx(node) });
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -10401,7 +10548,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.35.0';
+const APP_VERSION = '2.36.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

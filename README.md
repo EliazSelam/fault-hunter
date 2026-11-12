@@ -71,3 +71,7 @@ Machine architectures, schematics and values are typical, based on public source
 **Eliaz Selam** · B.Sc. Electrical Engineering (control systems and signal processing) · [LinkedIn](https://www.linkedin.com/in/eliaz-selam)
 
 License: MIT · Third-party: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) · Changes: [CHANGELOG.md](CHANGELOG.md) · Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Evolution
+
+The path from the first version to today, one screenshot per milestone, is in [docs/MILESTONES.md](docs/MILESTONES.md).

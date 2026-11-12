@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.36.0] — 2026-11-12
+
+Corrections from two research reports, four new animated windows, a graph of topics, and the seven levels of depth.
+
+- **Corrections, each checked against the code first.** "התיקון שלם" now says the bridge was removed per the geometric model, and that electrical acceptance and product quality are checked separately. The registration story and the simulation agree: three marks are the minimum for an affine fit, the demo uses four, and the thresholds are marked as examples. The homing repeatability is marked as an illustration. Flat-field is called a simplification (dark frame and normalisation are mentioned). The AOS demo says it is removal only (adding material is a separate capability that depends on the model). Line-scan is the demo's choice, not the definition of AOI. The line panel says verification can be a separate station, part of the machine, or a remote decision, and that the panel and its record travel on two different paths.
+- **Four new animated windows (14 in all):** the strobe, as cause and effect on the object (a short window at the required power, duty and average power, heat in the lens mount, focus drift against the depth of field: continuous light needs five times the average power and drifts out of focus); numerical aperture, resolution against depth of field in one picture (doubling NA halves the smallest detail and cuts the depth of field to a quarter); tilt alignment as a small game (two shims, a focus map across the field, aligned or not); and the defect handoff from AOI to AOS, with the panel's path and the data path drawn separately, three places for the verification, and a registration residual that hits or misses.
+- **A graph of topics** replaces the map of continents: every topic is a node, "made of" is a line, the process is in the middle and the scales are rings out to the components. Hovering lights a node and its neighbours and dims the rest; nodes can be dragged; search and machine filters; a full list as an alternative.
+- **The seven levels of depth** replace the six categories around a topic's object, in the order of the cone: 0 showcase, 1 flow and interfaces, 2 engineer, 3 math, 4 reverse engineering, 5 faults and questions, 6 integration. A button continues down to the next level. The handoff sits at level 1.
+- **Milestones:** `docs/MILESTONES.md`, a screenshot of each stage from v1.0.0 to now with what it added and a table of numbers. `docs/THREEJS_BRIEF.md`: a dedicated brief for building one hero object (the laser scan head) outside the repository, with a strict host contract and acceptance checks.
+- No literal company or product names remain in the repository (the check that forbids them assembles the names from fragments).
+- Zoom suite: 46,968 checks.
+
 ## [2.35.0] — 2026-11-11
 
 Stage 2 completed: the zoom tab no longer wraps functions. No screen changed; the six screens compared before and after each step (machine, world, simulations, cam, relay, laser) are pixel-identical apart from animation noise.

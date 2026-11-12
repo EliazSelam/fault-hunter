@@ -44,6 +44,9 @@ Nothing in the zoom tab wraps or reassigns another function; to add something, r
 - **Links and history** (`86-links.js`): `#/zoom/<node>/<hub>/<window>`, `#/zoom/machine?m=&sel=`; a new topic or view pushes, a hub or window change replaces; window snapshots live in `HS.snap` and `sessionStorage`.
 - **Outside this rule:** the shell's `go`/`setTab`/`routeGo` wrappers (65, 72) and the legacy simulator tab's wrappers (70) are untouched.
 
+## Levels, graph, new animations (v2.36)
+`HUBS` in `src/84-hub.js` is the seven numbered levels of depth around a topic's object (show, flow, eng, math, rev, fault, integ); a window's level comes from its kind (`hubOf`, with `HUBW` for exceptions); the last level has no continue-down button. The world map is a force graph (`zWorldView` in `85-layers.js`, scales as rings). `src/87-anim2.js` holds four more animated windows (strobe, na, tilt, handoff). `docs/MILESTONES.md` is the evolution record; `docs/THREEJS_BRIEF.md` is the brief for a separately built 3D module (host contract: `FH3D.mountScanHead(THREE, container, opts)` returning a handle with getState/setState/destroy). No literal company names anywhere: the zoom suite builds the forbidden names from fragments.
+
 ## Continuity rules
 Arrow keys belong to an activity when the focus is in it; the page's level navigation answers only from the page or its navigation (`81-polish.js`). A hub window's state (step, controls, animation step and parameters) is saved before it is replaced or the topic is left, and restored when it opens again (`winSave`/`winRestore` in `84-hub.js`). Animations run on a simulation clock that pause freezes. The topic object is still during an activity and turns only under the pointer or with the focus; it is a keyboard button with a visible button beside it. Visits are called visits ("ביקרת"), not understanding. Each finding from the external review (F01–F06, F08, F10) has its own behaviour check in the zoom suite.
 
