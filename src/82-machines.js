@@ -27,9 +27,10 @@ function mSetMachine(m) {
   MHOOK.afterMachine.forEach(f => f(m));
 }
 msideSection('line', 30, ['line'], {
-  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS.</p>
+  html: () => `<h3>הקו: AOI ← אימות ← AOS</h3><p>הפאנל נבדק במכונת ה-AOI. כל חשד עובר אימות. פגם אמיתי שאפשר לתקן, קצר או שארית נחושת, עובר למכונת ה-AOS. האימות יכול להיות תחנה נפרדת, חלק מהמכונה, או החלטה מרחוק על התמונה. הפאנל והמידע עליו נוסעים בשני מסלולים שונים.</p>
+        <p><button type="button" class="linkbtn" data-handoff="1">איך הפגם עובר מ-AOI ל-AOS ←</button></p>
         <p><button type="button" class="zgo" data-mm2="aoi">היכנס למכונת AOI</button></p><p><button type="button" class="zgo" data-mm2="aos">היכנס למכונת AOS</button></p><p><button type="button" class="linkbtn" data-zn="proc">המחזור כולו, עם הסימולציות ←</button></p>`,
-  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); } });
+  wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); el.querySelectorAll('[data-handoff]').forEach(b => b.addEventListener('click', () => zOpenWindow('proc', 'anim:handoff'))); } });
 
 /* ---- every simulation one click away, grouped by machine ---- */
 const SIMKINDS = new Set(['scene', 'sim', 'figure']);
@@ -43,7 +44,7 @@ WIN_BASE.ctx = function (w, node) {
   return zCtx(node);
 }
 function zSimList() {
-  const out = []; ZOOM.forEach(n => zWindows(n).forEach(w => { const i = zInfo(w); if (SIMKINDS.has(i.kind)) out.push({ w, node: n.id, t: i.t, kind: i.kind, ctx: zWinCtx(w, n.id) }); }));
+  const out = []; ZOOM.forEach(n => zWindows(n).forEach(w => { const i = zInfo(w), an = w.startsWith('anim:'); if (an || SIMKINDS.has(i.kind)) out.push({ w, node: n.id, t: i.t, kind: an ? 'anim' : i.kind, ctx: zWinCtx(w, n.id) }); }));
   return out;
 }
 const ZG = { q: '', ctx: 'all' };

@@ -82,7 +82,7 @@ ok(await pg.evaluate(() => [...new Set(MPARTS.filter(p => p.node).map(p => p.nod
 const mp = await pg.evaluate(() => mPickAt('table')); ok(!!mp, 'the vacuum table can be clicked');
 if (mp) { await pg.mouse.click(mp[0], mp[1]); await pg.waitForTimeout(300); ok(await pg.evaluate(() => MS.sel === 'table' && /שכבה 1/.test(document.getElementById('mside').textContent) && /שכבה 2/.test(document.getElementById('mside').textContent)), 'clicking a part selects it and lists its two layers'); }
 await pg.evaluate(() => document.querySelector('#mside .zgo[data-zn]').click()); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.hubbtn small')].some(h => /שכבה 1/.test(h.textContent)) && [...document.querySelectorAll('.hubbtn small')].some(h => /שכבה 2/.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
+ok(await pg.evaluate(() => ZS.node === 'vac' && [...document.querySelectorAll('.hubbtn b')].some(h => /^0\./.test(h.textContent)) && [...document.querySelectorAll('.hubbtn b')].some(h => /^3\./.test(h.textContent))), 'entering the part opens its node with layer 1 before layer 2');
 await pg.evaluate(() => { const s = document.getElementById('mE'); }); 
 await pg.evaluate(() => go('zoom', 'appx')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => document.querySelectorAll('.ztile[data-zn]').length === ZAPPX.size && document.querySelectorAll('.ztile[data-route]').length === ZRES_SHOWN.length && !document.querySelector('.ztile[data-route="path"], .ztile[data-route="topic"]')), 'appendices: the topics outside the machine and the shared resources, without the old indexes');
@@ -154,7 +154,7 @@ ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === zMachi
 await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => ZS.node === 'relay'), 'world map: a city opens its topic');
 /* information bundled */
-await pg.evaluate(() => go('zoom', 'optics')); await pg.waitForTimeout(250); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="inside"]').click()); await pg.waitForTimeout(250);
+await pg.evaluate(() => go('zoom', 'optics')); await pg.waitForTimeout(250); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="eng"]').click()); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => document.querySelectorAll('.hubpills .hubgrp').length >= 2 && document.querySelectorAll('.hubpills .hubgt').length >= 2), 'a hub groups its windows by subject');
 ok(await pg.evaluate(() => { const g = [...document.querySelectorAll('.hubpills .hubgrp')]; return g.every(x => { const l = [...x.querySelectorAll('button')].map(b => b.textContent); return new Set(l).size === l.length; }); }), 'within a subject, every window has a distinct name');
 /* the four new animations reproduce the models */
@@ -171,12 +171,12 @@ await pg.evaluate(() => document.activeElement.blur()); await pg.keyboard.press(
 ok(await pg.evaluate(() => ZS.node !== 'cam'), 'F01: the same arrow from the page still moves along the level');
 await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(400);
 await pg.evaluate(() => document.querySelectorAll('#hubpanel [data-s]')[2].click()); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await pg.waitForTimeout(150);
-await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await pg.waitForTimeout(250);
+await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="show"]').click()); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => document.querySelector('#hubpanel [data-s][aria-current="step"]').dataset.s === '2'), 'F02: back from another hub, the demo is on the same step');
 await pg.evaluate(() => go('zoom', 'laser')); await pg.waitForTimeout(250); await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(400);
 ok(await pg.evaluate(() => document.querySelector('#hubpanel [data-s][aria-current="step"]').dataset.s === '2'), 'F02: back from another topic, the demo is on the same step');
 await pg.evaluate(() => zOpenWindow('laser', 'anim:crater')); await pg.waitForTimeout(400);
-await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').animApi; a.setParam('E', 6); a.go(3); }); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await pg.waitForTimeout(150);
+await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').animApi; a.setParam('E', 6); a.go(3); }); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="show"]').click()); await pg.waitForTimeout(150);
 await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').animApi; return a && a.step === 3 && a.P.E === 6; }), 'F02: an animation comes back with its step and its parameters');
 ok(await pg.evaluate(() => /הנחה:/.test(ANIMS.scan.steps[4]({ v: 250, p: 4.88, t: 2 }, ANIMS.scan.calc({ v: 250, p: 4.88, t: 2 }))) && /חשיפה אלקטרונית/.test(ANIMS.scan.steps[4]({ v: 250, p: 4.88, t: 2 }, ANIMS.scan.calc({ v: 250, p: 4.88, t: 2 })))), 'F03: the continuous-light case is stated as an assumption, with the electronic-shutter alternative');
@@ -197,8 +197,8 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   await p3.goto(base + '#/zoom/laser/math/anim%3Acrater'); await p3.waitForTimeout(700);
   ok(await p3.evaluate(() => ZS.node === 'laser' && document.querySelector('#hubpanel .zwin').dataset.w === 'anim:crater'), 'F09: a link opens the topic with that window');
   await p3.evaluate(() => { const x = document.querySelector('#hubpanel .zbody').animApi; x.setParam('E', 6); x.go(3); });
-  const len0 = await p3.evaluate(() => history.length); await p3.evaluate(() => document.querySelector('.hubbtn[data-hub="demo"]').click()); await p3.waitForTimeout(150);
-  ok(await p3.evaluate(n => history.length === n && /^#\/zoom\/laser\/demo\//.test(location.hash), len0), 'F09: changing the hub updates the address without a new history entry');
+  const len0 = await p3.evaluate(() => history.length); await p3.evaluate(() => document.querySelector('.hubbtn[data-hub="show"]').click()); await p3.waitForTimeout(150);
+  ok(await p3.evaluate(n => history.length === n && /^#\/zoom\/laser\/show\//.test(location.hash), len0), 'F09: changing the hub updates the address without a new history entry');
   await p3.evaluate(() => document.querySelector('.hubbtn[data-hub="math"]').click()); await p3.waitForTimeout(150);
   await p3.reload(); await p3.waitForTimeout(800);
   ok(await p3.evaluate(() => { const x = document.querySelector('#hubpanel .zbody').animApi; return x && x.step === 3 && x.P.E === 6; }), 'F09: reloading the link returns to the same attempt');
@@ -248,6 +248,41 @@ for (const v of await pg.evaluate(() => Object.keys(ZVIEW.views).filter(v => v !
 await pg.evaluate(() => go('zoom', 'L2')); await pg.waitForTimeout(120); ok(await pg.evaluate(() => !!document.querySelector('.zsub') && document.querySelectorAll('.ztile').length > 0), 'step 2: a scale view renders with the bar');
 /* stage 2, step 1: window kinds */
 ok(await pg.evaluate(() => { const all = new Set(ZOOM.flatMap(zWindows)); return [...all].every(w => !!WIN.of(w)) && [...all].filter(w => w.startsWith('anim:')).every(w => WIN.of(w).id === 'anim') && [...all].filter(w => /^c:[^:]+:(parts|words|tryit|drills|say|full|schematic|numbers)$/.test(w)).every(w => WIN.of(w).id === 'sections') && WIN.of('t:cam:scene').id === 'base'; }), 'step 1: every window resolves to one kind, and the right one');
+/* v2.36: report-driven corrections, four new animations, the graph, the seven levels */
+const src = await pg.evaluate(() => ({ fid: TOPICS.find(t => t.id === 'aoi').steps.find(s => s.id === 'fid').what, home: TOPICS.find(t => t.id === 'aoi').steps.find(s => s.id === 'home').num, ff: TOPICS.find(t => t.id === 'cam').steps.find(s => s.id === 'ff').what }));
+ok(/ארבעה בפינות/.test(src.fid) && /שלושה הם המינימום/.test(src.fid), 'accuracy: the registration story and the simulation agree on three as the minimum and four in the demo');
+ok(/ערך להמחשה/.test(src.home), 'accuracy: the homing repeatability is marked as an illustration');
+ok(/זה פישוט/.test(src.ff) && /תמונת חושך/.test(src.ff), 'accuracy: flat-field is called a simplification and mentions the dark frame');
+await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); mSetMachine('aos'); }); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => /הסרה בלבד/.test(document.getElementById('mside').textContent)), 'accuracy: the AOS demo says it is removal only');
+await pg.evaluate(() => mSetMachine('aoi')); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => /בחירה של ההדגמה, לא הגדרה של AOI/.test(document.getElementById('mside').textContent)), 'accuracy: line-scan is the demo\u2019s choice, not the definition of AOI');
+await pg.evaluate(() => mSetMachine('line')); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => /שני מסלולים שונים/.test(document.getElementById('mside').textContent) && !!document.querySelector('#mside [data-handoff]')), 'the line panel names the two paths and links to the handoff');
+const N2 = await pg.evaluate(() => { const C = id => ANIMS[id].calc(Object.fromEntries(ANIMS[id].params.map(p => [p[0], p[5]]))); return { st: C('strobe'), na: C('na'), na2: ANIMS.na.calc({ NA: 0.4, lam: 0.5 }), na1: ANIMS.na.calc({ NA: 0.2, lam: 0.5 }), tl: C('tilt'), tlOk: ANIMS.tilt.calc({ zL: -10, zR: 10, NA: 0.25 }), h1: ANIMS.handoff.calc({ mode: 0, e: 2 }), h2: ANIMS.handoff.calc({ mode: 2, e: 5 }) }; });
+ok(Math.abs(N2.st.duty - 0.2) < 1e-9 && Math.abs(N2.st.Ps - 3) < 1e-9 && Math.abs(N2.st.dTs - 1.5) < 1e-9 && Math.abs(N2.st.zs - 3.45) < 1e-6 && N2.st.okS && !N2.st.okC && Math.abs(N2.st.Pc / N2.st.Ps - 5) < 1e-9, 'strobe: 20% duty, 3 W, 1.5 °C, 3.45 µm in focus; continuous needs 5× the power and drifts out of the depth of field');
+ok(Math.abs(N2.na1.r - 1.525) < 1e-3 && Math.abs(N2.na1.dof - 12.5) < 1e-9 && Math.abs(N2.na2.r * 2 - N2.na1.r) < 1e-9 && Math.abs(N2.na2.dof * 4 - N2.na1.dof) < 1e-9, 'NA: r = 1.525 µm and DOF = 12.5 µm as on the lens page; doubling NA halves r and quarters DOF exactly');
+ok(Math.abs(N2.tl.theta - 0.6) < 1e-9 && Math.abs(N2.tl.edge - 9.6) < 1e-9 && !N2.tl.aligned && N2.tlOk.aligned, 'tilt: 0.6 mrad and 9.6 µm at the edge as on the tilt page; the default is misaligned, and a smaller shim difference aligns it');
+ok(N2.h1.hit && !N2.h2.hit, 'handoff: a registration residual inside the example margin hits, outside it misses');
+ok(await pg.evaluate(() => ['strobe', 'na', 'tilt', 'handoff'].every(id => WIN.of('anim:' + id).id === 'anim' && zWindows(zNode(ANIMS[id].node)).includes('anim:' + id)) && hubOf('anim:handoff') === 'flow' && hubOf('anim:strobe') === 'math'), 'the four new animations are windows of their topics, the handoff at the flow level');
+await pg.evaluate(() => { ZG.q = ''; ZG.ctx = 'all'; go('zoom', 'sims'); }); await pg.waitForTimeout(150);
+ok(await pg.evaluate(() => zSimList().filter(s => s.kind === 'anim').length >= 14), 'the gallery lists all the animations');
+/* the graph */
+await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(300);
+ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === zMachineTopics().length && document.querySelectorAll('.wedges line').length > 20 && !!document.querySelector('.wmapwrap.wdark')), 'graph: a node for every topic, edges for "made of", a dark stage');
+await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new Event('pointerenter'))); 
+ok(await pg.evaluate(() => document.querySelector('.wmap').classList.contains('dim') && document.querySelector('.wcity[data-zn="relay"]').classList.contains('hot') && document.querySelectorAll('.wcity.nb').length >= 3), 'graph: hovering a node lights it and its neighbours and dims the rest');
+await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new Event('pointerleave')));
+await pg.fill('#wq', 'סליל'); ok(await pg.evaluate(() => document.querySelectorAll('.wcity.match').length >= 1 && document.querySelectorAll('.wcity.nomatch').length > 20), 'graph: search marks matches and dims the rest'); await pg.fill('#wq', '');
+await pg.evaluate(() => document.querySelector('[data-wf="AOS"]').click()); ok(await pg.evaluate(() => document.querySelector('.wcity[data-zn="cam"]').classList.contains('off') && !document.querySelector('.wcity[data-zn="laser"]').classList.contains('off')), 'graph: the AOS filter hides AOI-only topics'); await pg.evaluate(() => document.querySelector('[data-wf="all"]').click());
+/* the seven levels */
+ok(await pg.evaluate(() => HUBS.map(h => h[0]).join() === 'show,flow,eng,math,rev,fault,integ' && ZOOM.every(z => zWindows(z).every(w => HUBS.some(h => h[0] === hubOf(w))))), 'levels: seven in the cone\u2019s order, and every window of every topic belongs to one');
+await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(300);
+ok(await pg.evaluate(() => [...document.querySelectorAll('.hubbtn b')].map(b => b.textContent.split('.')[0]).join('') === '0123456' && !!document.querySelector('.hubnext button')), 'levels: the camera shows 0 to 6 in order, with a continue-down button');
+await pg.evaluate(() => document.querySelector('.hubnext button').click()); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => document.querySelector('.hubbtn[aria-pressed="true"]').dataset.hub === 'flow'), 'levels: continue down goes to the next level');
+await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="integ"]').click()); await pg.waitForTimeout(200);
+ok(await pg.evaluate(() => !document.querySelector('.hubnext')), 'levels: the last level has nothing below it');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

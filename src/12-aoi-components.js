@@ -45,7 +45,7 @@ COMPONENTS.push({
     stage.innerHTML = SVG(640, 250, g, 'Laser fluence profile and ablation cross-section');
     const ok = r.wideOk && r.deepOk && r.clearOk;
     let msg;
-    if (ok) msg = '<span class="good">התיקון שלם:</span> הנחושת נחתכה עד הלמינציה לכל רוחב הגשר. הפער בין המוליכים נקי.';
+    if (ok) msg = '<span class="good">הגשר הוסר לפי המודל הגאומטרי:</span> הנחושת נחתכה עד הלמינציה לכל רוחב הגשר, והפער בין המוליכים נקי במודל. קבלה חשמלית ואיכות המוצר נבדקות בנפרד.';
     else if (r.off && r.deepOk) msg = '<span class="bad">שארית בצד אחד:</span> העומק מספיק והקוטר תקין, אבל המכתש מוזז. זה registration בין המצלמה ללייזר, לא הספק. בודקים בירי על דוגמית ומודדים את מרכז המכתש.';
     else if (!r.deepOk && r.wideOk) msg = '<span class="bad">מכתש רחב ורדוד:</span> האנרגיה מתפזרת על כתם גדול. זה החתימה של defocus: בדוק גובה Z, עובי פאנל במתכון, ו-autofocus.';
     else if (!r.deepOk && !r.wideOk) msg = '<span class="bad">מכתש צר ורדוד:</span> מגיעה פחות אנרגיה לפאנל. מודדים הספק במישור העבודה מול המקור: אם המקור תקין והמישור לא, החשוד הוא האופטיקה (חלון מגן, מראות).';

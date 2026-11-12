@@ -5,27 +5,54 @@
 function zWorldView() {
   const topics = zMachineTopics(), ex = zExplored(), sims = zSimList(), wins = new Set(ZOOM.flatMap(zWindows));
   const anims = sims.filter(s => s.kind === 'anim').length, got = topics.filter(t => ex.has(t.id)).length;
-  /* continents: the systems; capital: the process; cities: what each system is made of, farther out as they get smaller */
-  const conts = ZOOM.filter(z => z.level === 4 && !ZAPPX.has(z.id)), W = 1000, H = 640, cx = W / 2, cy = H / 2;
-  const home = {}; topics.forEach(t => { if (t.level >= 4) return; let p = t; const seen = new Set(); while (p && p.level < 4 && !seen.has(p.id)) { seen.add(p.id); p = zMainParent(p.id); } home[t.id] = p && p.level === 4 ? p.id : conts[0].id; });
-  const pos = {}, R = 225; conts.forEach((c, i) => { const a = -Math.PI / 2 + 2 * Math.PI * i / conts.length; pos[c.id] = [cx + R * 1.5 * Math.cos(a), cy + R * Math.sin(a)]; });
-  conts.forEach(c => { const kids = topics.filter(t => home[t.id] === c.id).sort((a, b) => b.level - a.level); kids.forEach((k, j) => { const a = 2.39996 * j + c.id.length, r = 34 + (4 - k.level) * 26 + (j % 3) * 6; pos[k.id] = [pos[c.id][0] + r * Math.cos(a), pos[c.id][1] + r * 0.82 * Math.sin(a)]; }); });
-  topics.filter(t => t.level === 5).forEach((t, i) => { pos[t.id] = [cx + (i - 0.5) * 120, cy - 10 + (i % 2) * 40]; });
-  const size = t => 5 + Math.sqrt(zWindows(t).length) * 1.7;
-  const machine = id => zCtx(id) === 'AOS' ? '#7B5A3C' : zCtx(id) === 'AOI' ? '#3078B0' : '#1B2F5A';
-  const land = conts.map(c => { const [x, y] = pos[c.id], kids = topics.filter(t => home[t.id] === c.id), rx = 70 + Math.min(80, kids.length * 9); return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${rx * 0.72}" fill="${machine(c.id)}" opacity="0.10"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${rx * 0.72}" fill="none" stroke="${machine(c.id)}" stroke-opacity="0.35" stroke-dasharray="4 5"/>`; }).join('');
-  const roads = topics.flatMap(t => zParents(t.id).filter(p => pos[p.id] && !ZAPPX.has(p.id)).map(p => `<line x1="${pos[p.id][0].toFixed(1)}" y1="${pos[p.id][1].toFixed(1)}" x2="${pos[t.id][0].toFixed(1)}" y2="${pos[t.id][1].toFixed(1)}" stroke="#1B2F5A" stroke-opacity="0.12"/>`)).join('');
-  const cities = topics.map(t => { const [x, y] = pos[t.id], s = size(t), seen = ex.has(t.id); return `<g class="wcity" data-zn="${t.id}" tabindex="0" role="button" aria-label="${t.t}"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${s.toFixed(1)}" fill="${seen ? machine(t.id) : '#FBFAF7'}" stroke="${machine(t.id)}" stroke-width="${t.level >= 4 ? 2.5 : 1.5}"/><text x="${x.toFixed(1)}" y="${(y + s + 13).toFixed(1)}" text-anchor="middle" class="wlbl${t.level >= 4 ? ' big' : ''}">${t.t.split(':')[0]}</text></g>`; }).join('');
+  const W = 1000, H = 640, id2i = new Map(topics.map((t, i) => [t.id, i])), deg = topics.map(() => 0), edges = [];
+  topics.forEach(t => t.parts.forEach(p => { if (id2i.has(p)) { const a = id2i.get(t.id), b = id2i.get(p); edges.push([a, b]); deg[a]++; deg[b]++; } }));
+  const col = id => zCtx(id) === 'AOS' ? '#7B5A3C' : zCtx(id) === 'AOI' ? '#3078B0' : '#D6E8F7';
+  /* the scales are the rings: the process in the middle, components at the rim */
+  const ringR = lvl => [0, 395, 315, 235, 150, 0][lvl];
+  const nodes = topics.map((t, i) => ({ t, i, x: W / 2 + Math.cos(i * 2.399) * (ringR(t.level) + 20), y: H / 2 + Math.sin(i * 2.399) * (ringR(t.level) + 20) * 0.72, vx: 0, vy: 0, r: 4.5 + t.level * 1.9 + Math.sqrt(deg[i]) * 1.1, fx: false }));
+  function tickSim(alpha) {
+    for (let a = 0; a < nodes.length; a++) for (let b = a + 1; b < nodes.length; b++) { const A = nodes[a], B = nodes[b]; let dx = A.x - B.x, dy = A.y - B.y, d2 = dx * dx + dy * dy + 0.01; if (d2 > 120000) continue; const f = 3800 / d2 * alpha, d = Math.sqrt(d2); dx /= d; dy /= d; A.vx += dx * f; A.vy += dy * f; B.vx -= dx * f; B.vy -= dy * f; }
+    edges.forEach(([a, b]) => { const A = nodes[a], B = nodes[b]; let dx = B.x - A.x, dy = B.y - A.y; const d = Math.sqrt(dx * dx + dy * dy) + 0.01, f = (d - 80) * 0.006 * alpha; dx /= d; dy /= d; A.vx += dx * f; A.vy += dy * f; B.vx -= dx * f; B.vy -= dy * f; });
+    nodes.forEach(n => { const dx = n.x - W / 2, dy = (n.y - H / 2) / 0.72, d = Math.sqrt(dx * dx + dy * dy) + 0.01, f = (ringR(n.t.level) - d) * 0.06 * alpha; n.vx += dx / d * f; n.vy += dy / d * f * 0.72; if (n.fx) { n.vx = n.vy = 0; return; } n.vx *= 0.8; n.vy *= 0.8; n.x = Math.max(30, Math.min(W - 30, n.x + n.vx)); n.y = Math.max(24, Math.min(H - 24, n.y + n.vy)); });
+  }
+  for (let k = 0; k < 420; k++) tickSim(Math.max(0.05, 1 - k / 420));
   const stat = (n, t, s = '') => `<div class="wstat"><b>${n}</b><span>${t}</span>${s ? `<small>${s}</small>` : ''}</div>`;
+  const lblBig = n => n.t.level >= 4;
   content.innerHTML = zSubnav('world') + `<h2>מפת עולם</h2>
     <div class="wstats">${stat(`${got}/${topics.length}`, 'נושאים שביקרת בהם', `${Math.round(100 * got / topics.length)}%`)}${stat(sims.length - anims, 'סימולציות והדגמות')}${stat(anims, 'הנפשות פיזיקה ומתמטיקה')}${stat(wins.size, 'חלונות, לכל אחד בית אחד')}${stat(topics.filter(t => zCtx(t.id) === 'AOI').length, 'נושאים ייחודיים ל-AOI')}${stat(topics.filter(t => zCtx(t.id) === 'AOS').length, 'נושאים ייחודיים ל-AOS')}</div>
-    <p class="lead">כל מערכת במכונה היא יבשת, וכל מה שהיא בנויה ממנו הוא עיר סביבה: ככל שהעיר רחוקה מהמרכז, היא קטנה יותר, עד הרכיב. עיר מלאה בצבע היא נושא שכבר ביקרת בו. גודל העיר הוא כמות החלונות בה.</p>
-    <div class="wmapwrap"><svg class="wmap" viewBox="0 0 ${W} ${H}" role="group" aria-label="מפת הנושאים: כל עיר היא כפתור"><rect width="${W}" height="${H}" fill="#EEE9E0" rx="18"/>${land}${roads}${cities}</svg></div>
-    <p class="wlegend"><span style="--c:#3078B0">AOI</span><span style="--c:#7B5A3C">AOS</span><span style="--c:#1B2F5A">משותף</span><span class="hollow">עוד לא ביקרת</span></p>
-    <details class="wlist"><summary>כל הנושאים כרשימה</summary><ul>${conts.map(c => `<li><button type="button" class="linkbtn" data-zn="${c.id}">${c.t}</button><ul>${topics.filter(t => home[t.id] === c.id).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></li>`).join('')}${topics.filter(t => t.level === 5).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button></li>`).join('')}</ul></details>`;
+    <p class="lead">כל נושא הוא נקודה, וכל קו הוא "בנוי מ". התהליך במרכז, והרכיבים בטבעת החיצונית. ריחוף על נקודה מאיר אותה ואת שכנותיה. גרירה מזיזה, ולחיצה פותחת. נקודה מלאה היא נושא שכבר ביקרת בו.</p>
+    <div class="wtools"><label class="vh" for="wq">חיפוש בגרף</label><input id="wq" type="search" placeholder="חיפוש נושא בגרף…"><span class="ztctx">${[['all', 'הכל'], ['AOI', 'AOI'], ['AOS', 'AOS'], ['SHARED', 'משותף']].map(([k, t]) => `<button type="button" data-wf="${k}" aria-pressed="${k === 'all'}">${t}</button>`).join('')}</span></div>
+    <div class="wmapwrap wdark"><svg class="wmap" viewBox="0 0 ${W} ${H}" role="group" aria-label="גרף הנושאים: כל נקודה היא כפתור">
+      <g class="wrings">${[1, 2, 3, 4].map(l => `<ellipse cx="${W / 2}" cy="${H / 2}" rx="${ringR(l)}" ry="${ringR(l) * 0.72}" fill="none" stroke="#D6E8F7" stroke-opacity="0.07"/>`).join('')}</g>
+      <g class="wedges">${edges.map(([a, b]) => `<line data-a="${a}" data-b="${b}" stroke="#D6E8F7" stroke-opacity="0.22"/>`).join('')}</g>
+      <g class="wnodes">${nodes.map(n => { const seen = ex.has(n.t.id); return `<g class="wcity${lblBig(n) ? ' big' : n.t.level === 4 ? ' lvl4' : ''}" data-zn="${n.t.id}" data-i="${n.i}" data-c="${zCtx(n.t.id)}" tabindex="0" role="button" aria-label="${n.t.t}"><circle r="${n.r.toFixed(1)}" fill="${seen ? col(n.t.id) : '#1B2F5A'}" stroke="${col(n.t.id)}" stroke-width="${seen ? 1 : 1.8}"/><text y="${(n.r + 12).toFixed(1)}" text-anchor="middle">${n.t.t.split(':')[0]}</text></g>`; }).join('')}</g></svg></div>
+    <p class="wlegend wl2"><span style="--c:#3078B0">AOI</span><span style="--c:#7B5A3C">AOS</span><span style="--c:#D6E8F7">משותף</span><span class="hollow">עוד לא ביקרת</span></p>
+    <details class="wlist"><summary>כל הנושאים כרשימה</summary><ul>${topics.filter(t => t.level >= 4).map(c => `<li><button type="button" class="linkbtn" data-zn="${c.id}">${c.t}</button>${ex.has(c.id) ? ' ✓' : ''}<ul>${topics.filter(t => t.level < 4 && zMainPath(t.id).some(p => p.id === c.id)).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></li>`).join('')}${topics.filter(t => t.level < 4 && !topics.some(c => c.level >= 4 && zMainPath(t.id).some(p => p.id === c.id))).map(t => `<li><button type="button" class="linkbtn" data-zn="${t.id}">${t.t}</button>${ex.has(t.id) ? ' ✓' : ''}</li>`).join('')}</ul></details>`;
   zWireSub();
+  const svg = content.querySelector('.wmap'), gs = [...svg.querySelectorAll('.wcity')], ls = [...svg.querySelectorAll('.wedges line')];
+  const place = () => { gs.forEach((g, k) => g.setAttribute('transform', `translate(${nodes[k].x.toFixed(1)} ${nodes[k].y.toFixed(1)})`)); ls.forEach(l => { const a = nodes[+l.dataset.a], b = nodes[+l.dataset.b]; l.setAttribute('x1', a.x.toFixed(1)); l.setAttribute('y1', a.y.toFixed(1)); l.setAttribute('x2', b.x.toFixed(1)); l.setAttribute('y2', b.y.toFixed(1)); }); };
+  place();
+  const nb = i => new Set([i, ...edges.filter(([a, b]) => a === i || b === i).flatMap(e => e)]);
+  const focus = i => { svg.classList.add('dim'); const s = nb(i); gs.forEach((g, k) => { g.classList.toggle('nb', s.has(k)); g.classList.toggle('hot', k === i); }); ls.forEach(l => l.classList.toggle('hot', +l.dataset.a === i || +l.dataset.b === i)); };
+  const unfocus = () => { svg.classList.remove('dim'); gs.forEach(g => g.classList.remove('nb', 'hot')); ls.forEach(l => l.classList.remove('hot')); };
+  let drag = null, moved = false, raf = 0, alpha = 0;
+  const reheat = () => { alpha = 0.35; if (!raf) raf = requestAnimationFrame(loop); };
+  const loop = () => { raf = 0; if (!document.body.contains(svg)) return; tickSim(alpha); alpha *= 0.96; place(); if (alpha > 0.01 || drag) raf = requestAnimationFrame(loop); };
+  const pt = e => { const r = svg.getBoundingClientRect(); return [(e.clientX - r.left) * W / r.width, (e.clientY - r.top) * H / r.height]; };
+  gs.forEach((g, k) => {
+    g.addEventListener('pointerenter', () => focus(k)); g.addEventListener('pointerleave', unfocus); g.addEventListener('focus', () => focus(k)); g.addEventListener('blur', unfocus);
+    g.addEventListener('pointerdown', e => { drag = k; moved = false; nodes[k].fx = true; g.setPointerCapture && g.setPointerCapture(e.pointerId); });
+    g.addEventListener('pointermove', e => { if (drag !== k) return; const [x, y] = pt(e); if (Math.hypot(x - nodes[k].x, y - nodes[k].y) > 3) moved = true; nodes[k].x = Math.max(30, Math.min(W - 30, x)); nodes[k].y = Math.max(24, Math.min(H - 24, y)); reheat(); });
+    g.addEventListener('pointerup', () => { if (drag === k) { nodes[k].fx = false; drag = null; reheat(); } });
+    g.addEventListener('click', () => { if (moved) { moved = false; return; } ZS.dir = 1; go('zoom', g.dataset.zn); });
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ZS.dir = 1; go('zoom', g.dataset.zn); } });
+  });
   content.querySelectorAll('.wlist [data-zn]').forEach(b => b.addEventListener('click', () => { ZS.dir = 1; go('zoom', b.dataset.zn); }));
-  content.querySelectorAll('.wcity').forEach(g => { const open = () => { ZS.dir = 1; go('zoom', g.dataset.zn); }; g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
+  let flt = 'all', q = '';
+  const apply = () => { const qq = q.trim().toLowerCase(); gs.forEach((g, k) => { const okF = flt === 'all' || g.dataset.c === flt || (flt !== 'SHARED' && g.dataset.c === 'SHARED' && false), okQ = !qq || nodes[k].t.t.toLowerCase().includes(qq); g.classList.toggle('off', !okF); g.classList.toggle('match', !!qq && okQ && okF); g.classList.toggle('nomatch', !!qq && !okQ); }); ls.forEach(l => l.classList.toggle('off', gs[+l.dataset.a].classList.contains('off') || gs[+l.dataset.b].classList.contains('off'))); };
+  content.querySelectorAll('[data-wf]').forEach(b => b.addEventListener('click', () => { flt = b.dataset.wf; content.querySelectorAll('[data-wf]').forEach(x => x.setAttribute('aria-pressed', x === b)); apply(); }));
+  content.querySelector('#wq').addEventListener('input', e => { q = e.target.value; apply(); });
   setTitle('זום', 'מפת עולם', `${got} מתוך ${topics.length} נחקרו`);
 }
 ZVIEW.add('world', { group: 'main', order: 2, title: 'מפת עולם', render: () => zWorldView() });
