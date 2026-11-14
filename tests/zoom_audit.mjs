@@ -283,6 +283,24 @@ await pg.evaluate(() => document.querySelector('.hubnext button').click()); awai
 ok(await pg.evaluate(() => document.querySelector('.hubbtn[aria-pressed="true"]').dataset.hub === 'flow'), 'levels: continue down goes to the next level');
 await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="integ"]').click()); await pg.waitForTimeout(200);
 ok(await pg.evaluate(() => !document.querySelector('.hubnext')), 'levels: the last level has nothing below it');
+/* v2.37: the AOI scan simulator and the vacuum-hold animation */
+const SC = await pg.evaluate(() => ({ d: scanCalc(1200, 2, 5), bal: scanCalc(1200, 0.5, 5), fast: scanCalc(2000, 2, 5), coarse: scanCalc(1200, 0.5, 12) }));
+ok(Math.abs(SC.d.f - 240) < 1e-9 && Math.abs(SC.d.b - 2.4) < 1e-9 && Math.abs(SC.d.frac - 0.48) < 1e-9 && Math.abs(SC.d.swath - 81.92) < 1e-9 && Math.abs(SC.d.area - 983.04) < 1e-6 && Math.abs(SC.d.panelS - 360000 / 98304) < 1e-9, 'scan: f = v/p = 240 kHz, b = v·t = 2.4 µm (48% of a pixel), swath 81.92 mm, 983 cm²/s, 3.66 s per panel');
+ok(Math.abs(SC.d.tmax - 0.625) < 1e-9 && Math.abs(SC.d.vmax - 375) < 1e-9, 'scan: the 15% blur limit gives t ≤ 0.625 µs or v ≤ 375 mm/s');
+ok(SC.bal.found.every(d => d.ok) && SC.bal.nFalse === 0 && SC.bal.frac <= 0.15, 'scan: the balanced default is inside the blur limit and finds all six defects with no false call');
+ok(SC.fast.found.some(d => !d.ok) && SC.fast.nFalse > 0 && SC.coarse.found.filter(d => !d.ok).length >= 3, 'scan: too fast for the pulse misses a defect and raises false calls; a coarse pixel misses the small ones');
+await pg.evaluate(() => zOpenWindow('proc', 'scan:aoi')); await pg.waitForTimeout(500);
+ok(await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').scanApi; return a.state === 'idle' && a.flash === false && a.running === false && document.querySelector('[data-ss="flash"]').getAttribute('aria-pressed') === 'false'; }), 'scan: opens idle, nothing running, and the strobe glow is off until pressed');
+await pg.evaluate(() => document.querySelector('[data-ss="start"]').click()); await pg.waitForTimeout(300);
+ok(await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').scanApi; return a.state === 'run' && a.flash === false; }), 'scan: starting the scan does not turn the strobe glow on');
+const rec = await pg.evaluate(() => { const a = document.querySelector('#hubpanel .zbody').scanApi; a.finish(); a.verdict.D1 = 'real'; a.verdict.D2 = 'real'; a.verdict.D6 = 'false'; const s = a.suspects(); return { n: s.length, r1: a.route(s.find(q => q.id === 'D1')), r2: a.route(s.find(q => q.id === 'D2')), r6: a.route(s.find(q => q.id === 'D6')), txt: a.record() }; });
+ok(rec.n === 6 && /^AOS/.test(rec.r1) && /^לא ל-AOS/.test(rec.r2) && /התראת שווא/.test(rec.r6), 'scan: a verified short goes to laser removal, a verified open does not, a false call is closed');
+ok(/bare-board copper only/.test(rec.txt) && /origin at fiducial F1/.test(rec.txt) && /registers to its own fiducials/.test(rec.txt) && !/solder paste|pick|SKEW|FPGA|deposition/i.test(rec.txt) && /x 262\.00 mm \| y 241\.50 mm/.test(rec.txt), 'scan: the record names its frame and scope, carries panel coordinates, and has no assembly-stage defects or repairs');
+const CL = await pg.evaluate(() => ({ a: ANIMS.clamp.calc({ h: 0.8, z0: 1.6, C: VT.C }), b: ANIMS.clamp.calc({ h: 2, z0: 4, C: 3 }), h2: ANIMS.clamp.calc({ h: 1.6, z0: 1.6, C: VT.C }), vac: vacCalc().vac }));
+ok(Math.abs(CL.a.dP - CL.vac) < 1e-9 && Math.abs(CL.a.qreq - 1.048576) < 1e-6 && CL.a.resid === 0 && CL.a.ok, 'clamp: the same ΔP as the vacuum model; 0.8 mm with a 1.6 mm bow needs 1.05 kPa and lies flat');
+ok(Math.abs(CL.h2.qreq / CL.a.qreq - 8) < 1e-9, 'clamp: twice the thickness needs eight times the pressure (h³)');
+ok(Math.abs(CL.b.qreq - 40.96) < 1e-6 && CL.b.resid > CL.b.half && !CL.b.ok && Math.abs(CL.b.resid - 4000 * (1 - CL.b.dP / 40.96)) < 1e-6, 'clamp: a thick, bowed panel on a leaking table keeps a bow larger than the depth of field');
+ok(await pg.evaluate(() => zWindows(zNode('vac')).includes('anim:clamp') && zWindows(zNode('proc')).includes('scan:aoi') && hubOf('scan:aoi') === 'show' && zSimList().some(s => s.w === 'scan:aoi')), 'the scan simulator is a showcase window of the process and in the gallery; the clamp animation belongs to the vacuum table');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

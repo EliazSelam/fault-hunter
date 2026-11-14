@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.37.0] — 2026-11-14
+
+An AOI scan simulator with a handoff record, and the vacuum hold as an animation.
+
+- **AOI scan simulator** (a showcase window of the process, also in the gallery): a bare-board coupon with six copper defects, scan speed, strobe pulse and pixel size as sliders, and five numbers computed from them (line rate f = v/p, motion blur b = v·t against a 15% limit with the corrective t or v, area rate, time per panel, smallest visible defect). Four presets show the trade-offs. After the scan each suspect is verified by the learner as real or false; verified excess copper is routed to laser removal, missing copper is not. The handoff record (panel coordinates, frame, scope) can be shown and downloaded as text.
+- **It opens idle.** Nothing runs and nothing flashes until "start scan" is pressed; the strobe glow is a separate button, off by default, slowed to two pulses per second, and disabled under reduced motion.
+- **Vacuum hold animation** (vacuum table): the same ΔP as the vacuum model, the pressure needed to flatten a bowed panel (q = 384·E·h³·z₀ / 60·L⁴, a simply supported strip), and the residual bow against the depth of field. Twice the thickness needs eight times the pressure.
+- Tests: 12 new checks in the zoom suite (numbers, idle start, routing, record scope, h³).
+
 ## [2.36.0] — 2026-11-12
 
 Corrections from two research reports, four new animated windows, a graph of topics, and the seven levels of depth.

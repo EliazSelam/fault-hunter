@@ -89,7 +89,7 @@ function glBuild() {
   GL_MAP = {}; GL_KEYS.forEach(k => GL_MAP[k.toLowerCase()] = k);
   GL_RE = new RegExp('(?<![A-Za-z0-9&\\-])(' + GL_KEYS.map(k => k.replace(/[.*+?^${}()|[\]\\&/]/g, '\\$&')).join('|') + ')(?![A-Za-z0-9\\-])', 'gi');
 }
-const GL_SKIP = 'svg,button,select,label,textarea,input,h1,h2,h3,nav,th,.titleblock,.readout,.stage,.gl,.gdef,code,.lvltabs,#gltip,summary,.say,.en,.mono,.cid,.chips,.stepper';
+const GL_SKIP = 'svg,button,select,label,textarea,input,h1,h2,h3,nav,th,.titleblock,.readout,.stage,.gl,.gdef,code,.lvltabs,#gltip,summary,.say,.en,.mono,.cid,.chips,.stepper,.nogl';
 function shortDef(k) { if (typeof GSHORT !== 'undefined' && GSHORT[k]) return GSHORT[k]; const t = GLOSS[k]; const i = t.indexOf(':'); const s = i > 0 && i < 40 ? t.slice(i + 1) : t; return s.split('.')[0].trim(); }
 function glossify(root) {
   if (!GL_RE) glBuild();
