@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.38.0] — 2026-11-14
+
+The first object in real-time 3D: the laser scan head.
+
+- **Laser scan head in 3D** (a showcase window of the laser unit, also in the gallery): nine named parts in the order the light meets them (housing in two halves with a window, fiber port, beam expander, two mirrors on motors, flat-field focusing lens, protective window, camera port, cable bundle). Rounded machined forms, brushed metal, glass, soft shadow and a studio environment painted at run time. Explode with a slider, select a part to read what it does, four camera views, a camera tour, and a beam that is traced through both mirrors and the lens onto a small panel, drawing its raster.
+- **The picture is the model.** The drawn beam is the same ray trace the checks run (`shTrace`): a mirror turned by θ turns the beam by 2θ, and the spot is at f·θ. The waist radius on the HUD, w0 = 2λf/(πD), reproduces the 6 µm of the laser model.
+- **Behaviour:** the beam is off on open; nothing is drawn unless something changed; the state (explode, beam, camera, selection) is saved and restored like every other window; reduced motion stops the intro, the tour and the mirror swing; the module removes itself when its window is replaced.
+- **Three.js r159 (MIT) is inlined** from `vendor/`, so the book is still one file with no network. The file grows from 2.1 MB to 2.8 MB.
+- `FH3D.mountScanHead(THREE, container, opts)` follows the contract in `docs/THREEJS_BRIEF.md`, so further objects can be built the same way.
+- Tests: 10 new checks in the zoom suite; the name scan now matches whole words.
+
 ## [2.37.0] — 2026-11-14
 
 An AOI scan simulator with a handoff record, and the vacuum hold as an animation.

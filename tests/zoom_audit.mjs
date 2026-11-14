@@ -146,7 +146,7 @@ for (const id of await pg.evaluate(() => ZOOM.filter(z => !ZAPPX.has(z.id)).map(
   ok(await pg.evaluate(() => !!document.querySelector('.hubobj') && document.querySelectorAll('.hubbtn').length >= 1 && document.querySelectorAll('#hubpanel .zwin').length === 1 && !document.querySelector('.zaround')), `${id}: an object in the middle, hubs around it, one window open`);
 }
 ok(await pg.evaluate(() => { let n = 0; ZOOM.forEach(z => { const by = {}; zWindows(z).forEach(w => by[hubOf(w)] = 1); n += Object.keys(by).length; }); return n > 0 && ZOOM.every(z => zWindows(z).every(w => HUBS.some(h => h[0] === hubOf(w)))); }), 'every window belongs to a hub');
-{ const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp(ns.join('|')).test(document.documentElement.innerHTML), names), 'no company or product names'); }
+{ const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp('\\b(' + ns.join('|') + ')\\b').test(document.documentElement.innerHTML), names), 'no company or product names'); }
 /* the right layers first: the views bar and the world map */
 await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'machine,world,sims,node,appx' && back.join() === 'tree,3d,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree, layers and duplicates behind the scenes');
@@ -301,6 +301,25 @@ ok(Math.abs(CL.a.dP - CL.vac) < 1e-9 && Math.abs(CL.a.qreq - 1.048576) < 1e-6 &&
 ok(Math.abs(CL.h2.qreq / CL.a.qreq - 8) < 1e-9, 'clamp: twice the thickness needs eight times the pressure (h³)');
 ok(Math.abs(CL.b.qreq - 40.96) < 1e-6 && CL.b.resid > CL.b.half && !CL.b.ok && Math.abs(CL.b.resid - 4000 * (1 - CL.b.dP / 40.96)) < 1e-6, 'clamp: a thick, bowed panel on a leaking table keeps a bow larger than the depth of field');
 ok(await pg.evaluate(() => zWindows(zNode('vac')).includes('anim:clamp') && zWindows(zNode('proc')).includes('scan:aoi') && hubOf('scan:aoi') === 'show' && zSimList().some(s => s.w === 'scan:aoi')), 'the scan simulator is a showcase window of the process and in the gallery; the clamp animation belongs to the vacuum table');
+/* v2.38: the laser scan head in real-time 3D */
+const SHT = await pg.evaluate(() => ({ k: shCalc(), w0: LZ.w0, z: shTrace(0, 0), a: shTrace(3, 0), b: shTrace(0, -2), c: shTrace(2, 3) }));
+ok(Math.abs(SHT.k.w0 - SHT.w0) < 0.05 && Math.abs(SHT.k.field - 2 * 100 * 2 * 7.2 * Math.PI / 180) < 1e-9 && SHT.k.D === 3.75, 'scan head: w0 = 2λf/(πD) reproduces the laser model\'s 6 µm waist; field = 2·f·2θ = 50.3 mm');
+ok(Math.abs(SHT.z.mm[0]) < 1e-9 && Math.abs(SHT.z.mm[1]) < 1e-9 && Math.abs(SHT.z.d2[1] + 1) < 1e-12, 'scan head: with both mirrors at rest the beam leaves straight down, onto the centre');
+const d2r = Math.PI / 180;
+ok(Math.abs(Math.abs(SHT.a.ax) - 6 * d2r) < 1e-12 && Math.abs(SHT.a.az) < 1e-12 && Math.abs(Math.abs(SHT.b.az) - 4 * d2r) < 1e-12 && Math.abs(SHT.b.ax) < 1e-12, 'scan head: a mirror turned by θ turns the beam by 2θ, each mirror on its own axis');
+ok(Math.abs(SHT.c.mm[0] - 100 * SHT.c.ax) < 1e-12 && Math.abs(SHT.c.spot[0] - 10 * SHT.c.ax) < 1e-12 && Math.abs(SHT.c.P2[0]) > 0 && Math.abs(SHT.c.P3[1] + 4.7) < 1e-12, 'scan head: the drawn spot is f·θ of the traced ray, and the ray is traced through the second mirror to the lens plane');
+await pg.evaluate(() => zOpenWindow('laserunit', '3d:scanhead')); await pg.waitForTimeout(1200);
+const H3 = await pg.evaluate(async () => { const b = document.querySelector('#hubpanel .zbody'), h = b.fh3d; if (!h) return null; const wait = ms => new Promise(r => setTimeout(r, ms));
+  const o = { parts: h.parts.join(), beam0: h.getState().beam }; h.setExplode(0, true); await wait(400); const f0 = h.frames; await wait(500); o.idle = h.frames - f0;
+  h.setExplode(1, true); o.ex = h.getState().explode; h.setCamera('top', true); h.select('galvo_y'); const s1 = JSON.stringify(h.getState()); h.setState(JSON.parse(s1)); o.round = JSON.stringify(h.getState()) === s1; o.sel = h.getState().selected;
+  o.info = document.querySelector('.fh3d-info h4').textContent; h.select(null); h.setExplode(0, true); h.setBeam(true); await wait(500); o.moving = h.frames; await wait(1500); o.moving = h.frames - o.moving; o.tr = h.trace().mm;
+  const act = b.act.getState(); o.act = act.beam === true && act.v === 1; const host = document.querySelector('.fh3dhost'); h.destroy(); o.empty = host.children.length; const h2 = FH3D.mountScanHead(THREE, host, { reducedMotion: true }); await wait(300); const g0 = h2.frames; h2.setBeam(true); await wait(400); o.still = h2.frames - g0; o.a = Math.abs(h2.trace().mm[0]) + Math.abs(h2.trace().mm[1]); h2.destroy(); o.empty2 = host.children.length; return o; });
+ok(H3 && H3.parts === 'housing,fiber_port,beam_expander,galvo_x,galvo_y,ftheta_lens,protective_window,camera_port,cable_bundle', 'scan head: nine named parts in optical order');
+ok(H3 && H3.beam0 === false && H3.idle <= 1, 'scan head: the beam is off on open, and nothing is drawn while nothing changes');
+ok(H3 && H3.ex === 1 && H3.round && H3.sel === 'galvo_y' && H3.info === 'מראה שנייה' && H3.act, 'scan head: explode, camera and selection round-trip through the state, and the window\'s activity handle carries it');
+ok(H3 && H3.moving >= 2 && (Math.abs(H3.tr[0]) + Math.abs(H3.tr[1])) > 0, 'scan head: with the beam on the mirrors swing and the spot moves');
+ok(H3 && H3.empty === 0 && H3.empty2 === 0 && H3.still <= 2 && H3.a < 1e-9, 'scan head: destroy leaves the container empty, it mounts again, and under reduced motion the mirrors stay still');
+ok(await pg.evaluate(() => zWindows(zNode('laserunit')).includes('3d:scanhead') && hubOf('3d:scanhead') === 'show' && zSimList().some(s => s.w === '3d:scanhead') && typeof THREE === 'object' && THREE.REVISION === '159'), 'scan head: a showcase window of the laser unit, in the gallery; the 3D library is inlined at a pinned revision');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

@@ -75,3 +75,7 @@ License: MIT · Third-party: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) ·
 ## Evolution
 
 The path from the first version to today, one screenshot per milestone, is in [docs/MILESTONES.md](docs/MILESTONES.md).
+
+## Third-party
+
+`vendor/three-r159.min.js` is [Three.js](https://threejs.org) r159, © 2010–2023 Three.js Authors, MIT License. It is inlined into `index.html` by `build.sh`.
