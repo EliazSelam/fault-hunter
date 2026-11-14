@@ -53,36 +53,25 @@ const FH3D_CSS = `.fh3d-root{position:relative;width:100%;height:100%;min-height
 .fh3d-bar{position:absolute;bottom:12px;left:12px;right:12px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}.fh3d-bar button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid rgba(27,47,90,.45);background:transparent;color:#1B2F5A;cursor:pointer;transition:background .15s,color .15s}.fh3d-bar button:hover{background:#D6E8F7}.fh3d-bar button[aria-pressed="true"]{background:#1B2F5A;color:#EEE9E0}.fh3d-bar button:focus-visible{outline:2px solid #3078B0;outline-offset:2px}
 .fh3d-bar label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:#1B2F5A}.fh3d-bar input[type=range]{width:120px;accent-color:#3078B0}.fh3d-sep{width:1px;align-self:stretch;background:rgba(27,47,90,.25)}.fh3d-parts{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:5px;padding:8px;max-height:calc(100% - 96px);overflow:auto}.fh3d-parts button{font:inherit;font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid rgba(27,47,90,.35);background:transparent;color:#1B2F5A;cursor:pointer;text-align:right}.fh3d-parts button:hover{background:#D6E8F7}.fh3d-parts button[aria-pressed="true"]{background:#1B2F5A;color:#EEE9E0}.fh3d-parts button:focus-visible{outline:2px solid #3078B0;outline-offset:2px}.fh3d-parts b{font-size:11px;opacity:.7;font-weight:600;padding:0 4px 2px}
 .fh3d-hint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:12px 18px;font-size:14px}`;
-function fh3dMountScanHead(THREE, container, opts) {
-  opts = opts || {}; const reduce = !!opts.reducedMotion, C = { navy: 0x1B2F5A, blue: 0x3078B0, light: 0xD6E8F7, char: 0x4A4540, brown: 0x7B5A3C, cream: 0xEEE9E0 };
-  const trash = [], keep = o => { trash.push(o); return o; }, V = (a, b, c) => Array.isArray(a) ? new THREE.Vector3(a[0], a[1], a[2]) : new THREE.Vector3(a, b, c);
-  /* ---------- DOM ---------- */
-  container.innerHTML = ''; const root = document.createElement('div'); root.className = 'fh3d-root nogl'; root.tabIndex = 0; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'ראש הסריקה של הלייזר בתלת-ממד. גרירה מסובבת, חצים מסובבים, פלוס ומינוס מקרבים ומרחיקים.');
-  const style = document.createElement('style'); style.textContent = FH3D_CSS; root.appendChild(style); container.appendChild(root);
-  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (e) { root.innerHTML += '<div class="fh3d-card fh3d-hint">הדפדפן הזה לא מציג תלת-ממד (WebGL כבוי). שאר החלונות של הנושא עובדים כרגיל.</div>'; return null; }
-  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0); const cv = renderer.domElement; cv.setAttribute('aria-hidden', 'true'); root.appendChild(cv);
-  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, 0.5, 300);
+/* the shared kit: painted textures, rounded geometry and a small studio to reflect. Everything it makes is tracked in trash for dispose. */
+function fh3dKit(THREE) {
+  const C = { navy: 0x1B2F5A, blue: 0x3078B0, light: 0xD6E8F7, char: 0x4A4540, brown: 0x7B5A3C, cream: 0xEEE9E0 };
+  const trash = [], keep = o => { trash.push(o); return o; };
   /* ---------- painted textures ---------- */
   const paint = (w, h, fn) => { const c = document.createElement('canvas'); c.width = w; c.height = h; fn(c.getContext('2d'), w, h); const t = keep(new THREE.CanvasTexture(c)); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
   let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
   const brushed = paint(256, 256, (g, w, h) => { g.fillStyle = '#8a8a8a'; g.fillRect(0, 0, w, h); for (let i = 0; i < 1400; i++) { const y = rnd() * h, l = 30 + rnd() * 200, x = rnd() * w, v = 90 + rnd() * 110 | 0; g.strokeStyle = `rgba(${v},${v},${v},${0.10 + rnd() * 0.25})`; g.lineWidth = 0.5 + rnd(); g.beginPath(); g.moveTo(x, y); g.lineTo(x + l, y); g.stroke(); g.beginPath(); g.moveTo(x - w, y); g.lineTo(x + l - w, y); g.stroke(); } }); brushed.repeat.set(0.35, 0.35);
   const knurl = paint(64, 64, (g, w, h) => { g.fillStyle = '#777'; g.fillRect(0, 0, w, h); g.strokeStyle = '#ddd'; g.lineWidth = 3; for (let i = -64; i < 128; i += 8) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + 64, 64); g.stroke(); g.beginPath(); g.moveTo(i + 64, 0); g.lineTo(i, 64); g.stroke(); } }); knurl.repeat.set(14, 1);
-  const glowTex = paint(128, 128, (g, w) => { const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(214,232,247,1)'); r.addColorStop(0.25, 'rgba(214,232,247,.75)'); r.addColorStop(0.6, 'rgba(48,120,176,.3)'); r.addColorStop(1, 'rgba(48,120,176,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
   /* ---------- environment: a small studio rendered once, so metal and glass have something to reflect ---------- */
-  { const es = new THREE.Scene(), sky = paint(16, 128, (g, w, h) => { const r = g.createLinearGradient(0, 0, 0, h); r.addColorStop(0, '#D6E8F7'); r.addColorStop(0.35, '#3078B0'); r.addColorStop(0.62, '#1B2F5A'); r.addColorStop(1, '#0d1830'); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+  const studio = renderer => { const es = new THREE.Scene(), sky = paint(16, 128, (g, w, h) => { const r = g.createLinearGradient(0, 0, 0, h); r.addColorStop(0, '#D6E8F7'); r.addColorStop(0.35, '#3078B0'); r.addColorStop(0.62, '#1B2F5A'); r.addColorStop(1, '#0d1830'); g.fillStyle = r; g.fillRect(0, 0, w, h); });
     sky.colorSpace = THREE.SRGBColorSpace; const dome = new THREE.Mesh(keep(new THREE.SphereGeometry(60, 24, 16)), keep(new THREE.MeshBasicMaterial({ map: sky, side: THREE.BackSide }))); es.add(dome);
     const box = (w, h, col, k, p, look) => { const m = new THREE.Mesh(keep(new THREE.PlaneGeometry(w, h)), keep(new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(k), side: THREE.DoubleSide }))); m.position.set(p[0], p[1], p[2]); m.lookAt(look[0], look[1], look[2]); es.add(m); };
     box(30, 18, C.cream, 9, [-22, 26, 18], [0, 0, 0]); box(14, 30, C.light, 5, [34, 6, 8], [0, 0, 0]); box(40, 6, C.light, 7, [0, 14, -36], [0, 0, 0]); box(18, 18, C.cream, 3, [6, 40, 0], [0, 0, 0]);
-    const pm = new THREE.PMREMGenerator(renderer), rt = pm.fromScene(es, 0.03); scene.environment = rt.texture; trash.push(rt); pm.dispose(); }
-  /* ---------- light ---------- */
-  const key = new THREE.DirectionalLight(C.cream, 2.6); key.position.set(-9, 34, 14); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.0005;
-  Object.assign(key.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); key.target.position.set(0, -6, 1); scene.add(key, key.target);
-  const fill = new THREE.DirectionalLight(C.light, 0.9); fill.position.set(24, 6, 10); scene.add(fill); const rim = new THREE.DirectionalLight(C.blue, 2.2); rim.position.set(4, 12, -28); scene.add(rim); scene.add(new THREE.AmbientLight(C.light, 0.25));
+    const pm = new THREE.PMREMGenerator(renderer), rt = pm.fromScene(es, 0.03); trash.push(rt); pm.dispose(); return rt.texture; }
   /* ---------- geometry kit: everything is rounded ---------- */
   const rshape = (w, h, c) => { const s = new THREE.Shape(), x = w / 2, y = h / 2; c = Math.min(c, x, y); s.moveTo(-x + c, -y); s.lineTo(x - c, -y); s.absarc(x - c, -y + c, c, -Math.PI / 2, 0); s.lineTo(x, y - c); s.absarc(x - c, y - c, c, 0, Math.PI / 2); s.lineTo(-x + c, y); s.absarc(-x + c, y - c, c, Math.PI / 2, Math.PI); s.lineTo(-x, -y + c); s.absarc(-x + c, -y + c, c, Math.PI, 1.5 * Math.PI); return s; };
   /* a slab w × h, d thick along z, every edge rounded by r; holes = [[x, y, radius]] or [[x, y, w, h, corner]] */
-  const rbox = (w, h, d, r, holes, corner) => { r = Math.min(r, w / 2 - 0.01, h / 2 - 0.01, d / 2 - 0.005); const s = rshape(w - 2 * r, h - 2 * r, corner || 0.02);
+  const rbox = (w, h, d, r, holes, corner) => { r = Math.max(0.0005, Math.min(r, w * 0.45, h * 0.45, d * 0.45)); const s = rshape(w - 2 * r, h - 2 * r, corner || 0.02);
     (holes || []).forEach(q => { if (q.length === 3) { const p = new THREE.Path(); p.absarc(q[0], q[1], q[2] + r, 0, 2 * Math.PI, true); s.holes.push(p); } else { s.holes.push(new THREE.Path(rshape(q[2] + 2 * r, q[3] + 2 * r, q[4] + r).getPoints(10).map(v => new THREE.Vector2(v.x + q[0], v.y + q[1])).reverse())); } });
     const g = keep(new THREE.ExtrudeGeometry(s, { depth: d - 2 * r, bevelEnabled: true, bevelThickness: r, bevelSize: r, bevelSegments: 4, curveSegments: 10 })); g.translate(0, 0, -(d - 2 * r) / 2); return g; };
   /* a turned part: profile = [[radius, height], …] around y, then laid along the wanted axis */
@@ -90,6 +79,24 @@ function fh3dMountScanHead(THREE, container, opts) {
   /* a cylinder from y0 to y1 with chamfered ends */
   const can = (r, y0, y1, ch, axis, seg) => lathe([[0, y0], [r - ch, y0], [r, y0 + ch], [r, y1 - ch], [r - ch, y1], [0, y1]], axis, seg);
   const tube = (r, y0, y1, wall, axis) => lathe([[r - wall, y0], [r - 0.04, y0], [r, y0 + 0.04], [r, y1 - 0.04], [r - 0.04, y1], [r - wall, y1], [r - wall, y0]], axis);
+  return { C, trash, keep, paint, rnd, brushed, knurl, studio, rshape, rbox, lathe, can, tube };
+}
+function fh3dMountScanHead(THREE, container, opts) {
+  opts = opts || {}; const reduce = !!opts.reducedMotion, K = fh3dKit(THREE), C = K.C, trash = K.trash, keep = K.keep, V = (a, b, c) => Array.isArray(a) ? new THREE.Vector3(a[0], a[1], a[2]) : new THREE.Vector3(a, b, c);
+  /* ---------- DOM ---------- */
+  container.innerHTML = ''; const root = document.createElement('div'); root.className = 'fh3d-root nogl'; root.tabIndex = 0; root.setAttribute('role', 'group'); root.setAttribute('aria-label', 'ראש הסריקה של הלייזר בתלת-ממד. גרירה מסובבת, חצים מסובבים, פלוס ומינוס מקרבים ומרחיקים.');
+  const style = document.createElement('style'); style.textContent = FH3D_CSS; root.appendChild(style); container.appendChild(root);
+  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (e) { root.innerHTML += '<div class="fh3d-card fh3d-hint">הדפדפן הזה לא מציג תלת-ממד (WebGL כבוי). שאר החלונות של הנושא עובדים כרגיל.</div>'; return null; }
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0); const cv = renderer.domElement; cv.setAttribute('aria-hidden', 'true'); root.appendChild(cv);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(32, 1, 0.5, 300);
+  const { paint, brushed, knurl, studio, rshape, rbox, lathe, can, tube } = K;
+  const glowTex = paint(128, 128, (g, w) => { const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(214,232,247,1)'); r.addColorStop(0.25, 'rgba(214,232,247,.75)'); r.addColorStop(0.6, 'rgba(48,120,176,.3)'); r.addColorStop(1, 'rgba(48,120,176,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
+  scene.environment = studio(renderer);
+  /* ---------- light ---------- */
+  const key = new THREE.DirectionalLight(C.cream, 2.6); key.position.set(-9, 34, 14); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.radius = 8; key.shadow.bias = -0.0005;
+  Object.assign(key.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30, near: 1, far: 110 }); key.target.position.set(0, -6, 1); scene.add(key, key.target);
+  const fill = new THREE.DirectionalLight(C.light, 0.9); fill.position.set(24, 6, 10); scene.add(fill); const rim = new THREE.DirectionalLight(C.blue, 2.2); rim.position.set(4, 12, -28); scene.add(rim); scene.add(new THREE.AmbientLight(C.light, 0.25));
   /* ---------- materials ---------- */
   const M = (o) => keep(new THREE.MeshPhysicalMaterial(o));
   const mat = {
@@ -210,9 +217,9 @@ function fh3dMountScanHead(THREE, container, opts) {
   const dim = () => { model.traverse(o => { if (!o.isMesh || o.userData.hull) return; const off = S.selected && o.userData.part !== S.selected; const tr = off || o.userData.tr; if (o.material.transparent !== tr) { o.material.transparent = tr; o.material.needsUpdate = true; } o.material.opacity = off ? o.userData.o * 0.22 : o.userData.o; o.material.depthWrite = !off && !o.userData.tr; o.castShadow = !off && !o.userData.tr; }); };
   /* ---------- HUD ---------- */
   const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }, L = t => `<bdi dir="ltr">${t}</bdi>`;
-  const stats = el('div', 'fh3d-stats'), K = shCalc(), statEl = {};
+  const stats = el('div', 'fh3d-stats'), KC = shCalc(), statEl = {};
   [['w0', 'רדיוס הכתם'], ['field', 'שדה הסריקה'], ['ang', 'זוויות המראות'], ['pos', 'מיקום הכתם']].forEach(([k, t]) => { const c = el('div', 'fh3d-card fh3d-stat', `<span>${t}</span><b></b>`); statEl[k] = c.querySelector('b'); stats.appendChild(c); }); root.appendChild(stats);
-  statEl.w0.textContent = `${f1(K.w0, 1)} µm`; statEl.field.textContent = `${f1(K.field, 1)} mm`;
+  statEl.w0.textContent = `${f1(KC.w0, 1)} µm`; statEl.field.textContent = `${f1(KC.field, 1)} mm`;
   const info = el('div', 'fh3d-card fh3d-info'); info.hidden = true; info.setAttribute('aria-live', 'polite'); root.appendChild(info);
   const bar = el('div', 'fh3d-card fh3d-bar'); root.appendChild(bar);
   const btn = (t, fn, pressed) => { const b = el('button', '', t); b.type = 'button'; if (pressed != null) b.setAttribute('aria-pressed', pressed); b.addEventListener('click', () => fn(b)); bar.appendChild(b); return b; };
@@ -265,7 +272,7 @@ function fh3dMountScanHead(THREE, container, opts) {
   if (opts.initialState) api.setState(opts.initialState); else if (reduce) { S.explode = S.explodeTo = 0; }
   api.renderNow(); touch(); return api;
 }
-window.FH3D = { mountScanHead: fh3dMountScanHead };
+window.FH3D = { mountScanHead: fh3dMountScanHead, software: false };
 
 /* ---- the window: the laser unit's object at the showcase level ---- */
 function fh3dWindow(el) {

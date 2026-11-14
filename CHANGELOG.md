@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.39.0] — 2026-11-14
+
+The whole machine is drawn in real-time 3D.
+
+- **The machine view's picture is now real-time 3D:** every part of the AOI machine, the AOS machine and the line is built from rounded, machined forms with real materials (polished granite base, brushed aluminium table with its vacuum holes, a panel with copper traces, painted gantry, finned motor and camera, lens with glass and a brass ring, a lit strobe bar, an electrical cabinet with a glass door and its modules on rails, a glass enclosure on a frame), with soft shadows and studio reflections. Opened parts show their inner parts the same way (windings, boards, glass, steel).
+- **The view itself did not change:** explode, assemble, select, open a part, the two machines and the line, the finder, the names and the side panel all work as before. The 3D picture sits under the view's canvas and is aimed by the same camera, to within a fraction of a pixel, so names and clicks land on the parts. Every part is built inside its existing boxes.
+- **A selected part stays solid and the rest turn to glass**; hovering lights a part.
+- **Fallback:** a browser without WebGL, or one that would draw it in software only, keeps the earlier drawing. Leaving the page frees the 3D context. Nothing is drawn while nothing changes.
+- The 3D kit (rounded geometry, painted textures, studio) is shared by the machine and the scan head.
+- Tests: 7 new checks in the zoom suite.
+
 ## [2.38.0] — 2026-11-14
 
 The first object in real-time 3D: the laser scan head.

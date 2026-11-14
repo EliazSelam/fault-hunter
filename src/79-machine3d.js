@@ -90,6 +90,8 @@ function zMachineView() {
   const cv = $('#mc'), col = k => ({ mech: cssv('--mech') || '#7B5A3C', ink: cssv('--ink'), live: cssv('--live'), tint: cssv('--tint'), text: cssv('--text') })[k], line = cssv('--line'), sheet = cssv('--sheet'), text = cssv('--text');
   const V = view3(cv, { yaw: -0.75, pitch: 0.42, dist: MS.dist, fov: 780, oy: 30, onView: () => draw() });
   const proj = p => V.proj([p[0] - MS.C[0], p[1] - MS.C[1], p[2] - MS.C[2]]);
+  /* the picture: real-time 3D under this canvas when the browser can, the drawing below otherwise. Names and the pointer stay here either way. */
+  if (MS.gl) { MS.gl.destroy(); MS.gl = null; } if (typeof THREE !== 'undefined' && window.FH3D && FH3D.machine) MS.gl = FH3D.machine(THREE, cv, V);
   function draw() {
     V.st.dist = MS.dist + (MS.sel ? 0 : MS.E * 8); const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); MS.polys = [];
     if (MS.path.length) return drawInner(ctx);
@@ -99,10 +101,9 @@ function zMachineView() {
       p.boxes.forEach(b => { const P = []; mShape(P, [b[0] + dx + MS.E * p.ex[0], b[1] + dx + MS.E * p.ex[0], b[2] + MS.E * p.ex[1], b[3] + MS.E * p.ex[1], b[4] + MS.E * p.ex[2], b[5] + MS.E * p.ex[2]], MSHAPE[p.id], col(b[6]), (p.id === 'door' ? 0.07 : 0.95) * (dim ? 0.12 : 1), p.id === 'door' ? '#D6E8F7' : line);
         P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, part: p, hl, m }); }); }); });
     if (MS.machine === 'line') mLineExtras(items, proj, col, line);
-    if (!MS.sel) (MS.machine === 'line' ? [-6.5, 7.5] : [0.6]).forEach(x => mFloor(ctx, proj, [x, 0, -0.5], 4.2));
-    mPaint(ctx, items); items.forEach(({ q, part, m }) => { if (part.node || MS.machine === 'line') MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, MS.machine === 'line' ? 'M:' + m : part.id]); });
+    if (MS.gl) items.sort((a, b) => b.d - a.d); else { if (!MS.sel) (MS.machine === 'line' ? [-6.5, 7.5] : [0.6]).forEach(x => mFloor(ctx, proj, [x, 0, -0.5], 4.2)); mPaint(ctx, items); } items.forEach(({ q, part, m }) => { if (part.node || MS.machine === 'line') MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, MS.machine === 'line' ? 'M:' + m : part.id]); });
     /* vacuum zones on the table */
-    if (MS.machine !== 'line' && (!MS.sel || MS.sel === 'table')) { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
+    if (!MS.gl && MS.machine !== 'line' && (!MS.sel || MS.sel === 'table')) { ctx.strokeStyle = line; ctx.globalAlpha = 0.6; for (let i = -1; i <= 1; i++) { const z = 0.381 + MS.E * 2.25, a = proj([i * 0.6, -1.4, z]), b = proj([i * 0.6, 1.4, z]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); } ctx.globalAlpha = 1; }
     /* names: the hovered and the selected part, and every part while exploded */
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
     if (MS.machine === 'line') { mLineLabels(ctx, proj); ctx.direction = 'ltr'; ctx.textAlign = 'left'; return; }
@@ -117,8 +118,7 @@ function zMachineView() {
       const bb = [S * (b[0] + e * ip.ex[0]), S * (b[1] + e * ip.ex[0]), S * (b[2] + e * ip.ex[1]), S * (b[3] + e * ip.ex[1]), S * (b[4] + e * ip.ex[2]), S * (b[5] + e * ip.ex[2])];
       mShape(P, bb, ROUND.test(ip.t) ? longAxis(b) : null, col(ip.c), ip.c === 'tint' ? 0.5 : 0.95, line);
       P.forEach(f => { const q = f.pts.map(proj); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, i, hl }); }); });
-    mFloor(ctx, proj, [0, 0, -1.4], 2.2);
-    mPaint(ctx, items); items.forEach(({ q, i }) => MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, 'in:' + i]));
+    if (MS.gl) items.sort((a, b) => b.d - a.d); else { mFloor(ctx, proj, [0, 0, -1.4], 2.2); mPaint(ctx, items); } items.forEach(({ q, i }) => MS.polys.push([q, q.reduce((s, x) => s + x[2], 0) / q.length, 'in:' + i]));
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
     parts.forEach((ip, i) => { const b = ip.b, e = MS.IE, c = [S * ((b[0] + b[1]) / 2 + e * ip.ex[0]), S * ((b[2] + b[3]) / 2 + e * ip.ex[1]), S * (b[5] + e * ip.ex[2]) + 0.25], q = proj(c), w = ctx.measureText(ip.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.93; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = MS.isel === i ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(ip.t, q[0], q[1] - 4); });
@@ -142,9 +142,9 @@ function zMachineView() {
     if (MS.path.length && MS.IE < 1) MS.IE = Math.min(1, MS.IE + dt * 0.9);
     for (let i = 0; i < 3; i++) MS.C[i] += (MS.Ct[i] - MS.C[i]) * Math.min(1, dt * 4); MS.dist += (MS.distT - MS.dist) * Math.min(1, dt * 4);
     if (MS.rot && !down && !matchMedia('(prefers-reduced-motion: reduce)').matches) V.st.yaw += dt * 0.1;
-    draw(); requestAnimationFrame(tick); };
+    draw(); if (MS.gl) MS.gl.render(); requestAnimationFrame(tick); };
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) { MS.E = 0; MS.assembling = false; }
-  draw(); requestAnimationFrame(tick); mSide();
+  draw(); if (MS.gl) MS.gl.render(); requestAnimationFrame(tick); mSide();
   setTitle('זום', 'המכונה בתלת-ממד', 'שכבה ראשית');
   const bar = content.querySelector('.mbar'); MBAR_TOOLS.forEach(t => { if (t.wire) t.wire(bar); });
 }

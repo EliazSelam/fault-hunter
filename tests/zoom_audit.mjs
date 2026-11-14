@@ -320,6 +320,23 @@ ok(H3 && H3.ex === 1 && H3.round && H3.sel === 'galvo_y' && H3.info === 'מרא�
 ok(H3 && H3.moving >= 2 && (Math.abs(H3.tr[0]) + Math.abs(H3.tr[1])) > 0, 'scan head: with the beam on the mirrors swing and the spot moves');
 ok(H3 && H3.empty === 0 && H3.empty2 === 0 && H3.still <= 2 && H3.a < 1e-9, 'scan head: destroy leaves the container empty, it mounts again, and under reduced motion the mirrors stay still');
 ok(await pg.evaluate(() => zWindows(zNode('laserunit')).includes('3d:scanhead') && hubOf('3d:scanhead') === 'show' && zSimList().some(s => s.w === '3d:scanhead') && typeof THREE === 'object' && THREE.REVISION === '159'), 'scan head: a showcase window of the laser unit, in the gallery; the 3D library is inlined at a pinned revision');
+/* v2.39: the machine itself is drawn in real-time 3D, from the same camera the view uses */
+const noAccel = await pg.evaluate(() => MS.gl == null);
+await pg.evaluate(() => { FH3D.software = true; go('zoom', 'machine'); }); await pg.waitForTimeout(900);
+const MG = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = { gl: !!MS.gl }; if (!MS.gl) return o; mSetMachine('aoi'); MS.rot = false; MS.assembling = false; MS.E = MS.target = 0.4; await wait(1800);
+  const V = document.getElementById('mc')._V; o.err = Math.max(...[[0, 0, 0], [3, 2, 1], [-3, -2, 2.5], [4.6, 1.5, 2.6], [1, -2.6, 0.2]].map(p => { const a = V.proj([p[0] - MS.C[0], p[1] - MS.C[1], p[2] - MS.C[2]]), b = MS.gl.project(p); return Math.hypot(a[0] - b[0], a[1] - b[1]); }));
+  let i = MS.gl.info(); o.aoi = i.built === 'm:aoi' && i.groups === mCopies().length && i.meshes > 100; MS.gl.render(); const f0 = MS.gl.info().frames; MS.gl.render(); MS.gl.render(); o.idle = MS.gl.info().frames - f0;
+  mSelect('table'); await wait(500); i = MS.gl.info(); const L = Object.fromEntries(i.looks.map(l => [l[0], l])); o.sel = L.table[1] === 0 && L.cam[1] === 2 && L.door[2] === false; o.polys = MS.polys.length > 20 && !!mPickAt('table');
+  mOpen('vac'); await wait(600); i = MS.gl.info(); o.inner = i.built === 'in:vac' && i.groups === INNER.vac.length; mUp(); mSelect(null); mSetMachine('line'); await wait(600); i = MS.gl.info(); o.line = i.built === 'm:line' && i.groups === mCopies().length + 2; mSetMachine('aoi'); await wait(300);
+  const cv = document.getElementById('mc'), d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k]) n++; o.top = n / (d.length / 4);
+  go('about'); await wait(200); o.freed = MS.gl === null && !document.querySelector('.mgl'); const keepM = FH3D.machine; FH3D.machine = null; go('zoom', 'machine'); await wait(600); const c2 = document.getElementById('mc'), d2 = c2.getContext('2d').getImageData(0, 0, c2.width, c2.height).data; let n2 = 0; for (let k = 3; k < d2.length; k += 4) if (d2[k]) n2++; o.fallback = MS.gl === null && n2 / (d2.length / 4) > 0.08; FH3D.machine = keepM; go('zoom', 'machine'); await wait(500); o.back = !!MS.gl; FH3D.software = false; go('zoom', 'machine'); await wait(300); o.soft = MS.gl === null; return o; });
+ok(MG.gl && MG.back && (!noAccel || MG.soft), 'machine 3D: the machine view runs on the real-time renderer, and a browser without graphics acceleration keeps the earlier drawing');
+ok(MG.gl && MG.err < 0.5, 'machine 3D: the 3D camera puts every point where the view\'s own projection does (so names and clicks land on the parts)');
+ok(MG.gl && MG.aoi && MG.idle === 0, 'machine 3D: one group per part of the machine, and nothing is drawn while nothing changes');
+ok(MG.gl && MG.sel && MG.polys, 'machine 3D: a selected part stays solid, the others fade, the enclosure hides, and picking still works');
+ok(MG.gl && MG.inner && MG.line, 'machine 3D: an opened part shows its inner parts, and the line shows both machines, the station and the way between them');
+ok(MG.gl && MG.top < 0.05, 'machine 3D: the view\'s own canvas carries only the names over the 3D picture');
+ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });
