@@ -438,6 +438,7 @@ nav.sheets button[hidden]{display:none}
 .sslist h4{margin:12px 0 6px}.sscase{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}.sspos{direction:ltr;color:var(--muted);font-size:12px}.ssv{margin-inline-start:auto;display:inline-flex;gap:6px}.ssv button{font-size:12px;padding:3px 10px}.ssroute{flex-basis:100%;color:var(--live);font-weight:600}.ssexp{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ssrec{width:100%;direction:ltr;text-align:left;white-space:pre-wrap;font-size:12px;background:var(--tint);border-radius:10px;padding:10px;max-height:300px;overflow:auto}
 .fh3dhost{height:min(680px,78vh);min-height:460px;margin:6px 0 10px}
 .mstage canvas.mgl{position:absolute;top:0;left:0;pointer-events:none}.mstage canvas.mtop{position:relative;z-index:1}
+.mrunhud{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;max-width:92%;padding:7px 16px;border-radius:999px;background:rgba(238,233,224,.94);border:1px solid rgba(27,47,90,.3);color:#1B2F5A;font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(13,24,48,.35);text-align:center}.mbar #mRun{background:var(--live);color:#fff;border-color:var(--live);font-weight:700}.mbar #mRun[hidden]{display:none}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
 .anatcap{margin:0 0 6px;font-size:15px}.anatcredit{margin:4px 0 0;font-size:12px;color:var(--muted)}
@@ -10073,10 +10074,65 @@ function fh3dMachine(THREE, cv, V) {
         if (m === 'brass') for (let k = 0; k < 6; k++) { const t = put(g, tube(r * 1.03, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 - d[ai] / 30, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 + d[ai] / 30, r * 0.06, round === 'y' ? null : round), 'brown', c); t.scale.set(sc[0], sc[1], sc[2]); } }
       else { B(g, b, m === 'pcb' ? 'navy' : m); if (m === 'pcb') { const flat = d.indexOf(Math.min(...d)); if (flat === 2) { face(g, d[0] * 0.94, d[1] * 0.94, 'pcb', [c[0], c[1], b[5] + 0.004]); B(g, [c[0] - d[0] * 0.18, c[0] + d[0] * 0.18, c[1] - d[1] * 0.2, c[1] + d[1] * 0.2, b[5], b[5] + 0.07], 'black', 0.015, 0.02); } else { const f = face(g, flat === 1 ? d[0] * 0.94 : d[1] * 0.94, d[2] * 0.94, 'pcb', flat === 1 ? [c[0], b[2] - 0.004, c[2]] : [b[0] - 0.004, c[1], c[2]]); if (flat === 1) f.rotation.x = Math.PI / 2; else f.rotation.y = -Math.PI / 2; } } }
       world.add(g); groups.push({ g, id: 'in:' + i, m: 'inner', p: { ex: ip.ex.map(v => v * S), id: 'in:' + i }, dx: 0, inner: i }); }); };
+
+  /* ---------- the machine at work: one cycle per press, never by itself ----------
+     AOI: the camera sweeps along the gantry over a coupon while the table steps between swaths; AOS: the head registers on two
+     fiducials, then goes to each excess-copper defect of the same coupon and removes it. Shown slowed down. The swath comes
+     from scanCalc; which defects are repaired comes from AOISCAN.removal. Stage travel is what this model's axes can reach. */
+  const RUNC = (() => { const sc = scanCalc(1200, 0.5, 5), U = 3.2 / 600, sw = sc.swath * U, x0 = -1.3, x1 = 1.3, y0 = -0.96, n = 3, slow = 8;
+    const yc = [0, 1, 2].map(i => y0 + sw * (i + 0.5)), map = d => [x0 + d.x / AOISCAN.coupon.w * (x1 - x0), y0 + d.y / AOISCAN.coupon.h * (n * sw)];
+    return { sc, U, sw, x0, x1, y0, n, slow, yc, camY: -0.38, camHome: -0.65, lasY: -0.375, lasHome: 0.7, regX: 1.15, regY: -0.39, passT: (x1 - x0) / U / 1200 * slow,
+      defects: sc.found.map(d => ({ id: d.id, cls: d.cls, name: d.name, p: map(d), ok: d.ok })), targets: sc.found.filter(d => d.ok && AOISCAN.removal.has(d.cls)).map(d => ({ id: d.id, cls: d.cls, p: map(d) })), fid: [[-1.45, -1.1], [1.45, -1.1]] }; })();
+  const RUN = { on: false, kind: null, t0: 0, tau: 0, status: '', cam: 0, table: 0, lit: false, beam: false, flash: false, prog: [0, 0, 0], dir: [1, -1, 1], fixed: 0, firing: -1, burn: 0, off: {} };
+  const fx = new THREE.Group(); fx.visible = false; root.add(fx);
+  const glow = paint(128, 128, (g, w) => { const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(214,232,247,1)'); r.addColorStop(0.3, 'rgba(214,232,247,.7)'); r.addColorStop(0.65, 'rgba(48,120,176,.28)'); r.addColorStop(1, 'rgba(48,120,176,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
+  const addM = (o) => keep(new THREE.MeshBasicMaterial(Object.assign({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }, o)));
+  const fxMesh = (geo, m) => { const o = new THREE.Mesh(geo, m); o.userData.fx = true; fx.add(o); return o; }, sprite = (sx, sy) => { const o = new THREE.Sprite(keep(new THREE.SpriteMaterial({ map: glow, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }))); o.scale.set(sx, sy, 1); fx.add(o); return o; };
+  const scanLine = fxMesh(keep(new THREE.BoxGeometry(0.035, 1, 0.006)), addM({ color: C.light, opacity: 0.95 })), wash = sprite(1.5, 1.5), cone = fxMesh(keep(new THREE.CylinderGeometry(0.09, 0.32, 0.31, 20, 1, true)), addM({ color: C.light, opacity: 0.16, side: THREE.DoubleSide })); cone.rotation.x = Math.PI / 2;
+  const beamCore = fxMesh(keep(new THREE.CylinderGeometry(0.012, 0.012, 0.79, 10)), addM({ color: C.light, opacity: 1 })), beamGlow = fxMesh(keep(new THREE.CylinderGeometry(0.05, 0.05, 0.79, 12)), addM({ color: C.blue, opacity: 0.4 })), spark = sprite(0.5, 0.5), regGlow = sprite(0.45, 0.45); beamCore.rotation.x = beamGlow.rotation.x = Math.PI / 2;
+  /* what has been scanned, found and fixed is painted on the panel itself, so it travels with it */
+  const ovc = document.createElement('canvas'); ovc.width = 632; ovc.height = 472; const og = ovc.getContext('2d'), ovt = keep(new THREE.CanvasTexture(ovc)); ovt.colorSpace = THREE.SRGBColorSpace;
+  const ovm = new THREE.Mesh(keep(new THREE.PlaneGeometry(3.16, 2.36)), keep(new THREE.MeshBasicMaterial({ map: ovt, transparent: true, depthWrite: false }))); ovm.position.set(0, 0, 0.4135); ovm.userData.fx = true; ovm.visible = false;
+  const PX = x => (x + 1.58) * 200, PY = y => (1.18 - y) * 200;
+  const paintOv = () => { og.clearRect(0, 0, 632, 472); const R = RUNC, h = R.sw * 200; og.lineWidth = 2; og.strokeStyle = 'rgba(214,232,247,.55)'; og.setLineDash([8, 6]); og.strokeRect(PX(R.x0), PY(R.y0 + R.n * R.sw), (R.x1 - R.x0) * 200, R.n * h); og.setLineDash([]);
+    const seen = d => { if (RUN.kind === 'aos') return true; const i = Math.min(R.n - 1, Math.max(0, Math.floor((d.p[1] - R.y0) / R.sw))), k = RUN.prog[i], f = (d.p[0] - R.x0) / (R.x1 - R.x0); return RUN.dir[i] > 0 ? k >= f : k >= 1 - f; };
+    if (RUN.kind === 'aoi') R.yc.forEach((y, i) => { const k = RUN.prog[i]; if (k <= 0) return; const w = (R.x1 - R.x0) * 200 * k, xa = RUN.dir[i] > 0 ? PX(R.x0) : PX(R.x1) - w; og.fillStyle = 'rgba(214,232,247,.26)'; og.fillRect(xa, PY(y + R.sw / 2), w, h); });
+    R.defects.forEach(d => { if (!d.ok || !seen(d)) return; const t = R.targets.findIndex(q => q.id === d.id), x = PX(d.p[0]), y = PY(d.p[1]), fixed = RUN.kind === 'aos' && t >= 0 && t < RUN.fixed, burn = RUN.kind === 'aos' && t === RUN.firing ? RUN.burn : fixed ? 1 : 0;
+      if (RUN.kind === 'aos' && t < 0) { og.strokeStyle = 'rgba(214,232,247,.35)'; og.lineWidth = 2; og.beginPath(); og.arc(x, y, 9, 0, 7); og.stroke(); return; }
+      if (RUN.kind === 'aos' && burn < 1) { og.fillStyle = '#7B5A3C'; og.beginPath(); og.arc(x, y, 7 * (1 - burn), 0, 7); og.fill(); }
+      og.strokeStyle = fixed ? '#D6E8F7' : '#EEE9E0'; og.lineWidth = 3; og.beginPath(); og.arc(x, y, 13, 0, 7); og.stroke(); og.fillStyle = '#EEE9E0'; og.font = '600 15px system-ui, sans-serif'; og.fillText(d.id + (fixed ? ' ✓' : ''), x + 16, y - 10); });
+    if (RUN.kind === 'aos') R.fid.forEach(([fxx, fyy]) => { og.strokeStyle = '#D6E8F7'; og.lineWidth = 2; og.beginPath(); og.arc(PX(fxx), PY(fyy), 8, 0, 7); og.moveTo(PX(fxx) - 13, PY(fyy)); og.lineTo(PX(fxx) + 13, PY(fyy)); og.moveTo(PX(fxx), PY(fyy) - 13); og.lineTo(PX(fxx), PY(fyy) + 13); og.stroke(); });
+    ovt.needsUpdate = true; };
+  const LT = t => `<bdi dir="ltr">${t}</bdi>`;
+  const ez = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2, mix = (a, b, k) => a + (b - a) * k;
+  /* the cycle as a list of steps: [seconds, what the step does at progress k, the line shown while it runs] */
+  const timeline = kind => { const R = RUNC, S = [], off = y => R.camY - y; if (kind === 'aoi') {
+      S.push([0.9, k => { RUN.cam = mix(R.camHome, R.x0, ez(k)); RUN.table = mix(0, off(R.yc[0]), ez(k)); }, 'הראש והשולחן נוסעים לתחילת האזור']);
+      R.yc.forEach((y, i) => { const a = RUN.dir[i] > 0 ? R.x0 : R.x1, b = RUN.dir[i] > 0 ? R.x1 : R.x0;
+        S.push([R.passT, k => { RUN.cam = mix(a, b, k); RUN.table = off(y); RUN.prog[i] = k; RUN.lit = k < 1; }, `סריקה: מעבר ${i + 1} מתוך ${R.n} · קצב שורות ${LT(f1(R.sc.f) + ' kHz')} · רוחב מעבר ${LT(f1(R.sc.swath, 1) + ' mm')} · מוצג בהילוך איטי פי ${R.slow}`]);
+        if (i < R.n - 1) S.push([0.55, k => { RUN.table = mix(off(y), off(R.yc[i + 1]), ez(k)); }, 'השולחן מתקדם ברוחב מעבר אחד']); });
+      S.push([2.4, () => { }, `הסריקה הסתיימה: ${R.defects.filter(d => d.ok).length} חשדות סומנו, והם עוברים לאימות`]);
+      S.push([0.9, k => { RUN.cam = mix(R.x0, R.camHome, ez(k)); RUN.table = mix(off(R.yc[R.n - 1]), 0, ez(k)); }, 'חזרה לנקודת הבית']); }
+    else { let cx = R.lasHome, ty = 0; const go = (x, y, text, d) => { const ax = cx, ay = ty; S.push([d || 1.0, k => { RUN.cam = mix(ax, x, ez(k)); RUN.table = mix(ay, y, ez(k)); }, text]); cx = x; ty = y; };
+      R.fid.forEach((f, i) => { go(f[0] - (R.regX - R.lasHome), R.regY - f[1], `רישום: מצלמת הרישום נוסעת לסימן ${i + 1} מתוך 2`); S.push([0.5, k => { RUN.flash = k < 1; }, `רישום: סימן ${i + 1} נמדד, והמכונה מתאימה את מערכת הצירים שלה לפאנל`]); });
+      R.targets.forEach((t, j) => { go(t.p[0], R.lasY - t.p[1], `הראש נוסע אל ${LT(t.id)}: נחושת עודפת שאומתה`); S.push([1.1, k => { RUN.beam = k < 1; RUN.firing = k < 1 ? j : -1; RUN.burn = k; if (k >= 1) RUN.fixed = Math.max(RUN.fixed, j + 1); }, `הסרה בלייזר ב-${LT(t.id)} · רדיוס כתם ${LT(f1(LZ.w0, 0) + ' µm')} · פגם ${j + 1} מתוך ${R.targets.length}`]); });
+      S.push([2.0, () => { }, `התיקון הסתיים: ${R.targets.length} פגמי נחושת עודפת הוסרו. חוסר נחושת לא מתוקן כאן`]); go(R.lasHome, 0, 'חזרה לנקודת הבית', 0.9); }
+    return S; };
+  let steps = [], total = 0, hudEl = null;
+  const hud = text => { if (!hudEl) { hudEl = document.createElement('div'); hudEl.className = 'mrunhud nogl'; hudEl.setAttribute('aria-live', 'polite'); cv.parentNode.appendChild(hudEl); } if (hudEl._t !== text) { hudEl._t = text; hudEl.innerHTML = text; } hudEl.hidden = !text; };
+  const seek = t => { const R = RUNC; RUN.tau = t; RUN.prog = [0, 0, 0]; RUN.lit = RUN.beam = RUN.flash = false; RUN.fixed = 0; RUN.firing = -1; RUN.burn = 0; RUN.cam = RUN.kind === 'aoi' ? R.camHome : R.lasHome; RUN.table = 0; let left = t, cur = null;
+    for (const s of steps) { if (left < s[0]) { s[1](left / s[0]); cur = s; break; } s[1](1); left -= s[0]; } RUN.status = cur ? cur[2] : '';
+    const dx = RUN.cam - (RUN.kind === 'aoi' ? R.camHome : R.lasHome); RUN.off = RUN.kind === 'aoi' ? { cam: [dx, 0], lens: [dx, 0], strobe: [dx, 0], table: [0, RUN.table], panel: [0, RUN.table] } : { laser: [dx, 0], reg: [dx, 0], table: [0, RUN.table], panel: [0, RUN.table] };
+    scanLine.visible = wash.visible = cone.visible = RUN.kind === 'aoi' && RUN.lit; beamCore.visible = beamGlow.visible = spark.visible = RUN.beam; regGlow.visible = RUN.flash;
+    if (RUN.kind === 'aoi') { const i = RUN.prog.findIndex(k => k > 0 && k < 1); scanLine.scale.y = R.sw; scanLine.position.set(RUN.cam, R.camY, 0.418); wash.position.set(RUN.cam, R.camY, 0.45); cone.position.set(RUN.cam, R.camY, 0.565); void i; }
+    else { beamCore.position.set(RUN.cam, R.lasY, 0.805); beamGlow.position.copy(beamCore.position); spark.position.set(RUN.cam, R.lasY, 0.44); const pulse = 0.4 + 0.25 * Math.sin(t * 40); spark.scale.set(pulse, pulse, 1); regGlow.position.set(RUN.cam + (R.regX - R.lasHome), R.regY, 1.28); }
+    paintOv(); hud(RUN.status); return cur; };
+  const runStop = () => { if (!RUN.on) return; RUN.on = false; RUN.off = {}; fx.visible = false; ovm.visible = false; hud(''); lastSig = ''; if (api.onRun) api.onRun(false); };
+  const runStart = () => { if (RUN.on || MS.machine === 'line' || MS.path.length) return false; RUN.kind = MS.machine; steps = timeline(RUN.kind); total = steps.reduce((a, s) => a + s[0], 0); RUN.on = true; RUN.t0 = performance.now(); const pr = groups.find(r => r.id === 'panel'); if (pr) pr.g.add(ovm); ovm.visible = true; fx.visible = true; seek(0); lastSig = ''; if (api.onRun) api.onRun(true); return true; };
   /* ---------- per frame: place, light up, dim, aim the camera like the view does ---------- */
   let built = null, lastSig = '', dead = false, frames = 0; const X = new THREE.Vector3(1, 0, 0), tmp = new THREE.Vector3(), hot = new THREE.Color(C.blue);
   const setLook = (rec, hl, dim, hide) => { rec.g.visible = !hide; if (hide) return; const k = (hl ? 1 : 0) + (dim ? 2 : 0); if (rec.look === k) return; rec.look = k;
-    rec.g.traverse(o => { if (!o.isMesh) return; const m = o.material, tr = dim || o.userData.tr; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } m.opacity = dim ? o.userData.o * 0.12 : o.userData.o; m.depthWrite = !tr; o.castShadow = !tr;
+    rec.g.traverse(o => { if (!o.isMesh || o.userData.fx) return; const m = o.material, tr = dim || o.userData.tr; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } m.opacity = dim ? o.userData.o * 0.12 : o.userData.o; m.depthWrite = !tr; o.castShadow = !tr;
       if (hl && !o.userData.e) { m.emissive.copy(hot); m.emissiveIntensity = 0.42; } else { m.emissive.setHex(o.userData.e); m.emissiveIntensity = o.userData.ei; } }); };
   const toWorld = (v) => tmp.set(v[0], v[1], v[2]).applyAxisAngle(X, -Math.PI / 2).clone();
   const aim = () => { const s = V.st, cy = Math.cos(s.yaw), sy = Math.sin(s.yaw), cp = Math.cos(s.pitch), sp = Math.sin(s.pitch), f = [sy * cp, cy * cp, -sp], u = [sy * sp, cy * sp, cp], c = MS.C;
@@ -10087,22 +10143,34 @@ function fh3dMachine(THREE, cv, V) {
   const api = {
     render() { if (dead) return; const inner = MS.path.length ? MS.path[MS.path.length - 1] : null, sigB = inner ? 'in:' + inner : 'm:' + MS.machine;
       if (sigB !== built) { clear(); if (inner) buildInner(inner); else buildMachine(); built = sigB; const far = MS.machine === 'line' && !inner; Object.assign(key.shadow.camera, far ? { left: -18, right: 18, top: 14, bottom: -14, near: 1, far: 70 } : { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 60 }); key.shadow.camera.updateProjectionMatrix(); floor.position.z = inner ? -1.4 : -0.5; lastSig = ''; }
-      const s = V.st, sig = [built, s.yaw.toFixed(4), s.pitch.toFixed(4), s.dist.toFixed(3), MS.C.map(v => v.toFixed(3)).join(), MS.E.toFixed(4), MS.IE.toFixed(4), MS.hover, MS.sel, MS.isel].join('|'); if (sig === lastSig) return; lastSig = sig;
+      if (RUN.on) { if (MS.sel || inner || MS.machine !== RUN.kind || MS.target > 0.02 || MS.assembling) runStop(); else if (!RUN.manual) { const t = (performance.now() - RUN.t0) / 1000; if (t >= total) runStop(); else seek(t); } }
+      const s = V.st, sig = [RUN.on ? RUN.tau : '', built, s.yaw.toFixed(4), s.pitch.toFixed(4), s.dist.toFixed(3), MS.C.map(v => v.toFixed(3)).join(), MS.E.toFixed(4), MS.IE.toFixed(4), MS.hover, MS.sel, MS.isel].join('|'); if (sig === lastSig) return; lastSig = sig;
       const selNode = MS.sel && !inner ? (MPARTS.find(p => p.id === MS.sel) || {}).node : null;
       groups.forEach(rec => { if (inner) { const e = MS.IE; rec.g.position.set(e * rec.p.ex[0], e * rec.p.ex[1], e * rec.p.ex[2]); setLook(rec, MS.hover === rec.id, MS.isel != null && MS.isel !== rec.inner, false); return; }
-        const e = MS.E, p = rec.p; rec.g.position.set(rec.dx + e * p.ex[0], e * p.ex[1], e * p.ex[2]); const dim = !!MS.sel && rec.id !== MS.sel && !(selNode && p.node === selNode);
+        const e = MS.E, p = rec.p, ro = RUN.on && RUN.off[rec.id]; rec.g.position.set(rec.dx + e * p.ex[0] + (ro ? ro[0] : 0), e * p.ex[1] + (ro ? ro[1] : 0), e * p.ex[2]); const dim = !!MS.sel && rec.id !== MS.sel && !(selNode && p.node === selNode);
         setLook(rec, rec.id === MS.hover || MS.hover === 'M:' + rec.m, dim, rec.id === 'door' && MS.sel && MS.sel !== 'door'); });
       aim(); renderer.render(scene, cam); frames++; },
     /* where the 3D camera puts a point of the machine, in the view canvas's own pixels: must agree with the view's projection */
     project(p) { aim(); cam.updateMatrixWorld(); const v = toWorld(p).project(cam); return [(v.x + 1) / 2 * cv.width, (1 - v.y) / 2 * cv.height]; },
-    info: () => ({ built, groups: groups.length, meshes: (() => { let n = 0; world.traverse(o => { if (o.isMesh) n++; }); return n; })(), frames, looks: groups.map(r => [r.id, r.look, r.g.visible]) }),
-    destroy() { if (dead) return; dead = true; ro.disconnect(); clear(); K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (gl.parentNode) gl.parentNode.removeChild(gl); cv.classList.remove('mtop'); }
+    run(on) { if (on === false) { runStop(); return false; } RUN.manual = false; return runStart(); }, running: () => RUN.on,
+    /* for checks: put the cycle at a given second and draw it */
+    runSeek(t) { if (!RUN.on) return null; RUN.manual = true; const c = seek(Math.min(t, total - 1e-6)); lastSig = ''; api.render(); return { status: RUN.status, cam: RUN.cam, table: RUN.table, lit: RUN.lit, beam: RUN.beam, flash: RUN.flash, prog: RUN.prog.slice(), fixed: RUN.fixed, total, step: c ? steps.indexOf(c) : -1 }; },
+    runPlan: () => ({ swath: RUNC.sw, U: RUNC.U, passT: RUNC.passT, yc: RUNC.yc.slice(), targets: RUNC.targets.map(t => t.id + ':' + t.cls), defects: RUNC.defects.length, total: timeline(MS.machine).reduce((a, q) => a + q[0], 0) }),
+    info: () => ({ built, groups: groups.length, meshes: (() => { let n = 0; world.traverse(o => { if (o.isMesh) n++; }); return n; })(), frames, looks: groups.map(r => [r.id, r.look, r.g.visible]), pos: groups.map(r => [r.id, r.g.position.x - r.dx, r.g.position.y]) }),
+    destroy() { if (dead) return; runStop(); if (hudEl && hudEl.parentNode) hudEl.parentNode.removeChild(hudEl); dead = true; ro.disconnect(); clear(); K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (gl.parentNode) gl.parentNode.removeChild(gl); cv.classList.remove('mtop'); }
   };
   return api;
 }
 if (window.FH3D) window.FH3D.machine = fh3dMachine;
 /* leaving the page frees the 3D context */
 GO_BEFORE.push(() => { if (MS.gl) { MS.gl.destroy(); MS.gl = null; } });
+
+/* the button that runs one cycle; it exists only where the 3D picture does */
+MBAR_TOOLS.push({ id: 'run', slot: 'end',
+  html: () => `<button type="button" id="mRun" aria-pressed="false" hidden></button>`,
+  wire: bar => { const b = bar.querySelector('#mRun'); if (!b) return; const label = on => { b.hidden = !MS.gl || MS.machine === 'line'; b.setAttribute('aria-pressed', !!on); b.textContent = on ? '❚❚ עצור' : MS.machine === 'aos' ? '▶ הפעל תיקון' : '▶ הפעל סריקה'; };
+    label(false); if (MS.gl) MS.gl.onRun = label; b.addEventListener('click', () => { if (!MS.gl) return; if (MS.gl.running()) MS.gl.run(false); else { MS.target = 0; MS.assembling = false; const e = document.getElementById('mE'); if (e) e.value = 0; if (MS.sel) mSelect(null); MS.E = Math.min(MS.E, 0.02); MS.gl.run(true); } }); } });
+MHOOK.afterMachine.push(() => { const b = document.getElementById('mRun'); if (b && MS.gl) { MS.gl.run(false); b.hidden = MS.machine === 'line'; b.textContent = MS.machine === 'aos' ? '▶ הפעל תיקון' : '▶ הפעל סריקה'; } });
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -11097,7 +11165,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.39.0';
+const APP_VERSION = '2.40.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

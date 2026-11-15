@@ -215,7 +215,7 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   const zsrc = ['77-zoom', '78-zoom-views', '79-machine3d', '80-integrate', '81-polish', '82-machines', '83-anim', '84-hub', '85-layers', '86-links'].map(f => require('fs').readFileSync(path.join(ROOT, 'src', f + '.js'), 'utf8')).join('\n');
   ok(!/\(function \(orig\)|^const _\w+ = (z|m)[A-Za-z]+;/m.test(zsrc), 'step 6: the zoom source files have no wrapper pattern'); }
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => !!document.querySelector('.mbar .mmach') && !!document.getElementById('mFind') && MBAR_TOOLS.map(t => t.id).join() === 'machine,finder'), 'step 6: the machine bar tools are in place (machine switch, finder)');
+ok(await pg.evaluate(() => !!document.querySelector('.mbar .mmach') && !!document.getElementById('mFind') && MBAR_TOOLS.map(t => t.id).join() === 'machine,finder,run'), 'step 6: the machine bar tools are in place (machine switch, finder, run)');
 await pg.evaluate(() => { const i = document.getElementById('mFind'); i.value = zSimList().find(s => s.w === 'sim:cr3d').t; i.dispatchEvent(new Event('change')); }); await pg.waitForTimeout(500);
 ok(await pg.evaluate(() => ZS.node === 'laser' && !!document.querySelector('#hubpanel .zwin canvas')), 'step 6: the finder opens a simulation in place');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
@@ -329,6 +329,18 @@ const MG = await pg.evaluate(async () => { const wait = ms => new Promise(r => s
   mSelect('table'); await wait(500); i = MS.gl.info(); const L = Object.fromEntries(i.looks.map(l => [l[0], l])); o.sel = L.table[1] === 0 && L.cam[1] === 2 && L.door[2] === false; o.polys = MS.polys.length > 20 && !!mPickAt('table');
   mOpen('vac'); await wait(600); i = MS.gl.info(); o.inner = i.built === 'in:vac' && i.groups === INNER.vac.length; mUp(); mSelect(null); mSetMachine('line'); await wait(600); i = MS.gl.info(); o.line = i.built === 'm:line' && i.groups === mCopies().length + 2; mSetMachine('aoi'); await wait(300);
   const cv = document.getElementById('mc'), d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k]) n++; o.top = n / (d.length / 4);
+  /* v2.40: the machine at work */
+  const btn = document.getElementById('mRun'); o.r0 = !MS.gl.running() && !btn.hidden && /סריקה/.test(btn.textContent) && !document.querySelector('.mrunhud:not([hidden])');
+  const P = MS.gl.runPlan(), sc = scanCalc(1200, 0.5, 5); o.plan = Math.abs(P.swath - sc.swath * 3.2 / 600) < 1e-12 && Math.abs(P.passT - 2.6 / (3.2 / 600) / 1200 * 8) < 1e-9 && P.targets.join() === 'D1:short,D4:protrusion,D6:residue' && P.defects === 6;
+  btn.click(); await wait(100); o.r1 = MS.gl.running() && btn.getAttribute('aria-pressed') === 'true';
+  let r = MS.gl.runSeek(0.9 + P.passT + 0.55 + P.passT / 2); const looks = () => Object.fromEntries(MS.gl.info().pos.map(q => [q[0], q]));
+  o.mid = /מעבר 2 מתוך 3/.test(r.status) && r.lit && !r.beam && Math.abs(r.cam) < 1e-9 && Math.abs(r.table - (-0.38 - P.yc[1])) < 1e-9 && r.prog[0] === 1 && Math.abs(r.prog[1] - 0.5) < 1e-9 && r.prog[2] === 0;
+  let L2 = looks(); o.moved = Math.abs(L2.cam[1] - 0.65) < 1e-9 && Math.abs(L2.lens[1] - 0.65) < 1e-9 && Math.abs(L2.strobe[1] - 0.65) < 1e-9 && Math.abs(L2.table[2] - r.table) < 1e-9 && Math.abs(L2.panel[2] - r.table) < 1e-9 && L2.gantry[1] === 0 && L2.base[2] === 0;
+  o.reach = [0, 1, 2].every(i => { const off = -0.38 - P.yc[i]; return -1.4 + off >= -2.2 && 1.4 + off <= 2.2; });
+  mSelect('table'); await wait(250); o.stopSel = !MS.gl.running() && btn.getAttribute('aria-pressed') === 'false'; mSelect(null); await wait(200);
+  mSetMachine('aos'); await wait(500); o.aosBtn = /תיקון/.test(btn.textContent); btn.click(); await wait(100); const P2 = MS.gl.runPlan(); r = MS.gl.runSeek(1.2); o.reg = /רישום/.test(r.status) && r.flash && !r.beam;
+  r = MS.gl.runSeek(1.0 + 0.5 + 1.0 + 0.5 + 1.0 + 0.5); o.fire = r.beam && /D1/.test(r.status) && r.fixed === 0; r = MS.gl.runSeek(P2.total - 1.5); o.done = !r.beam && r.fixed === 3 && /חוסר נחושת לא מתוקן/.test(r.status); L2 = looks(); o.aosParts = Math.abs(L2.lsrc[1]) < 0.1 && Math.abs(L2.laser[1]) > 0.25;
+  MS.gl.run(false); mSetMachine('line'); await wait(400); o.lineBtn = btn.hidden && MS.gl.run(true) === false; mSetMachine('aoi'); await wait(300);
   go('about'); await wait(200); o.freed = MS.gl === null && !document.querySelector('.mgl'); const keepM = FH3D.machine; FH3D.machine = null; go('zoom', 'machine'); await wait(600); const c2 = document.getElementById('mc'), d2 = c2.getContext('2d').getImageData(0, 0, c2.width, c2.height).data; let n2 = 0; for (let k = 3; k < d2.length; k += 4) if (d2[k]) n2++; o.fallback = MS.gl === null && n2 / (d2.length / 4) > 0.08; FH3D.machine = keepM; go('zoom', 'machine'); await wait(500); o.back = !!MS.gl; FH3D.software = false; go('zoom', 'machine'); await wait(300); o.soft = MS.gl === null; return o; });
 ok(MG.gl && MG.back && (!noAccel || MG.soft), 'machine 3D: the machine view runs on the real-time renderer, and a browser without graphics acceleration keeps the earlier drawing');
 ok(MG.gl && MG.err < 0.5, 'machine 3D: the 3D camera puts every point where the view\'s own projection does (so names and clicks land on the parts)');
@@ -336,6 +348,13 @@ ok(MG.gl && MG.aoi && MG.idle === 0, 'machine 3D: one group per part of the mach
 ok(MG.gl && MG.sel && MG.polys, 'machine 3D: a selected part stays solid, the others fade, the enclosure hides, and picking still works');
 ok(MG.gl && MG.inner && MG.line, 'machine 3D: an opened part shows its inner parts, and the line shows both machines, the station and the way between them');
 ok(MG.gl && MG.top < 0.05, 'machine 3D: the view\'s own canvas carries only the names over the 3D picture');
+ok(MG.gl && MG.r0 && MG.r1, 'machine at work: nothing runs until the run button is pressed');
+ok(MG.gl && MG.plan, 'machine at work: the swath is the scan model\'s, and the repair targets are exactly the excess-copper defects');
+ok(MG.gl && MG.mid && MG.moved, 'machine at work: mid-scan the camera, lens and strobe ride the gantry together, the table and panel step together, and the frame stays');
+ok(MG.gl && MG.reach, 'machine at work: every table position of the scan is inside the travel of the rails');
+ok(MG.gl && MG.stopSel, 'machine at work: selecting a part stops the cycle');
+ok(MG.gl && MG.aosBtn && MG.reg && MG.fire && MG.done && MG.aosParts, 'machine at work: the repair registers first, fires only over a target, ends with three removed, and the laser source stays on the gantry');
+ok(MG.gl && MG.lineBtn, 'machine at work: no cycle in the line view');
 ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };

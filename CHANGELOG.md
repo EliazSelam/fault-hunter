@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.40.0] — 2026-11-15
+
+The machine works: one scan cycle on the AOI machine, one repair cycle on the AOS machine.
+
+- **Run button in the machine view** ("run scan" / "run repair"), present only with the 3D picture. One press runs one cycle; nothing moves by itself, and selecting a part, exploding or switching machine stops it.
+- **AOI scan:** the camera, lens and strobe ride the gantry over a coupon while the lit scan line sweeps the panel; the table steps one swath between passes; the scanned area is painted on the panel and suspects are ringed as the line passes them. Three passes, shown eight times slower than real, with the line rate and swath width from the scan model.
+- **AOS repair:** the head registers on two fiducials with the registration camera, then goes to each excess-copper defect of the same coupon (short, protrusion, residue; the same rule as the scan simulator's routing) and removes it with a visible beam. Missing-copper defects stay ringed and untouched.
+- A status line over the stage says what each step is doing.
+- Every table position used is inside the travel of the model's rails; the cycle covers a coupon, not the whole panel, because this compact model's stage cannot bring the far edge of the panel under the head.
+- Tests: 7 new checks in the zoom suite.
+
 ## [2.39.0] — 2026-11-14
 
 The whole machine is drawn in real-time 3D.
