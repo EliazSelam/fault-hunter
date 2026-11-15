@@ -8704,6 +8704,7 @@ function zMachineView() {
     ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';
     if (MS.machine === 'line') { mLineLabels(ctx, proj); ctx.direction = 'ltr'; ctx.textAlign = 'left'; return; }
     if (MS.hover && !MS.path.length) { const hp = MPARTS.find(x => x.id === MS.hover); if (hp && hp.node && typeof zTeaser === 'function') { const tz = zTeaser(hp.node), ex = zExplored().has(hp.node); if (tz) { ctx.direction = 'rtl'; ctx.textAlign = 'right'; ctx.font = '13px system-ui, sans-serif'; const w = Math.min(cv.width - 40, ctx.measureText(tz).width + 24); ctx.fillStyle = 'rgba(27,47,90,0.92)'; ctx.fillRect(cv.width - w - 18, cv.height - 58, w, 40); ctx.fillStyle = '#D6E8F7'; ctx.fillText((ex ? '' : '● ') + tz, cv.width - 30, cv.height - 33); ctx.direction = 'ltr'; ctx.textAlign = 'left'; } } }
+    ctx.direction = 'rtl'; ctx.textAlign = 'center'; ctx.font = '600 13px system-ui, sans-serif';   /* the teaser above leaves its own alignment behind */
     MPARTS.forEach(p => { if (!p.node || !mVis(p)) return; const big = ['table', 'gantry', 'cam', 'laser', 'cab', 'door', 'motor', 'valve'].includes(p.id); const show = p.id === MS.hover || p.id === MS.sel || (MS.E > 0.55 && !MS.sel && big); if (!show) return; const c = mCenter(p), q = proj([c[0], c[1], c[2] + 0.35]); const w = ctx.measureText(p.t).width + 14;
       ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.globalAlpha = 1; ctx.strokeStyle = p.id === MS.sel ? col('live') : line; ctx.strokeRect(q[0] - w / 2, q[1] - 18, w, 20); ctx.fillStyle = text; ctx.fillText(p.t, q[0], q[1] - 4); });
     ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -8727,6 +8728,7 @@ function zMachineView() {
   cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
   cv.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved > 4) return; const id = pick(e); if (MS.path.length) { MS.isel = id ? +id.slice(3) : null; mSide(); } else if (id && id.startsWith('M:')) mSetMachine(id.slice(2)); else mSelect(id); });
   cv.addEventListener('pointermove', e => { if (down) return; const id = pick(e); if (id !== MS.hover) { MS.hover = id; cv.style.cursor = id ? 'pointer' : 'grab'; } });
+  cv.addEventListener('pointerleave', () => { if (!down) MS.hover = null; });   /* a name or a question must not stay on screen after the pointer has left */
   cv.addEventListener('wheel', e => { e.preventDefault(); MS.distT = Math.max(4, Math.min(24, MS.distT + Math.sign(e.deltaY) * 0.8)); }, { passive: false });
   $('#mE').addEventListener('input', e => { MS.assembling = false; MS.target = MS.E = +e.target.value; });
   $('#mAsm').addEventListener('click', () => { MS.path = []; mSelect(null); MS.E = 1; MS.target = 0; MS.assembling = true; });
@@ -11210,7 +11212,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.41.0';
+const APP_VERSION = '2.41.1';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

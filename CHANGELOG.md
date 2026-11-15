@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.41.1] — 2026-11-15
+
+Two flaws seen in a screen recording of the machine view on a real GPU.
+
+- The name of a hovered part was drawn off its box whenever a teaser question was on screen (the teaser left its text alignment behind). It is centred again.
+- A hovered part's name and teaser stayed on screen after the pointer left the stage. They now leave with it.
+- Tests: 1 new check in the zoom suite.
+
 ## [2.41.0] — 2026-11-15
 
 One 3D look across the book: the object on every topic page is drawn by the same renderer as the machine.

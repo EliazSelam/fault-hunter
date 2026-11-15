@@ -356,6 +356,12 @@ ok(MG.gl && MG.stopSel, 'machine at work: selecting a part stops the cycle');
 ok(MG.gl && MG.aosBtn && MG.reg && MG.fire && MG.done && MG.aosParts, 'machine at work: the repair registers first, fires only over a target, ends with three removed, and the laser source stays on the gantry');
 ok(MG.gl && MG.lineBtn, 'machine at work: no cycle in the line view');
 ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
+/* v2.41.1: a hovered part's name must not stay after the pointer leaves, and it is centred on its box */
+await pg.evaluate(() => { FH3D.software = true; go('zoom', 'machine'); }); await pg.waitForTimeout(700);
+ok(await pg.evaluate(async () => { MS.rot = false; MS.assembling = false; MS.E = MS.target = 0; mSelect(null); await new Promise(r => setTimeout(r, 300)); const cv = document.getElementById('mc'); MS.hover = 'gantry'; await new Promise(r => setTimeout(r, 120));
+  const p = MPARTS.find(x => x.id === 'gantry'), c = mCenter(p), q = cv._V.proj([c[0] - MS.C[0], c[1] - MS.C[1], c[2] + 0.35 - MS.C[2]]), ctx = cv.getContext('2d'); ctx.font = '600 13px system-ui, sans-serif'; const w = ctx.measureText(p.t).width + 14;
+  const dark = (x0, x1) => { const d = ctx.getImageData(Math.round(x0), Math.round(q[1] - 16), Math.max(1, Math.round(x1 - x0)), 14).data; let n = 0; for (let k = 0; k < d.length; k += 4) if (d[k + 3] > 200 && d[k] < 120) n++; return n; };
+  const inside = dark(q[0] - w / 2 + 2, q[0] + w / 2 - 2), outside = dark(q[0] + w / 2 + 3, q[0] + w / 2 + 3 + w / 2); cv.dispatchEvent(new PointerEvent('pointerleave')); const r = inside > 20 && outside === 0 && MS.hover === null; FH3D.software = false; go('zoom', 'machine'); return r; }), 'machine view: the name of a hovered part sits inside its box, and leaves with the pointer');
 /* v2.41: the topic object on the same renderer */
 const HG = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = {}; FH3D.software = true; const transparent = cv => { const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k]) n++; return n === 0; };
   go('zoom', 'vac'); await wait(500); let cv = document.querySelector('.hubobj'); o.inner = !!HS.gl && HS.gl.kind === 'inner' && HS.gl.parts === INNER.vac.length && transparent(cv) && document.querySelectorAll('canvas.mgl.hubgl').length === 1 && MS.gl === null;
