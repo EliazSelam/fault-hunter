@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.44.0] — 2026-11-15
+
+The world map in three dimensions: every topic, every link.
+
+- **Every topic is on the map:** all 39, including the three appendix topics (marked as appendices), which the earlier map left out.
+- **Every kind of link is drawn,** 94 in all, from data the book already holds: made of (48), work together (11, from the integration questions), a fault here leads there (27, from the fault trees), also taught through (8, from each subject's other pages). Each kind has its own line and can be switched off.
+- **Points in space:** height is the scale. The process is at the top, components at the bottom, each storey made of the one below, so the map is the cone the book is built on. Inside a storey, a deterministic force layout keeps parts under what they make. The map turns by dragging, zooms with the wheel, fades with distance, and draws nearer points over farther ones. Hovering or focusing a point lights everything linked to it by any kind.
+- **Three views of the same data:** the 3D map, a collapsible index (every topic once, with all its links as buttons), and a full text specification generated from the data, with a copy button.
+- Drawn as SVG projected from 3D: it needs no graphics acceleration, works on a phone, and every point is still a focusable button.
+- Tests: 5 new checks in the zoom suite; two earlier ones now expect every topic.
+
 ## [2.43.0] — 2026-11-15
 
 The whole line works: one panel from inspection through verification to repair.
