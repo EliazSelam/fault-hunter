@@ -341,7 +341,13 @@ const MG = await pg.evaluate(async () => { const wait = ms => new Promise(r => s
   mSelect('table'); await wait(250); o.stopSel = !MS.gl.running() && btn.getAttribute('aria-pressed') === 'false'; mSelect(null); await wait(200);
   mSetMachine('aos'); await wait(500); o.aosBtn = /תיקון/.test(btn.textContent); btn.click(); await wait(100); const P2 = MS.gl.runPlan(); r = MS.gl.runSeek(1.2); o.reg = /רישום/.test(r.status) && r.flash && !r.beam;
   r = MS.gl.runSeek(1.0 + 0.5 + 1.0 + 0.5 + 1.0 + 0.5); o.fire = r.beam && /D1/.test(r.status) && r.fixed === 0; r = MS.gl.runSeek(P2.total - 1.5); o.labsFix = MS.gl.runLabels().join() === 'D1 ✓,D4 ✓,D6 ✓'; o.done = !r.beam && r.fixed === 3 && /חוסר נחושת לא מתוקן/.test(r.status); L2 = looks(); o.aosParts = Math.abs(L2.lsrc[1]) < 0.1 && Math.abs(L2.laser[1]) > 0.25;
-  MS.gl.run(false); mSetMachine('line'); await wait(400); o.lineBtn = btn.hidden && MS.gl.run(true) === false; mSetMachine('aoi'); await wait(300);
+  /* v2.43: the whole line */
+  MS.gl.run(false); mSetMachine('line'); await wait(500); o.lineBtn = !btn.hidden && /הקו/.test(btn.textContent) && !MS.gl.running(); btn.click(); await wait(100); const PL = MS.gl.runPlan(), vis = () => Object.fromEntries(MS.gl.info().looks.map(q => [q[0] + (q[3] || ''), q[2]]));
+  const at = t => MS.gl.runSeek(t), stages = [2, 8.6, 13.2, 16.6, 21].map(t => at(t).stage).join(); o.lineStages = stages === 'scan,carry,verify,carry2,repair'; r = at(8.6); o.lineOver = r.pan[2] > 2.5 && r.pan[0] > 0 && r.pan[0] < 7;
+  r = at(2); o.lineA = r.lit && Math.abs(MS.Ct[0] + 7) < 1e-9 && r.pan[0] === 0; r = at(13.2); const labs = MS.gl.runLabels(); o.lineV = Math.abs(r.pan[0] - 7) < 1e-9 && Math.abs(MS.Ct[0]) < 1e-9 && r.verd === 6 && labs.filter(x => / · AOS$/.test(x)).map(x => x.slice(0, 2)).join() === 'D1,D4,D6' && labs.filter(x => /הנדסה/.test(x)).length === 3;
+  r = at(PL.total - 1); o.lineB = Math.abs(r.pan[0] - 14) < 1e-9 && Math.abs(r.pan[2]) < 1e-9 && Math.abs(MS.Ct[0] - 7) < 1e-9 && r.fixed === 3 && !r.beam && /3 הוסרו בלייזר/.test(r.status) && MS.gl.runLabels().join() === 'D1 ✓,D4 ✓,D6 ✓';
+  const pv = MS.gl.info().looks.filter(q => q[0] === 'panel').map(q => q[2]); o.lineHide = pv.length === 2 && pv.filter(Boolean).length === 1; MS.gl.run(false); await wait(200); o.lineBack = MS.gl.info().looks.filter(q => q[0] === 'panel').every(q => q[2]) && MS.Ct[0] === 0.5 && MS.distT === 24; mSetMachine('aoi'); await wait(300);
+
   go('about'); await wait(200); o.freed = MS.gl === null && !document.querySelector('.mgl'); const keepM = FH3D.machine; FH3D.machine = null; go('zoom', 'machine'); await wait(600); const c2 = document.getElementById('mc'), d2 = c2.getContext('2d').getImageData(0, 0, c2.width, c2.height).data; let n2 = 0; for (let k = 3; k < d2.length; k += 4) if (d2[k]) n2++; o.fallback = MS.gl === null && n2 / (d2.length / 4) > 0.08; FH3D.machine = keepM; go('zoom', 'machine'); await wait(500); o.back = !!MS.gl; FH3D.software = false; go('zoom', 'machine'); await wait(300); o.soft = MS.gl === null; return o; });
 ok(MG.gl && MG.back && (!noAccel || MG.soft), 'machine 3D: the machine view runs on the real-time renderer, and a browser without graphics acceleration keeps the earlier drawing');
 ok(MG.gl && MG.err < 0.5, 'machine 3D: the 3D camera puts every point where the view\'s own projection does (so names and clicks land on the parts)');
@@ -355,7 +361,10 @@ ok(MG.gl && MG.mid && MG.moved, 'machine at work: mid-scan the camera, lens and 
 ok(MG.gl && MG.reach, 'machine at work: every table position of the scan is inside the travel of the rails');
 ok(MG.gl && MG.stopSel, 'machine at work: selecting a part stops the cycle');
 ok(MG.gl && MG.aosBtn && MG.reg && MG.fire && MG.done && MG.aosParts, 'machine at work: the repair registers first, fires only over a target, ends with three removed, and the laser source stays on the gantry');
-ok(MG.gl && MG.lineBtn, 'machine at work: no cycle in the line view');
+ok(MG.gl && MG.lineBtn && MG.lineStages, 'the line at work: one press runs scan, carry, verify, carry and repair, in that order');
+ok(MG.gl && MG.lineA && MG.lineV && MG.lineB, 'the line at work: the panel is scanned at the AOI machine, verified at the station (excess copper to AOS, missing copper to engineering) and repaired at the AOS machine, and the view follows it');
+ok(MG.gl && MG.lineOver, 'the line at work: between stations the panel is carried above the cabinet and the glass, not through them');
+ok(MG.gl && MG.lineHide && MG.lineBack, 'the line at work: one panel travels (the AOS machine\'s own is hidden meanwhile), and stopping puts everything back');
 ok(MG.gl && MG.labs && MG.labsEnd && MG.labsFix, 'machine at work: suspects are named as the line passes them, with labels that face the viewer, and repaired ones are ticked');
 ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
 /* v2.41.1: a hovered part's name must not stay after the pointer leaves, and it is centred on its box */

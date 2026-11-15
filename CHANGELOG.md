@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.43.0] — 2026-11-15
+
+The whole line works: one panel from inspection through verification to repair.
+
+- **"Run the line" in the line view:** the AOI machine scans the panel and rings its suspects; the panel is lifted out of the open top, carried overhead to the verification station, and each suspect is classified there (excess copper goes to AOS, missing copper goes to an engineering decision, by the same rule as the scan simulator); it is carried on to the AOS machine, which registers on two fiducials and removes the three excess-copper defects. The closing line sums it up: 6 suspects, 6 verified, 3 removed by laser, 3 for an engineering decision.
+- **The view follows the panel** from machine to station to machine, and returns to the whole line when the cycle ends or is stopped.
+- One panel travels: the AOS machine's own panel is hidden during the cycle and comes back afterwards.
+- The scan and repair sequences are now shared by the single-machine cycles and the line, so the three always agree.
+- Tests: 4 new checks in the zoom suite replace the earlier "no cycle in the line view".
+
 ## [2.42.0] — 2026-11-15
 
 Opening a part shows components, not blocks.
