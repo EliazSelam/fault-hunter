@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.42.0] — 2026-11-15
+
+Opening a part shows components, not blocks.
+
+- **A library of small models for the inner parts** (46 kinds): coil on a bobbin, flat brake coil, stator with windings, rotor with magnets, shaft with bearings, relay under a clear cover, contacts, MOSFET in its package, diode, diode bridge, resistor with bands, electrolytic capacitor, transformer on a laminated core, fuse, terminal block, network ports, circuit board with chips, line sensor, LED bar, lens element in its ring, lens barrel, lens mount with tilt screws, solenoid valve, plunger with its spring, valve body with ports, venturi, vacuum plate and manifold, rail with carriage, ball screw and nut, encoder scale, motor, shutter, registration camera, switches, emergency stop, door pane. Each is chosen by the part's name and built inside the part's box, whichever way the box lies, so it works in the machine's opened parts and in the topic objects alike.
+- **Suspect names face the viewer:** D1–D6 during a cycle are labels that stand above the panel and turn with the view, instead of text painted on the panel that read upside down from some angles.
+- **The glass enclosure no longer takes the pointer from what is inside it:** pointing at a part behind the glass picks the part; the enclosure answers only where nothing else is under the pointer.
+- Tests: 4 new checks in the zoom suite (every inner part has a model, every model stays in its box, labels, picking).
+
 ## [2.41.1] — 2026-11-15
 
 Two flaws seen in a screen recording of the machine view on a real GPU.

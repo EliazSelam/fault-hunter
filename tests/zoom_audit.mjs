@@ -337,9 +337,10 @@ const MG = await pg.evaluate(async () => { const wait = ms => new Promise(r => s
   o.mid = /מעבר 2 מתוך 3/.test(r.status) && r.lit && !r.beam && Math.abs(r.cam) < 1e-9 && Math.abs(r.table - (-0.38 - P.yc[1])) < 1e-9 && r.prog[0] === 1 && Math.abs(r.prog[1] - 0.5) < 1e-9 && r.prog[2] === 0;
   let L2 = looks(); o.moved = Math.abs(L2.cam[1] - 0.65) < 1e-9 && Math.abs(L2.lens[1] - 0.65) < 1e-9 && Math.abs(L2.strobe[1] - 0.65) < 1e-9 && Math.abs(L2.table[2] - r.table) < 1e-9 && Math.abs(L2.panel[2] - r.table) < 1e-9 && L2.gantry[1] === 0 && L2.base[2] === 0;
   o.reach = [0, 1, 2].every(i => { const off = -0.38 - P.yc[i]; return -1.4 + off >= -2.2 && 1.4 + off <= 2.2; });
+  o.labs = MS.gl.runLabels().join() === 'D2,D4,D5,D6'; r = MS.gl.runSeek(P.total - 2.0); o.labsEnd = MS.gl.runLabels().length === 6; MS.gl.runSeek(0.9 + P.passT + 0.55 + P.passT / 2);
   mSelect('table'); await wait(250); o.stopSel = !MS.gl.running() && btn.getAttribute('aria-pressed') === 'false'; mSelect(null); await wait(200);
   mSetMachine('aos'); await wait(500); o.aosBtn = /תיקון/.test(btn.textContent); btn.click(); await wait(100); const P2 = MS.gl.runPlan(); r = MS.gl.runSeek(1.2); o.reg = /רישום/.test(r.status) && r.flash && !r.beam;
-  r = MS.gl.runSeek(1.0 + 0.5 + 1.0 + 0.5 + 1.0 + 0.5); o.fire = r.beam && /D1/.test(r.status) && r.fixed === 0; r = MS.gl.runSeek(P2.total - 1.5); o.done = !r.beam && r.fixed === 3 && /חוסר נחושת לא מתוקן/.test(r.status); L2 = looks(); o.aosParts = Math.abs(L2.lsrc[1]) < 0.1 && Math.abs(L2.laser[1]) > 0.25;
+  r = MS.gl.runSeek(1.0 + 0.5 + 1.0 + 0.5 + 1.0 + 0.5); o.fire = r.beam && /D1/.test(r.status) && r.fixed === 0; r = MS.gl.runSeek(P2.total - 1.5); o.labsFix = MS.gl.runLabels().join() === 'D1 ✓,D4 ✓,D6 ✓'; o.done = !r.beam && r.fixed === 3 && /חוסר נחושת לא מתוקן/.test(r.status); L2 = looks(); o.aosParts = Math.abs(L2.lsrc[1]) < 0.1 && Math.abs(L2.laser[1]) > 0.25;
   MS.gl.run(false); mSetMachine('line'); await wait(400); o.lineBtn = btn.hidden && MS.gl.run(true) === false; mSetMachine('aoi'); await wait(300);
   go('about'); await wait(200); o.freed = MS.gl === null && !document.querySelector('.mgl'); const keepM = FH3D.machine; FH3D.machine = null; go('zoom', 'machine'); await wait(600); const c2 = document.getElementById('mc'), d2 = c2.getContext('2d').getImageData(0, 0, c2.width, c2.height).data; let n2 = 0; for (let k = 3; k < d2.length; k += 4) if (d2[k]) n2++; o.fallback = MS.gl === null && n2 / (d2.length / 4) > 0.08; FH3D.machine = keepM; go('zoom', 'machine'); await wait(500); o.back = !!MS.gl; FH3D.software = false; go('zoom', 'machine'); await wait(300); o.soft = MS.gl === null; return o; });
 ok(MG.gl && MG.back && (!noAccel || MG.soft), 'machine 3D: the machine view runs on the real-time renderer, and a browser without graphics acceleration keeps the earlier drawing');
@@ -355,6 +356,7 @@ ok(MG.gl && MG.reach, 'machine at work: every table position of the scan is insi
 ok(MG.gl && MG.stopSel, 'machine at work: selecting a part stops the cycle');
 ok(MG.gl && MG.aosBtn && MG.reg && MG.fire && MG.done && MG.aosParts, 'machine at work: the repair registers first, fires only over a target, ends with three removed, and the laser source stays on the gantry');
 ok(MG.gl && MG.lineBtn, 'machine at work: no cycle in the line view');
+ok(MG.gl && MG.labs && MG.labsEnd && MG.labsFix, 'machine at work: suspects are named as the line passes them, with labels that face the viewer, and repaired ones are ticked');
 ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
 /* v2.41.1: a hovered part's name must not stay after the pointer leaves, and it is centred on its box */
 await pg.evaluate(() => { FH3D.software = true; go('zoom', 'machine'); }); await pg.waitForTimeout(700);
@@ -375,6 +377,16 @@ ok(HG.inner && HG.kinds, 'topic object 3D: a topic with inner parts shows them s
 ok(HG.err < 0.5 && HG.idle === 0 && HG.turn === 1, 'topic object 3D: the same camera as the earlier drawing, drawn only when the view changes');
 ok(HG.one && HG.swap && HG.back, 'topic object 3D: one 3D canvas for the whole book, handed between the machine and the topic object');
 ok(HG.freed && HG.fallback, 'topic object 3D: leaving lets go of it, and without accelerated 3D the earlier drawing appears');
+/* v2.42: inner parts as what they are, and the enclosure yields to what is inside it */
+const IK = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = {}; FH3D.software = true; go('zoom', 'machine'); await wait(600); MS.rot = false; MS.assembling = false; MS.E = MS.target = 0; await wait(900);
+  const all = Object.entries(INNER).flatMap(([k, l]) => l.map(q => [k, q.t])), kind = MS.gl.innerKind; o.none = all.filter(([k, t]) => !kind(t)).map(q => q.join(':')); o.kinds = new Set(all.map(([k, t]) => kind(t))).size;
+  o.map = kind('סליל') === 'coil' && kind('ממסר בטיחות') === 'relay' && kind('MOSFET דרייבר') === 'mosfet' && kind('כרטיס דרייבר (MOSFET)') === 'pcbFets' && kind('קבל סינון') === 'cap' && kind('שנאי') === 'transformer' && kind('מתג המיתוג והבקר') === 'pcb' && kind('מתג לחץ') === 'pswitch' && kind('גוף העדשה ותושבת הטיה') === 'lensMount' && kind('עדשה קדמית') === 'lensEl' && kind('ממסר שמפעיל אותו מהבקר') === 'relay';
+  o.fit = MS.gl.innerFit(); const cv = document.getElementById('mc'), r = cv.getBoundingClientRect(), inside = (x, y, q) => { let c = false; for (let a = 0, b = q.length - 1; a < q.length; b = a++) if ((q[a][1] > y) !== (q[b][1] > y) && x < (q[b][0] - q[a][0]) * (y - q[a][1]) / (q[b][1] - q[a][1]) + q[a][0]) c = !c; return c; };
+  let both = 0, wrong = 0, alone = 0; for (let gx = 0.1; gx < 0.95; gx += 0.06) for (let gy = 0.1; gy < 0.95; gy += 0.06) { const x = gx * cv.width, y = gy * cv.height, ids = new Set(MS.polys.filter(pl => inside(x, y, pl[0])).map(pl => pl[2])); cv.dispatchEvent(new PointerEvent('pointermove', { clientX: r.left + gx * r.width, clientY: r.top + gy * r.height, bubbles: true }));
+    if (ids.has('door') && ids.size > 1) { both++; if (MS.hover === 'door') wrong++; } else if (ids.has('door') && MS.hover === 'door') alone++; } o.got = both + ' points over a part behind glass, ' + alone + ' over glass alone'; o.pick = both > 10 && wrong === 0; o.door = alone > 0; cv.dispatchEvent(new PointerEvent('pointerleave')); FH3D.software = false; go('zoom', 'machine'); return o; });
+ok(IK.none.length === 0 && IK.kinds >= 40 && IK.map, 'inner parts: every inner part of every assembly has its own model (' + IK.kinds + ' kinds), chosen by its name' + (IK.none.length ? ': missing ' + IK.none.join(', ') : ''));
+ok(IK.fit.bad.length === 0 && IK.fit.n >= 60, 'inner parts: each model stays within its part\'s box (' + IK.fit.n + ' parts)' + (IK.fit.bad.length ? ': ' + IK.fit.bad.join(', ') : ''));
+ok(IK.pick && IK.door, 'machine view: pointing at a part inside the glass enclosure picks the part, not the enclosure (' + IK.got + ')');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

@@ -126,7 +126,7 @@ function zMachineView() {
     ctx.direction = 'ltr'; ctx.textAlign = 'left';
   }
   const inPoly = (x, y, q) => { let c = false; for (let i = 0, j = q.length - 1; i < q.length; j = i++) { if (((q[i][1] > y) !== (q[j][1] > y)) && (x < (q[j][0] - q[i][0]) * (y - q[i][1]) / (q[j][1] - q[i][1]) + q[i][0])) c = !c; } return c; };
-  const pick = e => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; let best = null; MS.polys.forEach(([q, d, id]) => { if (inPoly(x, y, q) && (!best || d < best[0])) best = [d, id]; }); return best ? best[1] : null; };
+  const pick = e => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; let best = null, shell = null; MS.polys.forEach(([q, d, id]) => { if (!inPoly(x, y, q)) return; if (id === 'door') { if (!shell || d < shell[0]) shell = [d, id]; } else if (!best || d < best[0]) best = [d, id]; }); return best ? best[1] : shell ? shell[1] : null; };   /* the glass enclosure surrounds everything: it answers only where nothing else is under the pointer */
   window.mPickAt = (id) => { const p = MS.polys.filter(x => x[2] === id); if (!p.length) return null; const q = p[p.length - 1][0]; const r = cv.getBoundingClientRect(); const cx = q.reduce((s, v) => s + v[0], 0) / 4, cy = q.reduce((s, v) => s + v[1], 0) / 4; return [r.left + cx * r.width / cv.width, r.top + cy * r.height / cv.height]; };
   let down = null;
   cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
