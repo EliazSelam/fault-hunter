@@ -356,6 +356,19 @@ ok(MG.gl && MG.stopSel, 'machine at work: selecting a part stops the cycle');
 ok(MG.gl && MG.aosBtn && MG.reg && MG.fire && MG.done && MG.aosParts, 'machine at work: the repair registers first, fires only over a target, ends with three removed, and the laser source stays on the gantry');
 ok(MG.gl && MG.lineBtn, 'machine at work: no cycle in the line view');
 ok(MG.gl && MG.freed && MG.fallback, 'machine 3D: leaving the page frees the 3D context, and without 3D the earlier drawing still appears');
+/* v2.41: the topic object on the same renderer */
+const HG = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = {}; FH3D.software = true; const transparent = cv => { const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data; let n = 0; for (let k = 3; k < d.length; k += 4) if (d[k]) n++; return n === 0; };
+  go('zoom', 'vac'); await wait(500); let cv = document.querySelector('.hubobj'); o.inner = !!HS.gl && HS.gl.kind === 'inner' && HS.gl.parts === INNER.vac.length && transparent(cv) && document.querySelectorAll('canvas.mgl.hubgl').length === 1 && MS.gl === null;
+  const V = cv._V; o.err = HS.gl ? Math.max(...[[0, 0, 0], [1, 0.5, 0.8], [-1, -1, -1]].map(q => { const a = V.proj(q), b = HS.gl.project(q); return Math.hypot(a[0] - b[0], a[1] - b[1]); })) : 9;
+  HS.gl.render(); const f0 = HS.gl.frames(); HS.gl.render(); HS.gl.render(); o.idle = HS.gl.frames() - f0; V.st.yaw += 0.3; HS.gl.render(); o.turn = HS.gl.frames() - f0;
+  const kinds = {}; for (const id of ZOOM.map(z => z.id)) { if (Object.keys(kinds).length === 4) break; const want = INNER[id] ? 'inner' : MPARTS.some(q => q.node === id) ? 'part' : Object.values(INNER).some(l => l.some(q => q.node === id)) ? 'one' : 'machine'; if (kinds[want]) continue; go('zoom', id); await wait(350); kinds[want] = HS.gl && HS.gl.kind === want && HS.gl.parts > 0 ? id : false; }
+  o.kinds = ['inner', 'part', 'one', 'machine'].every(k => kinds[k]); o.one = document.querySelectorAll('canvas.mgl').length === 1;
+  go('zoom', 'machine'); await wait(500); o.swap = !!MS.gl && HS.gl === null && document.querySelectorAll('canvas.mgl').length === 1 && !document.querySelector('canvas.hubgl'); go('zoom', 'vac'); await wait(400); o.back = !!HS.gl && MS.gl === null;
+  go('about'); await wait(200); o.freed = HS.gl === null && !document.querySelector('canvas.mgl'); FH3D.software = false; go('zoom', 'vac'); await wait(400); const c2 = document.querySelector('.hubobj'); o.fallback = HS.gl === null && !transparent(c2); return o; });
+ok(HG.inner && HG.kinds, 'topic object 3D: a topic with inner parts shows them spread out, and each of the four kinds of object is built (inner parts, machine part, single inner part, whole machine)');
+ok(HG.err < 0.5 && HG.idle === 0 && HG.turn === 1, 'topic object 3D: the same camera as the earlier drawing, drawn only when the view changes');
+ok(HG.one && HG.swap && HG.back, 'topic object 3D: one 3D canvas for the whole book, handed between the machine and the topic object');
+ok(HG.freed && HG.fallback, 'topic object 3D: leaving lets go of it, and without accelerated 3D the earlier drawing appears');
 /* multi-level disassembly */
 const inner = await pg.evaluate(() => { const desc = id => { const s = new Set(); const w = x => { if (s.has(x)) return; s.add(x); zNode(x).parts.forEach(w); }; w(id); return s; };
   return Object.entries(INNER).map(([n, parts]) => [n, !!zNode(n), parts.filter(ip => !desc(n).has(ip.node)).map(ip => ip.node)]); });

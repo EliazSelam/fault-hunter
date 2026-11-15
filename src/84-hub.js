@@ -44,7 +44,9 @@ function hubGeometry(id) {
 function hubObject(cv, id) {
   const G = hubGeometry(id), col = k => ({ mech: '#7B5A3C', ink: '#1B2F5A', live: '#3078B0', tint: '#D6E8F7', text: '#3078B0' })[k] || k;
   const V = view3(cv, { yaw: -0.7, pitch: 0.45, dist: 7.5, fov: 520, oy: 0, onView: () => draw() });
-  function draw() { const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const items = [];
+  /* the picture: real-time 3D under this canvas when the browser can, the drawing below otherwise */
+  if (HS.gl) { HS.gl.destroy(); HS.gl = null; } if (typeof THREE !== 'undefined' && window.FH3D && FH3D.object) HS.gl = FH3D.object(THREE, cv, V, id);
+  function draw() { const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); if (HS.gl) { HS.gl.render(); return; } const items = [];
     G.forEach(g => { const P = []; mShape(P, g.b, g.sh, col(g.c), g.c === 'tint' ? 0.55 : 0.95, 'rgba(27,47,90,.35)'); P.forEach(f => { const q = f.pts.map(p => V.proj(p)); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, hl: false }); }); });
     mFloor(ctx, p => V.proj(p), [0, 0, -1.3], 2.0); mPaint(ctx, items); }
   let t0 = performance.now(), spin = false; cv._V = V;

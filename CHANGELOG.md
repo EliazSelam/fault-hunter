@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.41.0] — 2026-11-15
+
+One 3D look across the book: the object on every topic page is drawn by the same renderer as the machine.
+
+- **Topic objects in real-time 3D:** the object in the middle of a topic page (its inner parts spread out, its part of the machine, the single inner part it is, or the whole machine small) now uses the same materials, light and shadows as the machine view. Same camera as before, to within a fraction of a pixel; it still turns only under the pointer or with the focus.
+- **One renderer for the whole book:** the machine view and the topic objects share one 3D canvas, one studio and one set of materials and part builders, handed from one to the other. Opening a topic no longer creates a new 3D context, and going back to the machine reuses what is already compiled.
+- Fallback unchanged: without accelerated 3D the earlier drawing appears.
+- Tests: 4 new checks in the zoom suite.
+
 ## [2.40.0] — 2026-11-15
 
 The machine works: one scan cycle on the AOI machine, one repair cycle on the AOS machine.

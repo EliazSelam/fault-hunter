@@ -437,7 +437,7 @@ nav.sheets button[hidden]{display:none}
 .ssbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}.ssbar button,.ssexp button,.ssv button{font:inherit;font-size:14px;padding:6px 14px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.ssbar [data-ss="start"]{background:var(--ink);color:var(--sheet);font-weight:700}.ssbar [aria-pressed="true"],.ssv [aria-pressed="true"]{background:var(--live);color:#fff;border-color:var(--live)}.ssbar button:disabled{opacity:.45;cursor:not-allowed}.ssnote{font-size:12px;color:var(--muted)}.sspre button{font-size:12px;padding:4px 12px;border-color:var(--line)}
 .sslist h4{margin:12px 0 6px}.sscase{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}.sspos{direction:ltr;color:var(--muted);font-size:12px}.ssv{margin-inline-start:auto;display:inline-flex;gap:6px}.ssv button{font-size:12px;padding:3px 10px}.ssroute{flex-basis:100%;color:var(--live);font-weight:600}.ssexp{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ssrec{width:100%;direction:ltr;text-align:left;white-space:pre-wrap;font-size:12px;background:var(--tint);border-radius:10px;padding:10px;max-height:300px;overflow:auto}
 .fh3dhost{height:min(680px,78vh);min-height:460px;margin:6px 0 10px}
-.mstage canvas.mgl{position:absolute;top:0;left:0;pointer-events:none}.mstage canvas.mtop{position:relative;z-index:1}
+canvas.mgl{position:absolute;top:0;left:0;pointer-events:none}canvas.mtop{position:relative;z-index:1}.hubmid{position:relative}canvas.mgl.hubgl{border-radius:50%;background:radial-gradient(circle at 50% 45%, rgba(214,232,247,.95) 0%, rgba(214,232,247,.35) 60%, transparent 72%)}.hubobj.mtop{background:none}
 .mrunhud{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;max-width:92%;padding:7px 16px;border-radius:999px;background:rgba(238,233,224,.94);border:1px solid rgba(27,47,90,.3);color:#1B2F5A;font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(13,24,48,.35);text-align:center}.mbar #mRun{background:var(--live);color:#fff;border-color:var(--live);font-weight:700}.mbar #mRun[hidden]{display:none}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
 .anat{border:1.5px solid var(--live);border-radius:8px;padding:10px 12px;margin:12px 0;background:var(--sheet)}
@@ -9225,7 +9225,9 @@ function hubGeometry(id) {
 function hubObject(cv, id) {
   const G = hubGeometry(id), col = k => ({ mech: '#7B5A3C', ink: '#1B2F5A', live: '#3078B0', tint: '#D6E8F7', text: '#3078B0' })[k] || k;
   const V = view3(cv, { yaw: -0.7, pitch: 0.45, dist: 7.5, fov: 520, oy: 0, onView: () => draw() });
-  function draw() { const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const items = [];
+  /* the picture: real-time 3D under this canvas when the browser can, the drawing below otherwise */
+  if (HS.gl) { HS.gl.destroy(); HS.gl = null; } if (typeof THREE !== 'undefined' && window.FH3D && FH3D.object) HS.gl = FH3D.object(THREE, cv, V, id);
+  function draw() { const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); if (HS.gl) { HS.gl.render(); return; } const items = [];
     G.forEach(g => { const P = []; mShape(P, g.b, g.sh, col(g.c), g.c === 'tint' ? 0.55 : 0.95, 'rgba(27,47,90,.35)'); P.forEach(f => { const q = f.pts.map(p => V.proj(p)); items.push({ q, d: q.reduce((s, x) => s + x[2], 0) / q.length, f, hl: false }); }); });
     mFloor(ctx, p => V.proj(p), [0, 0, -1.3], 2.0); mPaint(ctx, items); }
   let t0 = performance.now(), spin = false; cv._V = V;
@@ -9977,14 +9979,19 @@ WIN.add({ id: 'fh3d', test: w => w === '3d:scanhead', info: () => ({ kind: 'sim'
    replaces the picture. A WebGL canvas sits under the view's own canvas and shows the same parts from the same camera;
    the view's canvas stays on top for the names and the pointer. If WebGL is missing, nothing here runs and the old drawing stays.
    Every part is built inside the boxes of MPARTS, so what you click is what you see. Colours: palette shades only. */
-function fh3dMachine(THREE, cv, V) {
+/* one renderer, one studio and one set of materials and part builders for the whole book: the machine view and the topic
+   objects take turns on it (only one of them is on a page at a time). null where 3D would be drawn in software only. */
+let FH3D_REAL = null, FH3D_NO = false;
+function fh3dCore(THREE) {
+  if (FH3D_REAL) return FH3D.software || !FH3D_REAL.soft ? FH3D_REAL : null; if (FH3D_NO && !FH3D.software) return null;
   const K = fh3dKit(THREE), C = K.C, keep = K.keep, { rbox, can, tube, lathe, paint, brushed, knurl } = K;
   /* a browser that would draw 3D in software only (no graphics acceleration) keeps the earlier drawing: a slow picture is worse than a plain one */
-  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance', failIfMajorPerformanceCaveat: !FH3D.software }); } catch (e) { return null; }
-  if (!FH3D.software) { const g = renderer.getContext(), x = g.getExtension('WEBGL_debug_renderer_info'), name = x ? String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)) : ''; if (/swiftshader|llvmpipe|software|basic render/i.test(name)) { renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); return null; } }
+  let renderer; try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (e) { FH3D_NO = true; return null; }
+  const soft = (() => { const g = renderer.getContext(), x = g.getExtension('WEBGL_debug_renderer_info'), name = x ? String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)) : ''; return /swiftshader|llvmpipe|software|basic render/i.test(name); })();
+  if (soft && !FH3D.software) { K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); FH3D_NO = true; return null; }
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.08;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.setClearColor(0x000000, 0);
-  const gl = renderer.domElement; gl.className = 'mgl'; gl.setAttribute('aria-hidden', 'true'); cv.parentNode.insertBefore(gl, cv); cv.classList.add('mtop');
+  const gl = renderer.domElement; gl.setAttribute('aria-hidden', 'true');
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(47, 1100 / 680, 0.2, 200); scene.environment = K.studio(renderer);
   /* the machine's axes have z up; the studio has y up */
   const root = new THREE.Group(); root.rotation.x = -Math.PI / 2; scene.add(root);
@@ -10062,18 +10069,36 @@ function fh3dMachine(THREE, cv, V) {
     ilock(g) { B(g, [2.7, 2.95, -2.62, -2.5, 1.0, 1.25], 'navy', 0.025, 0.03); Cy(g, 'y', -2.66, -2.62, 0.035, [2.82, 1.12], 'steel'); Tb(g, 'y', -2.625, -2.615, 0.05, 0.02, [2.82, 1.2], 'ring'); },
     estop(g) { B(g, [3.0, 3.25, -2.56, -2.5, 1.4, 1.65], 'cream', 0.02, 0.04); Cy(g, 'y', -2.6, -2.56, 0.06, [3.125, 1.525], 'steel'); put(g, lathe([[0, -2.66], [0.07, -2.66], [0.1, -2.64], [0.1, -2.61], [0.06, -2.6], [0, -2.6]], null, 32), 'brown', [3.125, 0, 1.525]); }
   };
+  const innerMat = ip => /עדשה|חלון/.test(ip.t) ? 'glass' : /סליל|ליפופי/.test(ip.t) ? 'brass' : /LED|נורי/.test(ip.t) ? 'lamp' : /כרטיס|מעבד/.test(ip.t) ? 'pcb' : /מיסבים|ציר|בורג|בוכנה|קפיץ|סרגל/.test(ip.t) ? 'steel' : /משטח/.test(ip.t) ? 'alu' : byKey[ip.c] || 'navy';
+  /* one inner part, by its name: a winding, a board, glass, steel, or a plain rounded body */
+  const innerPart = (g, ip, S) => { const b = ip.b.map(v => v * S), m = innerMat(ip), round = ROUND.test(ip.t) ? longAxis(ip.b) : null, d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]], c = [(b[0] + b[1]) / 2, (b[2] + b[3]) / 2, (b[4] + b[5]) / 2];
+      if (round) { const ai = 'xyz'.indexOf(round), o = [0, 1, 2].filter(k => k !== ai), r = Math.min(d[o[0]], d[o[1]]) / 2, geo = can(r, -d[ai] / 2, d[ai] / 2, Math.min(r, d[ai]) * 0.14, round === 'y' ? null : round, 40), sc = [1, 1, 1]; sc[o[0]] = d[o[0]] / (2 * r); sc[o[1]] = d[o[1]] / (2 * r); const mesh = put(g, geo, m, c); mesh.scale.set(sc[0], sc[1], sc[2]);
+        if (m === 'brass') for (let k = 0; k < 6; k++) { const t = put(g, tube(r * 1.03, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 - d[ai] / 30, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 + d[ai] / 30, r * 0.06, round === 'y' ? null : round), 'brown', c); t.scale.set(sc[0], sc[1], sc[2]); } }
+      else { B(g, b, m === 'pcb' ? 'navy' : m); if (m === 'pcb') { const flat = d.indexOf(Math.min(...d)); if (flat === 2) { face(g, d[0] * 0.94, d[1] * 0.94, 'pcb', [c[0], c[1], b[5] + 0.004]); B(g, [c[0] - d[0] * 0.18, c[0] + d[0] * 0.18, c[1] - d[1] * 0.2, c[1] + d[1] * 0.2, b[5], b[5] + 0.07], 'black', 0.015, 0.02); } else { const f = face(g, flat === 1 ? d[0] * 0.94 : d[1] * 0.94, d[2] * 0.94, 'pcb', flat === 1 ? [c[0], b[2] - 0.004, c[2]] : [b[0] - 0.004, c[1], c[2]]); if (flat === 1) f.rotation.x = Math.PI / 2; else f.rotation.y = -Math.PI / 2; } } }
+  };
+  const X = new THREE.Vector3(1, 0, 0), tmp = new THREE.Vector3(), toWorld = v => tmp.set(v[0], v[1], v[2]).applyAxisAngle(X, -Math.PI / 2).clone();
+  /* aim the 3D camera exactly like view3 projects: same yaw, pitch, distance, focal length and vertical offset */
+  const aim = (V, c, oy, cv) => { const s = V.st, cy = Math.cos(s.yaw), sy = Math.sin(s.yaw), cp = Math.cos(s.pitch), sp = Math.sin(s.pitch), f = [sy * cp, cy * cp, -sp], u = [sy * sp, cy * sp, cp];
+    cam.position.copy(toWorld([c[0] - s.dist * f[0], c[1] - s.dist * f[1], c[2] - s.dist * f[2]])); cam.up.copy(toWorld(u)); cam.lookAt(toWorld(c));
+    cam.fov = 2 * Math.atan(cv.height / 2 / s.fov) * 180 / Math.PI; cam.aspect = cv.width / cv.height; cam.setViewOffset(cv.width, cv.height, 0, -oy, cv.width, cv.height); cam.updateProjectionMatrix(); };
+  const core = { K, C, keep, rbox, can, tube, lathe, paint, renderer, gl, scene, cam, root, key, floor, mat, byKey, put, B, Cy, Tb, face, PB, innerPart, toWorld, aim, soft, owner: null,
+    project(p, cv) { cam.updateMatrixWorld(); const v = toWorld(p).project(cam); return [(v.x + 1) / 2 * cv.width, (1 - v.y) / 2 * cv.height]; },
+    /* put the 3D canvas under a view's own canvas; whoever had it before lets go first. Returns a mark for release. */
+    attach(cv, cls) { if (core.owner) core.owner.destroy(); gl.className = cls; cv.parentNode.insertBefore(gl, cv); cv.classList.add('mtop'); return K.trash.length; },
+    fit(cv) { const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return false; renderer.setSize(w, h, false); gl.style.width = w + 'px'; gl.style.height = h + 'px'; gl.style.left = cv.offsetLeft + 'px'; gl.style.top = cv.offsetTop + 'px'; return true; },
+    release(mark, cv) { K.trash.splice(mark).forEach(o => o.dispose && o.dispose()); if (gl.parentNode) gl.parentNode.removeChild(gl); cv.classList.remove('mtop'); } };
+  FH3D_REAL = core; return core;
+}
+function fh3dMachine(THREE, cv, V) {
+  const core = fh3dCore(THREE); if (!core) return null;
+  const { K, C, keep, paint, renderer, gl, scene, cam, root, key, floor, B, PB, byKey } = core, mark = core.attach(cv, 'mgl');
   const groups = [];   /* { g, id, m, p, dx } */
   const world = new THREE.Group(); root.add(world);
   const clear = () => { groups.length = 0; while (world.children.length) world.remove(world.children[0]); };
   const buildMachine = () => { mCopies().forEach(({ p, dx, m }) => { const g = new THREE.Group(); (PB[p.id] || (gg => p.boxes.forEach(b => B(gg, b, byKey[b[6]] || 'navy'))))(g, p); world.add(g); groups.push({ g, id: p.id, m, p, dx }); });
     if (MS.machine === 'line') { const g = new THREE.Group(); B(g, [-0.7, 0.7, -0.6, 0.6, 0, 1.0], 'cream', 0.05, 0.1); B(g, [-0.74, 0.74, -0.64, 0.64, 1.0, 1.1], 'navy', 0.03, 0.1); B(g, [-0.5, 0.5, 0.3, 0.4, 1.1, 1.5], 'navy', 0.03, 0.05); B(g, [-0.46, 0.46, 0.285, 0.3, 1.14, 1.46], 'lamp', 0.005, 0.03); B(g, [-0.2, 0.2, -0.2, 0.1, 1.1, 1.13], 'pcb', 0.01, 0.03); world.add(g); groups.push({ g, id: 'verify', m: 'verify', p: { ex: [0, 0, 0], id: 'verify' }, dx: 0 });
       const way = new THREE.Group(); for (let x = -2.7; x < 3.3; x += 0.5) B(way, [x, x + 0.28, -0.05, 0.05, -0.5, -0.485], 'lamp', 0.005, 0.02); world.add(way); groups.push({ g: way, id: 'way', m: 'way', p: { ex: [0, 0, 0], id: 'way' }, dx: 0 }); } };
-  const innerMat = ip => /עדשה|חלון/.test(ip.t) ? 'glass' : /סליל|ליפופי/.test(ip.t) ? 'brass' : /LED|נורי/.test(ip.t) ? 'lamp' : /כרטיס|מעבד/.test(ip.t) ? 'pcb' : /מיסבים|ציר|בורג|בוכנה|קפיץ|סרגל/.test(ip.t) ? 'steel' : /משטח/.test(ip.t) ? 'alu' : byKey[ip.c] || 'navy';
-  const buildInner = node => { const S = 1.25; INNER[node].forEach((ip, i) => { const g = new THREE.Group(), b = ip.b.map(v => v * S), m = innerMat(ip), round = ROUND.test(ip.t) ? longAxis(ip.b) : null, d = [b[1] - b[0], b[3] - b[2], b[5] - b[4]], c = [(b[0] + b[1]) / 2, (b[2] + b[3]) / 2, (b[4] + b[5]) / 2];
-      if (round) { const ai = 'xyz'.indexOf(round), o = [0, 1, 2].filter(k => k !== ai), r = Math.min(d[o[0]], d[o[1]]) / 2, geo = can(r, -d[ai] / 2, d[ai] / 2, Math.min(r, d[ai]) * 0.14, round === 'y' ? null : round, 40), sc = [1, 1, 1]; sc[o[0]] = d[o[0]] / (2 * r); sc[o[1]] = d[o[1]] / (2 * r); const mesh = put(g, geo, m, c); mesh.scale.set(sc[0], sc[1], sc[2]);
-        if (m === 'brass') for (let k = 0; k < 6; k++) { const t = put(g, tube(r * 1.03, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 - d[ai] / 30, -d[ai] / 2 + (k + 0.5) * d[ai] / 6 + d[ai] / 30, r * 0.06, round === 'y' ? null : round), 'brown', c); t.scale.set(sc[0], sc[1], sc[2]); } }
-      else { B(g, b, m === 'pcb' ? 'navy' : m); if (m === 'pcb') { const flat = d.indexOf(Math.min(...d)); if (flat === 2) { face(g, d[0] * 0.94, d[1] * 0.94, 'pcb', [c[0], c[1], b[5] + 0.004]); B(g, [c[0] - d[0] * 0.18, c[0] + d[0] * 0.18, c[1] - d[1] * 0.2, c[1] + d[1] * 0.2, b[5], b[5] + 0.07], 'black', 0.015, 0.02); } else { const f = face(g, flat === 1 ? d[0] * 0.94 : d[1] * 0.94, d[2] * 0.94, 'pcb', flat === 1 ? [c[0], b[2] - 0.004, c[2]] : [b[0] - 0.004, c[1], c[2]]); if (flat === 1) f.rotation.x = Math.PI / 2; else f.rotation.y = -Math.PI / 2; } } }
-      world.add(g); groups.push({ g, id: 'in:' + i, m: 'inner', p: { ex: ip.ex.map(v => v * S), id: 'in:' + i }, dx: 0, inner: i }); }); };
+  const buildInner = node => { const S = 1.25; INNER[node].forEach((ip, i) => { const g = new THREE.Group(); core.innerPart(g, ip, S); world.add(g); groups.push({ g, id: 'in:' + i, m: 'inner', p: { ex: ip.ex.map(v => v * S), id: 'in:' + i }, dx: 0, inner: i }); }); };
 
   /* ---------- the machine at work: one cycle per press, never by itself ----------
      AOI: the camera sweeps along the gantry over a coupon while the table steps between swaths; AOS: the head registers on two
@@ -10130,15 +10155,12 @@ function fh3dMachine(THREE, cv, V) {
   const runStop = () => { if (!RUN.on) return; RUN.on = false; RUN.off = {}; fx.visible = false; ovm.visible = false; hud(''); lastSig = ''; if (api.onRun) api.onRun(false); };
   const runStart = () => { if (RUN.on || MS.machine === 'line' || MS.path.length) return false; RUN.kind = MS.machine; steps = timeline(RUN.kind); total = steps.reduce((a, s) => a + s[0], 0); RUN.on = true; RUN.t0 = performance.now(); const pr = groups.find(r => r.id === 'panel'); if (pr) pr.g.add(ovm); ovm.visible = true; fx.visible = true; seek(0); lastSig = ''; if (api.onRun) api.onRun(true); return true; };
   /* ---------- per frame: place, light up, dim, aim the camera like the view does ---------- */
-  let built = null, lastSig = '', dead = false, frames = 0; const X = new THREE.Vector3(1, 0, 0), tmp = new THREE.Vector3(), hot = new THREE.Color(C.blue);
+  let built = null, lastSig = '', dead = false, frames = 0; const hot = new THREE.Color(C.blue);
   const setLook = (rec, hl, dim, hide) => { rec.g.visible = !hide; if (hide) return; const k = (hl ? 1 : 0) + (dim ? 2 : 0); if (rec.look === k) return; rec.look = k;
     rec.g.traverse(o => { if (!o.isMesh || o.userData.fx) return; const m = o.material, tr = dim || o.userData.tr; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } m.opacity = dim ? o.userData.o * 0.12 : o.userData.o; m.depthWrite = !tr; o.castShadow = !tr;
       if (hl && !o.userData.e) { m.emissive.copy(hot); m.emissiveIntensity = 0.42; } else { m.emissive.setHex(o.userData.e); m.emissiveIntensity = o.userData.ei; } }); };
-  const toWorld = (v) => tmp.set(v[0], v[1], v[2]).applyAxisAngle(X, -Math.PI / 2).clone();
-  const aim = () => { const s = V.st, cy = Math.cos(s.yaw), sy = Math.sin(s.yaw), cp = Math.cos(s.pitch), sp = Math.sin(s.pitch), f = [sy * cp, cy * cp, -sp], u = [sy * sp, cy * sp, cp], c = MS.C;
-    cam.position.copy(toWorld([c[0] - s.dist * f[0], c[1] - s.dist * f[1], c[2] - s.dist * f[2]])); cam.up.copy(toWorld(u)); cam.lookAt(toWorld(c));
-    cam.fov = 2 * Math.atan(cv.height / 2 / s.fov) * 180 / Math.PI; cam.aspect = cv.width / cv.height; cam.setViewOffset(cv.width, cv.height, 0, -30, cv.width, cv.height); cam.updateProjectionMatrix(); };
-  const fit = () => { const w = cv.clientWidth, h = cv.clientHeight; if (w && h) { renderer.setSize(w, h, false); gl.style.width = w + 'px'; gl.style.height = h + 'px'; lastSig = ''; } };
+  const aim = () => core.aim(V, MS.C, 30, cv);
+  const fit = () => { if (core.fit(cv)) lastSig = ''; };
   const ro = new ResizeObserver(fit); ro.observe(cv); fit();
   const api = {
     render() { if (dead) return; const inner = MS.path.length ? MS.path[MS.path.length - 1] : null, sigB = inner ? 'in:' + inner : 'm:' + MS.machine;
@@ -10151,18 +10173,41 @@ function fh3dMachine(THREE, cv, V) {
         setLook(rec, rec.id === MS.hover || MS.hover === 'M:' + rec.m, dim, rec.id === 'door' && MS.sel && MS.sel !== 'door'); });
       aim(); renderer.render(scene, cam); frames++; },
     /* where the 3D camera puts a point of the machine, in the view canvas's own pixels: must agree with the view's projection */
-    project(p) { aim(); cam.updateMatrixWorld(); const v = toWorld(p).project(cam); return [(v.x + 1) / 2 * cv.width, (1 - v.y) / 2 * cv.height]; },
+    project(p) { aim(); return core.project(p, cv); },
     run(on) { if (on === false) { runStop(); return false; } RUN.manual = false; return runStart(); }, running: () => RUN.on,
     /* for checks: put the cycle at a given second and draw it */
     runSeek(t) { if (!RUN.on) return null; RUN.manual = true; const c = seek(Math.min(t, total - 1e-6)); lastSig = ''; api.render(); return { status: RUN.status, cam: RUN.cam, table: RUN.table, lit: RUN.lit, beam: RUN.beam, flash: RUN.flash, prog: RUN.prog.slice(), fixed: RUN.fixed, total, step: c ? steps.indexOf(c) : -1 }; },
     runPlan: () => ({ swath: RUNC.sw, U: RUNC.U, passT: RUNC.passT, yc: RUNC.yc.slice(), targets: RUNC.targets.map(t => t.id + ':' + t.cls), defects: RUNC.defects.length, total: timeline(MS.machine).reduce((a, q) => a + q[0], 0) }),
     info: () => ({ built, groups: groups.length, meshes: (() => { let n = 0; world.traverse(o => { if (o.isMesh) n++; }); return n; })(), frames, looks: groups.map(r => [r.id, r.look, r.g.visible]), pos: groups.map(r => [r.id, r.g.position.x - r.dx, r.g.position.y]) }),
-    destroy() { if (dead) return; runStop(); if (hudEl && hudEl.parentNode) hudEl.parentNode.removeChild(hudEl); dead = true; ro.disconnect(); clear(); K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (gl.parentNode) gl.parentNode.removeChild(gl); cv.classList.remove('mtop'); }
+    destroy() { if (dead) return; runStop(); if (hudEl && hudEl.parentNode) hudEl.parentNode.removeChild(hudEl); dead = true; ro.disconnect(); clear(); root.remove(world); root.remove(fx); if (core.owner === api) core.owner = null; core.release(mark, cv); }
   };
-  return api;
+  core.owner = api; return api;
 }
 if (window.FH3D) window.FH3D.machine = fh3dMachine;
-/* leaving the page frees the 3D context */
+/* ---- the object in the middle of a topic page, on the same renderer ----
+   The same choice as hubGeometry: the topic's inner parts spread out, its part of the machine, the inner part it is, or the whole machine small. */
+function fh3dObject(THREE, cv, V, id) {
+  const core = fh3dCore(THREE); if (!core) return null;
+  const { renderer, cam, scene, root, key, floor, B, PB, byKey } = core, mark = core.attach(cv, 'mgl hubgl');
+  const world = new THREE.Group(); root.add(world); let kind = '', parts = 0;
+  const wrap = (k, c) => { const g = new THREE.Group(); g.scale.setScalar(k); g.position.set(-c[0] * k, -c[1] * k, -c[2] * k); world.add(g); parts++; return g; };
+  const build = (g, p) => (PB[p.id] || (gg => p.boxes.forEach(b => B(gg, b, byKey[b[6]] || 'navy'))))(g, p), mid = b => [(b[0] + b[1]) / 2, (b[2] + b[3]) / 2, (b[4] + b[5]) / 2];
+  const mp = MPARTS.find(p => p.node === id); let ip = null; if (!INNER[id] && !mp) for (const list of Object.values(INNER)) { ip = list.find(x => x.node === id); if (ip) break; }
+  if (INNER[id]) { kind = 'inner'; INNER[id].forEach(q => { const g = new THREE.Group(); core.innerPart(g, q, 1); g.position.set(0.9 * q.ex[0], 0.9 * q.ex[1], 0.9 * q.ex[2]); world.add(g); parts++; }); }
+  else if (mp) { kind = 'part'; const bx = mp.boxes, c = [0, 1, 2].map(a => bx.reduce((s, b) => s + mid(b)[a], 0) / bx.length), ext = Math.max(...bx.map(b => Math.max(b[1] - b[0], b[3] - b[2], b[5] - b[4]))); build(wrap(2.2 / ext, c), mp); }
+  else if (ip) { kind = 'one'; const b = ip.b, ext = Math.max(b[1] - b[0], b[3] - b[2], b[5] - b[4]); core.innerPart(wrap(2.0 / ext, mid(b)), ip, 1); }
+  else { kind = 'machine'; MPARTS.filter(p => p.id !== 'door').forEach(p => build(wrap(0.42, [0, 0, 0]), p)); }
+  floor.position.z = -1.3; Object.assign(key.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 60 }); key.shadow.camera.updateProjectionMatrix();
+  let last = '', dead = false, frames = 0; const fit = () => { if (core.fit(cv)) last = ''; }, ro = new ResizeObserver(fit); ro.observe(cv); fit();
+  const api = { kind, parts,
+    render() { if (dead) return; const s = V.st, sig = [s.yaw.toFixed(4), s.pitch.toFixed(4), s.dist.toFixed(3)].join(); if (sig === last) return; last = sig; core.aim(V, [0, 0, 0], V.st.oy || 0, cv); renderer.render(scene, cam); frames++; },
+    project(p) { core.aim(V, [0, 0, 0], V.st.oy || 0, cv); return core.project(p, cv); }, frames: () => frames,
+    destroy() { if (dead) return; dead = true; ro.disconnect(); root.remove(world); if (core.owner === api) core.owner = null; core.release(mark, cv); } };
+  core.owner = api; return api;
+}
+if (window.FH3D) window.FH3D.object = fh3dObject;
+GO_BEFORE.push(() => { if (HS.gl) { HS.gl.destroy(); HS.gl = null; } });
+/* leaving the page lets go of the 3D canvas */
 GO_BEFORE.push(() => { if (MS.gl) { MS.gl.destroy(); MS.gl = null; } });
 
 /* the button that runs one cycle; it exists only where the 3D picture does */
@@ -11165,7 +11210,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.40.0';
+const APP_VERSION = '2.41.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
