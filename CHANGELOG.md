@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.50.0] — 2026-11-16
+
+The book: one course from chapter 0 to certification.
+
+- **A course, not a map:** chapter 0 and 28 chapters in eight parts (basic electricity, circuits that drive and measure, motion and control, vision and laser, air and safety, control and communication, the machine as a system, cross-cutting subjects and certification). Every topic of the zoom tree is in exactly one chapter, and every chapter leans only on earlier ones.
+- **A chapter:** why it matters in the machine, what you will be able to do, the chapters it needs, then its topics: the windows the topic pages already have, in the order of depth (show, flow and interfaces, engineering, math, faults, integration), text open, simulations and 3D one press away inside the chapter, the rest under "for more depth". Two questions after each topic, and a bridge to the next chapter.
+- **Certification:** each chapter ends in a test of up to ten cards (multiple choice first); 80% certifies the chapter. A failed test lists what to review; every answer goes into the spaced repetition store. The last chapter is a final exam of 20 cards across the whole book, with three field tasks (a live fault in the machine, the fault challenge, the twelve principles).
+- **Chapter 0:** what the course is, the machine at a glance, the five scales and the chapters that cover them, how to learn here (predict, retrieve, space), and a self-check that recommends where to start.
+- The book is first in the views bar; its progress is kept in this browser.
+- Tests: a new suite `book` (99 checks).
+
 ## [2.49.0] — 2026-11-16
 
 A fault for each principle that had none.
