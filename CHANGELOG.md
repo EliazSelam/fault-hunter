@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.47.0] — 2026-11-16
+
+The vacuum table and the safety chain, working in 3D.
+
+- **Vacuum table** (window of the vacuum topic, first in its demonstrations): press, and the panel comes down; the solenoid valve sends compressed air through the venturi (nozzle, throat, diffuser, muffler, built as they are); the throat sucks the zones under the panel; air is drawn as moving points, through the pipes. The gauge, the pressure, the time, the clamping force and the pressure switch follow the vacuum model (`vacCalc`): the switch closes at its threshold time (2.01 s), and the panel's bow flattens by the clamp model. A small panel with every zone open adds leaks: the pressure settles above the threshold and the machine waits; opening only the zones under the panel fixes it. The leak of an open zone is an illustrative value, and the window says so.
+- **Safety chain** (window of the safety topic): a glass door with its switch and actuator, an emergency stop, a safety relay (K1, K2, fault light), a drive and its motor, and two channels as two wires with current moving in them. Reset starts it; opening the door or pressing the stop trips it, with the reaction time and stopping distance of the stop model (40 ms, 45 mm at 0.5 m/s braked at 5 m/s²); closing the door does not start it. A welded contact in channel B: the next demand still stops the machine through channel A, and the next Reset is refused and locks until both channels open again.
+- The chain's logic is one pure function (`chainLogic`), checked step by step.
+- Tests: 10 new checks in the `path` suite (72 in all).
+
 ## [2.46.0] — 2026-11-16
 
 A live fault in the running machine, and the central subjects on the world map.

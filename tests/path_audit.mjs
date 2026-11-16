@@ -126,6 +126,31 @@ ok(LF.reset, 'switching machine keeps "random"'); ok(LF.defocus, 'defocus: every
 ok(LF.lineTargets, 'on the line, a defect the scan missed is not sent to repair');
 const WC = await ev(() => { const L = zLinks(), c = L.filter(e => e.k === 'central'), has = (a, b) => c.some(e => (e.a === a && e.b === b) || (e.a === b && e.b === a)); return { n: c.length, chain: has('bringup', 'enc') && has('enc', 'cam') && has('cam', 'optics') && has('optics', 'reg'), clean: c.every(e => zNode(e.a) && zNode(e.b) && e.a !== e.b) }; });
 ok(WC.n >= 15 && WC.chain && WC.clean, 'the world map links the central subjects: calibration runs warm-up, axis, camera, focus, registration (' + WC.n + ' links)');
+/* v2.47: the vacuum table and the safety chain run in 3D */
+const CL = await ev(() => { let S = Object.assign({}, CHAIN0); const seq = ['reset', 'door', 'reset', 'door', 'reset', 'weld', 'door', 'door', 'reset', 'weld', 'door', 'door', 'reset', 'estop', 'reset'], out = seq.map(e => { S = chainLogic(S, e); return [S.on, S.fault, S.msg].join(':'); }); return out.join(' '); });
+ok(CL === 'true:false:run false:false:trip false:false:open false:false:closed true:false:run true:false:run false:false:trip false:false:closed false:true:disc false:true:disc false:true:open false:true:closed true:false:run false:false:trip false:false:open', 'safety chain logic: starts only on Reset with both channels closed; any channel trips it; a welded channel is found at the next Reset and locks it until both channels cycle (' + CL + ')');
+await ev(() => { localStorage.clear(); zOpenWindow('vac', '3d:vacuum'); }); await pg.waitForTimeout(1200);
+const V3 = await ev(() => { const el = document.querySelector('.fh3dhost'), h = el && el.parentNode.fh3d; if (!h) return { h: false }; const vc = vacCalc(), o = { h: true };
+  const a = h.seek(vc.tth - 0.05), b = h.seek(vc.tth + 0.05); o.sw = !a.ok && b.ok && Math.abs(b.tth - vc.tth) < 1e-9 && Math.abs(b.p - vc.P(vc.tth + 0.05)) < 1e-9 && Math.abs(b.F - (VT.patm - b.p) * VT.A) < 1e-9;
+  h.set({ small: true }); const c = h.seek(10 * vac3Calc(true, 'all').tau); o.leak = !c.ok && !c.reach && c.open === 2 && c.pss > VT.patm - VT.th && c.alarm;
+  h.set({ recipe: 'under' }); const d = h.seek(6); o.fixed = d.ok && d.open === 0 && Math.abs(d.F - (VT.patm - d.p) * VT.A / 2) < 1e-9 && !d.alarm;
+  const st = h.getState(); h.setState({ small: false, recipe: 'all' }); o.state = st.small === true && st.recipe === 'under' && h.getState().small === false;
+  h.reset(); o.idle = h.state().phase === 'idle' && h.state().dp === 0; return o; });
+ok(V3.h, 'the vacuum table window mounts its 3D handle');
+ok(V3.sw, 'vacuum 3D: the switch closes at the model’s threshold time, with the model’s pressure and force');
+ok(V3.leak, 'vacuum 3D: a small panel with every zone open settles above the threshold, and the machine waits (alarm)');
+ok(V3.fixed, 'vacuum 3D: opening only the zones under the panel reaches the threshold; the force is on half the area');
+ok(V3.state && V3.idle, 'vacuum 3D: its state is saved and restored, and release returns it to idle');
+await ev(() => zOpenWindow('safety', '3d:chain')); await pg.waitForTimeout(1200);
+const C3 = await ev(() => { const el = document.querySelector('.fh3dhost'), h = el && el.parentNode.fh3d; if (!h) return { h: false }; const o = { h: true };
+  h.event('reset'); let s = h.settle(); o.run = s.on && s.speed === 1 && /STO/.test(document.querySelector('.fh3d-stats').textContent) === false;
+  h.event('door'); s = h.settle(); o.trip = !s.on && s.alarm && /40 ms/.test(s.msgText) && /45 mm/.test(s.msgText);
+  h.event('door'); h.event('weld'); h.event('reset'); h.event('door'); h.event('door'); s = h.event('reset'); o.disc = s.fault && !s.on && s.alarm;
+  const st = h.getState(); h.setState({ logic: CHAIN0 }); o.state = st.logic.fault === true && h.state().fault === false; return o; });
+ok(C3.h && C3.run, 'safety chain 3D: Reset starts the drive and the motor turns');
+ok(C3.trip, 'safety chain 3D: opening the door trips it, with the stop model’s reaction time (40 ms) and stopping distance (45 mm)');
+ok(C3.disc && C3.state, 'safety chain 3D: a welded channel is caught at the next Reset; its state is saved and restored');
+ok(await ev(() => ['3d:vacuum', '3d:chain'].every(w => zSimList().some(s => s.w === w) && hubOf(w) === 'show') && zWindows(zNode('vac')).includes('3d:vacuum') && zWindows(zNode('safety')).includes('3d:chain')), 'both are windows of their topics, in the demonstrations, and in the gallery');
 /* the central page */
 await ev(() => go('zoom', 'central')); await pg.waitForTimeout(150);
 const C = await ev(() => ({ chips: document.querySelectorAll('[data-cs]').length, items: document.querySelectorAll('.pth-items li').length, first: document.querySelector('.pth-items b').textContent }));
