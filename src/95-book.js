@@ -139,7 +139,8 @@ function bookCards(c, seed) {
   ids.forEach(s => pathCards(s).forEach(card => { if (!seen.has(card.id)) { seen.add(card.id); all.push(Object.assign({ stage: s }, card)); } }));
   const h = x => pathHash(seed + x.id); return all.sort((a, b) => (a.k === 'mc' ? 0 : 1) - (b.k === 'mc' ? 0 : 1) || h(a) - h(b));
 }
-function bookExamCards(c, seed) { const all = bookCards(c, seed), n = c.final ? 20 : BEXAM; if (!c.final) return all.slice(0, n);
+function bookExamCards(c, seed) { const all = bookCards(c, seed), n = c.final ? 20 : BEXAM;
+  if (!c.final) { const mc = all.filter(x => x.k === 'mc'), calc = all.filter(x => x.k === 'calc'), rest = all.filter(x => x.k !== 'mc' && x.k !== 'calc'), pick = [...mc.slice(0, 6), ...calc.slice(0, 2)]; return [...pick, ...rest].slice(0, n).concat(mc.slice(6), calc.slice(2)).slice(0, n); }
   const by = {}; all.forEach(x => (by[x.stage] = by[x.stage] || []).push(x)); const keys = Object.keys(by).sort((a, b) => pathHash(seed + a) - pathHash(seed + b)), out = []; let i = 0; while (out.length < n && keys.some(k => by[k].length)) { const k = keys[i++ % keys.length]; if (by[k].length) out.push(by[k].shift()); } return out; }
 const bookStatus = (B, id) => B.exam[id] && B.exam[id].ok ? 'done' : B.read[id] ? 'read' : 'new';
 
@@ -184,18 +185,20 @@ function bookWin(hb, w, node) { const i = zInfo(w), open = BOOK_OPEN.has(i.kind)
   return `<div class="bk-win" data-w="${w}" data-n="${node}"><div class="bk-wh"><span class="kb" style="--c:${hb[4]}">${hb[1]}</span> <b>${(ZKIND[i.kind] || [''])[0]}${(ZKIND[i.kind] || [''])[0] ? ': ' : ''}${i.t}</b> <button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">בעמוד הנושא ↗</button></div><div class="bk-wb">${open ? '' : `<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>`}</div></div>`; }
 function bookMount(el) { const b = el.querySelector('.bk-wb'); if (b.dataset.done) return; b.dataset.done = 1; b.innerHTML = ''; try { zMount(el.dataset.w, b); } catch (e) { b.innerHTML = '<p class="note">החלון לא נפתח כאן. אפשר לפתוח אותו בעמוד הנושא.</p>'; } }
 /* two questions after a topic, from the same cards as the path */
-function bookChecks(stage) { const cs = pathCards(stage).filter(c => c.k === 'mc').slice(0, 2), rc = cs.length < 2 ? pathCards(stage).filter(c => c.k !== 'mc').slice(0, 2 - cs.length) : [];
-  const all = [...cs, ...rc]; if (!all.length) return '';
-  return `<div class="bk-check"><p><b>בדוק את עצמך</b></p>${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
-    : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}</div>`; }
+function bookChecks(stage) { const cards = pathCards(stage), cs = cards.filter(c => c.k === 'mc').slice(0, 2), rc = cs.length < 2 ? cards.filter(c => c.k === 'recall').slice(0, 2 - cs.length) : [], calc = cards.filter(c => c.k === 'calc').slice(0, 2);
+  const all = [...cs, ...rc]; if (!all.length && !calc.length) return '';
+  return `<div class="bk-check">${all.length ? `<p><b>בדוק את עצמך</b></p>` : ''}${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
+    : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}
+    ${calc.length ? `<p><b>פיתוח מתמטי</b> <small>(הנתונים מתחלפים כל יום)</small></p>${calc.map(c => `<div class="bk-calc" data-cid="${c.id}"></div>`).join('')}` : ''}</div>`; }
 function bookWire(A, B, c) {
   A.querySelectorAll('.bk-win').forEach(el => { const k = zInfo(el.dataset.w).kind; if (BOOK_OPEN.has(k)) bookMount(el); const m = el.querySelector('[data-mount]'); if (m) m.addEventListener('click', () => bookMount(el)); });
   A.querySelectorAll('[data-ow]').forEach(b => b.addEventListener('click', () => zOpenWindow(b.dataset.on, b.dataset.ow)));
   A.querySelectorAll('[data-bn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.bn)));
   A.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
+  A.querySelectorAll('.bk-calc').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); if (card) bqMount(el, card, pathDay(), ok => reviewRecord(card.id, ok)); });
   A.querySelectorAll('.bk-check .tq').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); el.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a, r = el.querySelector('.tqr');
-    el.querySelectorAll('[data-o]').forEach(x => x.setAttribute('aria-pressed', x === b)); r.hidden = false; r.innerHTML = `<b>${ok ? 'נכון.' : 'לא בדיוק.'}</b> ${card.why || ''}`; reviewRecord(card.id, ok); })); });
-  A.querySelectorAll('[data-bx]').forEach(b => b.addEventListener('click', () => { const N = bookLoad(); N.read[c.id] = 1; bookSave(N); BV.exam = { ch: c.id, cards: bookExamCards(c, String(Date.now())), i: 0, right: 0, ans: [] }; zBookView(); window.scrollTo(0, 0); }));
+    el.querySelectorAll('[data-o]').forEach(x => { x.setAttribute('aria-pressed', x === b); x.classList.toggle('right', +x.dataset.o === card.a); x.classList.toggle('wrong', x === b && !ok); }); r.hidden = false; r.innerHTML = `<b>${ok ? 'נכון.' : 'לא בדיוק.'}</b> ${bidi(card.why || '')}`; reviewRecord(card.id, ok); })); });
+  A.querySelectorAll('[data-bx]').forEach(b => b.addEventListener('click', () => { const N = bookLoad(); N.read[c.id] = 1; bookSave(N); (() => { const sd = String(Date.now()); BV.exam = { ch: c.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; })(); zBookView(); window.scrollTo(0, 0); }));
   A.querySelectorAll('[data-can]').forEach(b => b.addEventListener('change', () => { const N = bookLoad(); N.can[b.dataset.can] = b.checked; bookSave(N); bookPlace(A, N); }));
   A.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const [s, a] = b.dataset.go.split('|'); go(s, a || undefined); }));
 }
@@ -210,14 +213,18 @@ function bookExam() {
       ${all ? `<div class="bk-cert"><h3>🎓 סיימת את כל הקורס</h3><p>עברת את מבחני כל ${order.length - 1} הפרקים ואת המבחן המסכם.</p></div>` : ''}
       <p><button type="button" class="pth-go" id="bkBack">חזרה לפרק</button> ${ok && next ? `<button type="button" class="pth-go" id="bkNext">לפרק ${bookCh()[next].n} ←</button>` : `<button type="button" id="bkAgain">מבחן חוזר</button>`}</p></div>`;
     $('#bkBack').addEventListener('click', () => zBookView()); const n = $('#bkNext'); if (n) n.addEventListener('click', () => { BV.ch = next; zBookView(); });
-    const a = $('#bkAgain'); if (a) a.addEventListener('click', () => { BV.exam = { ch: c.id, cards: bookExamCards(c, String(Date.now())), i: 0, right: 0, ans: [] }; zBookView(); }); return; }
-  const card = E.cards[E.i], fin = ok => { reviewRecord(card.id, ok); if (ok) E.right++; E.ans.push({ ok, q: card.q, why: card.k === 'mc' ? `${card.o[card.a]}. ${card.why || ''}` : card.a }); E.i++; zBookView(); };
+    const a = $('#bkAgain'); if (a) a.addEventListener('click', () => { (() => { const sd = String(Date.now()); BV.exam = { ch: c.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; })(); zBookView(); }); return; }
+  const card = E.cards[E.i], rec = (ok, why) => { reviewRecord(card.id, ok); if (ok) E.right++; E.ans.push({ ok, q: card.q, why }); E.i++; }, next = () => zBookView();
+  const cont = (ok, html) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}">${html || ''}<p><button type="button" class="pth-go" id="bkCont">המשך</button></p></div>`); const b = $('#bkCont'); b.focus(); b.addEventListener('click', next); };
   content.innerHTML = `<div class="pth-play"><div class="pth-head"><button type="button" id="bkX" aria-label="יציאה מהמבחן">✕</button><span class="pth-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${E.cards.length}" aria-valuenow="${E.i}"><i style="width:${Math.round(E.i / E.cards.length * 100)}%"></i></span><span>${E.i + 1}/${E.cards.length}</span></div>
-    <p class="kb">מבחן פרק ${c.n}: ${c.t}</p><h3 class="pth-q">${card.q}</h3><div id="bkA"></div></div>`;
+    <p class="kb">מבחן פרק ${c.n}: ${c.t}</p>${card.k === 'calc' ? '' : `<h3 class="pth-q">${card.q}</h3>`}<div id="bkA" aria-live="polite"></div></div>`;
   $('#bkX').addEventListener('click', () => { BV.exam = null; zBookView(); }); const A = $('#bkA');
-  if (card.k === 'mc') { A.innerHTML = `<div class="tp">${card.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div>`; A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => fin(+b.dataset.o === card.a))); }
+  if (card.k === 'calc') { const I = bqMount(A, card, E.seed + ':' + E.i, ok => { rec(ok, `${I.q} התשובה: ${qn(I.ans, 4)} ${I.unit}`); cont(ok, ''); }); }
+  else if (card.k === 'mc') { A.innerHTML = `<div class="tp">${card.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div>`;
+    A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a; A.querySelectorAll('[data-o]').forEach(x => { x.disabled = true; if (+x.dataset.o === card.a) x.classList.add('right'); }); if (!ok) b.classList.add('wrong');
+      rec(ok, `${card.o[card.a]}. ${card.why || ''}`); cont(ok, `<b>${ok ? 'נכון.' : 'לא זה.'}</b> ${bidi(card.why || '')}`); })); }
   else { A.innerHTML = `<p class="note">שאלה פתוחה: ענה לעצמך, הצג את התשובה, ודרג בכנות.</p><p><button type="button" id="bkShow">הצג תשובה</button></p>`;
-    $('#bkShow').addEventListener('click', () => { A.innerHTML = `<div class="pth-ans"><b>תשובה:</b> ${card.a}${card.why ? `<p class="note">${card.why}</p>` : ''}</div><p><button type="button" class="pth-go" id="bkY">ידעתי</button> <button type="button" id="bkN">לא ידעתי</button></p>`; $('#bkY').addEventListener('click', () => fin(true)); $('#bkN').addEventListener('click', () => fin(false)); }); }
+    $('#bkShow').addEventListener('click', () => { A.innerHTML = `<div class="pth-ans"><b>תשובה:</b> ${card.a}${card.why ? `<p class="note">${card.why}</p>` : ''}</div><p><button type="button" class="pth-go" id="bkY">ידעתי</button> <button type="button" id="bkN">לא ידעתי</button></p>`; $('#bkY').addEventListener('click', () => { rec(true, card.a); next(); }); $('#bkN').addEventListener('click', () => { rec(false, card.a); next(); }); }); }
 }
 
 /* ---- chapter 0: the course, the machine and the method, and where to start ---- */

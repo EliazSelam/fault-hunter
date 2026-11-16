@@ -516,6 +516,7 @@ ol.tsteps .ts{color:var(--live-text)}
 .bk-win{border:1px solid #D6E8F7;border-radius:12px;margin:10px 0;overflow:hidden}.bk-wh{background:#EEE9E0;padding:6px 12px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bk-wh .kb{background:var(--c);color:#EEE9E0;border-color:var(--c)}.bk-wb{padding:8px 12px}.bk-wb:empty{display:none}
 .bk-check{background:#EEE9E0;border-radius:12px;padding:8px 14px;margin:10px 0}.bk-more summary{cursor:pointer;color:#3078B0}.bk-can{border:1px solid #D6E8F7;border-radius:10px;margin:8px 0;padding:6px 12px}.bk-can legend{font-weight:700;color:#1B2F5A;padding:0 4px}.bk-can label{display:block;margin:3px 0}
 .bk-cert{border:3px double #7B5A3C;border-radius:14px;padding:12px;margin:12px auto;max-width:460px;background:#EEE9E0}
+.bq-calc{border:1px solid #3078B0;border-radius:12px;padding:8px 14px;margin:8px 0;background:#fff}.bq-q{font-weight:600;color:#1B2F5A}.bq-in{width:9em;font:inherit;padding:4px 8px;border:1px solid #3078B0;border-radius:8px;text-align:left}.bq-show{font:inherit;background:none;border:1px solid #7B5A3C;color:#7B5A3C;border-radius:999px;padding:4px 12px;cursor:pointer}.bq-ok{color:#1B2F5A;background:#D6E8F7;border-radius:8px;padding:6px 10px}.bq-no{color:#7B5A3C;background:#EEE9E0;border-radius:8px;padding:6px 10px}.bq-steps li{margin:3px 0}.bk-check .tp button.right,.pth-play .tp button.right{background:#D6E8F7;border-color:#1B2F5A;font-weight:700}.bk-check .tp button.wrong{border-color:#7B5A3C;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -10656,6 +10657,7 @@ function pathCards(stageId) { if (PCARD_CACHE[stageId]) return PCARD_CACHE[stage
 function pathCards0(stageId) {
   const st = pathStages()[stageId]; if (!st) return []; const out = [], seen = new Set(), add = c => { if (c && !seen.has(c.id)) { seen.add(c.id); out.push(c); } };
   if (st.node) {
+    if (typeof bqCards === 'function') bqCards(st.node).forEach(add);   /* the book's own questions first: intuition and calculation */
     const n = zNode(st.node), ws = zWindows(n), T = TOPICS.find(x => zTopicNode(x.id) === n);
     if (T) {
       T.quiz.forEach((x, i) => add({ id: `${T.id}:q:${i}`, k: 'mc', q: x[0], o: x[1], a: x[2], why: x[3], src: T.t }));
@@ -10794,8 +10796,9 @@ function pathPlay() {
     <p class="kb">${pathEsc(st.t)}${it.retry ? ' · חזרה על טעות' : ''}</p><h3 class="pth-q" lang="he">${c.q}</h3><div id="pthA" aria-live="polite"></div></div>`;
   $('#pthX').addEventListener('click', () => { PV.sess = null; zPathView(); });
   const A = $('#pthA'), fin = () => { PV.sess = S; zPathView(); };
-  const feedback = (ok, why) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'נכון' : 'לא נכון'}</b>${why ? ` ${why}` : ''}${!ok && it.retry === undefined ? ' <small>הכרטיס יחזור בסוף.</small>' : ''}<p><button type="button" class="pth-go" id="pthNext">המשך</button></p></div>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); };
-  if (c.k === 'mc') {
+  const feedback = (ok, why) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'נכון' : 'לא נכון'}</b>${why ? ` ${bidi(why)}` : ''}${!ok && it.retry === undefined ? ' <small>הכרטיס יחזור בסוף.</small>' : ''}<p><button type="button" class="pth-go" id="pthNext">המשך</button></p></div>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); };
+  if (c.k === 'calc') { bqMount(A, c, S.now + ':' + S.i, ok => { pathAnswer(S, ok); A.insertAdjacentHTML('beforeend', `<p><button type="button" class="pth-go" id="pthNext">המשך</button></p>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); }); }
+  else if (c.k === 'mc') {
     A.innerHTML = `<div class="tp">${c.o.map((x, j) => `<button type="button" data-o="${j}">${x}</button>`).join('')}</div>`;
     A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === c.a; A.querySelectorAll('[data-o]').forEach(x => { x.disabled = true; if (+x.dataset.o === c.a) x.classList.add('right'); }); if (!ok) b.classList.add('wrong'); pathAnswer(S, ok); feedback(ok, c.why); }));
   } else {
@@ -11226,7 +11229,8 @@ function bookCards(c, seed) {
   ids.forEach(s => pathCards(s).forEach(card => { if (!seen.has(card.id)) { seen.add(card.id); all.push(Object.assign({ stage: s }, card)); } }));
   const h = x => pathHash(seed + x.id); return all.sort((a, b) => (a.k === 'mc' ? 0 : 1) - (b.k === 'mc' ? 0 : 1) || h(a) - h(b));
 }
-function bookExamCards(c, seed) { const all = bookCards(c, seed), n = c.final ? 20 : BEXAM; if (!c.final) return all.slice(0, n);
+function bookExamCards(c, seed) { const all = bookCards(c, seed), n = c.final ? 20 : BEXAM;
+  if (!c.final) { const mc = all.filter(x => x.k === 'mc'), calc = all.filter(x => x.k === 'calc'), rest = all.filter(x => x.k !== 'mc' && x.k !== 'calc'), pick = [...mc.slice(0, 6), ...calc.slice(0, 2)]; return [...pick, ...rest].slice(0, n).concat(mc.slice(6), calc.slice(2)).slice(0, n); }
   const by = {}; all.forEach(x => (by[x.stage] = by[x.stage] || []).push(x)); const keys = Object.keys(by).sort((a, b) => pathHash(seed + a) - pathHash(seed + b)), out = []; let i = 0; while (out.length < n && keys.some(k => by[k].length)) { const k = keys[i++ % keys.length]; if (by[k].length) out.push(by[k].shift()); } return out; }
 const bookStatus = (B, id) => B.exam[id] && B.exam[id].ok ? 'done' : B.read[id] ? 'read' : 'new';
 
@@ -11271,18 +11275,20 @@ function bookWin(hb, w, node) { const i = zInfo(w), open = BOOK_OPEN.has(i.kind)
   return `<div class="bk-win" data-w="${w}" data-n="${node}"><div class="bk-wh"><span class="kb" style="--c:${hb[4]}">${hb[1]}</span> <b>${(ZKIND[i.kind] || [''])[0]}${(ZKIND[i.kind] || [''])[0] ? ': ' : ''}${i.t}</b> <button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">בעמוד הנושא ↗</button></div><div class="bk-wb">${open ? '' : `<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>`}</div></div>`; }
 function bookMount(el) { const b = el.querySelector('.bk-wb'); if (b.dataset.done) return; b.dataset.done = 1; b.innerHTML = ''; try { zMount(el.dataset.w, b); } catch (e) { b.innerHTML = '<p class="note">החלון לא נפתח כאן. אפשר לפתוח אותו בעמוד הנושא.</p>'; } }
 /* two questions after a topic, from the same cards as the path */
-function bookChecks(stage) { const cs = pathCards(stage).filter(c => c.k === 'mc').slice(0, 2), rc = cs.length < 2 ? pathCards(stage).filter(c => c.k !== 'mc').slice(0, 2 - cs.length) : [];
-  const all = [...cs, ...rc]; if (!all.length) return '';
-  return `<div class="bk-check"><p><b>בדוק את עצמך</b></p>${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
-    : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}</div>`; }
+function bookChecks(stage) { const cards = pathCards(stage), cs = cards.filter(c => c.k === 'mc').slice(0, 2), rc = cs.length < 2 ? cards.filter(c => c.k === 'recall').slice(0, 2 - cs.length) : [], calc = cards.filter(c => c.k === 'calc').slice(0, 2);
+  const all = [...cs, ...rc]; if (!all.length && !calc.length) return '';
+  return `<div class="bk-check">${all.length ? `<p><b>בדוק את עצמך</b></p>` : ''}${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
+    : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}
+    ${calc.length ? `<p><b>פיתוח מתמטי</b> <small>(הנתונים מתחלפים כל יום)</small></p>${calc.map(c => `<div class="bk-calc" data-cid="${c.id}"></div>`).join('')}` : ''}</div>`; }
 function bookWire(A, B, c) {
   A.querySelectorAll('.bk-win').forEach(el => { const k = zInfo(el.dataset.w).kind; if (BOOK_OPEN.has(k)) bookMount(el); const m = el.querySelector('[data-mount]'); if (m) m.addEventListener('click', () => bookMount(el)); });
   A.querySelectorAll('[data-ow]').forEach(b => b.addEventListener('click', () => zOpenWindow(b.dataset.on, b.dataset.ow)));
   A.querySelectorAll('[data-bn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.bn)));
   A.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
+  A.querySelectorAll('.bk-calc').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); if (card) bqMount(el, card, pathDay(), ok => reviewRecord(card.id, ok)); });
   A.querySelectorAll('.bk-check .tq').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); el.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a, r = el.querySelector('.tqr');
-    el.querySelectorAll('[data-o]').forEach(x => x.setAttribute('aria-pressed', x === b)); r.hidden = false; r.innerHTML = `<b>${ok ? 'נכון.' : 'לא בדיוק.'}</b> ${card.why || ''}`; reviewRecord(card.id, ok); })); });
-  A.querySelectorAll('[data-bx]').forEach(b => b.addEventListener('click', () => { const N = bookLoad(); N.read[c.id] = 1; bookSave(N); BV.exam = { ch: c.id, cards: bookExamCards(c, String(Date.now())), i: 0, right: 0, ans: [] }; zBookView(); window.scrollTo(0, 0); }));
+    el.querySelectorAll('[data-o]').forEach(x => { x.setAttribute('aria-pressed', x === b); x.classList.toggle('right', +x.dataset.o === card.a); x.classList.toggle('wrong', x === b && !ok); }); r.hidden = false; r.innerHTML = `<b>${ok ? 'נכון.' : 'לא בדיוק.'}</b> ${bidi(card.why || '')}`; reviewRecord(card.id, ok); })); });
+  A.querySelectorAll('[data-bx]').forEach(b => b.addEventListener('click', () => { const N = bookLoad(); N.read[c.id] = 1; bookSave(N); (() => { const sd = String(Date.now()); BV.exam = { ch: c.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; })(); zBookView(); window.scrollTo(0, 0); }));
   A.querySelectorAll('[data-can]').forEach(b => b.addEventListener('change', () => { const N = bookLoad(); N.can[b.dataset.can] = b.checked; bookSave(N); bookPlace(A, N); }));
   A.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const [s, a] = b.dataset.go.split('|'); go(s, a || undefined); }));
 }
@@ -11297,14 +11303,18 @@ function bookExam() {
       ${all ? `<div class="bk-cert"><h3>🎓 סיימת את כל הקורס</h3><p>עברת את מבחני כל ${order.length - 1} הפרקים ואת המבחן המסכם.</p></div>` : ''}
       <p><button type="button" class="pth-go" id="bkBack">חזרה לפרק</button> ${ok && next ? `<button type="button" class="pth-go" id="bkNext">לפרק ${bookCh()[next].n} ←</button>` : `<button type="button" id="bkAgain">מבחן חוזר</button>`}</p></div>`;
     $('#bkBack').addEventListener('click', () => zBookView()); const n = $('#bkNext'); if (n) n.addEventListener('click', () => { BV.ch = next; zBookView(); });
-    const a = $('#bkAgain'); if (a) a.addEventListener('click', () => { BV.exam = { ch: c.id, cards: bookExamCards(c, String(Date.now())), i: 0, right: 0, ans: [] }; zBookView(); }); return; }
-  const card = E.cards[E.i], fin = ok => { reviewRecord(card.id, ok); if (ok) E.right++; E.ans.push({ ok, q: card.q, why: card.k === 'mc' ? `${card.o[card.a]}. ${card.why || ''}` : card.a }); E.i++; zBookView(); };
+    const a = $('#bkAgain'); if (a) a.addEventListener('click', () => { (() => { const sd = String(Date.now()); BV.exam = { ch: c.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; })(); zBookView(); }); return; }
+  const card = E.cards[E.i], rec = (ok, why) => { reviewRecord(card.id, ok); if (ok) E.right++; E.ans.push({ ok, q: card.q, why }); E.i++; }, next = () => zBookView();
+  const cont = (ok, html) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}">${html || ''}<p><button type="button" class="pth-go" id="bkCont">המשך</button></p></div>`); const b = $('#bkCont'); b.focus(); b.addEventListener('click', next); };
   content.innerHTML = `<div class="pth-play"><div class="pth-head"><button type="button" id="bkX" aria-label="יציאה מהמבחן">✕</button><span class="pth-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${E.cards.length}" aria-valuenow="${E.i}"><i style="width:${Math.round(E.i / E.cards.length * 100)}%"></i></span><span>${E.i + 1}/${E.cards.length}</span></div>
-    <p class="kb">מבחן פרק ${c.n}: ${c.t}</p><h3 class="pth-q">${card.q}</h3><div id="bkA"></div></div>`;
+    <p class="kb">מבחן פרק ${c.n}: ${c.t}</p>${card.k === 'calc' ? '' : `<h3 class="pth-q">${card.q}</h3>`}<div id="bkA" aria-live="polite"></div></div>`;
   $('#bkX').addEventListener('click', () => { BV.exam = null; zBookView(); }); const A = $('#bkA');
-  if (card.k === 'mc') { A.innerHTML = `<div class="tp">${card.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div>`; A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => fin(+b.dataset.o === card.a))); }
+  if (card.k === 'calc') { const I = bqMount(A, card, E.seed + ':' + E.i, ok => { rec(ok, `${I.q} התשובה: ${qn(I.ans, 4)} ${I.unit}`); cont(ok, ''); }); }
+  else if (card.k === 'mc') { A.innerHTML = `<div class="tp">${card.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div>`;
+    A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a; A.querySelectorAll('[data-o]').forEach(x => { x.disabled = true; if (+x.dataset.o === card.a) x.classList.add('right'); }); if (!ok) b.classList.add('wrong');
+      rec(ok, `${card.o[card.a]}. ${card.why || ''}`); cont(ok, `<b>${ok ? 'נכון.' : 'לא זה.'}</b> ${bidi(card.why || '')}`); })); }
   else { A.innerHTML = `<p class="note">שאלה פתוחה: ענה לעצמך, הצג את התשובה, ודרג בכנות.</p><p><button type="button" id="bkShow">הצג תשובה</button></p>`;
-    $('#bkShow').addEventListener('click', () => { A.innerHTML = `<div class="pth-ans"><b>תשובה:</b> ${card.a}${card.why ? `<p class="note">${card.why}</p>` : ''}</div><p><button type="button" class="pth-go" id="bkY">ידעתי</button> <button type="button" id="bkN">לא ידעתי</button></p>`; $('#bkY').addEventListener('click', () => fin(true)); $('#bkN').addEventListener('click', () => fin(false)); }); }
+    $('#bkShow').addEventListener('click', () => { A.innerHTML = `<div class="pth-ans"><b>תשובה:</b> ${card.a}${card.why ? `<p class="note">${card.why}</p>` : ''}</div><p><button type="button" class="pth-go" id="bkY">ידעתי</button> <button type="button" id="bkN">לא ידעתי</button></p>`; $('#bkY').addEventListener('click', () => { rec(true, card.a); next(); }); $('#bkN').addEventListener('click', () => { rec(false, card.a); next(); }); }); }
 }
 
 /* ---- chapter 0: the course, the machine and the method, and where to start ---- */
@@ -11355,6 +11365,304 @@ function bookFinalBody(B) { const done = bookOrder().filter(id => id !== 'b0' &&
   <section class="bk-box bk-end"><h3>המבחן המסכם</h3><p><button type="button" class="pth-go" data-bx="b28">${bookStatus(B, 'b28') === 'done' ? '↻ מבחן חוזר' : '▶ למבחן המסכם'}</button></p></section>`; }
 
 ZVIEW.add('book', { group: 'main', order: 0.5, title: '📖 הספר', render: arg => zBookView(arg) });
+/* ============ Questions for the book and the path: intuition and calculation (v2.51) ============
+   Two kinds, keyed by topic:
+   - mc:   [question, options, answer index, the intuitive answer, optional why-not per option]. The intuitive answer explains with
+           a picture first, then the physics, so the right option makes sense rather than being remembered.
+   - calc: a calculation that is not done in the head. gen(r) draws fresh, non-round givens from a seeded generator and returns
+           the question, the unit, the answer computed in code (never typed by hand) and the derivation step by step with the
+           numbers filled in. A calculator is allowed; the answer is accepted within a relative tolerance (2% unless stated).
+   Both become cards of their topic (pathCards), so they are in the book, in the path sessions, in the chapter tests and in the
+   spaced repetition store. */
+const qRng = seed => { let a = pathHash(String(seed)) || 1; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+const qv = (r, a, b, d = 2) => +(a + (b - a) * r()).toFixed(d);          /* a value in [a, b] with d decimals */
+const qn = (x, d = 3) => { if (!Number.isFinite(x)) return '∞'; const ax = Math.abs(x); return ax >= 100 ? x.toFixed(Math.max(0, d - 3)) : ax >= 10 ? x.toFixed(Math.max(0, d - 2)) : ax >= 1 ? x.toFixed(Math.max(0, d - 1)) : ax === 0 ? '0' : String(+x.toPrecision(d)); };
+const qb = t => `<bdi dir="ltr">${t}</bdi>`;
+const BQ = {
+  resistor: { mc: [
+    ['שני נגדים בטור על 12V: אחד של 1kΩ ואחד של 10kΩ. על איזה מהם נופל יותר מתח?', ['על ה-10kΩ', 'על ה-1kΩ', 'אותו מתח על שניהם', 'תלוי בכיוון הזרם'], 0,
+      'בטור יש מסלול אחד, ולכן אותו זרם עובר בשניהם. מתח הוא הזרם כפול ההתנגדות (V = I · R), אז היכן שההתנגדות גדולה פי 10, גם המתח גדול פי 10: בערך 10.9V מול 1.1V. תמונה: אותה כמות מים עוברת בצינור רחב ובצינור צר, והלחץ "נשרף" בצר.'],
+    ['מוסיפים נגד שני במקביל לנגד קיים. ההתנגדות הכוללת:', ['קטנה מהקטן מבין השניים', 'גדלה', 'הממוצע של השניים', 'לא משתנה'], 0,
+      'מקביל הוא עוד מסלול לזרם, כמו לפתוח קופה נוספת בסופר: התור לא יכול להתארך, הוא רק מתקצר. לכן הכולל קטן אפילו מהנגד הקטן. 1/R = 1/R₁ + 1/R₂.'],
+    ['נגד של 470Ω בדירוג 0.25W מחובר ישירות ל-12V. מה יקרה?', ['יתחמם מעבר לדירוג ויתקצר חייו', 'יעבוד רגיל, הדירוג הוא רק המלצה', 'הזרם יוגבל ל-0.25W אוטומטית', 'המתח עליו יירד ל-6V'], 0,
+      'ההספק הוא V² / R = 144 / 470 ≈ 0.31W, יותר מ-0.25W. הנגד לא "מגביל" את עצמו: הוא פשוט הופך את כל ההספק הזה לחום. אינטואיציה: ברז שזורם דרכו יותר ממה שתוכנן, ושום דבר לא סוגר אותו.']],
+    calc: [
+      { t: 'נגד טורי לנורית', gen: r => { const V = qv(r, 11.5, 27.5, 1), Vf = qv(r, 1.8, 3.2, 2), I = qv(r, 4, 18, 1), R = (V - Vf) / (I / 1000);
+        return { q: `נורית עם מתח הולכה ${qb(Vf + ' V')} צריכה ${qb(I + ' mA')}, מספק של ${qb(V + ' V')}. מה הנגד הטורי?`, unit: 'Ω', ans: R,
+          steps: [`על הנגד נופל כל מה שלא נופל על הנורית: V_R = ${V} − ${Vf} = ${qn(V - Vf)} V`, `אותו זרם בשניהם (טור): I = ${I} mA = ${qn(I / 1000, 4)} A`, `R = V_R / I = ${qn(V - Vf)} / ${qn(I / 1000, 4)} = ${qn(R, 4)} Ω`] }; } },
+      { t: 'הספק בנגד', gen: r => { const V = qv(r, 3.3, 24, 2), R = qv(r, 82, 2700, 0), P = V * V / R * 1000;
+        return { q: `על נגד של ${qb(R + ' Ω')} נמדדו ${qb(V + ' V')}. כמה הספק הוא מפזר, במיליוואט?`, unit: 'mW', ans: P,
+          steps: [`I = V / R, ולכן P = V · I = V² / R`, `P = ${V}² / ${R} = ${qn(V * V, 4)} / ${R} = ${qn(V * V / R, 4)} W`, `= ${qn(P, 4)} mW`] }; } },
+      { t: 'מחלק מתח', gen: r => { const V = qv(r, 5, 30, 1), R1 = qv(r, 4.7, 120, 1), R2 = qv(r, 1, 47, 1), Vo = V * R2 / (R1 + R2);
+        return { q: `מחלק מתח: ${qb('R1 = ' + R1 + ' kΩ')} למעלה, ${qb('R2 = ' + R2 + ' kΩ')} למטה, ${qb(V + ' V')} בכניסה. מה המתח על R2?`, unit: 'V', ans: Vo,
+          steps: [`אותו זרם בשני הנגדים: I = V / (R1 + R2) = ${V} / ${qn(R1 + R2, 4)} kΩ = ${qn(V / (R1 + R2), 4)} mA`, `V_out = I · R2 = V · R2 / (R1 + R2)`, `= ${V} · ${R2} / ${qn(R1 + R2, 4)} = ${qn(Vo, 4)} V`] }; } }] },
+  source: { mc: [
+    ['מה ההבדל בין 0V להארקה (PE)?', ['0V הוא נקודת הייחוס של המעגל; PE מחבר את הגוף המתכתי לאדמה לבטיחות', 'אין הבדל, אלה שני שמות לאותו חוט', 'PE נושא את זרם העבודה החוזר', '0V מחובר תמיד לפאזה'], 0,
+      'כל מתח נמדד "ביחס למשהו", ו-0V הוא ה"משהו" הזה במעגל הבקרה: זרם העבודה חוזר דרכו. PE לא אמור לשאת זרם בכלל: הוא שם כדי שאם חוט חשמל ייגע בגוף המכונה, הזרם יברח לאדמה והמפסק יקפוץ, ולא דרך אדם. לפעמים מחברים אותם בנקודה אחת, אבל התפקיד שונה.'],
+    ['לספק יש התנגדות פנימית קטנה. כשהזרם שנמשך ממנו עולה, המתח במוצא:', ['יורד מעט', 'עולה מעט', 'נשאר בדיוק אותו דבר', 'מתהפך'], 0,
+      'אפשר לדמיין את הספק כמקור אידיאלי עם נגד קטן בטור. ככל שיותר זרם עובר, יותר מתח "נשרף" על הנגד הפנימי: V = E − I · r. ספק מיוצב מתקן את זה בלולאת בקרה, אבל רק עד הגבול שלו.']],
+    calc: [
+      { t: 'מקור עם התנגדות פנימית', gen: r => { const E = qv(r, 11.8, 24.6, 2), ri = qv(r, 0.05, 0.9, 2), RL = qv(r, 3.3, 47, 1), I = E / (RL + ri), V = I * RL;
+        return { q: `מקור ${qb('E = ' + E + ' V')} עם התנגדות פנימית ${qb(ri + ' Ω')} מזין עומס של ${qb(RL + ' Ω')}. מה המתח על העומס?`, unit: 'V', ans: V, tol: 0.01,
+          steps: [`ההתנגדות הפנימית בטור עם העומס: I = E / (R_L + r) = ${E} / ${qn(RL + ri, 4)} = ${qn(I, 4)} A`, `V = I · R_L = ${qn(I, 4)} · ${RL} = ${qn(V, 5)} V`, `ירד ${qn(E - V, 3)} V על הספק עצמו`] }; } }] },
+  switch: { mc: [
+    ['למה מתג הדלת של מכונה הוא NC (סגור במנוחה, כשהדלת סגורה)?', ['כי חוט קרוע או מגע שנפתח נראים כמו "דלת פתוחה", והמכונה נעצרת', 'כי מגע NC זול יותר', 'כי NC מעביר יותר זרם', 'כי כך הבקר לא צריך כניסה'], 0,
+      'המכונה רצה רק כשזרם עובר דרך המתג. כל תקלה סבירה (חוט קרוע, מחבר משוחרר, מגע שרוף פתוח) מנתקת זרם, והתוצאה זהה לפתיחת הדלת: עצירה. זה "בטוח בתקלה". עם NO, חוט קרוע היה נראה כמו "הכול בסדר".'],
+    ['לוחצים על לחצן פעם אחת, והבקר סופר שלוש לחיצות. למה?', ['המגע קופץ (bounce) כמה פעמים לפני שהוא נח', 'הבקר איטי מדי', 'הלחצן מחובר הפוך', 'יש קצר בכבל'], 0,
+      'שתי לשוניות מתכת שנפגשות מקפצות זו על זו, כמו כדור שנופל על הרצפה, במשך כמה אלפיות שנייה. בקר מהיר רואה כל קפיצה כלחיצה. הפתרון: סינון (RC) או התעלמות בתוכנה מכל שינוי בכמה אלפיות השנייה שאחרי הראשון.'],
+    ['מגע של לחצן מנתק עומס עם סליל גדול. מה הכי מקצר את חייו?', ['קשת חשמלית ברגע הניתוק', 'הזרם הקבוע כשהוא סגור', 'המתח כשהוא פתוח', 'כמות הלחיצות בלבד'], 0,
+      'סליל "מתנגד" להפסקת זרם: ברגע שהמגע נפתח הוא מייצר מתח גבוה, והזרם קופץ באוויר בין הלשוניות כקשת. הקשת שורפת את המתכת. לכן במעגלי DC השראתיים מוסיפים דיודה או בולם קשת, ובוחרים מגע לפי דירוג DC.']],
+    calc: [
+      { t: 'הספק על מגע', gen: r => { const I = qv(r, 1.2, 9.5, 2), Rc = qv(r, 8, 95, 0), P = I * I * Rc;
+        return { q: `מגע של ממסר עם התנגדות מגע ${qb(Rc + ' mΩ')} מעביר ${qb(I + ' A')}. כמה חום הוא מפזר, במיליוואט?`, unit: 'mW', ans: P,
+          steps: [`P = I² · R`, `= ${I}² · ${Rc} mΩ = ${qn(I * I, 4)} · ${Rc}`, `= ${qn(P, 4)} mW`] }; } }] },
+  fuse: { mc: [
+    ['בהדלקת ספק, פיוז מהיר נשרף ופיוז איטי באותו דירוג לא. למה?', ['זרם ההתנעה גבוה וקצר, והפיוז האיטי מתוכנן לשאת פולס קצר כזה', 'הפיוז האיטי בדירוג גבוה יותר', 'הפיוז המהיר פגום', 'הספק מוציא מתח גבוה מדי'], 0,
+      'פיוז נמס מחום, וחום מצטבר עם הזמן: מה שקובע הוא זרם וגם משך. בהדלקה הקבלים נטענים ומושכים זרם גדול לכמה אלפיות שנייה. פיוז איטי (slow-blow) מחזיק פולס כזה ונשרף רק מעומס ממושך. מהיר נשרף מכל פולס.'],
+    ['למה מחליפים פיוז רק באותו דירוג, ולא "בגדול יותר כדי שלא יישרף"?', ['כי הפיוז מגן על החוט: גדול מדי מאפשר לחוט להתחמם ולהישרף לפני שהוא נשרף', 'כי פיוז גדול לא נכנס לבית', 'כי פיוז גדול מוריד את המתח', 'כי זה רק עניין של אחריות'], 0,
+      'פיוז נבחר לפי מה שהוא מגן עליו: החוט והרכיבים אחריו. אם הוא גדול מדי, זרם קצר יכול לחמם את החוט עד שהבידוד נמס, והפיוז עדיין שלם. פיוז שנשרף הוא סימן לתקלה, לא בעיה בפיוז.']],
+    calc: [
+      { t: 'אנרגיה של פולס התנעה (I²t)', gen: r => { const I = qv(r, 6, 38, 1), t = qv(r, 1.2, 9.5, 1), I2t = I * I * t / 1000;
+        return { q: `פולס התנעה מלבני של ${qb(I + ' A')} למשך ${qb(t + ' ms')}. מה ה-I²t שלו, ב-A²s?`, unit: 'A²s', ans: I2t,
+          steps: [`I²t הוא ריבוע הזרם כפול הזמן; הוא פרופורציוני לחום בפיוז`, `t = ${t} ms = ${qn(t / 1000, 4)} s`, `I²t = ${I}² · ${qn(t / 1000, 4)} = ${qn(I * I, 4)} · ${qn(t / 1000, 4)} = ${qn(I2t, 4)} A²s`, `משווים לערך ה-I²t שבדף הנתונים של הפיוז: אם הפולס גבוה ממנו, הפיוז נשרף`] }; } }] },
+  connector: { mc: [
+    ['תקלה מופיעה רק כשמזיזים את הכבל. מה הכי סביר?', ['מגע רופף: קרימפ, פין או הדק שלא מהודקים', 'ספק חלש', 'תוכנה', 'רכיב שרוף בכרטיס'], 0,
+      'תנועה משנה רק דבר אחד: את הלחץ בין מתכת למתכת. אם התקלה באה והולכת עם התנועה, מחפשים איפה שמתכת נוגעת במתכת: מחבר, פין, קרימפ, הדק. בודקים על ידי מדידת מתח בזמן שמנענעים בעדינות.'],
+    ['24.0V בלי עומס, ו-23.1V על הפינים של הכרטיס כשהוא עובד. מה זה אומר?', ['יש התנגדות במסלול: כבל או מגע, והזרם מוריד עליה מתח', 'הספק תקול', 'המודד לא מכויל', 'זה מתח תקין תמיד'], 0,
+      'בלי זרם אין נפילת מתח על שום התנגדות, ולכן קוראים את מתח הספק. בעומס, כל מגע וכל מטר כבל "אוכלים" קצת. 0.9V זה הרבה: מודדים את הנפילה בכל קטע בנפרד (על הכבל, על המחבר) ומוצאים איפה היא.']],
+    calc: [
+      { t: 'נפילה על מגע', gen: r => { const I = qv(r, 0.8, 7.5, 2), Rc = qv(r, 25, 380, 0), dV = I * Rc;
+        return { q: `מחבר עם התנגדות מגע של ${qb(Rc + ' mΩ')} (מגע מחומצן) מעביר ${qb(I + ' A')}. כמה מתח נופל עליו, במיליוולט?`, unit: 'mV', ans: dV,
+          steps: [`V = I · R`, `= ${I} A · ${Rc} mΩ`, `= ${qn(dV, 4)} mV, וגם ${qn(I * I * Rc, 4)} mW של חום במגע`] }; } }] },
+  capacitor: { mc: [
+    ['קבל ריק מחובר דרך נגד ל-24V. ברגע החיבור, הזרם:', ['מקסימלי, ואז דועך', 'אפס, ואז עולה', 'קבוע', 'מתהפך כל הזמן'], 0,
+      'קבל ריק "בולע" מטען בלי להתנגד, כמו דלי ריק מתחת לברז: בהתחלה הכול נכנס, ורק המתח שעל הנגד מגביל, I = V / R. ככל שהקבל מתמלא, המתח עליו עולה, ופחות נשאר לדחוף זרם. הזרם דועך מעריכית.'],
+    ['למה שמים קבל קטן (100 nF) צמוד לכל שבב?', ['כדי לספק מטען מקומי לפולסים מהירים של זרם, לפני שהספק הרחוק מגיב', 'כדי להגדיל את המתח', 'כדי לסנן את ה-0V', 'כדי לייצב טמפרטורה'], 0,
+      'שבב מושך זרם בפולסים קצרים מאוד. הדרך לספק ארוכה, ויש בה השראות שמאיטה את הזרם. קבל צמוד הוא "מיכל קטן" ליד הצרכן: הוא נותן את הפולס, והספק ממלא אותו לאט.'],
+    ['קבל אלקטרוליטי הולחם הפוך. מה צפוי?', ['זרם דליפה, התחממות, ניפוח ואולי פיצוץ', 'שום דבר, אין לו קוטביות', 'הקיבול יוכפל', 'הוא יעבוד כנגד'], 0,
+      'בקבל אלקטרוליטי המבודד הוא שכבת תחמוצת דקה שנבנית רק בכיוון אחד. במתח הפוך היא מתפרקת, עובר זרם, האלקטרוליט מתחמם ונוצר גז. לכן יש פס מינוס על הגוף.']],
+    calc: [
+      { t: 'טעינה ל-90%', gen: r => { const R = qv(r, 1.2, 68, 1), C = qv(r, 2.2, 470, 1), tau = R * C, t = tau * Math.log(10);
+        return { q: `קבל ${qb(C + ' µF')} נטען דרך ${qb(R + ' kΩ')} ממתח קבוע. אחרי כמה זמן יגיע ל-90% מהמתח, באלפיות שנייה?`, unit: 'ms', ans: t,
+          steps: [`τ = R · C = ${R} kΩ · ${C} µF = ${qn(tau, 4)} ms (כי kΩ · µF = ms)`, `V(t) = V · (1 − e^(−t/τ)). מחפשים 0.9: e^(−t/τ) = 0.1`, `t = τ · ln(10) = ${qn(tau, 4)} · 2.3026 = ${qn(t, 4)} ms`] }; } },
+      { t: 'אנרגיה בקבל', gen: r => { const C = qv(r, 100, 4700, 0), V = qv(r, 12, 48, 1), E = 0.5 * C * 1e-6 * V * V * 1000;
+        return { q: `כמה אנרגיה אגורה בקבל של ${qb(C + ' µF')} הטעון ל-${qb(V + ' V')}, במיליג'ול?`, unit: 'mJ', ans: E,
+          steps: [`E = ½ · C · V²`, `= 0.5 · ${C}·10⁻⁶ · ${V}² = 0.5 · ${qn(C * 1e-6, 4)} · ${qn(V * V, 4)}`, `= ${qn(E / 1000, 4)} J = ${qn(E, 4)} mJ`] }; } }] },
+  coil: { mc: [
+    ['מנתקים בבת אחת זרם שעובר בסליל. מה קורה למתח עליו?', ['קופץ לערך גבוה מאוד, בקוטביות הפוכה', 'יורד לאפס מיד', 'נשאר כמו קודם', 'מכפיל את עצמו בדיוק'], 0,
+      'סליל הוא כמו גלגל תנופה לזרם: הוא לא נותן לו לעצור בבת אחת. V = L · di/dt, ואם הזרם צריך לרדת לאפס בזמן קצר מאוד, המתח שהסליל מייצר כדי להמשיך לדחוף אותו עצום. זו הסיבה לדיודת flyback.'],
+    ['סליל במתח ישר, הרבה זמן אחרי החיבור, מתנהג כמו:', ['נגד, בגודל ההתנגדות של החוט שלו', 'נתק', 'קבל', 'מקור מתח'], 0,
+      'הסליל מתנגד רק לשינוי בזרם. כשהזרם כבר קבוע, אין שינוי, ונשאר רק החוט עצמו עם ההתנגדות שלו. לכן זרם סליל של ממסר הוא פשוט V / R.']],
+    calc: [
+      { t: 'אנרגיה בסליל', gen: r => { const L = qv(r, 0.08, 1.6, 2), I = qv(r, 0.02, 0.45, 3), E = 0.5 * L * I * I * 1000;
+        return { q: `סליל של ${qb(L + ' H')} נושא ${qb(I + ' A')}. כמה אנרגיה תשתחרר בניתוק, במיליג'ול?`, unit: 'mJ', ans: E,
+          steps: [`E = ½ · L · I²`, `= 0.5 · ${L} · ${I}² = 0.5 · ${L} · ${qn(I * I, 4)}`, `= ${qn(E / 1000, 4)} J = ${qn(E, 4)} mJ, וזו האנרגיה שהדיודה צריכה לפזר`] }; } },
+      { t: 'קבוע זמן של סליל', gen: r => { const L = qv(r, 0.12, 1.8, 2), R = qv(r, 180, 1500, 0), tau = L / R * 1000, t3 = 3 * tau;
+        return { q: `סליל ${qb(L + ' H')} עם התנגדות חוט ${qb(R + ' Ω')}, ודיודה במקביל. אחרי ניתוק, תוך כמה זמן הזרם יורד לכ-5% (שלושה קבועי זמן), במילישניות?`, unit: 'ms', ans: t3,
+          steps: [`τ = L / R = ${L} / ${R} = ${qn(L / R, 4)} s = ${qn(tau, 4)} ms (בהזנחת מתח הדיודה)`, `אחרי 3τ נשאר e⁻³ ≈ 5% מהזרם`, `3τ = ${qn(t3, 4)} ms: זה הזמן שהממסר "מתעכב" בשחרור`] }; } }] },
+  xfmr: { mc: [
+    ['מחברים שנאי של 230V AC למתח ישר של 230V. מה יקרה?', ['זרם גדול מוגבל רק בהתנגדות הליפוף, והשנאי מתחמם ונשרף', 'הוא יעבוד כרגיל', 'במוצא יהיה DC מוקטן', 'שום זרם לא יעבור'], 0,
+      'שנאי עובד על שינוי: שדה מגנטי שמשתנה מייצר מתח בליפוף השני. ב-DC השדה קבוע, אין העברה, וגם ההשראות של הראשוני כבר לא מגבילה זרם. נשאר רק החוט הדק.'],
+    ['שנאי מוריד מ-230V ל-24V. איך משתווה הזרם במשני לזה שבראשוני?', ['גדול יותר, בערך פי היחס', 'קטן יותר', 'שווה', 'אפס'], 0,
+      'אנרגיה לא נוצרת יש מאין: ההספק נכנס כמעט כולו יוצא. V · I ≈ קבוע, ולכן מתח נמוך פי 9.6 מאפשר זרם גדול בערך פי 9.6.']],
+    calc: [
+      { t: 'זרם בצד הראשוני', gen: r => { const Vp = qv(r, 220, 240, 0), Vs = qv(r, 12, 48, 1), Is = qv(r, 0.8, 9.5, 2), eta = qv(r, 0.82, 0.96, 2), Ip = Vs * Is / (eta * Vp);
+        return { q: `שנאי ${qb(Vp + ' → ' + Vs + ' V')} מזין ${qb(Is + ' A')} במשני, בנצילות ${qb(String(eta))}. מה הזרם בראשוני?`, unit: 'A', ans: Ip,
+          steps: [`P_out = V_s · I_s = ${Vs} · ${Is} = ${qn(Vs * Is, 4)} W`, `P_in = P_out / η = ${qn(Vs * Is, 4)} / ${eta} = ${qn(Vs * Is / eta, 4)} W`, `I_p = P_in / V_p = ${qn(Vs * Is / eta, 4)} / ${Vp} = ${qn(Ip, 4)} A`] }; } }] },
+  diode: { mc: [
+    ['למה נורית LED צריכה נגד בטור, ונגד לבד לא צריך?', ['כי המתח על נורית כמעט קבוע, ועודף קטן במתח מקפיץ את הזרם מאוד', 'כי LED מייצר מתח', 'כי הנגד מוסיף אור', 'כי בלעדיו הנורית לא תידלק'], 0,
+      'בנגד, הזרם עולה ביחס ישר למתח. בדיודה העקומה תלולה מאוד: מתחת למתח ההולכה כמעט כלום, ומעליו מעט מתח נוסף מביא הרבה זרם. בלי משהו שיגביל, הזרם רץ עד שהצומת נשרף. הנגד "סופג" את העודף.'],
+    ['דיודת flyback על סליל של ממסר: איך היא מחוברת?', ['הקתודה (הפס) לצד ה-+24V; בעבודה רגילה היא לא מוליכה', 'הקתודה ל-0V, כך שהיא מוליכה תמיד', 'בטור עם הסליל', 'במקביל למגע'], 0,
+      'בעבודה רגילה היא הפוכה ולא מפריעה. ברגע הניתוק הסליל הופך את המתח שלו, הדיודה נהיית ישרה, והזרם ממשיך להסתובב בלולאה קטנה דרכה עד שהוא דועך. הפוכה בטעות: קצר על הספק בכל הפעלה.'],
+    ['זנר במעגל ייצוב מחובר:', ['הפוך, ועובד בפריצה במתח קבוע', 'ישר, כמו דיודה רגילה', 'בטור עם העומס', 'במקביל לנגד הטורי'], 0,
+      'זנר נבנה כדי לפרוץ במתח מדויק בכיוון ההפוך. בפריצה המתח עליו כמעט לא משתנה עם הזרם, ולכן הוא מחזיק את המוצא, והנגד הטורי סופג את ההפרש.']],
+    calc: [
+      { t: 'נגד לזנר מייצב', gen: r => { const Vin = qv(r, 12, 28, 1), Vz = qv(r, 3.3, 9.1, 1), IL = qv(r, 2, 25, 1), Iz = qv(r, 2, 8, 1), R = (Vin - Vz) / ((IL + Iz) / 1000);
+        return { q: `זנר של ${qb(Vz + ' V')} מייצב מתוך ${qb(Vin + ' V')} לעומס של ${qb(IL + ' mA')}, ורוצים לפחות ${qb(Iz + ' mA')} בזנר. מה הנגד הטורי?`, unit: 'Ω', ans: R,
+          steps: [`דרך הנגד עובר זרם העומס וזרם הזנר יחד: I = ${IL} + ${Iz} = ${qn(IL + Iz, 4)} mA`, `על הנגד נופל V = ${Vin} − ${Vz} = ${qn(Vin - Vz, 4)} V`, `R = ${qn(Vin - Vz, 4)} / ${qn((IL + Iz) / 1000, 4)} = ${qn(R, 4)} Ω`] }; } }] },
+  mosfet: { mc: [
+    ['MOSFET שמפעיל סליל מתחמם מאוד. החשוד הראשון:', ['מתח Gate נמוך מדי, והוא פתוח רק בחלקו', 'הסליל בנתק', 'הספק גבוה מדי', 'הטרנזיסטור גדול מדי'], 0,
+      'מתג טוב חם רק מעט: או שהוא סגור (אין זרם), או פתוח לגמרי (כמעט אין מתח). באמצע, יש עליו גם מתח וגם זרם, והמכפלה היא חום. Gate שלא מקבל מספיק מתח משאיר אותו "באמצע".'],
+    ['למה N-MOSFET בצד הנמוך (low-side) הוא הבחירה הנפוצה מבקר?', ['כי ה-Source ב-0V, ומתח ה-Gate נמדד ביחס ל-0V של הבקר', 'כי הוא זול מ-P-MOSFET בכל מקרה', 'כי הוא מתג גם את ה-0V', 'כי הוא לא צריך Gate'], 0,
+      'MOSFET נפתח לפי המתח בין ה-Gate ל-Source. כשה-Source מחובר ל-0V, הבקר שנותן 3.3 או 5V ביחס ל-0V מפעיל אותו ישירות. בצד הגבוה ה-Source "צף" ליד 24V, וצריך מעגל מיוחד.']],
+    calc: [
+      { t: 'הפסדי הולכה וחימום', gen: r => { const I = qv(r, 1.5, 12, 2), Rds = qv(r, 8, 85, 0), Rth = qv(r, 35, 62, 0), P = I * I * Rds / 1000, dT = P * Rth;
+        return { q: `MOSFET עם ${qb('R_DS(on) = ' + Rds + ' mΩ')} מעביר ${qb(I + ' A')}, והתנגדות תרמית לסביבה ${qb(Rth + ' °C/W')}. בכמה מעלות יעלה מעל הסביבה?`, unit: '°C', ans: dT,
+          steps: [`P = I² · R_DS(on) = ${I}² · ${Rds}·10⁻³ = ${qn(P, 4)} W`, `ΔT = P · R_θ = ${qn(P, 4)} · ${Rth}`, `= ${qn(dT, 4)} °C`] }; } }] },
+  relay: { mc: [
+    ['ממסר לא נמשך. בדרייבר יש 24V, אבל על הסליל נמדדים 9V. מה הכיוון?', ['הטרנזיסטור פתוח רק בחלקו ו"אוכל" את השאר: לבדוק את מתח הבסיס או ה-Gate', 'הסליל בנתק', 'הדיודה הפוכה', 'הממסר גדול מדי'], 0,
+      'המתחים בלולאה מסתכמים: מה שלא נופל על הסליל נופל על משהו אחר בטור, בדרך כלל הטרנזיסטור. מתג תקין "לוקח" כמה עשיריות וולט. 15V עליו אומר שהוא לא באמת סגור, ומחפשים למה.'],
+    ['למה דיודה רגילה על הסליל מאטה את השחרור של הממסר?', ['הזרם ממשיך להסתובב דרכה ודועך לאט, והשדה מחזיק את העוגן', 'היא מקטינה את המתח בהפעלה', 'היא מוסיפה התנגדות לסליל', 'היא לא משפיעה על השחרור'], 0,
+      'הדיודה נותנת לזרם לולאה נוחה מאוד, עם מעט מתח שמבזבז אנרגיה. לכן הזרם דועך לאט, והעוגן נשאר משוך עוד אלפיות שנייה. כשצריך שחרור מהיר מוסיפים זנר בטור לדיודה: מתח גבוה יותר מפזר את האנרגיה מהר יותר.']],
+    calc: [
+      { t: 'נגד בסיס לדרייבר BJT', gen: r => { const V = 24, Rc = qv(r, 380, 1450, 0), Ic = V / Rc, beta = 10, Vmcu = qv(r, 3.3, 5, 1), Ib = Ic / beta, Rb = (Vmcu - 0.7) / Ib;
+        return { q: `סליל ממסר של ${qb(Rc + ' Ω')} על ${qb('24 V')}, דרך טרנזיסטור NPN שמופעל מבקר של ${qb(Vmcu + ' V')}. רוצים רוויה בטוחה עם ${qb('β = 10')} ו-${qb('V_BE = 0.7 V')}. מה נגד הבסיס, בקילו-אוהם?`, unit: 'kΩ', ans: Rb / 1000, tol: 0.03,
+          steps: [`זרם הסליל: I_C = 24 / ${Rc} = ${qn(Ic * 1000, 4)} mA`, `ברוויה "מכריחים" β קטן: I_B = I_C / 10 = ${qn(Ib * 1000, 4)} mA`, `R_B = (V_MCU − V_BE) / I_B = (${Vmcu} − 0.7) / ${qn(Ib, 4)} = ${qn(Rb, 4)} Ω = ${qn(Rb / 1000, 4)} kΩ`, `בוחרים ערך סטנדרטי קטן ממנו, כדי שיהיה עוד זרם בסיס`] }; } }] },
+  pwm: { mc: [
+    ['PWM של 24V עם duty cycle של 30%. מה "מרגיש" מנוע איטי?', ['ממוצע של כ-7.2V', 'פולסים של 24V שמזיזים אותו בקפיצות', '24V רציף', '0V'], 0,
+      'המנוע כבד והסליל שלו מחליק את הזרם, ולכן הוא לא מספיק להגיב לכל פולס. הוא מגיב לממוצע: 30% מהזמן 24V ו-70% מהזמן 0V, כלומר 0.3 · 24 = 7.2V. כמו נורה שמדליקים ומכבים מהר מאוד: העין רואה אור עמום.'],
+    ['שני המתגים באותה רגל של גשר H נסגרים יחד לרגע. מה קורה?', ['קצר ישיר מהספק לאדמה (shoot-through)', 'המנוע מתהפך', 'המנוע בולם', 'שום דבר'], 0,
+      'כל רגל היא שני מתגים אחד מעל השני, בין הספק לאדמה. אם שניהם סגורים, יש חוט ישר מ-+ ל-0V, בלי שום עומס. לכן מוסיפים "זמן מת" בין כיבוי אחד להדלקת השני.'],
+    ['שומעים צפצוף מהמנוע. ה-PWM ב-2 kHz. מה יפתור?', ['להעלות את התדר מעל 20 kHz', 'להוריד את ה-duty', 'להחליף מנוע', 'להוסיף דיודה'], 0,
+      'הזרם בסליל עולה ויורד בתדר ה-PWM, והכוחות המגנטיים מזיזים קצת את הפחים, כמו רמקול. 2 kHz נשמע היטב. מעל 20 kHz האוזן לא שומעת.']],
+    calc: [
+      { t: 'ריפל זרם בעומס השראתי', gen: r => { const V = qv(r, 12, 48, 0), D = qv(r, 0.25, 0.75, 2), L = qv(r, 0.4, 4.8, 1), f = qv(r, 8, 40, 0), dI = V * D * (1 - D) / (L * 1e-3 * f * 1e3);
+        return { q: `PWM של ${qb(V + ' V')} ב-${qb(f + ' kHz')}, ${qb('D = ' + D)}, על עומס עם השראות ${qb(L + ' mH')}. מה הריפל פסגה-לפסגה של הזרם?`, unit: 'A', ans: dI,
+          steps: [`כשהמתג סגור, על הסליל V − V·D = V(1 − D), למשך D·T`, `ΔI = V(1 − D) · D · T / L = V · D(1 − D) / (L · f)`, `= ${V} · ${D} · ${qn(1 - D, 3)} / (${L}·10⁻³ · ${f}·10³) = ${qn(V * D * (1 - D), 4)} / ${qn(L * f, 4)} = ${qn(dI, 4)} A`] }; } }] },
+  sensors: { mc: [
+    ['כרטיס הכניסות מצפה ל-24V כשחיישן "רואה" (sinking input). איזה חיישן מתאים?', ['PNP: היציאה שלו מחברת את הכניסה ל-+24V', 'NPN: היציאה שלו מחברת ל-0V', 'כל אחד', 'אף אחד, צריך ממסר'], 0,
+      'הכניסה מחוברת בצד השני ל-0V, ומחכה שמישהו "ידחוף" אליה זרם מ-+24V. חיישן PNP עושה את זה. NPN "מושך" ל-0V, כלומר לא יגרום לשום זרם בכניסה כזו.'],
+    ['למה חיישנים תעשייתיים משדרים 4–20 mA ולא 0–20 mA?', ['כדי שחוט קרוע (0 mA) ייראה שונה מהערך המינימלי (4 mA)', 'כי 4 mA מזין את המדחום', 'כי זה זול', 'אין סיבה'], 0,
+      'אם 0 היה "המינימום", לא היה אפשר להבדיל בין לחץ אפס לחוט קרוע. כשהמינימום הוא 4, כל ערך מתחת ל-3.6 בערך הוא תקלה. בונוס: זרם לא נופל על כבל ארוך כמו מתח.']],
+    calc: [
+      { t: 'המרת 4–20 mA לערך פיזיקלי', gen: r => { const Pmax = [6, 10, 16, 25][Math.floor(r() * 4)], I = qv(r, 5, 19.5, 2), P = (I - 4) / 16 * Pmax;
+        return { q: `חיישן לחץ בתחום ${qb('0–' + Pmax + ' bar')} משדר ${qb('4–20 mA')}. נמדדו ${qb(I + ' mA')}. מה הלחץ?`, unit: 'bar', ans: P, tol: 0.01,
+          steps: [`התחום של הזרם הוא 20 − 4 = 16 mA`, `החלק מהתחום: (${I} − 4) / 16 = ${qn((I - 4) / 16, 4)}`, `P = ${qn((I - 4) / 16, 4)} · ${Pmax} = ${qn(P, 4)} bar`] }; } }] },
+  meas: { mc: [
+    ['רוצים למדוד זרם במולטימטר. איך מחברים?', ['בטור: פותחים את המעגל והזרם עובר דרך המכשיר', 'במקביל לעומס', 'בין ה-24V ל-0V', 'בלי לחבר, לפי השדה'], 0,
+      'במצב זרם המכשיר הוא כמעט חוט (shunt קטן), כי הוא צריך שהזרם יעבור דרכו בלי להפריע. במקביל לספק הוא יהיה קצר, והפיוז שבמכשיר יישרף. מתח מודדים במקביל, זרם בטור.'],
+    ['כרטיס מתאפס לפעמים, והמולטימטר על ההזנה מראה 24.0V יציב. מה הצעד הבא?', ['סקופ על ההזנה, עם טריגר על ירידה', 'להחליף את הכרטיס', 'לכייל את המולטימטר', 'לסמוך על המולטימטר'], 0,
+      'מולטימטר מראה ממוצע של כמה עשיריות שנייה. נפילה של מילישנייה תיבלע בממוצע. סקופ עם טריגר "תופס" את הרגע עצמו.'],
+    ['פרוב ×10 מחובר לסקופ, אבל בהגדרות הערוץ מסומן ×1. מה יוצג?', ['עשירית מהמתח האמיתי', 'פי 10 מהמתח', 'המתח הנכון', 'אפס'], 0,
+      'הפרוב מחלק את המתח ב-10 בדרך לסקופ (זה מה שמקטין את ההעמסה). הסקופ צריך לדעת את זה כדי להכפיל חזרה. אם לא אמרו לו, הוא מציג את מה שהגיע אליו: עשירית.']],
+    calc: [
+      { t: 'מכשיר מדידה שמעמיס', gen: r => { const V = qv(r, 10, 30, 1), R1 = qv(r, 0.33, 4.7, 2), R2 = qv(r, 0.33, 4.7, 2), Rm = [1, 10][Math.floor(r() * 2)], R2m = R2 * Rm / (R2 + Rm), Vm = V * R2m / (R1 + R2m);
+        return { q: `מחלק של ${qb('R1 = ' + R1 + ' MΩ')} ו-${qb('R2 = ' + R2 + ' MΩ')} מ-${qb(V + ' V')}. מודדים על R2 במכשיר עם כניסה של ${qb(Rm + ' MΩ')}. מה יציג המכשיר?`, unit: 'V', ans: Vm, tol: 0.01,
+          steps: [`המכשיר במקביל ל-R2: R2‖Rm = ${R2} · ${Rm} / (${R2} + ${Rm}) = ${qn(R2m, 4)} MΩ`, `V = ${V} · ${qn(R2m, 4)} / (${R1} + ${qn(R2m, 4)}) = ${qn(Vm, 4)} V`, `בלי המכשיר: ${qn(V * R2 / (R1 + R2), 4)} V. ההבדל הוא ההעמסה`] }; } }] },
+  logic: { mc: [
+    ['D flip-flop שה-Q̄ שלו מחובר ל-D. מה ב-Q?', ['ריבוע בחצי מתדר השעון, duty של 50%', 'אותו תדר כמו השעון', 'תמיד 1', 'רעש'], 0,
+      'בכל עליית שעון ה-flip-flop מעתיק את D, ו-D הוא ההפך של מה שיש עכשיו. אז הוא מתהפך בכל עלייה: שתי עליות שעון לכל מחזור שלם של Q.'],
+    ['כניסה מחיישן חיצוני נכנסת ישר ל-flip-flop של מערכת מסונכרנת, ולפעמים יש התנהגות מוזרה. למה?', ['metastability: האות משתנה בדיוק ליד עליית השעון', 'החיישן איטי', 'השעון מהיר מדי תמיד', 'חסר נגד'], 0,
+      'flip-flop צריך שהכניסה תהיה יציבה רגע לפני ואחרי השעון. אות חיצוני לא מתואם עם השעון, ולפעמים משתנה בדיוק אז; היציאה יכולה "להתלבט" זמן מה. הפתרון: שני flip-flops בשרשרת לפני השימוש.']],
+    calc: [
+      { t: 'מונה בינארי כמחלק תדר', gen: r => { const f = qv(r, 8, 66, 3), n = 3 + Math.floor(r() * 9), fo = f * 1000 / Math.pow(2, n);
+        return { q: `שעון של ${qb(f + ' MHz')} נכנס למונה בינארי. מה התדר בביט ה-${n} (ה-MSB של מונה ${n} ביט), בקילוהרץ?`, unit: 'kHz', ans: fo, tol: 0.005,
+          steps: [`כל ביט מחלק ב-2 את התדר של הקודם`, `${n} ביטים: f / 2^${n} = f / ${Math.pow(2, n)}`, `= ${f}·10³ kHz / ${Math.pow(2, n)} = ${qn(fo, 5)} kHz`] }; } },
+      { t: 'תדר שעון מקסימלי', gen: r => { const tcq = qv(r, 0.8, 3.5, 1), tl = qv(r, 2, 14, 1), tsu = qv(r, 0.5, 2.5, 1), T = tcq + tl + tsu, f = 1000 / T;
+        return { q: `בנתיב בין שני flip-flops: ${qb('t_CQ = ' + tcq + ' ns')}, לוגיקה ${qb(tl + ' ns')}, ${qb('t_setup = ' + tsu + ' ns')}. מה תדר השעון המקסימלי, ב-MHz?`, unit: 'MHz', ans: f,
+          steps: [`האות צריך לצאת מה-flip-flop, לעבור את הלוגיקה ולהתייצב לפני השעון הבא`, `T_min = ${tcq} + ${tl} + ${tsu} = ${qn(T, 4)} ns`, `f_max = 1 / T_min = 1000 / ${qn(T, 4)} = ${qn(f, 4)} MHz`] }; } }] },
+  psu: { mc: [
+    ['למה ספק ממותג מתחמם פחות מספק לינארי באותו הספק?', ['הטרנזיסטור בו כמעט תמיד סגור לגמרי או פתוח לגמרי, ולכן מפזר מעט', 'כי הוא קטן', 'כי אין בו טרנזיסטור', 'כי הוא עובד ב-AC'], 0,
+      'ספק לינארי "שורף" את ההפרש בין הכניסה למוצא על טרנזיסטור באמצע הדרך. ממותג מדליק ומכבה מהר, וסליל וקבל מחליקים. בכל רגע הטרנזיסטור או בלי זרם או בלי מתח, ולכן הנצילות גבוהה.'],
+    ['ספק 24V "מתאפס" כל פעם שמפעילים ציר מסוים. החשוד:', ['זרם ההתנעה של הציר עובר את הגבול, והגנת הזרם של הספק מנתקת לרגע', 'הספק גדול מדי', 'הפיוז הפוך', 'אין קשר לציר'], 0,
+      'דרייבר מנוע מושך פולס של זרם בהתחלה. אם הוא חוצה את גבול הספק, הספק מגן על עצמו: מוריד מתח או מנתק לרגע. רואים את זה בסקופ על המוצא, בזמן ההפעלה.']],
+    calc: [
+      { t: 'זרם בכניסת ספק ממותג', gen: r => { const Vo = 24, Io = qv(r, 2.5, 19, 1), eta = qv(r, 0.86, 0.94, 2), Vin = qv(r, 300, 330, 0), Iin = Vo * Io / eta / Vin;
+        return { q: `ספק ${qb('24 V')} מוציא ${qb(Io + ' A')} בנצילות ${qb(String(eta))}. אחרי היישור, המתח בכניסה ${qb(Vin + ' V DC')}. מה הזרם הממוצע בכניסה?`, unit: 'A', ans: Iin,
+          steps: [`P_out = 24 · ${Io} = ${qn(Vo * Io, 4)} W`, `P_in = P_out / η = ${qn(Vo * Io / eta, 4)} W`, `I_in = P_in / V_in = ${qn(Vo * Io / eta, 4)} / ${Vin} = ${qn(Iin, 4)} A`] }; } }] },
+  pwr: { mc: [
+    ['כבל של 15 מטר מזין שסתום. כמה מטר נחושת יש בנתיב הזרם?', ['30 מטר: הלוך בגיד אחד וחזור בשני', '15 מטר', '7.5 מטר', 'תלוי במתח'], 0,
+      'זרם צריך מעגל סגור: הוא יוצא מה-24V בגיד אחד וחוזר ל-0V בשני. נפילת המתח היא על שניהם, ולכן בנוסחה יש 2·L.'],
+    ['למה מחלקים את ה-24V לענפים, עם הגנה נפרדת לכל אחד?', ['כדי שקצר בענף אחד ינתק רק אותו, והשאר ימשיכו לעבוד ויראו איפה הבעיה', 'כדי להעלות את המתח', 'כדי לחסוך בכבל', 'כי ספק אחד לא יכול להזין יותר מענף אחד'], 0,
+      'כמו בבית: לכל חדר מפסק משלו. כשמשהו נשרף במטבח, הסלון ממשיך לעבוד, ואתה יודע מיד איפה לחפש. בלי ענפים, קצר בחיישן אחד היה מכבה את כל הבקרה.']],
+    calc: [
+      { t: 'נפילת מתח בכבל', gen: r => { const I = qv(r, 0.6, 6.5, 2), L = qv(r, 4, 45, 1), A = [0.25, 0.5, 0.75, 1, 1.5][Math.floor(r() * 5)], R = 2 * PW.rho * L / A, dV = I * R;
+        return { q: `ענף של ${qb(I + ' A')} בכבל נחושת באורך ${qb(L + ' m')} וחתך ${qb(A + ' mm²')} (${qb('ρ = ' + PW.rho + ' Ω·mm²/m')}). כמה מתח נופל בכבל?`, unit: 'V', ans: dV,
+          steps: [`הזרם הולך וחוזר: אורך הנחושת 2L = ${qn(2 * L, 4)} m`, `R = ρ · 2L / A = ${PW.rho} · ${qn(2 * L, 4)} / ${A} = ${qn(R, 4)} Ω`, `ΔV = I · R = ${I} · ${qn(R, 4)} = ${qn(dV, 4)} V, ובקצה נשארים ${qn(PW.V - dV, 4)} V`] }; } }] },
+  /* from here on the topics have their own multiple-choice questions; these add the calculations */
+  motor: { calc: [
+    { t: 'הספק מכני ממומנט ומהירות', gen: r => { const T = qv(r, 0.3, 6.5, 2), n = qv(r, 600, 3600, 0), w = 2 * Math.PI * n / 60, P = T * w;
+      return { q: `מנוע מוסר ${qb(T + ' N·m')} ב-${qb(n + ' rpm')}. מה ההספק המכני?`, unit: 'W', ans: P,
+        steps: [`ω = 2π · n / 60 = 2π · ${n} / 60 = ${qn(w, 4)} rad/s`, `P = T · ω = ${T} · ${qn(w, 4)} = ${qn(P, 4)} W`] }; } }] },
+  enc: { calc: [
+    { t: 'רזולוציית ציר', gen: r => { const lines = [500, 1000, 1250, 2048, 2500][Math.floor(r() * 5)], lead = [5, 10, 16, 20][Math.floor(r() * 4)], cpr = lines * 4, res = lead * 1000 / cpr;
+      return { q: `אנקודר של ${qb(lines + ' קווים')} לסיבוב, עם פענוח ${qb('×4')}, על בורג בפסיעה ${qb(lead + ' mm')}. כמה מיקרון לכל ספירה?`, unit: 'µm', ans: res, tol: 0.005,
+        steps: [`פענוח ×4 סופר כל עלייה וירידה של A ושל B: ${lines} · 4 = ${cpr} ספירות לסיבוב`, `סיבוב אחד = ${lead} mm = ${lead * 1000} µm`, `${lead * 1000} / ${cpr} = ${qn(res, 4)} µm לספירה`] }; } }] },
+  trans: { calc: [
+    { t: 'מהירות קווית מבורג', gen: r => { const n = qv(r, 300, 3000, 0), lead = [5, 10, 16, 20][Math.floor(r() * 4)], v = n * lead / 60;
+      return { q: `מנוע ב-${qb(n + ' rpm')} מסובב בורג כדורי בפסיעה ${qb(lead + ' mm')}. מה המהירות הקווית של השולחן?`, unit: 'mm/s', ans: v, tol: 0.01,
+        steps: [`כל סיבוב מזיז את האום פסיעה אחת: ${lead} mm`, `סיבובים בשנייה: ${n} / 60 = ${qn(n / 60, 4)}`, `v = ${qn(n / 60, 4)} · ${lead} = ${qn(v, 4)} mm/s`] }; } }] },
+  optics: { calc: [
+    { t: 'עומק שדה', gen: r => { const NA = qv(r, 0.05, 0.3, 3), lam = qv(r, 0.4, 0.65, 2), dof = lam / (2 * NA * NA);
+      return { q: `עדשה עם ${qb('NA = ' + NA)} באור של ${qb('λ = ' + lam + ' µm')}. מה חצי עומק השדה (±), במיקרון?`, unit: 'µm', ans: dof,
+        steps: [`גבול הגלים: DOF ≈ ±λ / (2 · NA²)`, `NA² = ${qn(NA * NA, 4)}`, `${lam} / (2 · ${qn(NA * NA, 4)}) = ${qn(dof, 4)} µm. NA כפול נותן עומק קטן פי 4`] }; } },
+    { t: 'טשטוש מסטייה מהפוקוס', gen: r => { const NA = qv(r, 0.05, 0.25, 3), dz = qv(r, 8, 90, 1), b = 2 * NA * dz;
+      return { q: `הפאנל ${qb(dz + ' µm')} מחוץ למישור המוקד, ${qb('NA = ' + NA)}. מה קוטר הכתם המטושטש?`, unit: 'µm', ans: b,
+        steps: [`קונוס האור ממשיך מעבר למוקד: b = 2 · Δz · tan θ`, `בזוויות קטנות tan θ ≈ sin θ = NA`, `b ≈ 2 · ${NA} · ${dz} = ${qn(b, 4)} µm`] }; } }] },
+  trig: { calc: [
+    { t: 'קצב שורות', gen: r => { const v = qv(r, 80, 420, 0), p = qv(r, 2.5, 9.5, 2), f = v / p;
+      return { q: `הפאנל נע ב-${qb(v + ' mm/s')} מתחת למצלמת line-scan עם פיקסל של ${qb(p + ' µm')} על הפאנל. כמה שורות בשנייה, בקילוהרץ?`, unit: 'kHz', ans: f,
+        steps: [`שורה אחת לכל פיקסל של תנועה: f = v / p`, `= ${v} mm/s / ${p} µm = ${v * 1000} µm/s / ${p} µm`, `= ${qn(f * 1000, 5)} Hz = ${qn(f, 4)} kHz`] }; } },
+    { t: 'טשטוש תנועה בזמן ההבזק', gen: r => { const v = qv(r, 80, 420, 0), t = qv(r, 0.8, 12, 1), p = qv(r, 2.5, 9.5, 2), b = v * t / 1000, bp = b / p;
+      return { q: `${qb(v + ' mm/s')}, הבזק של ${qb(t + ' µs')}, פיקסל ${qb(p + ' µm')}. כמה פיקסלים טשטוש?`, unit: 'px', ans: bp,
+        steps: [`בזמן ההבזק הפאנל זז b = v · t = ${v} mm/s · ${t} µs`, `= ${qn(v * 1000, 5)} µm/s · ${t}·10⁻⁶ s = ${qn(b, 4)} µm`, `b / p = ${qn(b, 4)} / ${p} = ${qn(bp, 4)} פיקסל`] }; } }] },
+  cam: { calc: [
+    { t: 'זמן סריקה של פאנל', gen: r => { const W = qv(r, 400, 620, 0), Lp = qv(r, 500, 720, 0), sw = qv(r, 40, 90, 1), v = qv(r, 120, 400, 0), passes = Math.ceil(W / sw), t = passes * Lp / v;
+      return { q: `פאנל ${qb(W + ' × ' + Lp + ' mm')}. רוחב מעבר ${qb(sw + ' mm')}, מהירות ${qb(v + ' mm/s')} לאורך ה-${Lp} mm. כמה זמן סריקה נטו, בלי זמני חזרה?`, unit: 's', ans: t,
+        steps: [`מספר מעברים: ⌈${W} / ${sw}⌉ = ⌈${qn(W / sw, 4)}⌉ = ${passes}`, `כל מעבר: ${Lp} / ${v} = ${qn(Lp / v, 4)} s`, `${passes} · ${qn(Lp / v, 4)} = ${qn(t, 4)} s`] }; } }] },
+  reg: { calc: [
+    { t: 'סיבוב מתוך שני fiducials', gen: r => { const D = qv(r, 300, 560, 1), dy = qv(r, 0.05, 0.9, 3), th = Math.atan(dy / D) * 180 / Math.PI * 1000;
+      return { q: `שני fiducials שבתכנון באותו Y, במרחק ${qb(D + ' mm')}. נמדד הפרש של ${qb(dy + ' mm')} ב-Y. מה זווית הסיבוב, במיליד-מעלות (m°)?`, unit: 'm°', ans: th,
+        steps: [`tan θ = Δy / D = ${dy} / ${D} = ${qn(dy / D, 5)}`, `θ = atan(${qn(dy / D, 5)}) = ${qn(th / 1000, 5)}°`, `= ${qn(th, 4)} m°. בזווית קטנה θ ≈ Δy / D ברדיאנים`] }; } }] },
+  laserunit: { calc: [
+    { t: 'fluence בשיא הכתם', gen: r => { const E = qv(r, 1.2, 8, 2), w = qv(r, 4, 12, 1), F = 2 * E * 1e-6 / (Math.PI * Math.pow(w * 1e-4, 2));
+      return { q: `פולס של ${qb(E + ' µJ')}, קרן גאוסית עם רדיוס ${qb('w₀ = ' + w + ' µm')}. מה ה-fluence בשיא, ב-J/cm²?`, unit: 'J/cm²', ans: F,
+        steps: [`לקרן גאוסית: F₀ = 2E / (π w₀²)`, `w₀ = ${w} µm = ${qn(w * 1e-4, 4)} cm, ולכן π w₀² = ${qn(Math.PI * Math.pow(w * 1e-4, 2) * 1e8, 4)}·10⁻⁸ cm²`, `F₀ = 2 · ${E}·10⁻⁶ / ${qn(Math.PI * Math.pow(w * 1e-4, 2), 4)} = ${qn(F, 4)} J/cm². להשוות לסף ${LZ.fth} J/cm²`] }; } }] },
+  laser: { calc: [
+    { t: 'קוטר המכתש', gen: r => { const E = qv(r, 1.5, 8, 2), w = LZ.w0, F0 = 2 * E * 1e-6 / (Math.PI * Math.pow(w * 1e-4, 2)), D = 2 * w * Math.sqrt(Math.log(F0 / LZ.fth) / 2);
+      return { q: `פולס של ${qb(E + ' µJ')}, ${qb('w₀ = ' + w + ' µm')}, סף ההסרה ${qb(LZ.fth + ' J/cm²')}. מה קוטר האזור שבו F עובר את הסף?`, unit: 'µm', ans: D,
+        steps: [`F₀ = 2E / (π w₀²) = ${qn(F0, 4)} J/cm²`, `F(r) = F₀ · e^(−2r²/w₀²) = F_th  ⇒  r = w₀ · √(ln(F₀/F_th) / 2)`, `ln(${qn(F0, 4)} / ${LZ.fth}) = ${qn(Math.log(F0 / LZ.fth), 4)}`, `D = 2r = 2 · ${w} · √(${qn(Math.log(F0 / LZ.fth) / 2, 4)}) = ${qn(D, 4)} µm`] }; } }] },
+  valve: { calc: [
+    { t: 'כוח של בוכנה', gen: r => { const p = qv(r, 4, 7, 1), d = [16, 20, 25, 32, 40][Math.floor(r() * 5)], A = Math.PI * Math.pow(d / 2, 2), F = p * 0.1 * A;
+      return { q: `בוכנה בקוטר ${qb(d + ' mm')} בלחץ ${qb(p + ' bar')}. מה הכוח בדחיפה, בניוטון (בלי חיכוך)?`, unit: 'N', ans: F,
+        steps: [`A = π · (d/2)² = π · ${d / 2}² = ${qn(A, 4)} mm²`, `1 bar = 0.1 N/mm², ולכן p = ${qn(p * 0.1, 3)} N/mm²`, `F = p · A = ${qn(p * 0.1, 3)} · ${qn(A, 4)} = ${qn(F, 4)} N`] }; } }] },
+  vac: { calc: [
+    { t: 'זמן עד הסף', gen: r => { const C = qv(r, 0.01, 0.4, 3), V = qv(r, 1.2, 4, 1), vc = vacCalc({ C, V });
+      return { q: `ונטורי עם ${qb('S = ' + VT.S + ' L/s')}, לחץ סופי ${qb(VT.pult + ' kPa')}, נפח ${qb(V + ' L')}, דליפה ${qb('C = ' + C + ' L/s')}, ${qb('p_atm = ' + VT.patm + ' kPa')}. תוך כמה זמן הלחץ יורד לסף (ואקום ${VT.th} kPa)?`, unit: 's', ans: vc.tth,
+        steps: [`p_ss = (S·p_ult + C·p_atm) / (S + C) = ${qn(vc.pss, 4)} kPa`, `τ = V / (S + C) = ${V} / ${qn(VT.S + C, 4)} = ${qn(vc.tau, 4)} s`, `הסף בלחץ מוחלט: ${VT.patm} − ${VT.th} = ${qn(VT.patm - VT.th, 4)} kPa`, `t = −τ · ln((p_th − p_ss) / (p_atm − p_ss)) = ${qn(vc.tth, 4)} s`] }; } },
+    { t: 'כוח הצמדה', gen: r => { const dP = qv(r, 55, 88, 1), W = qv(r, 250, 610, 0), H = qv(r, 250, 510, 0), A = W * H / 1e6, F = dP * A;
+      return { q: `ואקום של ${qb(dP + ' kPa')} מתחת לפאנל של ${qb(W + ' × ' + H + ' mm')}. מה כוח ההצמדה, בקילוניוטון?`, unit: 'kN', ans: F,
+        steps: [`A = ${W} · ${H} mm² = ${qn(A, 4)} m²`, `kPa · m² = kN`, `F = ΔP · A = ${dP} · ${qn(A, 4)} = ${qn(F, 4)} kN`] }; } }] },
+  interlock: { calc: [
+    { t: 'זרם בשרשרת המגעים', gen: r => { const Rc = qv(r, 120, 640, 0), n = 2 + Math.floor(r() * 5), Rk = qv(r, 30, 140, 0), I = 24 / (Rc + n * Rk / 1000), dV = I * n * Rk / 1000;
+      return { q: `סליל ממסר בטיחות של ${qb(Rc + ' Ω')} על ${qb('24 V')}, דרך ${n} מגעים בטור, ${qb(Rk + ' mΩ')} כל אחד. כמה מתח נופל על כל המגעים יחד, במיליוולט?`, unit: 'mV', ans: dV * 1000,
+        steps: [`R כולל = ${Rc} + ${n} · ${Rk / 1000} = ${qn(Rc + n * Rk / 1000, 5)} Ω`, `I = 24 / ${qn(Rc + n * Rk / 1000, 5)} = ${qn(I * 1000, 4)} mA`, `ΔV = I · ${n} · ${Rk} mΩ = ${qn(dV * 1000, 4)} mV: זניח כשהמגעים נקיים`] }; } }] },
+  safety: { calc: [
+    { t: 'מרחק עצירה', gen: r => { const v = qv(r, 0.2, 1.2, 2), tr = qv(r, 25, 90, 0), a = qv(r, 2, 12, 1), s = v * tr / 1000 + v * v / (2 * a);
+      return { q: `ציר במהירות ${qb(v + ' m/s')}. זמן התגובה של השרשרת ${qb(tr + ' ms')}, ואחריו בלימה ב-${qb(a + ' m/s²')}. מה מרחק העצירה, במילימטר?`, unit: 'mm', ans: s * 1000,
+        steps: [`בזמן התגובה הציר ממשיך: v · t = ${v} · ${tr / 1000} = ${qn(v * tr / 1000 * 1000, 4)} mm`, `בבלימה: v² / (2a) = ${qn(v * v, 4)} / ${qn(2 * a, 3)} = ${qn(v * v / (2 * a) * 1000, 4)} mm`, `s = ${qn(s * 1000, 4)} mm`] }; } }] },
+  iocards: { calc: [
+    { t: 'זרם בכניסת אופטוקפלר', gen: r => { const V = qv(r, 19.2, 28.8, 1), Rin = qv(r, 2.2, 6.8, 1), Vf = 1.2, I = (V - Vf) / Rin;
+      return { q: `כניסה דיגיטלית: נגד של ${qb(Rin + ' kΩ')} בטור עם LED של אופטוקפלר (${qb('V_F = 1.2 V')}). כמה זרם בכניסה כשיש ${qb(V + ' V')}, במיליאמפר?`, unit: 'mA', ans: I,
+        steps: [`על הנגד: ${V} − 1.2 = ${qn(V - Vf, 4)} V`, `I = ${qn(V - Vf, 4)} / ${Rin} kΩ = ${qn(I, 4)} mA`] }; } }] },
+  ecat: { calc: [
+    { t: 'זמן שידור של מסגרת', gen: r => { const bytes = 60 + Math.floor(r() * 1400), t = bytes * 8 / 100;
+      return { q: `מסגרת EtherCAT של ${qb(bytes + ' בתים')} ב-${qb('100 Mbit/s')}. כמה זמן לוקח לשדר אותה, במיקרו-שניות (בלי השהיות בצמתים)?`, unit: 'µs', ans: t, tol: 0.01,
+        steps: [`ביטים: ${bytes} · 8 = ${bytes * 8}`, `100 Mbit/s = 100 ביט במיקרו-שנייה`, `t = ${bytes * 8} / 100 = ${qn(t, 4)} µs`] }; } }] },
+  proc: { calc: [
+    { t: 'כמה נתונים מייצרת סריקה', gen: r => { const W = qv(r, 400, 620, 0), H = qv(r, 500, 720, 0), p = qv(r, 3, 12, 1), px = (W * 1000 / p) * (H * 1000 / p), GB = px / 1e9;
+      return { q: `פאנל ${qb(W + ' × ' + H + ' mm')} נסרק בפיקסל של ${qb(p + ' µm')}, בית אחד לפיקסל. כמה ג'יגה-בתים?`, unit: 'GB', ans: GB,
+        steps: [`פיקסלים ברוחב: ${W}·10³ / ${p} = ${qn(W * 1000 / p, 5)}`, `פיקסלים באורך: ${H}·10³ / ${p} = ${qn(H * 1000 / p, 5)}`, `סך הכול ${qn(px / 1e9, 4)}·10⁹ פיקסלים = ${qn(GB, 4)} GB`] }; } }] },
+  bringup: { calc: [
+    { t: 'התפשטות תרמית ב-warm-up', gen: r => { const L = qv(r, 200, 900, 0), dT = qv(r, 1.5, 9, 1), a = [11.7, 17.3, 23.1][Math.floor(r() * 3)], dL = a * L * dT / 1000;
+      return { q: `קורה באורך ${qb(L + ' mm')} עם ${qb('α = ' + a + '·10⁻⁶ /K')} מתחממת ב-${qb(dT + ' K')} בזמן ה-warm-up. בכמה מיקרון היא מתארכת?`, unit: 'µm', ans: dL,
+        steps: [`ΔL = α · L · ΔT`, `= ${a}·10⁻⁶ · ${L} mm · ${dT}`, `= ${qn(dL / 1000, 4)} mm = ${qn(dL, 4)} µm. לכן מכיילים אחרי שהמכונה התייצבה`] }; } }] },
+  ind: { calc: [
+    { t: 'מחיר של התראות שווא', gen: r => { const pan = 20 + Math.floor(r() * 180), fc = qv(r, 2, 40, 1), tv = qv(r, 2, 9, 1), h = pan * fc * tv / 3600;
+      return { q: `קו עובר ${pan} פאנלים במשמרת, עם ${qb(fc + ' התראות שווא')} לפאנל בממוצע, ו-${qb(tv + ' s')} לבדוק כל אחת בתחנת האימות. כמה שעות אימות במשמרת?`, unit: 'h', ans: h,
+        steps: [`התראות במשמרת: ${pan} · ${fc} = ${qn(pan * fc, 5)}`, `זמן: ${qn(pan * fc, 5)} · ${tv} = ${qn(pan * fc * tv, 5)} s`, `= ${qn(h, 4)} שעות. לכן false call rate הוא מדד שהלקוח מודד`] }; } }] }
+};
+/* the cards of a topic from this bank */
+function bqCards(node) { const Q = BQ[node]; if (!Q) return []; const out = [];
+  (Q.mc || []).forEach((x, i) => out.push({ id: `bq:${node}:mc:${i}`, k: 'mc', q: x[0], o: x[1], a: x[2], why: x[3], src: 'שאלה אינטואיטיבית' }));
+  (Q.calc || []).forEach((x, i) => out.push({ id: `bq:${node}:c:${i}`, k: 'calc', q: x.t, gen: x.gen, tol: x.tol, src: 'פיתוח מתמטי' }));
+  return out; }
+/* one instance of a calculation card, from a seed */
+function bqInst(card, seed) { const g = card.gen(qRng(card.id + ':' + seed)); return Object.assign({ tol: card.tol || 0.02 }, g); }
+const bqParse = s => { const t = String(s).trim().replace(/,/g, '.').replace(/[^\d.eE+\-]/g, ''); const x = parseFloat(t); return Number.isFinite(x) ? x : null; };
+const bqOk = (x, ans, tol) => x != null && Math.abs(x - ans) <= Math.max(tol * Math.abs(ans), 1e-9);
+/* draws a calculation in el; done(ok) is called once, after the answer is checked or the solution is asked for */
+function bqMount(el, card, seed, done) {
+  const I = bqInst(card, seed); let used = false;
+  el.innerHTML = `<div class="bq-calc"><p class="kb">🧮 פיתוח מתמטי · ${card.q}</p><p class="bq-q">${bidi(I.q)}</p><p class="note">מחשבון מותר. מתקבלת תשובה בטווח ±${Math.round(I.tol * 1000) / 10}% מהערך.</p>
+    <p><label>התשובה: <input type="text" inputmode="decimal" class="bq-in" dir="ltr" aria-label="התשובה"> <span dir="ltr">${I.unit}</span></label> <button type="button" class="pth-go bq-check">בדוק</button> <button type="button" class="bq-show">הראה את הפיתוח</button></p><div class="bq-out" aria-live="polite"></div></div>`;
+  const inp = el.querySelector('.bq-in'), out = el.querySelector('.bq-out');
+  const solve = ok => { out.innerHTML = `${ok == null ? '' : `<p class="${ok ? 'bq-ok' : 'bq-no'}"><b>${ok ? 'נכון.' : 'לא בטווח.'}</b> התשובה: <bdi dir="ltr">${qn(I.ans, 4)} ${I.unit}</bdi></p>`}<ol class="bq-steps">${I.steps.map(s => `<li>${bidi(s)}</li>`).join('')}</ol>`; if (!used) { used = true; if (done) done(!!ok); } };
+  el.querySelector('.bq-check').addEventListener('click', () => { const x = bqParse(inp.value); if (x == null) { out.innerHTML = '<p class="note">כתוב מספר.</p>'; inp.focus(); return; } solve(bqOk(x, I.ans, I.tol)); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') el.querySelector('.bq-check').click(); });
+  el.querySelector('.bq-show').addEventListener('click', () => solve(used ? null : false));
+  return I;
+}
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -12349,7 +12657,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.50.0';
+const APP_VERSION = '2.51.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

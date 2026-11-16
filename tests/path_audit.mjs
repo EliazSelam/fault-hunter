@@ -78,7 +78,8 @@ ok(await ev(() => !!document.querySelector('.pth-panel [data-skip="source"]') &&
 await pg.click('[data-st="resistor"]'); await pg.click('[data-play="resistor"]'); await pg.waitForTimeout(100);
 let steps = 0, kinds = new Set();
 while (steps++ < 20 && await ev(() => !!document.querySelector('.pth-play .pth-q'))) {
-  const k = await ev(() => document.querySelector('#pthA [data-o]') ? 'mc' : 'recall'); kinds.add(k);
+  const k = await ev(() => document.querySelector('#pthA .bq-calc') ? 'calc' : document.querySelector('#pthA [data-o]') ? 'mc' : 'recall'); kinds.add(k);
+  if (k === 'calc') { await ev(() => { const S = PV.sess, c = S.items[S.i].c, I = bqInst(c, S.now + ':' + S.i); document.querySelector('#pthA .bq-in').value = String(I.ans); document.querySelector('#pthA .bq-check').click(); }); await pg.click('#pthNext'); continue; }
   if (k === 'mc') await pg.click('#pthA [data-o]'); else { await pg.click('#pthShow'); await pg.click('#pthKnew'); await pg.waitForTimeout(60); continue; }
   await pg.click('#pthNext');
 }

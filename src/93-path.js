@@ -87,6 +87,7 @@ function pathCards(stageId) { if (PCARD_CACHE[stageId]) return PCARD_CACHE[stage
 function pathCards0(stageId) {
   const st = pathStages()[stageId]; if (!st) return []; const out = [], seen = new Set(), add = c => { if (c && !seen.has(c.id)) { seen.add(c.id); out.push(c); } };
   if (st.node) {
+    if (typeof bqCards === 'function') bqCards(st.node).forEach(add);   /* the book's own questions first: intuition and calculation */
     const n = zNode(st.node), ws = zWindows(n), T = TOPICS.find(x => zTopicNode(x.id) === n);
     if (T) {
       T.quiz.forEach((x, i) => add({ id: `${T.id}:q:${i}`, k: 'mc', q: x[0], o: x[1], a: x[2], why: x[3], src: T.t }));
@@ -225,8 +226,9 @@ function pathPlay() {
     <p class="kb">${pathEsc(st.t)}${it.retry ? ' · חזרה על טעות' : ''}</p><h3 class="pth-q" lang="he">${c.q}</h3><div id="pthA" aria-live="polite"></div></div>`;
   $('#pthX').addEventListener('click', () => { PV.sess = null; zPathView(); });
   const A = $('#pthA'), fin = () => { PV.sess = S; zPathView(); };
-  const feedback = (ok, why) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'נכון' : 'לא נכון'}</b>${why ? ` ${why}` : ''}${!ok && it.retry === undefined ? ' <small>הכרטיס יחזור בסוף.</small>' : ''}<p><button type="button" class="pth-go" id="pthNext">המשך</button></p></div>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); };
-  if (c.k === 'mc') {
+  const feedback = (ok, why) => { A.insertAdjacentHTML('beforeend', `<div class="pth-fb ${ok ? 'ok' : 'no'}"><b>${ok ? 'נכון' : 'לא נכון'}</b>${why ? ` ${bidi(why)}` : ''}${!ok && it.retry === undefined ? ' <small>הכרטיס יחזור בסוף.</small>' : ''}<p><button type="button" class="pth-go" id="pthNext">המשך</button></p></div>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); };
+  if (c.k === 'calc') { bqMount(A, c, S.now + ':' + S.i, ok => { pathAnswer(S, ok); A.insertAdjacentHTML('beforeend', `<p><button type="button" class="pth-go" id="pthNext">המשך</button></p>`); const n = $('#pthNext'); n.focus(); n.addEventListener('click', fin); }); }
+  else if (c.k === 'mc') {
     A.innerHTML = `<div class="tp">${c.o.map((x, j) => `<button type="button" data-o="${j}">${x}</button>`).join('')}</div>`;
     A.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === c.a; A.querySelectorAll('[data-o]').forEach(x => { x.disabled = true; if (+x.dataset.o === c.a) x.classList.add('right'); }); if (!ok) b.classList.add('wrong'); pathAnswer(S, ok); feedback(ok, c.why); }));
   } else {

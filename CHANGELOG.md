@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.51.0] — 2026-11-16
+
+Intuition questions and calculations, in the book, the path and the chapter tests.
+
+- **Multiple choice with intuitive answers:** 40 new questions for the topics that had only open questions (basic electricity, circuits, measurement, logic, power). Each answer explains with a picture first and the physics second, and the right option is marked after a choice.
+- **A math track of calculations that are not done in the head:** 45 calculations on 35 topics, from a series resistor for an LED to the fluence of a laser pulse, the time a vacuum takes to reach its threshold and the stopping distance of an axis. The givens are drawn fresh (non-round) from a seed, the answer is computed in code, never typed, and the derivation is shown step by step with the numbers filled in. A calculator is allowed; an answer within ±2% is accepted, and a comma works as a decimal point.
+- **Where they appear:** after each topic in the book (two intuition questions and up to two calculations, new givens every day); in the chapter tests (up to six multiple choice and two calculations, with the explanation after each answer); in the path sessions; and in the spaced repetition store, like every other card.
+- Four of the calculations are checked against the models by another route (vacuum time, crater diameter, line rate, stopping distance).
+- Tests: 5 new checks in the `book` suite (104 in all).
+
 ## [2.50.0] — 2026-11-16
 
 The book: one course from chapter 0 to certification.
