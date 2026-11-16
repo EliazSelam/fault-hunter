@@ -142,11 +142,12 @@ function bookCards(c, seed) {
 function bookExamCards(c, seed) { const all = bookCards(c, seed), n = c.final ? 20 : BEXAM;
   if (!c.final) { const mc = all.filter(x => x.k === 'mc'), calc = all.filter(x => x.k === 'calc'), rest = all.filter(x => x.k !== 'mc' && x.k !== 'calc'), pick = [...mc.slice(0, 6), ...calc.slice(0, 2)]; return [...pick, ...rest].slice(0, n).concat(mc.slice(6), calc.slice(2)).slice(0, n); }
   const by = {}; all.forEach(x => (by[x.stage] = by[x.stage] || []).push(x)); const keys = Object.keys(by).sort((a, b) => pathHash(seed + a) - pathHash(seed + b)), out = []; let i = 0; while (out.length < n && keys.some(k => by[k].length)) { const k = keys[i++ % keys.length]; if (by[k].length) out.push(by[k].shift()); } return out; }
-const bookStatus = (B, id) => B.exam[id] && B.exam[id].ok ? 'done' : B.read[id] ? 'read' : 'new';
+const bookStatus = (B, id) => (typeof bookReq === 'function' ? bookReq(B, id).done : B.exam[id] && B.exam[id].ok) ? 'done' : B.read[id] || B.exam[id] ? 'read' : 'new';
 
 /* ---- the screens ---- */
 const BV = { ch: null, exam: null };
 function zBookView(arg) {
+  if (typeof BKRET !== 'undefined') BKRET = null;
   zCapture();   /* some windows are captured from other pages once; do it before this page is drawn, not in the middle of it */
   const B = bookLoad(); if (arg && bookCh()[arg]) BV.ch = arg; if (!BV.ch) BV.ch = B.last || 'b0'; if (BV.exam) return bookExam();
   const c = bookCh()[BV.ch], order = bookOrder(), i = order.indexOf(c.id), prev = order[i - 1], next = order[i + 1]; B.last = c.id; bookSave(B);
@@ -164,7 +165,7 @@ const bookMark = (B, id) => ({ done: '✅', read: '📗', new: '⬜' })[bookStat
 function bookHead(c, B) {
   const P = c.part, st = bookStatus(B, c.id);
   return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c === P.ch[0] ? `<p class="bk-partwhy">${P.why}</p>` : ''}
-    ${st === 'done' ? `<p class="bk-ok">✅ הוסמכת בפרק הזה (${Math.round(B.exam[c.id].sc * 100)}%).</p>` : ''}`;
+    ${st === 'done' && B.exam[c.id] ? `<p class="bk-ok">✅ הוסמכת בפרק הזה (${Math.round(B.exam[c.id].sc * 100)}%).</p>` : ''}`;
 }
 function bookChapter(A, B, c) {
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why;
@@ -176,6 +177,8 @@ function bookChapter(A, B, c) {
     return `<section class="bk-topic"><h3>${c.n}.${k + 1} ${n.t}</h3>${W.main.map(([hb, w]) => bookWin(hb, w, node)).join('')}
       ${W.more.length ? `<details class="bk-more"><summary>להעמקה: עוד ${W.more.length} חלונות בנושא</summary><p>${W.more.map(([hb, w]) => `<button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">${hb[1]}: ${zInfo(w).t}</button>`).join(' · ')}</p></details>` : ''}
       ${bookChecks(node)}</section>`; }).join('');
+  if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
+  if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
   if (!c.final) h += `<section class="bk-box bk-end"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
     <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''}</section>`;
   A.innerHTML = h; bookWire(A, B, c);
@@ -191,6 +194,7 @@ function bookChecks(stage) { const cards = pathCards(stage), cs = cards.filter(c
     : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}
     ${calc.length ? `<p><b>פיתוח מתמטי</b> <small>(הנתונים מתחלפים כל יום)</small></p>${calc.map(c => `<div class="bk-calc" data-cid="${c.id}"></div>`).join('')}` : ''}</div>`; }
 function bookWire(A, B, c) {
+  if (typeof bookFrameWire === 'function') { bookFrameWire(A, c); bookCertWire(A); }
   A.querySelectorAll('.bk-win').forEach(el => { const k = zInfo(el.dataset.w).kind; if (BOOK_OPEN.has(k)) bookMount(el); const m = el.querySelector('[data-mount]'); if (m) m.addEventListener('click', () => bookMount(el)); });
   A.querySelectorAll('[data-ow]').forEach(b => b.addEventListener('click', () => zOpenWindow(b.dataset.on, b.dataset.ow)));
   A.querySelectorAll('[data-bn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.bn)));
@@ -208,7 +212,7 @@ function bookExam() {
   const E = BV.exam, c = bookCh()[E.ch];
   if (E.i >= E.cards.length) { const sc = E.cards.length ? E.right / E.cards.length : 0, ok = sc >= BPASS, B = bookLoad(); const prev = B.exam[c.id]; B.exam[c.id] = { sc: Math.max(sc, prev ? prev.sc : 0), ok: ok || !!(prev && prev.ok), t: Date.now() }; B.read[c.id] = 1; bookSave(B); BV.exam = null;
     const order = bookOrder(), next = order[order.indexOf(c.id) + 1], all = order.filter(id => id !== 'b0').every(id => bookStatus(B, id) === 'done');
-    content.innerHTML = `<div class="pth-play pth-result"><h2>${ok ? '✅ עברת את מבחן הפרק' : 'עוד לא'}</h2><p class="lead">פרק ${c.n}: ${c.t}. ${E.right} מתוך ${E.cards.length}, ${Math.round(sc * 100)}%. ${ok ? '' : `צריך ${BPASS * 100}%. השאלות שטעית בהן כבר בתור החזרות.`}</p>
+    content.innerHTML = `<div class="pth-play pth-result"><h2>${ok ? '✅ עברת את מבחן הפרק' : 'עוד לא'}</h2><p class="lead">פרק ${c.n}: ${c.t}. ${E.right} מתוך ${E.cards.length}, ${Math.round(sc * 100)}%. ${ok ? '' : `צריך ${BPASS * 100}%. השאלות שטעית בהן כבר בתור החזרות.`}</p>${ok && typeof bookReq === 'function' && bookReq(B, c.id).solved < bookReq(B, c.id).faults.length ? `<p class="note">כדי להסמיך את הפרק נשארו תקלות לפתור: ${bookReq(B, c.id).faults.filter(id => !bookSolved(id)).join(', ')}.</p>` : ''}
       ${E.ans.filter(a => !a.ok).length ? `<details class="bk-more"><summary>מה לחזור עליו (${E.ans.filter(a => !a.ok).length})</summary><ul>${E.ans.filter(a => !a.ok).map(a => `<li>${a.q}<br><small>${a.why}</small></li>`).join('')}</ul></details>` : ''}
       ${all ? `<div class="bk-cert"><h3>🎓 סיימת את כל הקורס</h3><p>עברת את מבחני כל ${order.length - 1} הפרקים ואת המבחן המסכם.</p></div>` : ''}
       <p><button type="button" class="pth-go" id="bkBack">חזרה לפרק</button> ${ok && next ? `<button type="button" class="pth-go" id="bkNext">לפרק ${bookCh()[next].n} ←</button>` : `<button type="button" id="bkAgain">מבחן חוזר</button>`}</p></div>`;

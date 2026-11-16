@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.52.0] — 2026-11-16
+
+Everything into the book and the certification. Nothing new was written; what exists was put in place.
+
+- **Every asset has a home chapter:** the master map (every page, system stage, simulator level, simulation, figure, CircuitJS circuit, all 112 bank questions and all 51 faults) is read by the book for the first time. An asset goes to the chapter of the topic it belongs to (by its page, system, topic or window), or else to the chapter of its subject; one that several subjects share goes to the earliest chapter that needs it. 411 assets, one home each.
+- **"All the material of the chapter":** in each chapter, by the eight levels of depth (essence, intuition, structure and flow, engineering depth, math and physics, advanced, chapter quiz, integration). Every item opens in its place, with a bar back to the chapter.
+- **Certification of a chapter = its test (80%) + every fault that lives in it, solved.** The chapter shows both requirements and their status; the result of a passed test says which faults are left.
+- **The certificate:** in the last chapter, with the name you type and a row per chapter (test score, faults solved). It opens fully when all 28 chapters are certified, prints or saves as PDF, and until then shows where you stand.
+- Reading a schematic (the foundations pages) now sits in chapter 1.
+- Tests: 13 new checks in the `book` suite (117 in all), including that every asset of the master map has a home chapter.
+
 ## [2.51.0] — 2026-11-16
 
 Intuition questions and calculations, in the book, the path and the chapter tests.

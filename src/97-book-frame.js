@@ -1,0 +1,88 @@
+/* ============ Everything into the book and the certification (v2.52) ============
+   MASTER (73) catalogues every asset of the site on a level of its subject: pages, system stages, simulator levels, simulations,
+   figures, CircuitJS circuits, every bank question and every fault. Until now nothing read it. Here the book does:
+   - every asset gets exactly one home chapter: the chapter of the topic it belongs to (by its page, system, topic or window), or
+     else the chapter of its subject; an asset that several subjects share goes to the earliest chapter that needs it;
+   - each chapter shows "all the material of the chapter" by MASTER's eight levels of depth, every item one press away, with a bar
+     to come back to the chapter;
+   - certification of a chapter is its test (80%) and every fault scenario that lives in it, solved; the course certificate is
+     every chapter and the final exam, printable. */
+const BOOK_SUBJ = { draw: 'b1', mechdraw: 'b12', dig: 'b8', meas: 'b7', elec: 'b10', servo: 'b13', vac: 'b18', cam: 'b16', aos: 'b17', pwr: 'b9', ecat: 'b20', safety: 'b19', aoi: 'b21', boards: 'b27', bringup: 'b22', industry: 'b23', res: 'b28' };
+const bookNodeCh = n => n ? Object.values(bookCh()).find(c => (c.nodes || []).includes(n.id || n)) : null;
+/* the topic an asset belongs to, if it belongs to one */
+function bookRefNode(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.slice(ref.indexOf(':') + 1), win = w => ZOOM.find(n => zWindows(n).includes(w)) || null;
+  if (k === 'p') return zRouteNode(v.split('#')[0]);
+  if (k === 's2') return zRouteNode('s2/' + v.split('#')[0]);
+  if (k === 't') { const id = v.split('/')[0]; return id === '*' ? null : zTopicNode(id); }
+  if (k === 'sim' || k === 'fig') return win(ref);
+  if (k === 'q') { const node = Object.keys(PQMAP).find(n => PQMAP[n].split(' ').includes(v)); return node ? zNode(node) : null; }
+  if (k === 'scn') { const s = SCN.find(x => x.id === v); if (!s) return null; const [sh, id] = s.sys.split(':'); return zRouteNode(sh + '/' + id); }
+  return null; }
+/* every MASTER ref, expanded to single assets: a topic's questions, a system's faults, every topic for "*" */
+function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.slice(ref.indexOf(':') + 1);
+  if (k === 'qb') return QB.filter(q => q.t === v).map(q => 'q:' + q.id);
+  if (k === 'scn') return SCN.filter(s => s.sys === v).map(s => 'scn:' + s.id);
+  if (k === 't' && v.startsWith('*/')) return TOPICS.map(T => 't:' + T.id + v.slice(1));
+  if (k === 'p') return ['p:' + v.split('#')[0] + (v.includes('#') ? '#' + v.split('#')[1] : '')];
+  if (k === 's2') return [ref, 'p:s2/' + v.split('#')[0]];
+  return k === 'x' ? [] : [ref]; }
+/* asset → { ch, level, subj }: one home each */
+const bookHome = (() => { let M = null; return () => { if (M) return M; M = {};
+  MASTER.forEach(S => S.L.forEach((refs, lv) => refs.forEach(r => bookExpand(r).forEach(a => {
+    const key = a.replace(/#(full|math)$/, ''), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
+    if (!cur || bookCh()[ch].n < bookCh()[cur.ch].n) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
+const bookAssets = chId => Object.entries(bookHome()).filter(([, p]) => p.ch === chId).map(([k, p]) => Object.assign({ key: k }, p));
+/* a name for an asset */
+function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
+  if (k === 'p') { const [r, sec] = v.split('#'); return (typeof zRouteTitle === 'function' ? zRouteTitle(r) : r) + (sec === 'full' ? ' · קריאה מלאה' : sec === 'math' ? ' · נוסחאות' : ''); }
+  if (k === 's2') { const [id, st] = v.split('#'); return `${SYSX[id] ? SYSX[id].title : id} · ${({ intro: 'היכרות', normal: 'פעולה תקינה', prin: 'עקרונות כשל', worked: 'דוגמה פתורה', guided: 'תרגול מודרך', solo: 'תרגול עצמאי' })[st] || st}`; }
+  if (k === 't') { const [id, l] = v.split('/'), T = TOPICS.find(x => x.id === id), L = (typeof LEVELS !== 'undefined' ? LEVELS : []).find(x => x[0] === l); return `${T ? T.t : id} · ${L ? L[1] : l}`; }
+  if (k === 'q') { const q = QB.find(x => x.id === v); return q ? `שאלה ${v}: ${q.title}` : v; }
+  if (k === 'scn') { const s = SCN.find(x => x.id === v); return s ? `תקלה ${v}: ${s.title}` : v; }
+  if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); return n ? zInfo(a).t : ({ im3d: 'שדה מסתובב בתלת-ממד', st3d: 'מנוע צעד בתלת-ממד', clab: 'סימולציית ממירים' })[v] || a; }
+  if (k === 'cj') return 'מעגל CircuitJS: ' + v;
+  return a; }
+const BOOK_KIND = { p: 'עמוד', s2: 'מערכת', t: 'סימולטור', q: 'שאלה', scn: 'תקלה', sim: 'סימולציה', fig: 'איור חי', cj: 'מעגל' };
+/* open an asset, with a bar back to the chapter */
+let BKRET = null;
+function bookOpen(a, chId) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId;
+  if (k === 'p') routeGo(v.split('#')[0]);
+  else if (k === 's2') routeGo('s2/' + v.split('#')[0]);
+  else if (k === 't') { const [id, l] = v.split('/'); TSTATE.lvl = l; go('topic', id); }
+  else if (k === 'q') routeGo('q/' + v);
+  else if (k === 'scn') routeGo('scn/' + v);
+  else if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); if (n) zOpenWindow(n.id, a); else routeGo('mot/sims'); }
+  else if (k === 'cj') routeGo('mot/sims');
+  setTimeout(bookRetBar, 0); }
+function bookRetBar() { const c = document.getElementById('content'); if (!BKRET || !c || document.getElementById('bkRet') || document.getElementById('bkCh') || BV.exam) return;
+  c.insertAdjacentHTML('afterbegin', `<nav class="zback" id="bkRetNav"><button type="button" id="bkRet">← חזרה לספר: פרק ${bookCh()[BKRET].n}, ${bookCh()[BKRET].t}</button></nav>`);
+  document.getElementById('bkRet').addEventListener('click', () => { const ch = BKRET; BKRET = null; BV.ch = ch; go('zoom', 'book'); }); }
+new MutationObserver(() => { if (BKRET) bookRetBar(); }).observe(document.getElementById('content'), { childList: true });
+
+/* ---- certification: the test and the chapter's faults ---- */
+const bookFaults = chId => bookAssets(chId).filter(x => x.key.startsWith('scn:')).map(x => x.key.slice(4)).sort();
+const bookSolved = id => !!loadP()[id];
+function bookReq(B, chId) { const c = bookCh()[chId], f = bookFaults(chId), ex = B.exam[chId];
+  return { exam: !!(ex && ex.ok), sc: ex ? ex.sc : null, faults: f, solved: f.filter(bookSolved).length, needExam: chId !== 'b0', done: chId === 'b0' ? !!B.read.b0 : !!(ex && ex.ok) && f.every(bookSolved) }; }
+function bookFrameHtml(c, B) { if (c.id === 'b0') return '';
+  const A = bookAssets(c.id), by = MASTER_LEVELS.map((t, i) => [t, A.filter(x => x.level === i)]).filter(x => x[1].length), R = bookReq(B, c.id);
+  const item = x => { const k = x.key.slice(0, x.key.indexOf(':')), solved = k === 'scn' && bookSolved(x.key.slice(4)); return `<button type="button" class="bk-asset${solved ? ' ok' : ''}" data-asset="${x.ref}"><span class="kb">${BOOK_KIND[k] || k}</span> ${bookAssetName(x.ref)}${solved ? ' ✓' : ''}</button>`; };
+  return (A.length ? `<section class="bk-box bk-all"><h3>📚 כל החומר של הפרק</h3><p class="note">${A.length} פריטים מהאתר שהבית שלהם בפרק הזה, לפי עומק. כל פריט נפתח במקומו, עם כפתור חזרה לכאן.</p>
+    ${by.map(([t, list], i) => `<details class="bk-lv"${i === 0 ? ' open' : ''}><summary>${t} <small>(${list.length})</small></summary><div class="bk-assets">${list.map(item).join('')}</div></details>`).join('')}</section>` : '') + `
+    <section class="bk-box bk-req"><h3>🎓 דרישות ההסמכה של הפרק</h3><ul>
+      <li>${R.exam ? '✅' : '⬜'} מבחן הפרק, 80% ומעלה${R.sc != null ? ` (הכי טוב: ${Math.round(R.sc * 100)}%)` : ''}</li>
+      ${R.faults.length ? `<li>${R.solved === R.faults.length ? '✅' : '⬜'} תקלות הפרק: ${R.solved} מתוך ${R.faults.length} נפתרו <span class="bk-faults">${R.faults.map(id => `<button type="button" class="linkbtn" data-asset="scn:${id}">${bookSolved(id) ? '✓ ' : ''}${id}</button>`).join(' ')}</span></li>` : '<li>אין תקלות שבית שלהן בפרק הזה.</li>'}
+    </ul>${R.done ? '<p class="bk-ok">✅ הפרק מוסמך.</p>' : ''}</section>`; }
+function bookFrameWire(A, c) { A.querySelectorAll('[data-asset]').forEach(b => b.addEventListener('click', () => bookOpen(b.dataset.asset, c.id))); }
+
+/* ---- the certificate ---- */
+function bookCertHtml(B) { const order = bookOrder().filter(id => id !== 'b0'), all = order.every(id => bookReq(B, id).done);
+  return `<section class="bk-box bk-cert-wrap"><h3>🎓 תעודת הסיום</h3>${all ? '' : `<p class="note">התעודה נפתחת כשכל ${order.length} הפרקים מוסמכים, כולל המבחן המסכם. עד אז היא מראה איפה אתה עומד.</p>`}
+    <p><label>השם על התעודה: <input type="text" id="bkName" value="${pathEsc(B.name || '')}" maxlength="60"></label></p>
+    <div class="bk-cert" id="bkCert"><h3>מהרכיב למכונה</h3><p>${all ? 'מאשר כי' : 'התקדמות של'} <b id="bkNameOut">${pathEsc(B.name || '_____')}</b></p>
+      <p>${all ? 'השלים את כל פרקי הקורס, עבר את מבחני הפרקים ואת המבחן המסכם, ופתר את כל תקלות השטח.' : `${order.filter(id => bookReq(B, id).done).length} מתוך ${order.length} פרקים מוסמכים.`}</p>
+      <table class="pth-plan"><tbody>${order.map(id => { const R = bookReq(B, id); return `<tr><td>${bookCh()[id].n}</td><td>${bookCh()[id].t}</td><td>${R.sc != null ? Math.round(R.sc * 100) + '%' : '—'}</td><td>${R.faults.length ? R.solved + '/' + R.faults.length : '—'}</td><td>${R.done ? '✅' : ''}</td></tr>`; }).join('')}</tbody></table>
+      ${all ? `<p class="note">${new Date().toLocaleDateString('he-IL')}</p>` : ''}</div>
+    <p><button type="button" class="pth-go" id="bkPrint">🖨️ הדפסה או PDF</button></p></section>`; }
+function bookCertWire(A) { const i = A.querySelector('#bkName'); if (!i) return; i.addEventListener('input', () => { const N = bookLoad(); N.name = i.value; bookSave(N); A.querySelector('#bkNameOut').textContent = i.value || '_____'; });
+  A.querySelector('#bkPrint').addEventListener('click', () => { document.body.classList.add('bk-printing'); window.print(); setTimeout(() => document.body.classList.remove('bk-printing'), 500); }); }
