@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.53.0] — 2026-11-16
+
+Two directions of learning: up from the component, or down from the machine.
+
+- **A choice in chapter 0 and above every chapter:** "from the component to the machine" (as before) or "from the machine to the component". Same chapters, same tests, same certification; switching keeps everything already certified.
+- **Going down:** the line, the inspection and repair cycle and first power-up come first, then the systems (control and communication, safety, vacuum, laser, camera and registration, triggering, optics, the servo axis), then mechanisms, circuits and components, down to the resistor. The cross-cutting subjects and the final exam stay last. Chapters are numbered in the order read, the contents run from part G to part A, and the bridge at the end of a chapter names the next one in this direction.
+- **Every chapter says where it stands in the machine,** from the zoom tree: what it is part of and what it is made of (going down: "comes from" and "goes down into"). Going up, it also keeps its prerequisites.
+- **The path follows the direction:** in each track the top stage opens first, and the weekly plan deals from the top.
+- The direction changes the order only: every asset keeps its home chapter.
+- Fixed: a part's opening paragraph now shows on its first chapter.
+- Tests: 6 new checks in the `book` suite (123 in all).
+
 ## [2.52.0] — 2026-11-16
 
 Everything into the book and the certification. Nothing new was written; what exists was put in place.

@@ -74,7 +74,10 @@ const pathStages = (() => { let M = null; return () => {
   PCENTRAL.forEach(tr => tr.items.forEach((it, i) => { M[it.id] = { id: it.id, t: it.t, track: tr.id, i, item: it, go: it.nodes, what: it.what }; }));
   return M; }; })();
 const pathTrack = id => pathTracks().find(t => t.id === id);
-const pathTrackStages = tr => tr.stages || tr.items.map(x => x.id);
+/* a track's stages in the learning direction the learner chose in the book: up from the component, or down from the machine */
+const pathDown = () => typeof bookDir === 'function' && bookDir() === 'down';
+const pathTrackStages = tr => tr.stages ? (pathDown() ? tr.stages.slice().reverse() : tr.stages) : tr.items.map(x => x.id);
+const pathIdx = id => { const s = pathStages()[id]; return pathTrackStages(pathTrack(s.track)).indexOf(id); };
 
 /* ---- cards ---- */
 function pathHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -113,7 +116,7 @@ function pathSave(P) { try { localStorage.setItem(PATHKEY, JSON.stringify(P)); }
 const pathDay = (now = Date.now()) => { const d = new Date(now); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const pathCrowns = (P, id) => (P.st[id] && P.st[id].c) || 0;
 /* a stage is open when the mode is free, it starts its track, the one before has a crown, or its skip test was passed */
-function pathOpen(P, id) { const s = pathStages()[id]; if (P.mode === 'open' || s.i === 0 || (P.st[id] && P.st[id].sk)) return true; const tr = pathTrack(s.track); return pathCrowns(P, pathTrackStages(tr)[s.i - 1]) >= 1; }
+function pathOpen(P, id) { const s = pathStages()[id], k = pathIdx(id); if (P.mode === 'open' || k === 0 || (P.st[id] && P.st[id].sk)) return true; const tr = pathTrack(s.track); return pathCrowns(P, pathTrackStages(tr)[k - 1]) >= 1; }
 /* a started stage whose cards are due is "refresh" */
 function pathDue(id, now = Date.now(), d = reviewLoad()) { return pathCards(id).filter(c => d[c.id] && d[c.id].due <= now); }
 function pathState(P, id, now = Date.now(), d = reviewLoad()) { const c = pathCrowns(P, id); if (c && pathDue(id, now, d).length) return 'refresh'; if (c >= PCROWNS) return 'gold'; if (c) return 'crown'; return pathOpen(P, id) ? 'open' : 'locked'; }
@@ -177,7 +180,7 @@ function zPathView() {
   ({ map: pathMap, syl: pathSyllabus, today: pathToday, prog: pathProgress })[PV.tab](P, $('#pthBody')); setTitle('זום', 'נתיב למידה', 'מסלולים, שלבים וחזרות');
 }
 function pathStageBtn(P, id, now, d) {
-  const s = pathStages()[id], st = pathState(P, id, now, d), c = pathCrowns(P, id), mark = { locked: '🔒', open: s.i + 1, crown: '✓', gold: '★', refresh: '🔁' }[st];
+  const s = pathStages()[id], st = pathState(P, id, now, d), c = pathCrowns(P, id), mark = { locked: '🔒', open: pathIdx(id) + 1, crown: '✓', gold: '★', refresh: '🔁' }[st];
   return `<button type="button" class="pth-st pth-${st}${PV.open === id ? ' on' : ''}" data-st="${id}" aria-label="${pathEsc(s.t)}, ${{ locked: 'נעול', open: 'פתוח', crown: 'הושלם', gold: 'שלוט', refresh: 'צריך רענון' }[st]}, ${c} כתרים"><span class="pth-n">${mark}</span><span class="pth-t">${pathEsc(s.t)}</span><span class="pth-cr" aria-hidden="true">${'●'.repeat(c)}${'○'.repeat(PCROWNS - c)}</span><i class="pth-mb" aria-hidden="true"><i style="width:${Math.round(pathMastery(id, now, d).m * 100)}%"></i></i></button>`;
 }
 function pathMap(P, host) {
@@ -239,7 +242,7 @@ function pathPlay() {
 }
 function pathResult() {
   const S = PV.sess, R = pathApply(pathLoad(), { mode: S.mode, stage: S.stage, xp: S.xp, mistakes: S.mistakes, failed: S.failed }); pathSave(R.P); PV.sess = null;
-  const st = pathStages()[S.stage], crowns = S.mode === 'daily' ? null : pathCrowns(R.P, S.stage), nextId = st && !st.item ? pathTrackStages(pathTrack(st.track))[st.i + 1] : null;
+  const st = pathStages()[S.stage], crowns = S.mode === 'daily' ? null : pathCrowns(R.P, S.stage), nextId = st && !st.item ? pathTrackStages(pathTrack(st.track))[pathIdx(S.stage) + 1] : null;
   content.innerHTML = `<div class="pth-play pth-result"><h2>${S.failed ? 'נגמרו הלבבות' : S.mode === 'daily' ? 'סשן יומי הושלם' : R.passed ? 'שלב הושלם' : 'סשן הושלם'}</h2>
     <p class="lead">${S.failed ? 'זה בסדר: מה שנכשל חוזר אליך בזמן, וההתקדמות נשמרת.' : S.mistakes ? `${S.mistakes} טעויות, והן חוזרות לתרגול.` : 'בלי אף טעות.'}</p>
     <div class="pth-stats"><span>⭐ <b>+${R.xp}</b></span><span>✅ <b>${S.right}</b> נכון</span>${crowns != null ? `<span>👑 <b>${crowns}</b>/${PCROWNS}</span>` : ''}<span>🔥 <b>${R.P.streak}</b></span></div>

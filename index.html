@@ -519,6 +519,8 @@ ol.tsteps .ts{color:var(--live-text)}
 .bq-calc{border:1px solid #3078B0;border-radius:12px;padding:8px 14px;margin:8px 0;background:#fff}.bq-q{font-weight:600;color:#1B2F5A}.bq-in{width:9em;font:inherit;padding:4px 8px;border:1px solid #3078B0;border-radius:8px;text-align:left}.bq-show{font:inherit;background:none;border:1px solid #7B5A3C;color:#7B5A3C;border-radius:999px;padding:4px 12px;cursor:pointer}.bq-ok{color:#1B2F5A;background:#D6E8F7;border-radius:8px;padding:6px 10px}.bq-no{color:#7B5A3C;background:#EEE9E0;border-radius:8px;padding:6px 10px}.bq-steps li{margin:3px 0}.bk-check .tp button.right,.pth-play .tp button.right{background:#D6E8F7;border-color:#1B2F5A;font-weight:700}.bk-check .tp button.wrong{border-color:#7B5A3C;text-decoration:line-through}
 .bk-assets{display:flex;flex-wrap:wrap;gap:6px;padding:6px 0}.bk-asset{font:inherit;font-size:.9em;text-align:right;border:1px solid #D6E8F7;background:#fff;color:#1B2F5A;border-radius:10px;padding:5px 10px;cursor:pointer}.bk-asset:hover{background:#D6E8F7}.bk-asset.ok{border-color:#1B2F5A;background:#D6E8F7}.bk-asset .kb{font-size:.75em}.bk-lv summary{cursor:pointer;font-weight:700;color:#1B2F5A;margin:6px 0}.bk-req li{margin:4px 0}.bk-faults .linkbtn{margin:0 3px}
 @media print{body.bk-printing *{visibility:hidden}body.bk-printing #bkCert,body.bk-printing #bkCert *{visibility:visible}body.bk-printing #bkCert{position:absolute;inset:0;margin:0;max-width:none;border:0}}
+.bk-dir{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.bk-dir button{font:inherit;font-size:.9em;border:1px solid #3078B0;background:#fff;color:#1B2F5A;border-radius:999px;padding:4px 12px;cursor:pointer}.bk-dir button[aria-pressed=true]{background:#1B2F5A;color:#EEE9E0}
+.bk-dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.bk-dircard{font:inherit;text-align:right;display:flex;flex-direction:column;gap:6px;border:2px solid #D6E8F7;background:#fff;color:#4A4540;border-radius:12px;padding:10px 14px;cursor:pointer}.bk-dircard b{color:#1B2F5A;font-size:1.05em}.bk-dircard[aria-pressed=true]{border-color:#1B2F5A;background:#D6E8F7}
 </style>
 </head>
 <body>
@@ -10646,7 +10648,10 @@ const pathStages = (() => { let M = null; return () => {
   PCENTRAL.forEach(tr => tr.items.forEach((it, i) => { M[it.id] = { id: it.id, t: it.t, track: tr.id, i, item: it, go: it.nodes, what: it.what }; }));
   return M; }; })();
 const pathTrack = id => pathTracks().find(t => t.id === id);
-const pathTrackStages = tr => tr.stages || tr.items.map(x => x.id);
+/* a track's stages in the learning direction the learner chose in the book: up from the component, or down from the machine */
+const pathDown = () => typeof bookDir === 'function' && bookDir() === 'down';
+const pathTrackStages = tr => tr.stages ? (pathDown() ? tr.stages.slice().reverse() : tr.stages) : tr.items.map(x => x.id);
+const pathIdx = id => { const s = pathStages()[id]; return pathTrackStages(pathTrack(s.track)).indexOf(id); };
 
 /* ---- cards ---- */
 function pathHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -10685,7 +10690,7 @@ function pathSave(P) { try { localStorage.setItem(PATHKEY, JSON.stringify(P)); }
 const pathDay = (now = Date.now()) => { const d = new Date(now); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 const pathCrowns = (P, id) => (P.st[id] && P.st[id].c) || 0;
 /* a stage is open when the mode is free, it starts its track, the one before has a crown, or its skip test was passed */
-function pathOpen(P, id) { const s = pathStages()[id]; if (P.mode === 'open' || s.i === 0 || (P.st[id] && P.st[id].sk)) return true; const tr = pathTrack(s.track); return pathCrowns(P, pathTrackStages(tr)[s.i - 1]) >= 1; }
+function pathOpen(P, id) { const s = pathStages()[id], k = pathIdx(id); if (P.mode === 'open' || k === 0 || (P.st[id] && P.st[id].sk)) return true; const tr = pathTrack(s.track); return pathCrowns(P, pathTrackStages(tr)[k - 1]) >= 1; }
 /* a started stage whose cards are due is "refresh" */
 function pathDue(id, now = Date.now(), d = reviewLoad()) { return pathCards(id).filter(c => d[c.id] && d[c.id].due <= now); }
 function pathState(P, id, now = Date.now(), d = reviewLoad()) { const c = pathCrowns(P, id); if (c && pathDue(id, now, d).length) return 'refresh'; if (c >= PCROWNS) return 'gold'; if (c) return 'crown'; return pathOpen(P, id) ? 'open' : 'locked'; }
@@ -10749,7 +10754,7 @@ function zPathView() {
   ({ map: pathMap, syl: pathSyllabus, today: pathToday, prog: pathProgress })[PV.tab](P, $('#pthBody')); setTitle('זום', 'נתיב למידה', 'מסלולים, שלבים וחזרות');
 }
 function pathStageBtn(P, id, now, d) {
-  const s = pathStages()[id], st = pathState(P, id, now, d), c = pathCrowns(P, id), mark = { locked: '🔒', open: s.i + 1, crown: '✓', gold: '★', refresh: '🔁' }[st];
+  const s = pathStages()[id], st = pathState(P, id, now, d), c = pathCrowns(P, id), mark = { locked: '🔒', open: pathIdx(id) + 1, crown: '✓', gold: '★', refresh: '🔁' }[st];
   return `<button type="button" class="pth-st pth-${st}${PV.open === id ? ' on' : ''}" data-st="${id}" aria-label="${pathEsc(s.t)}, ${{ locked: 'נעול', open: 'פתוח', crown: 'הושלם', gold: 'שלוט', refresh: 'צריך רענון' }[st]}, ${c} כתרים"><span class="pth-n">${mark}</span><span class="pth-t">${pathEsc(s.t)}</span><span class="pth-cr" aria-hidden="true">${'●'.repeat(c)}${'○'.repeat(PCROWNS - c)}</span><i class="pth-mb" aria-hidden="true"><i style="width:${Math.round(pathMastery(id, now, d).m * 100)}%"></i></i></button>`;
 }
 function pathMap(P, host) {
@@ -10811,7 +10816,7 @@ function pathPlay() {
 }
 function pathResult() {
   const S = PV.sess, R = pathApply(pathLoad(), { mode: S.mode, stage: S.stage, xp: S.xp, mistakes: S.mistakes, failed: S.failed }); pathSave(R.P); PV.sess = null;
-  const st = pathStages()[S.stage], crowns = S.mode === 'daily' ? null : pathCrowns(R.P, S.stage), nextId = st && !st.item ? pathTrackStages(pathTrack(st.track))[st.i + 1] : null;
+  const st = pathStages()[S.stage], crowns = S.mode === 'daily' ? null : pathCrowns(R.P, S.stage), nextId = st && !st.item ? pathTrackStages(pathTrack(st.track))[pathIdx(S.stage) + 1] : null;
   content.innerHTML = `<div class="pth-play pth-result"><h2>${S.failed ? 'נגמרו הלבבות' : S.mode === 'daily' ? 'סשן יומי הושלם' : R.passed ? 'שלב הושלם' : 'סשן הושלם'}</h2>
     <p class="lead">${S.failed ? 'זה בסדר: מה שנכשל חוזר אליך בזמן, וההתקדמות נשמרת.' : S.mistakes ? `${S.mistakes} טעויות, והן חוזרות לתרגול.` : 'בלי אף טעות.'}</p>
     <div class="pth-stats"><span>⭐ <b>+${R.xp}</b></span><span>✅ <b>${S.right}</b> נכון</span>${crowns != null ? `<span>👑 <b>${crowns}</b>/${PCROWNS}</span>` : ''}<span>🔥 <b>${R.P.streak}</b></span></div>
@@ -11191,7 +11196,7 @@ const BOOK = [
         why: 'כרטיס כניסות, כרטיס יציאות, ממיר אנלוגי ורשת EtherCAT: כאן תקלות חשמל נראות כמו תקלות תוכנה.',
         goals: ['לקרוא כרטיס ולזהות כניסה, יציאה ודרייבר', 'להסביר את מסגרת ה-EtherCAT וזמן המחזור', 'לבצע חקר כשל מסודר בכרטיס'],
         bridge: 'יש לנו את כל החלקים. החלק הבא מרכיב מהם מכונה אחת שעובדת.' } ] },
-  { id: 'G', t: 'חלק ז: המכונה כמערכת', why: 'מחזור שלם, הפעלה ראשונה ומקום בקו הייצור. כאן כל הפרקים הקודמים פועלים יחד.',
+  { id: 'G', down: ['b23', 'b21', 'b22'], t: 'חלק ז: המכונה כמערכת', why: 'מחזור שלם, הפעלה ראשונה ומקום בקו הייצור. כאן כל הפרקים הקודמים פועלים יחד.',
     ch: [
       { id: 'b21', t: 'מחזור הבדיקה והתיקון', nodes: ['proc'], pre: ['b13', 'b16', 'b17', 'b18'],
         why: 'פאנל נכנס, נאחז, נרשם, נסרק, החשדות מאומתים, והעודף מוסר בלייזר. מחזור אחד, כל המערכות.',
@@ -11215,7 +11220,13 @@ const BOOK = [
         goals: ['לענות נכון על 80% משאלות מכל הספר', 'לאבחן תקלה חיה במכונה בלי לדעת מה הוזרק', 'להסביר בעל פה את 12 העקרונות'], bridge: '' } ] }
 ];
 /* every chapter by id, with its part and its number */
-const bookCh = (() => { let M = null; return () => { if (M) return M; M = { b0: { id: 'b0', t: 'הקורס, המכונה ושיטת הלמידה', part: null, n: 0, nodes: [] } }; let n = 1; BOOK.forEach(P => P.ch.forEach(c => { M[c.id] = Object.assign({ part: P, n: n++ }, c); })); return M; }; })();
+/* two directions: up, from the component to the machine (the order the parts are written in), or down, from the machine to the
+   component (parts A–G and their chapters reversed; the cross-cutting subjects and the final exam stay last). n is the number shown
+   in the chosen direction; n0 is the number going up, which never changes and decides where an asset lives. */
+const bookDir = () => { try { return JSON.parse(localStorage.getItem(BKEY) || '{}').dir === 'down' ? 'down' : 'up'; } catch (e) { return 'up'; } };
+const bookParts = dir => (dir || bookDir()) === 'down' ? [...BOOK.slice(0, 7).reverse().map(P => Object.assign({}, P, { ch: P.down ? P.down.map(id => P.ch.find(c => c.id === id)) : P.ch.slice().reverse() })), BOOK[7]] : BOOK;
+const bookCh = (() => { const C = {}; return () => { const dir = bookDir(); if (C[dir]) return C[dir]; const M = C[dir] = { b0: { id: 'b0', t: 'הקורס, המכונה ושיטת הלמידה', part: null, n: 0, n0: 0, nodes: [] } }; let n0 = 1, n = 1;
+  BOOK.forEach(P => P.ch.forEach(c => { M[c.id] = Object.assign({ part: P, n0: n0++ }, c); })); bookParts(dir).forEach(P => P.ch.forEach(c => { M[c.id].n = n++; M[c.id].part = P; })); return M; }; })();
 const bookOrder = () => Object.keys(bookCh()).sort((a, b) => bookCh()[a].n - bookCh()[b].n);
 const bookLoad = () => { try { return Object.assign({ read: {}, exam: {}, can: {}, last: 'b0' }, JSON.parse(localStorage.getItem(BKEY) || '{}')); } catch (e) { return { read: {}, exam: {}, can: {}, last: 'b0' }; } };
 const bookSave = B => { try { localStorage.setItem(BKEY, JSON.stringify(B)); } catch (e) { } };
@@ -11246,23 +11257,33 @@ function zBookView(arg) {
   const done = order.filter(id => bookStatus(B, id) === 'done').length;
   const toc = `<details class="bk-toc"${c.id === 'b0' ? ' open' : ''}><summary>📖 תוכן העניינים · ${done}/${order.length - 1} פרקים הוסמכו</summary><ol>
     <li><button type="button" class="linkbtn" data-bc="b0">${bookMark(B, 'b0')} פרק 0: ${bookCh().b0.t}</button></li>
-    ${BOOK.map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
+    ${bookParts().map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
   const nav = `<nav class="bk-nav" aria-label="ניווט בין פרקים">${prev ? `<button type="button" data-bc="${prev}">→ פרק ${bookCh()[prev].n}</button>` : '<span></span>'}<span>פרק ${c.n} מתוך ${order.length - 1}</span>${next ? `<button type="button" data-bc="${next}">פרק ${bookCh()[next].n} ←</button>` : '<span></span>'}</nav>`;
-  content.innerHTML = zSubnav('book') + `<div class="bk">` + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
+  const dirBar = `<div class="bk-dir" role="group" aria-label="כיוון הלמידה"><span>כיוון:</span><button type="button" data-dir="up" aria-pressed="${bookDir() === 'up'}">⬆️ מהרכיב למכונה</button><button type="button" data-dir="down" aria-pressed="${bookDir() === 'down'}">⬇️ מהמכונה לרכיב</button></div>`;
+  content.innerHTML = zSubnav('book') + `<div class="bk">` + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
   zWireSub(); content.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
+  content.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
   const A = $('#bkCh'); if (c.id === 'b0') bookZero(A, B); else bookChapter(A, B, c);
   setTitle('זום', 'הספר', `פרק ${c.n}: ${c.t}`);
 }
+function bookSetDir(d) { const N = bookLoad(); N.dir = d === 'down' ? 'down' : 'up'; bookSave(N); if (typeof PV !== 'undefined') PV.open = null; zBookView(); }
 const bookMark = (B, id) => ({ done: '✅', read: '📗', new: '⬜' })[bookStatus(B, id)];
 function bookHead(c, B) {
   const P = c.part, st = bookStatus(B, c.id);
-  return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c === P.ch[0] ? `<p class="bk-partwhy">${P.why}</p>` : ''}
+  return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c.id === P.ch[0].id ? `<p class="bk-partwhy">${P.why}</p>` : ''}
     ${st === 'done' && B.exam[c.id] ? `<p class="bk-ok">✅ הוסמכת בפרק הזה (${Math.round(B.exam[c.id].sc * 100)}%).</p>` : ''}`;
 }
+/* where a chapter stands: going up, what it needs; in both directions, what it is part of and what it is made of (from the zoom tree) */
+const bookChOf = node => Object.values(bookCh()).find(x => (x.nodes || []).includes(node));
+function bookLinksHtml(c) { const nodes = c.nodes || [], uniq = list => [...new Set(list.filter(x => x && x.id !== c.id).map(x => x.id))].sort((a, b) => bookCh()[a].n - bookCh()[b].n);
+  const up = uniq(nodes.flatMap(n => zParents(n).map(p => bookChOf(p.id || p)))), down = uniq(nodes.flatMap(n => zNode(n).parts.map(bookChOf))), link = id => `<button type="button" class="linkbtn" data-bc="${id}">פרק ${bookCh()[id].n}: ${bookCh()[id].t}</button>`;
+  const rows = []; if (bookDir() === 'up' && c.pre && c.pre.length) rows.push(`ידע קודם: ${c.pre.map(link).join(' · ')}`);
+  if (up.length) rows.push(`${bookDir() === 'down' ? 'בא מתוך' : 'חלק מ'}: ${up.map(link).join(' · ')}`); if (down.length) rows.push(`${bookDir() === 'down' ? 'יורד אל' : 'בנוי מ'}: ${down.map(link).join(' · ')}`);
+  return rows.length ? `<p class="note bk-links">${rows.join('<br>')}</p>` : ''; }
 function bookChapter(A, B, c) {
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why;
   let h = bookHead(c, B) + `<section class="bk-box"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
-    ${c.pre && c.pre.length ? `<p class="note">ידע קודם: ${c.pre.map(p => `<button type="button" class="linkbtn" data-bc="${p}">פרק ${bookCh()[p].n}: ${bookCh()[p].t}</button>`).join(' · ')}</p>` : ''}</section>`;
+    ${bookLinksHtml(c)}</section>`;
   if (c.final) h += bookFinalBody(B);
   else if (C) h += C.items.map((it, k) => `<section class="bk-topic"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-bn="${n}">${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
   else h += c.nodes.map((node, k) => { const n = zNode(node), W = bookWins(node);
@@ -11272,9 +11293,11 @@ function bookChapter(A, B, c) {
   if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
   if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
   if (!c.final) h += `<section class="bk-box bk-end"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
-    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''}</section>`;
+    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
   A.innerHTML = h; bookWire(A, B, c);
 }
+function bookBridge(c) { if (bookDir() === 'up') return c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''; const o = bookOrder(), nx = o[o.indexOf(c.id) + 1]; if (!nx) return '';
+  const N = bookCh()[nx]; return `<p class="bk-bridge">${N.part === c.part ? 'הפרק הבא' : 'החלק הבא'} בכיוון מלמעלה למטה: פרק ${N.n}, ${N.t}${(c.nodes || []).length && (N.nodes || []).some(n => (c.nodes || []).some(m => zNode(m).parts.includes(n))) ? ', אחד מהחלקים שהפרק הזה בנוי מהם.' : '.'}</p>`; }
 /* one window of a topic, in the book: text kinds open, heavy ones one press away */
 function bookWin(hb, w, node) { const i = zInfo(w), open = BOOK_OPEN.has(i.kind);
   return `<div class="bk-win" data-w="${w}" data-n="${node}"><div class="bk-wh"><span class="kb" style="--c:${hb[4]}">${hb[1]}</span> <b>${(ZKIND[i.kind] || [''])[0]}${(ZKIND[i.kind] || [''])[0] ? ': ' : ''}${i.t}</b> <button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">בעמוד הנושא ↗</button></div><div class="bk-wb">${open ? '' : `<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>`}</div></div>`; }
@@ -11355,11 +11378,15 @@ function bookZero(A, B) {
     <li><b>מודדים מה נשאר.</b> המדד "נשאר בזיכרון" מבוסס רק על שליפה לאורך זמן, לא על קריאה. הוא מופיע בכל עמוד נושא.</li>
     <li><b>חוזרים לעקרונות.</b> <button type="button" class="linkbtn" data-go="pri">12 העקרונות</button> הם רוב החומר בצורה מרוכזת. מי שמבין אותם מאבחן גם תקלה שלא ראה.</li></ol>
     <p class="note">הזמן הוא הערכה גסה: שעה עד שלוש לפרק, תלוי בכמה מהחומר כבר מוכר. בערך 40 עד 80 שעות לכל הקורס.</p></section>
-  <section class="bk-box"><h3>מאיפה להתחיל: בדיקה עצמית</h3><p>סמן את מה שאתה כבר יכול לעשות בלי לחפש. ההמלצה מתעדכנת בכל סימון: היא מצביעה על החלק הראשון שבו משהו עוד לא מסומן.</p>
+  <section class="bk-box"><h3>באיזה כיוון ללמוד</h3><p>אותם פרקים, אותם מבחנים ואותה הסמכה, בשני סדרים. אפשר להחליף כיוון בכל רגע; מה שכבר הוסמך נשאר.</p>
+    <div class="bk-dirs"><button type="button" class="bk-dircard" data-dir="up" aria-pressed="${bookDir() === 'up'}"><b>⬆️ מהרכיב למכונה</b><span>מתחילים בנגד ובמתג, ובונים מהם מעגלים, מנגנונים ומערכות, עד המכונה והקו. כל פרק נשען רק על מה שכבר למדת. מתאים למי שבונה בסיס, או רוצה להבין כל דבר עד הסוף לפני שממשיכים.</span></button>
+    <button type="button" class="bk-dircard" data-dir="down" aria-pressed="${bookDir() === 'down'}"><b>⬇️ מהמכונה לרכיב</b><span>מתחילים בקו הייצור ובמחזור של המכונה, ויורדים: מערכת, מנגנון, מעגל, רכיב. כל פרק מסביר תפקיד, והפרקים שאחריו פותחים אותו. מתאים למי שבא מהשטח, או רוצה קודם את התמונה הגדולה ולמה כל חלק שם.</span></button></div>
+    <p class="note">${bookDir() === 'down' ? 'הכיוון עכשיו: מלמעלה למטה. גם נתיב הלמידה הולך בכיוון הזה: בכל מסלול נפתח קודם השלב הגבוה.' : 'הכיוון עכשיו: מלמטה למעלה. גם נתיב הלמידה הולך בכיוון הזה.'}</p></section>
+  ${bookDir() === 'down' ? '' : `<section class="bk-box"><h3>מאיפה להתחיל: בדיקה עצמית</h3><p>סמן את מה שאתה כבר יכול לעשות בלי לחפש. ההמלצה מתעדכנת בכל סימון: היא מצביעה על החלק הראשון שבו משהו עוד לא מסומן.</p>
     ${BOOK_CAN.map(([p, list]) => `<fieldset class="bk-can"><legend>${BOOK.find(x => x.id === p).t}</legend>${list.map((t, k) => `<label><input type="checkbox" data-can="${p}${k}"${B.can[p + k] ? ' checked' : ''}> ${t}</label>`).join('')}</fieldset>`).join('')}
-    <p id="bkPlace" class="bk-ok"></p></section>
-  <section class="bk-box bk-end"><p><button type="button" class="pth-go" data-bc="b1">פרק 1: ${bookCh().b1.t} ←</button></p></section>`;
-  B.read.b0 = 1; bookSave(B); bookWire(A, B, c); bookPlace(A, B);
+    <p id="bkPlace" class="bk-ok"></p></section>`}
+  <section class="bk-box bk-end"><p><button type="button" class="pth-go" data-bc="${bookOrder()[1]}">פרק 1: ${bookCh()[bookOrder()[1]].t} ←</button></p></section>`;
+  B.read.b0 = 1; bookSave(B); bookWire(A, B, c); bookPlace(A, B); A.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
 }
 /* the final chapter: the exam and three field tasks */
 function bookFinalBody(B) { const done = bookOrder().filter(id => id !== 'b0' && id !== 'b28' && bookStatus(B, id) === 'done').length;
@@ -11701,7 +11728,7 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
 const bookHome = (() => { let M = null; return () => { if (M) return M; M = {};
   MASTER.forEach(S => S.L.forEach((refs, lv) => refs.forEach(r => bookExpand(r).forEach(a => {
     const key = a.replace(/#(full|math)$/, ''), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
-    if (!cur || bookCh()[ch].n < bookCh()[cur.ch].n) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
+    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
 const bookAssets = chId => Object.entries(bookHome()).filter(([, p]) => p.ch === chId).map(([k, p]) => Object.assign({ key: k }, p));
 /* a name for an asset */
 function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
@@ -12751,7 +12778,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.52.0';
+const APP_VERSION = '2.53.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

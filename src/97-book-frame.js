@@ -30,7 +30,7 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
 const bookHome = (() => { let M = null; return () => { if (M) return M; M = {};
   MASTER.forEach(S => S.L.forEach((refs, lv) => refs.forEach(r => bookExpand(r).forEach(a => {
     const key = a.replace(/#(full|math)$/, ''), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
-    if (!cur || bookCh()[ch].n < bookCh()[cur.ch].n) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
+    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
 const bookAssets = chId => Object.entries(bookHome()).filter(([, p]) => p.ch === chId).map(([k, p]) => Object.assign({ key: k }, p));
 /* a name for an asset */
 function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);

@@ -91,6 +91,22 @@ const CT = await ev(() => { localStorage.clear(); const B = bookLoad(), P = {}; 
   BV.ch = 'b28'; zBookView(); const c = document.getElementById('bkCert'); return { all: /מאשר כי/.test(c.textContent) && /בודק/.test(c.textContent), rows: c.querySelectorAll('tbody tr').length, print: !!document.getElementById('bkPrint') }; });
 ok(CT.all && CT.rows === 28 && CT.print, 'with every chapter certified, the last chapter shows a printable certificate with the name and every chapter (' + JSON.stringify(CT) + ')');
 await ev(() => { localStorage.clear(); });
+/* v2.53: two directions, up from the component or down from the machine */
+const DN = await ev(() => { localStorage.clear(); const homes = JSON.stringify(Object.entries(bookHome()).map(([k, v]) => k + v.ch)), upOrder = bookOrder().join();
+  BV.ch = 'b0'; zBookView(); document.querySelector('.bk-dircard[data-dir="down"]').click(); const o = bookOrder(), n21 = bookCh().b21.n;
+  const first = document.querySelector('.bk-end [data-bc]').dataset.bc;
+  BV.ch = 'b21'; zBookView(); const links = document.querySelector('.bk-links').textContent, h2 = document.querySelector('.bk-ch h2').textContent, toc = [...document.querySelectorAll('.bk-toc .bk-part > b')].map(x => x.textContent);
+  BV.ch = 'b1'; zBookView(); const leaf = document.querySelector('.bk-links') ? document.querySelector('.bk-links').textContent : '';
+  const P = pathLoad(), top = PTRACKS.every(tr => pathOpen(P, tr.stages[tr.stages.length - 1]) && !pathOpen(P, tr.stages[0]));
+  const plan = pathPlan(['mo'], 3, P)[0].join(), same = JSON.stringify(Object.entries(bookHome()).map(([k, v]) => k + v.ch)) === homes;
+  document.querySelector('.bk-dir [data-dir="up"]').click(); const back = bookOrder().join() === upOrder && bookCh().b1.n === 1;
+  return { order: o.slice(1, 4).join(), cross: o.slice(-5).join(), first, n21, h2, links, toc0: toc[0], toc7: toc[6], leaf, top, plan, same, back }; });
+ok(DN.order === 'b23,b21,b22' && DN.cross === 'b24,b25,b26,b27,b28' && DN.first === 'b23', 'going down: the line, the cycle and first power-up come first; the cross-cutting subjects and the final exam stay last; chapter 0 starts at the line (' + JSON.stringify(DN) + ')');
+ok(DN.n21 === 2 && /^פרק 2:/.test(DN.h2), 'going down, chapters are numbered in the order read (' + DN.n21 + ' ' + DN.h2 + ' | ' + DN.toc0 + ' | ' + DN.toc7 + ')');
+ok(/יורד אל/.test(DN.links) && /חלק ז/.test(DN.toc0) && /חלק א/.test(DN.toc7), 'going down, a chapter says what it goes down into, and the contents run from part G to part A');
+ok(/בא מתוך/.test(DN.leaf), 'going down, a component chapter says what it comes from');
+ok(DN.top && DN.plan === 'servo,loop,trans', 'going down, the path opens each track at its top stage and the plan deals from the top');
+ok(DN.same && DN.back, 'the direction changes the order only: every asset keeps its home chapter, and going back up restores the numbering');
 /* chapter 0: self-check recommends where to start */
 const Z = await ev(() => { localStorage.clear(); BV.ch = 'b0'; zBookView(); const rec = () => document.getElementById('bkPlace').textContent; const r0 = rec();
   BOOK_CAN.slice(0, 2).forEach(([p, list]) => list.forEach((_, k) => { const x = document.querySelector(`[data-can="${p}${k}"]`); x.checked = true; x.dispatchEvent(new Event('change')); })); const r1 = rec();

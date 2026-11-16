@@ -99,7 +99,7 @@ const BOOK = [
         why: 'כרטיס כניסות, כרטיס יציאות, ממיר אנלוגי ורשת EtherCAT: כאן תקלות חשמל נראות כמו תקלות תוכנה.',
         goals: ['לקרוא כרטיס ולזהות כניסה, יציאה ודרייבר', 'להסביר את מסגרת ה-EtherCAT וזמן המחזור', 'לבצע חקר כשל מסודר בכרטיס'],
         bridge: 'יש לנו את כל החלקים. החלק הבא מרכיב מהם מכונה אחת שעובדת.' } ] },
-  { id: 'G', t: 'חלק ז: המכונה כמערכת', why: 'מחזור שלם, הפעלה ראשונה ומקום בקו הייצור. כאן כל הפרקים הקודמים פועלים יחד.',
+  { id: 'G', down: ['b23', 'b21', 'b22'], t: 'חלק ז: המכונה כמערכת', why: 'מחזור שלם, הפעלה ראשונה ומקום בקו הייצור. כאן כל הפרקים הקודמים פועלים יחד.',
     ch: [
       { id: 'b21', t: 'מחזור הבדיקה והתיקון', nodes: ['proc'], pre: ['b13', 'b16', 'b17', 'b18'],
         why: 'פאנל נכנס, נאחז, נרשם, נסרק, החשדות מאומתים, והעודף מוסר בלייזר. מחזור אחד, כל המערכות.',
@@ -123,7 +123,13 @@ const BOOK = [
         goals: ['לענות נכון על 80% משאלות מכל הספר', 'לאבחן תקלה חיה במכונה בלי לדעת מה הוזרק', 'להסביר בעל פה את 12 העקרונות'], bridge: '' } ] }
 ];
 /* every chapter by id, with its part and its number */
-const bookCh = (() => { let M = null; return () => { if (M) return M; M = { b0: { id: 'b0', t: 'הקורס, המכונה ושיטת הלמידה', part: null, n: 0, nodes: [] } }; let n = 1; BOOK.forEach(P => P.ch.forEach(c => { M[c.id] = Object.assign({ part: P, n: n++ }, c); })); return M; }; })();
+/* two directions: up, from the component to the machine (the order the parts are written in), or down, from the machine to the
+   component (parts A–G and their chapters reversed; the cross-cutting subjects and the final exam stay last). n is the number shown
+   in the chosen direction; n0 is the number going up, which never changes and decides where an asset lives. */
+const bookDir = () => { try { return JSON.parse(localStorage.getItem(BKEY) || '{}').dir === 'down' ? 'down' : 'up'; } catch (e) { return 'up'; } };
+const bookParts = dir => (dir || bookDir()) === 'down' ? [...BOOK.slice(0, 7).reverse().map(P => Object.assign({}, P, { ch: P.down ? P.down.map(id => P.ch.find(c => c.id === id)) : P.ch.slice().reverse() })), BOOK[7]] : BOOK;
+const bookCh = (() => { const C = {}; return () => { const dir = bookDir(); if (C[dir]) return C[dir]; const M = C[dir] = { b0: { id: 'b0', t: 'הקורס, המכונה ושיטת הלמידה', part: null, n: 0, n0: 0, nodes: [] } }; let n0 = 1, n = 1;
+  BOOK.forEach(P => P.ch.forEach(c => { M[c.id] = Object.assign({ part: P, n0: n0++ }, c); })); bookParts(dir).forEach(P => P.ch.forEach(c => { M[c.id].n = n++; M[c.id].part = P; })); return M; }; })();
 const bookOrder = () => Object.keys(bookCh()).sort((a, b) => bookCh()[a].n - bookCh()[b].n);
 const bookLoad = () => { try { return Object.assign({ read: {}, exam: {}, can: {}, last: 'b0' }, JSON.parse(localStorage.getItem(BKEY) || '{}')); } catch (e) { return { read: {}, exam: {}, can: {}, last: 'b0' }; } };
 const bookSave = B => { try { localStorage.setItem(BKEY, JSON.stringify(B)); } catch (e) { } };
@@ -154,23 +160,33 @@ function zBookView(arg) {
   const done = order.filter(id => bookStatus(B, id) === 'done').length;
   const toc = `<details class="bk-toc"${c.id === 'b0' ? ' open' : ''}><summary>📖 תוכן העניינים · ${done}/${order.length - 1} פרקים הוסמכו</summary><ol>
     <li><button type="button" class="linkbtn" data-bc="b0">${bookMark(B, 'b0')} פרק 0: ${bookCh().b0.t}</button></li>
-    ${BOOK.map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
+    ${bookParts().map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
   const nav = `<nav class="bk-nav" aria-label="ניווט בין פרקים">${prev ? `<button type="button" data-bc="${prev}">→ פרק ${bookCh()[prev].n}</button>` : '<span></span>'}<span>פרק ${c.n} מתוך ${order.length - 1}</span>${next ? `<button type="button" data-bc="${next}">פרק ${bookCh()[next].n} ←</button>` : '<span></span>'}</nav>`;
-  content.innerHTML = zSubnav('book') + `<div class="bk">` + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
+  const dirBar = `<div class="bk-dir" role="group" aria-label="כיוון הלמידה"><span>כיוון:</span><button type="button" data-dir="up" aria-pressed="${bookDir() === 'up'}">⬆️ מהרכיב למכונה</button><button type="button" data-dir="down" aria-pressed="${bookDir() === 'down'}">⬇️ מהמכונה לרכיב</button></div>`;
+  content.innerHTML = zSubnav('book') + `<div class="bk">` + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
   zWireSub(); content.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
+  content.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
   const A = $('#bkCh'); if (c.id === 'b0') bookZero(A, B); else bookChapter(A, B, c);
   setTitle('זום', 'הספר', `פרק ${c.n}: ${c.t}`);
 }
+function bookSetDir(d) { const N = bookLoad(); N.dir = d === 'down' ? 'down' : 'up'; bookSave(N); if (typeof PV !== 'undefined') PV.open = null; zBookView(); }
 const bookMark = (B, id) => ({ done: '✅', read: '📗', new: '⬜' })[bookStatus(B, id)];
 function bookHead(c, B) {
   const P = c.part, st = bookStatus(B, c.id);
-  return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c === P.ch[0] ? `<p class="bk-partwhy">${P.why}</p>` : ''}
+  return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c.id === P.ch[0].id ? `<p class="bk-partwhy">${P.why}</p>` : ''}
     ${st === 'done' && B.exam[c.id] ? `<p class="bk-ok">✅ הוסמכת בפרק הזה (${Math.round(B.exam[c.id].sc * 100)}%).</p>` : ''}`;
 }
+/* where a chapter stands: going up, what it needs; in both directions, what it is part of and what it is made of (from the zoom tree) */
+const bookChOf = node => Object.values(bookCh()).find(x => (x.nodes || []).includes(node));
+function bookLinksHtml(c) { const nodes = c.nodes || [], uniq = list => [...new Set(list.filter(x => x && x.id !== c.id).map(x => x.id))].sort((a, b) => bookCh()[a].n - bookCh()[b].n);
+  const up = uniq(nodes.flatMap(n => zParents(n).map(p => bookChOf(p.id || p)))), down = uniq(nodes.flatMap(n => zNode(n).parts.map(bookChOf))), link = id => `<button type="button" class="linkbtn" data-bc="${id}">פרק ${bookCh()[id].n}: ${bookCh()[id].t}</button>`;
+  const rows = []; if (bookDir() === 'up' && c.pre && c.pre.length) rows.push(`ידע קודם: ${c.pre.map(link).join(' · ')}`);
+  if (up.length) rows.push(`${bookDir() === 'down' ? 'בא מתוך' : 'חלק מ'}: ${up.map(link).join(' · ')}`); if (down.length) rows.push(`${bookDir() === 'down' ? 'יורד אל' : 'בנוי מ'}: ${down.map(link).join(' · ')}`);
+  return rows.length ? `<p class="note bk-links">${rows.join('<br>')}</p>` : ''; }
 function bookChapter(A, B, c) {
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why;
   let h = bookHead(c, B) + `<section class="bk-box"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
-    ${c.pre && c.pre.length ? `<p class="note">ידע קודם: ${c.pre.map(p => `<button type="button" class="linkbtn" data-bc="${p}">פרק ${bookCh()[p].n}: ${bookCh()[p].t}</button>`).join(' · ')}</p>` : ''}</section>`;
+    ${bookLinksHtml(c)}</section>`;
   if (c.final) h += bookFinalBody(B);
   else if (C) h += C.items.map((it, k) => `<section class="bk-topic"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-bn="${n}">${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
   else h += c.nodes.map((node, k) => { const n = zNode(node), W = bookWins(node);
@@ -180,9 +196,11 @@ function bookChapter(A, B, c) {
   if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
   if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
   if (!c.final) h += `<section class="bk-box bk-end"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
-    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''}</section>`;
+    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
   A.innerHTML = h; bookWire(A, B, c);
 }
+function bookBridge(c) { if (bookDir() === 'up') return c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''; const o = bookOrder(), nx = o[o.indexOf(c.id) + 1]; if (!nx) return '';
+  const N = bookCh()[nx]; return `<p class="bk-bridge">${N.part === c.part ? 'הפרק הבא' : 'החלק הבא'} בכיוון מלמעלה למטה: פרק ${N.n}, ${N.t}${(c.nodes || []).length && (N.nodes || []).some(n => (c.nodes || []).some(m => zNode(m).parts.includes(n))) ? ', אחד מהחלקים שהפרק הזה בנוי מהם.' : '.'}</p>`; }
 /* one window of a topic, in the book: text kinds open, heavy ones one press away */
 function bookWin(hb, w, node) { const i = zInfo(w), open = BOOK_OPEN.has(i.kind);
   return `<div class="bk-win" data-w="${w}" data-n="${node}"><div class="bk-wh"><span class="kb" style="--c:${hb[4]}">${hb[1]}</span> <b>${(ZKIND[i.kind] || [''])[0]}${(ZKIND[i.kind] || [''])[0] ? ': ' : ''}${i.t}</b> <button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">בעמוד הנושא ↗</button></div><div class="bk-wb">${open ? '' : `<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>`}</div></div>`; }
@@ -263,11 +281,15 @@ function bookZero(A, B) {
     <li><b>מודדים מה נשאר.</b> המדד "נשאר בזיכרון" מבוסס רק על שליפה לאורך זמן, לא על קריאה. הוא מופיע בכל עמוד נושא.</li>
     <li><b>חוזרים לעקרונות.</b> <button type="button" class="linkbtn" data-go="pri">12 העקרונות</button> הם רוב החומר בצורה מרוכזת. מי שמבין אותם מאבחן גם תקלה שלא ראה.</li></ol>
     <p class="note">הזמן הוא הערכה גסה: שעה עד שלוש לפרק, תלוי בכמה מהחומר כבר מוכר. בערך 40 עד 80 שעות לכל הקורס.</p></section>
-  <section class="bk-box"><h3>מאיפה להתחיל: בדיקה עצמית</h3><p>סמן את מה שאתה כבר יכול לעשות בלי לחפש. ההמלצה מתעדכנת בכל סימון: היא מצביעה על החלק הראשון שבו משהו עוד לא מסומן.</p>
+  <section class="bk-box"><h3>באיזה כיוון ללמוד</h3><p>אותם פרקים, אותם מבחנים ואותה הסמכה, בשני סדרים. אפשר להחליף כיוון בכל רגע; מה שכבר הוסמך נשאר.</p>
+    <div class="bk-dirs"><button type="button" class="bk-dircard" data-dir="up" aria-pressed="${bookDir() === 'up'}"><b>⬆️ מהרכיב למכונה</b><span>מתחילים בנגד ובמתג, ובונים מהם מעגלים, מנגנונים ומערכות, עד המכונה והקו. כל פרק נשען רק על מה שכבר למדת. מתאים למי שבונה בסיס, או רוצה להבין כל דבר עד הסוף לפני שממשיכים.</span></button>
+    <button type="button" class="bk-dircard" data-dir="down" aria-pressed="${bookDir() === 'down'}"><b>⬇️ מהמכונה לרכיב</b><span>מתחילים בקו הייצור ובמחזור של המכונה, ויורדים: מערכת, מנגנון, מעגל, רכיב. כל פרק מסביר תפקיד, והפרקים שאחריו פותחים אותו. מתאים למי שבא מהשטח, או רוצה קודם את התמונה הגדולה ולמה כל חלק שם.</span></button></div>
+    <p class="note">${bookDir() === 'down' ? 'הכיוון עכשיו: מלמעלה למטה. גם נתיב הלמידה הולך בכיוון הזה: בכל מסלול נפתח קודם השלב הגבוה.' : 'הכיוון עכשיו: מלמטה למעלה. גם נתיב הלמידה הולך בכיוון הזה.'}</p></section>
+  ${bookDir() === 'down' ? '' : `<section class="bk-box"><h3>מאיפה להתחיל: בדיקה עצמית</h3><p>סמן את מה שאתה כבר יכול לעשות בלי לחפש. ההמלצה מתעדכנת בכל סימון: היא מצביעה על החלק הראשון שבו משהו עוד לא מסומן.</p>
     ${BOOK_CAN.map(([p, list]) => `<fieldset class="bk-can"><legend>${BOOK.find(x => x.id === p).t}</legend>${list.map((t, k) => `<label><input type="checkbox" data-can="${p}${k}"${B.can[p + k] ? ' checked' : ''}> ${t}</label>`).join('')}</fieldset>`).join('')}
-    <p id="bkPlace" class="bk-ok"></p></section>
-  <section class="bk-box bk-end"><p><button type="button" class="pth-go" data-bc="b1">פרק 1: ${bookCh().b1.t} ←</button></p></section>`;
-  B.read.b0 = 1; bookSave(B); bookWire(A, B, c); bookPlace(A, B);
+    <p id="bkPlace" class="bk-ok"></p></section>`}
+  <section class="bk-box bk-end"><p><button type="button" class="pth-go" data-bc="${bookOrder()[1]}">פרק 1: ${bookCh()[bookOrder()[1]].t} ←</button></p></section>`;
+  B.read.b0 = 1; bookSave(B); bookWire(A, B, c); bookPlace(A, B); A.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
 }
 /* the final chapter: the exam and three field tasks */
 function bookFinalBody(B) { const done = bookOrder().filter(id => id !== 'b0' && id !== 'b28' && bookStatus(B, id) === 'done').length;
