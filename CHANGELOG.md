@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.48.0] — 2026-11-16
+
+What stays in memory: a measure of understanding from retrieval, not from visits.
+
+- **A retrieval score per topic:** the mean of its cards' Leitner boxes (never answered 0, recalled after a day, three days, a week, three weeks: a quarter each). A review late by more than its own interval counts one box lower. Levels: not started, learning (below 40%), building, held in memory (75% and nothing due). Visiting a page does not change it; the page says what it measures (recall of this book's questions, nothing wider).
+- **Where it shows:** a thin bar under every stage of the map; the stage panel (how many cards in each box, how many due); a new tab "מה נשאר בזיכרון" with the whole book, each track, the five weakest started topics with a practice button, and how many cards come back on each of the next seven days; and on every topic page, its score and a button that opens a practice session.
+- The cards of a stage are built once and kept (they come from data that does not change after load).
+- Tests: 8 new checks in the `path` suite (80 in all).
+
 ## [2.47.0] — 2026-11-16
 
 The vacuum table and the safety chain, working in 3D.

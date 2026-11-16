@@ -151,6 +151,25 @@ ok(C3.h && C3.run, 'safety chain 3D: Reset starts the drive and the motor turns'
 ok(C3.trip, 'safety chain 3D: opening the door trips it, with the stop model’s reaction time (40 ms) and stopping distance (45 mm)');
 ok(C3.disc && C3.state, 'safety chain 3D: a welded channel is caught at the next Reset; its state is saved and restored');
 ok(await ev(() => ['3d:vacuum', '3d:chain'].every(w => zSimList().some(s => s.w === w) && hubOf(w) === 'show') && zWindows(zNode('vac')).includes('3d:vacuum') && zWindows(zNode('safety')).includes('3d:chain')), 'both are windows of their topics, in the demonstrations, and in the gallery');
+/* v2.48: what stays in memory — a measure from retrieval */
+const MS2 = await ev(() => { const day = 86400000, now = 1e12, ids = pathCards('servo').map(c => c.id), mk = f => Object.fromEntries(ids.map((id, i) => [id, f(i)])), o = {};
+  o.none = pathMastery('servo', now, {}); o.all4 = pathMastery('servo', now, mk(() => ({ box: 4, due: now + 5 * day })));
+  o.half = pathMastery('servo', now, mk(i => ({ box: i % 2 ? 4 : 0, due: now + day })).constructor === Object ? mk(i => i % 2 ? { box: 4, due: now + day } : undefined) : {});
+  const late = mk(() => ({ box: 3, due: now - 10 * day })); o.late = pathMastery('servo', now, late); const onTime = mk(() => ({ box: 3, due: now - day })); o.onTime = pathMastery('servo', now, onTime);
+  o.fc = pathForecast(now, 7, { a: { box: 1, due: now - 1 }, b: { box: 1, due: now + 0.5 * day }, c: { box: 2, due: now + 2.5 * day }, d: { box: 4, due: now + 30 * day } }); return o; });
+ok(MS2.none.level === 'new' && MS2.none.m === 0, 'a topic never answered: not started, 0%');
+ok(MS2.all4.level === 'master' && MS2.all4.m === 1 && MS2.all4.boxes[4] === MS2.all4.n, 'every card recalled after a week, none due: 100%, held in memory');
+ok(MS2.onTime.m === 0.75 && MS2.onTime.level === 'build' && MS2.onTime.due === MS2.onTime.n, 'cards due but within their interval keep their box; with cards due it is not "held"');
+ok(MS2.late.m === 0.5 && MS2.late.boxes[2] === MS2.late.n, 'a review late by more than its interval counts one box lower');
+ok(MS2.fc.join() === '1,1,0,1,0,0,0', 'the forecast counts cards due today and on each of the next days (' + MS2.fc.join() + ')');
+await ev(() => { localStorage.clear(); const now = Date.now(); pathCards('relay').forEach((c, i) => reviewRecord(c.id, i % 2 === 0, now)); PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); }); await pg.waitForTimeout(200);
+const PG = await ev(() => ({ rows: document.querySelectorAll('#pthBody .pth-plan tr').length, fc: document.querySelectorAll('.pth-fc > div').length, weak: [...document.querySelectorAll('[data-wp]')].map(b => b.dataset.wp).join(), bars: document.querySelectorAll('.pth-st .pth-mb').length }));
+ok(PG.rows === 10 && PG.fc === 7 && PG.weak.split(',').includes('relay') && PG.weak.split(',').length <= 5, 'the memory tab: a bar per track, seven days of reviews, the weakest started topics (a question-bank card counts in every topic it belongs to) (' + JSON.stringify(PG) + ')');
+await ev(() => { PV.tab = 'map'; zPathView(); }); ok(await ev(() => document.querySelectorAll('.pth-st .pth-mb').length === 58), 'every stage on the map shows its retrieval bar');
+await ev(() => { PV.tab = 'map'; go('zoom', 'relay'); }); await pg.waitForTimeout(200);
+const NP = await ev(() => { const s = document.querySelector('.pth-node'); if (!s) return {}; const t = s.textContent; document.querySelector('[data-npr]').click(); return { t: /נשאר בזיכרון: \d+%/.test(t), play: !!document.querySelector('.pth-play .pth-q') && location.hash.includes('path') }; });
+ok(NP.t && NP.play, 'a topic page shows what of it stays in memory, and practising it opens a session');
+await ev(() => { PV.sess = null; });
 /* the central page */
 await ev(() => go('zoom', 'central')); await pg.waitForTimeout(150);
 const C = await ev(() => ({ chips: document.querySelectorAll('[data-cs]').length, items: document.querySelectorAll('.pth-items li').length, first: document.querySelector('.pth-items b').textContent }));

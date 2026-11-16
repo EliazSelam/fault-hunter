@@ -82,7 +82,9 @@ const pathText = h => { const d = document.createElement('div'); d.innerHTML = h
 const pathQB = id => QB.find(q => q.id === id);
 /* a question-bank card: recall (think, reveal, grade yourself) */
 const pathQBCard = q => ({ id: 'qb:' + q.id, k: 'recall', q: q.title + '. ' + q.q, a: q.a, why: q.why, src: 'מאגר השאלות ' + q.id });
-function pathCards(stageId) {
+const PCARD_CACHE = {};   /* the cards come from data that does not change after load */
+function pathCards(stageId) { if (PCARD_CACHE[stageId]) return PCARD_CACHE[stageId]; return (PCARD_CACHE[stageId] = pathCards0(stageId)); }
+function pathCards0(stageId) {
   const st = pathStages()[stageId]; if (!st) return []; const out = [], seen = new Set(), add = c => { if (c && !seen.has(c.id)) { seen.add(c.id); out.push(c); } };
   if (st.node) {
     const n = zNode(st.node), ws = zWindows(n), T = TOPICS.find(x => zTopicNode(x.id) === n);
@@ -167,15 +169,15 @@ function pathStats(P, now = Date.now()) {
 function zPathView() {
   const P = pathLoad(); if (PV.sess && !PV.sess.done) return pathPlay(); if (PV.sess) return pathResult();
   PV.view = PV.tab;
-  const tabs = [['map', 'מפת שלבים'], ['syl', 'סילבוס ותוכנית'], ['today', 'סשן יומי']];
+  const tabs = [['map', 'מפת שלבים'], ['syl', 'סילבוס ותוכנית'], ['today', 'סשן יומי'], ['prog', 'מה נשאר בזיכרון']];
   content.innerHTML = zSubnav('path') + `<h2>נתיב למידה</h2><p class="lead">שישה מסלולים מקבילים וארבעה נושאים מרכזיים. כל שלב הוא נושא אחד: קוראים אותו בעץ, ומתרגלים אותו בסשנים קצרים. מה שנשכח חוזר בזמן.</p>` + pathStats(P) +
     `<div class="pth-tabs" role="tablist">${tabs.map(([k, t]) => `<button type="button" role="tab" data-pt="${k}" aria-selected="${PV.tab === k}">${t}</button>`).join('')}</div><div id="pthBody"></div>`;
   zWireSub(); content.querySelectorAll('[data-pt]').forEach(b => b.addEventListener('click', () => { PV.tab = b.dataset.pt; zPathView(); }));
-  ({ map: pathMap, syl: pathSyllabus, today: pathToday })[PV.tab](P, $('#pthBody')); setTitle('זום', 'נתיב למידה', 'מסלולים, שלבים וחזרות');
+  ({ map: pathMap, syl: pathSyllabus, today: pathToday, prog: pathProgress })[PV.tab](P, $('#pthBody')); setTitle('זום', 'נתיב למידה', 'מסלולים, שלבים וחזרות');
 }
 function pathStageBtn(P, id, now, d) {
   const s = pathStages()[id], st = pathState(P, id, now, d), c = pathCrowns(P, id), mark = { locked: '🔒', open: s.i + 1, crown: '✓', gold: '★', refresh: '🔁' }[st];
-  return `<button type="button" class="pth-st pth-${st}${PV.open === id ? ' on' : ''}" data-st="${id}" aria-label="${pathEsc(s.t)}, ${{ locked: 'נעול', open: 'פתוח', crown: 'הושלם', gold: 'שלוט', refresh: 'צריך רענון' }[st]}, ${c} כתרים"><span class="pth-n">${mark}</span><span class="pth-t">${pathEsc(s.t)}</span><span class="pth-cr" aria-hidden="true">${'●'.repeat(c)}${'○'.repeat(PCROWNS - c)}</span></button>`;
+  return `<button type="button" class="pth-st pth-${st}${PV.open === id ? ' on' : ''}" data-st="${id}" aria-label="${pathEsc(s.t)}, ${{ locked: 'נעול', open: 'פתוח', crown: 'הושלם', gold: 'שלוט', refresh: 'צריך רענון' }[st]}, ${c} כתרים"><span class="pth-n">${mark}</span><span class="pth-t">${pathEsc(s.t)}</span><span class="pth-cr" aria-hidden="true">${'●'.repeat(c)}${'○'.repeat(PCROWNS - c)}</span><i class="pth-mb" aria-hidden="true"><i style="width:${Math.round(pathMastery(id, now, d).m * 100)}%"></i></i></button>`;
 }
 function pathMap(P, host) {
   const now = Date.now(), d = reviewLoad(), due = pathDailyItems(P, now, d, pathDay(now));
@@ -190,7 +192,7 @@ function pathMap(P, host) {
 }
 function pathPanel(P, id, now, d, host) {
   const s = pathStages()[id], st = pathState(P, id, now, d), cards = pathCards(id), due = pathDue(id, now, d).length, locked = st === 'locked';
-  host.innerHTML = `<h4>${pathEsc(s.t)}</h4>${s.what ? `<p>${s.what}</p>` : ''}<p class="note">${cards.length} כרטיסים לתרגול${due ? `, ${due} לחזרה עכשיו` : ''}. ${locked ? 'השלב נעול: עוברים את הקודם, או בוחנים את עצמך על הכול בלי טעות.' : ''}</p>
+  host.innerHTML = `<h4>${pathEsc(s.t)}</h4>${s.what ? `<p>${s.what}</p>` : ''}${pathMasteryHtml(id, now, d)}<p class="note">${cards.length} כרטיסים לתרגול${due ? `, ${due} לחזרה עכשיו` : ''}. ${locked ? 'השלב נעול: עוברים את הקודם, או בוחנים את עצמך על הכול בלי טעות.' : ''}</p>
     <div class="pth-acts">${s.go.map(n => `<button type="button" data-open="${n}">📖 ${s.go.length > 1 || s.item ? pathEsc(zNode(n).t.split(':')[0]) : 'קרא את הנושא'}</button>`).join('')}
     ${locked ? `<button type="button" class="pth-go" data-skip="${id}">⏭ בחינת דילוג (חמש שאלות, בלי טעות)</button>` : `<button type="button" class="pth-go" data-play="${id}">▶ תרגל (${Math.min(PCARDS, cards.length)} כרטיסים)</button>`}</div>`;
   host.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.open)));
@@ -259,3 +261,38 @@ function zCentralView(arg) {
   setTitle('זום', 'נושאים מרכזיים', pick.t);
 }
 ZVIEW.add('central', { group: 'main', order: 1.6, title: 'נושאים מרכזיים', render: arg => zCentralView(arg) });
+
+/* ---- what stays in memory: a measure of understanding from retrieval, not from visits ----
+   Every card sits in a Leitner box: 0 never answered, 1 answered (or missed) recently, 2 recalled after a day, 3 after three days,
+   4 after a week or more. A topic's retrieval score is the mean of its cards' boxes, each worth a quarter. A card whose review is
+   late by more than its own interval counts one box lower (it may have been forgotten). Levels: not started, learning (below 40%),
+   building (40–75%), holding (75% and nothing due). It measures recall of this book's questions, nothing wider, and says so. */
+const PMW = [0, 0.25, 0.5, 0.75, 1], PMLEV = { new: 'לא התחלת', learn: 'בלמידה', build: 'מתבסס', master: 'נשמר בזיכרון' };
+function pathMastery(id, now = Date.now(), d = reviewLoad()) {
+  const cards = pathCards(id), boxes = [0, 0, 0, 0, 0]; let sum = 0, due = 0;
+  cards.forEach(c => { const e = d[c.id]; let b = e ? Math.max(0, Math.min(4, e.box)) : 0; if (e && e.due <= now) { due++; if (now - e.due > REVIEW_DAYS[b] * 86400000) b = Math.max(1, b - 1); } boxes[b]++; sum += PMW[b]; });
+  const m = cards.length ? sum / cards.length : 0, level = !boxes.slice(1).some(Boolean) ? 'new' : m >= 0.75 && !due ? 'master' : m >= 0.4 ? 'build' : 'learn';
+  return { n: cards.length, boxes, due, m, level };
+}
+function pathMasteryHtml(id, now = Date.now(), d = reviewLoad()) {
+  const M = pathMastery(id, now, d), lab = ['חדשים', 'יום', '3 ימים', 'שבוע', '3 שבועות'], col = ['#EEE9E0', '#D6E8F7', '#3078B0', '#1B2F5A', '#7B5A3C'];
+  return `<div class="pth-mast"><p><b>נשאר בזיכרון: ${Math.round(M.m * 100)}%</b> · ${PMLEV[M.level]}${M.due ? ` · ${M.due} לחזרה עכשיו` : ''}</p><div class="pth-stack" role="img" aria-label="${M.boxes.map((b, i) => `${lab[i]}: ${b}`).join(', ')}">${M.boxes.map((b, i) => b ? `<i style="flex:${b};background:${col[i]}" title="${lab[i]}: ${b}"></i>` : '').join('')}</div><p class="note">${M.boxes.map((b, i) => `<span class="pth-key" style="--c:${col[i]}"></span>${i ? 'נזכרת אחרי ' + lab[i] : 'עוד לא נענו'}: ${b}`).join(' · ')}</p></div>`;
+}
+/* the next days: how many cards come back each day */
+function pathForecast(now = Date.now(), days = 7, d = reviewLoad()) { const day = 86400000, out = Array(days).fill(0); Object.values(d).forEach(e => { const k = Math.floor((e.due - now) / day) + 1; if (e.due <= now) out[0]++; else if (k < days) out[k]++; }); return out; }
+function pathProgress(P, host) {
+  const now = Date.now(), d = reviewLoad(), st = Object.keys(pathStages()), Mi = Object.fromEntries(st.map(id => [id, pathMastery(id, now, d)])), wsum = (ids) => { const n = ids.reduce((a, id) => a + Mi[id].n, 0); return n ? ids.reduce((a, id) => a + Mi[id].m * Mi[id].n, 0) / n : 0; };
+  const started = st.filter(id => Mi[id].level !== 'new'), weak = started.slice().sort((a, b) => (Mi[a].m - Mi[b].m) || (Mi[b].due - Mi[a].due)).slice(0, 5), fc = pathForecast(now, 7, d), fmax = Math.max(1, ...fc);
+  const cnt = k => st.filter(id => Mi[id].level === k).length;
+  host.innerHTML = `<p>כאן מודדים מה נשאר בזיכרון, לא מה נקרא: כל כרטיס עולה קופסה כשנזכרים בו אחרי יום, שלושה ימים, שבוע ושלושה שבועות, ויורד כשטועים או כשהחזרה מאחרת. ביקור בדף לא משנה את המדד.</p>
+    <div class="pth-stats"><span>📚 <b>${Math.round(wsum(st) * 100)}%</b> מהכרטיסים בכל הספר</span><span>🟦 <b>${cnt('master')}</b> נשמרו</span><span>🔷 <b>${cnt('build')}</b> מתבססים</span><span>▫️ <b>${cnt('learn')}</b> בלמידה</span><span>· <b>${cnt('new')}</b> לא התחלת</span></div>
+    <h3>לפי מסלול</h3><table class="pth-plan"><tbody>${pathTracks().map(tr => { const ids = pathTrackStages(tr), v = wsum(ids); return `<tr><td>${tr.icon} ${tr.t}</td><td style="width:55%"><i class="pth-mb big"><i style="width:${Math.round(v * 100)}%"></i></i></td><td>${Math.round(v * 100)}%</td></tr>`; }).join('')}</tbody></table>
+    <h3>הכי חלשים מבין מה שהתחלת</h3>${weak.length ? `<ul class="pth-weak">${weak.map(id => `<li><b>${pathEsc(pathStages()[id].t)}</b> · ${Math.round(Mi[id].m * 100)}%${Mi[id].due ? ` · ${Mi[id].due} לחזרה` : ''} <button type="button" class="pth-go" data-wp="${id}">▶ תרגל</button></li>`).join('')}</ul>` : '<p class="note">עוד לא התחלת אף שלב.</p>'}
+    <h3>מה חוזר בשבוע הקרוב</h3><div class="pth-fc" role="img" aria-label="${fc.map((n, i) => `${i ? 'בעוד ' + i + ' ימים' : 'היום'}: ${n}`).join(', ')}">${fc.map((n, i) => `<div><i style="height:${Math.round(n / fmax * 100)}%"></i><b>${n}</b><small>${i ? '+' + i : 'היום'}</small></div>`).join('')}</div>
+    <p class="note">המדד אומר עד כמה נזכרת בשאלות של הספר הזה, לאורך זמן. הוא לא בוחן כל מה שיש לדעת על הנושא.</p>`;
+  host.querySelectorAll('[data-wp]').forEach(b => b.addEventListener('click', () => pathStart('stage', b.dataset.wp)));
+}
+/* on every topic page: what of it stays in memory, and a way to practise it */
+nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button></p></section>` : '',
+  wire: ({ id }) => { const b = document.querySelector('[data-npr]'); if (b) b.addEventListener('click', () => { PV.sess = pathSession('stage', id); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); });
+    const p = document.querySelector('[data-npath]'); if (p) p.addEventListener('click', () => { PV.sess = null; PV.tab = 'map'; PV.open = id; go('zoom', 'path'); }); } });
