@@ -215,7 +215,7 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   const zsrc = ['77-zoom', '78-zoom-views', '79-machine3d', '80-integrate', '81-polish', '82-machines', '83-anim', '84-hub', '85-layers', '86-links'].map(f => require('fs').readFileSync(path.join(ROOT, 'src', f + '.js'), 'utf8')).join('\n');
   ok(!/\(function \(orig\)|^const _\w+ = (z|m)[A-Za-z]+;/m.test(zsrc), 'step 6: the zoom source files have no wrapper pattern'); }
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => !!document.querySelector('.mbar .mmach') && !!document.getElementById('mFind') && MBAR_TOOLS.map(t => t.id).join() === 'machine,finder,run'), 'step 6: the machine bar tools are in place (machine switch, finder, run)');
+ok(await pg.evaluate(() => !!document.querySelector('.mbar .mmach') && !!document.getElementById('mFind') && MBAR_TOOLS.map(t => t.id).join() === 'machine,finder,run,fault'), 'step 6: the machine bar tools are in place (machine switch, finder, run, fault)');
 await pg.evaluate(() => { const i = document.getElementById('mFind'); i.value = zSimList().find(s => s.w === 'sim:cr3d').t; i.dispatchEvent(new Event('change')); }); await pg.waitForTimeout(500);
 ok(await pg.evaluate(() => ZS.node === 'laser' && !!document.querySelector('#hubpanel .zwin canvas')), 'step 6: the finder opens a simulation in place');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); }); await pg.waitForTimeout(250);

@@ -210,7 +210,7 @@ function fh3dMachine(THREE, cv, V) {
     const yc = [0, 1, 2].map(i => y0 + sw * (i + 0.5)), map = d => [x0 + d.x / AOISCAN.coupon.w * (x1 - x0), y0 + d.y / AOISCAN.coupon.h * (n * sw)];
     return { sc, U, sw, x0, x1, y0, n, slow, yc, camY: -0.38, camHome: -0.65, lasY: -0.375, lasHome: 0.7, regX: 1.15, regY: -0.39, passT: (x1 - x0) / U / 1200 * slow,
       defects: sc.found.map(d => ({ id: d.id, cls: d.cls, name: d.name, p: map(d), ok: d.ok })), targets: sc.found.filter(d => d.ok && AOISCAN.removal.has(d.cls)).map(d => ({ id: d.id, cls: d.cls, p: map(d) })), fid: [[-1.45, -1.1], [1.45, -1.1]] }; })();
-  const RUN = { on: false, kind: null, t0: 0, tau: 0, status: '', cam: 0, table: 0, cam2: 0, table2: 0, pan: [0, 0, 0], verd: 0, stage: 'scan', dxA: 0, dxB: 0, hide: {}, lit: false, beam: false, flash: false, prog: [0, 0, 0], dir: [1, -1, 1], fixed: 0, firing: -1, burn: 0, off: {} };
+  const RUN = { on: false, kind: null, t0: 0, tau: 0, status: '', cam: 0, table: 0, cam2: 0, table2: 0, pan: [0, 0, 0], verd: 0, stage: 'scan', dxA: 0, dxB: 0, hide: {}, lit: false, beam: false, flash: false, prog: [0, 0, 0], dir: [1, -1, 1], fixed: 0, firing: -1, burn: 0, off: {}, fault: null, blind: false, halted: false, lost: new Set(), tg: [] };
   const fx = new THREE.Group(); fx.visible = false; root.add(fx);
   const glow = paint(128, 128, (g, w) => { const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(214,232,247,1)'); r.addColorStop(0.3, 'rgba(214,232,247,.7)'); r.addColorStop(0.65, 'rgba(48,120,176,.28)'); r.addColorStop(1, 'rgba(48,120,176,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); });
   const addM = (o) => keep(new THREE.MeshBasicMaterial(Object.assign({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }, o)));
@@ -221,53 +221,69 @@ function fh3dMachine(THREE, cv, V) {
   const ovc = document.createElement('canvas'); ovc.width = 632; ovc.height = 472; const og = ovc.getContext('2d'), ovt = keep(new THREE.CanvasTexture(ovc)); ovt.colorSpace = THREE.SRGBColorSpace;
   const ovm = new THREE.Mesh(keep(new THREE.PlaneGeometry(3.16, 2.36)), keep(new THREE.MeshBasicMaterial({ map: ovt, transparent: true, depthWrite: false }))); ovm.position.set(0, 0, 0.4135); ovm.userData.fx = true; ovm.visible = false;
   const PX = x => (x + 1.58) * 200, PY = y => (1.18 - y) * 200;
+  /* injected faults: which pass a point is in, the vacuum fault's blurred zone and its false calls (fractions along the pass) */
+  const FZOOM = 5.6, BLX = 0.18, passOf = y => Math.min(RUNC.n - 1, Math.max(0, Math.floor((y - RUNC.y0) / RUNC.sw))), VACZ = [0.35, 0.75], VACQ = [0.42, 0.51, 0.6];
   /* the names of the suspects stand above the panel and always face the viewer, whichever way the machine is turned */
   const labTex = {}, labOf = t => labTex[t] || (labTex[t] = (() => { const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d'); g.font = '700 34px system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineWidth = 7; g.strokeStyle = 'rgba(27,47,90,.9)'; g.strokeText(t, 128, 34); g.fillStyle = '#EEE9E0'; g.fillText(t, 128, 34); const x = keep(new THREE.CanvasTexture(c)); x.colorSpace = THREE.SRGBColorSpace; return x; })());
   const labs = AOISCAN.defects.map(() => { const sp = new THREE.Sprite(keep(new THREE.SpriteMaterial({ transparent: true, depthWrite: false }))); sp.scale.set(0.52, 0.13, 1); sp.visible = false; ovm.add(sp); return sp; });
   const setLab = (i, on, text, p) => { const sp = labs[i]; sp.visible = on; if (!on) return; sp.userData.t = text; const x = labOf(text); if (sp.material.map !== x) { sp.material.map = x; sp.material.needsUpdate = true; } sp.position.set(p[0], p[1] + 0.13, 0.12); };
   const paintOv = () => { og.clearRect(0, 0, 632, 472); const R = RUNC, h = R.sw * 200; og.lineWidth = 2; og.strokeStyle = 'rgba(214,232,247,.55)'; og.setLineDash([8, 6]); og.strokeRect(PX(R.x0), PY(R.y0 + R.n * R.sw), (R.x1 - R.x0) * 200, R.n * h); og.setLineDash([]);
     const rep = RUN.stage === 'repair', ver = RUN.stage === 'verify' || RUN.stage === 'carry2'; const seen = d => { if (RUN.stage !== 'scan') return true; const i = Math.min(R.n - 1, Math.max(0, Math.floor((d.p[1] - R.y0) / R.sw))), k = RUN.prog[i], f = (d.p[0] - R.x0) / (R.x1 - R.x0); return RUN.dir[i] > 0 ? k >= f : k >= 1 - f; };
-    if (RUN.stage === 'scan') R.yc.forEach((y, i) => { const k = RUN.prog[i]; if (k <= 0) return; const w = (R.x1 - R.x0) * 200 * k, xa = RUN.dir[i] > 0 ? PX(R.x0) : PX(R.x1) - w; og.fillStyle = 'rgba(214,232,247,.26)'; og.fillRect(xa, PY(y + R.sw / 2), w, h); });
-    R.defects.forEach((d, di) => { setLab(di, false); if (!d.ok || !seen(d)) return; const t = R.targets.findIndex(q => q.id === d.id), x = PX(d.p[0]), y = PY(d.p[1]), fixed = rep && t >= 0 && t < RUN.fixed, burn = rep && t === RUN.firing ? RUN.burn : fixed ? 1 : 0;
+    const F = RUN.fault, sh = d => F === 'backlash' && RUN.dir[passOf(d.p[1])] < 0 ? BLX : 0;
+    if (RUN.stage === 'scan') R.yc.forEach((y, i) => { const k = RUN.prog[i]; if (k <= 0) return; const w = (R.x1 - R.x0) * 200 * k, xa = (RUN.dir[i] > 0 ? PX(R.x0) : PX(R.x1) - w) + (F === 'backlash' && RUN.dir[i] < 0 ? BLX * 200 : 0), ya = PY(y + R.sw / 2);
+      og.fillStyle = F === 'strobe' && i > 0 ? 'rgba(40,36,33,.8)' : F ? 'rgba(214,232,247,.42)' : 'rgba(214,232,247,.26)'; og.fillRect(xa, ya, w, h);
+      if (F === 'backlash' && RUN.dir[i] < 0) { og.strokeStyle = '#7B5A3C'; og.lineWidth = 4; og.setLineDash([10, 7]); og.strokeRect(xa - BLX * 200, ya, w, h); og.setLineDash([]); }
+      if (F === 'trig' && i === 1) for (let gx = PX(R.x0) + 22; gx < PX(R.x1); gx += 44) if (gx > xa && gx < xa + w) { og.fillStyle = 'rgba(27,47,90,.95)'; og.fillRect(gx, ya, 12, h); }
+      if (F === 'vac' && i === 1) { const xs = Math.max(xa, PX(R.x0 + (R.x1 - R.x0) * VACZ[0])), xe = Math.min(xa + w, PX(R.x0 + (R.x1 - R.x0) * VACZ[1])); if (xe > xs) { og.save(); og.beginPath(); og.rect(xs, ya, xe - xs, h); og.clip(); og.fillStyle = 'rgba(123,90,60,.45)'; og.fillRect(xs, ya, xe - xs, h); og.strokeStyle = 'rgba(123,90,60,.95)'; og.lineWidth = 6; for (let q = xs - h; q < xe; q += 16) { og.beginPath(); og.moveTo(q, ya + h); og.lineTo(q + h, ya); og.stroke(); } og.restore(); } } });
+    if (F === 'vac') VACQ.forEach(f => { const x = R.x0 + (R.x1 - R.x0) * f, y = R.yc[1]; if (RUN.stage === 'scan' && RUN.prog[1] < 1 - f) return; og.strokeStyle = '#EEE9E0'; og.lineWidth = 4; og.setLineDash([6, 4]); og.beginPath(); og.arc(PX(x), PY(y), 16, 0, 7); og.stroke(); og.setLineDash([]); og.fillStyle = '#EEE9E0'; og.font = '800 24px system-ui'; og.textAlign = 'center'; og.fillText('?', PX(x), PY(y) + 8); });
+    R.defects.forEach((d, di) => { setLab(di, false); if (!d.ok || !seen(d)) return; if (RUN.lost.has(d.id)) { og.strokeStyle = 'rgba(123,90,60,.9)'; og.lineWidth = 2; og.setLineDash([3, 4]); og.beginPath(); og.arc(PX(d.p[0]), PY(d.p[1]), 13, 0, 7); og.stroke(); og.setLineDash([]); return; }
+      const t = RUN.tg.findIndex(q => q.id === d.id), x = PX(d.p[0] + sh(d)), y = PY(d.p[1]), fixed = rep && t >= 0 && t < RUN.fixed, burn = (rep && t === RUN.firing ? RUN.burn : fixed ? 1 : 0) * (F === 'defocus' ? 0.45 : 1), bad = F === 'defocus' && fixed;
       if (rep && t < 0) { og.strokeStyle = 'rgba(214,232,247,.35)'; og.lineWidth = 2; og.beginPath(); og.arc(x, y, 9, 0, 7); og.stroke(); return; }
       if (rep && burn < 1) { og.fillStyle = '#7B5A3C'; og.beginPath(); og.arc(x, y, 7 * (1 - burn), 0, 7); og.fill(); }
-      og.strokeStyle = fixed ? '#D6E8F7' : '#EEE9E0'; og.lineWidth = 3; og.beginPath(); og.arc(x, y, 13, 0, 7); og.stroke(); setLab(di, true, d.id + (fixed ? ' ✓' : ver && di < RUN.verd ? (t >= 0 ? ' · AOS' : ' · הנדסה') : ''), d.p); });
+      if (bad) { og.strokeStyle = 'rgba(123,90,60,.9)'; og.lineWidth = 2; og.setLineDash([4, 3]); og.beginPath(); og.arc(x, y, 22, 0, 7); og.stroke(); og.setLineDash([]); }
+      og.strokeStyle = fixed && !bad ? '#D6E8F7' : '#EEE9E0'; og.lineWidth = 3; og.beginPath(); og.arc(x, y, 13, 0, 7); og.stroke(); setLab(di, true, d.id + (bad ? ' ✗' : fixed ? ' ✓' : ver && di < RUN.verd ? (t >= 0 ? ' · AOS' : ' · הנדסה') : ''), [d.p[0] + sh(d), d.p[1]]); });
     if (rep) R.fid.forEach(([fxx, fyy]) => { og.strokeStyle = '#D6E8F7'; og.lineWidth = 2; og.beginPath(); og.arc(PX(fxx), PY(fyy), 8, 0, 7); og.moveTo(PX(fxx) - 13, PY(fyy)); og.lineTo(PX(fxx) + 13, PY(fyy)); og.moveTo(PX(fxx), PY(fyy) - 13); og.lineTo(PX(fxx), PY(fyy) + 13); og.stroke(); });
     ovt.needsUpdate = true; };
   const LT = t => `<bdi dir="ltr">${t}</bdi>`;
   const ez = k => k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2, mix = (a, b, k) => a + (b - a) * k;
   /* the cycle as a list of steps: [seconds, what the step does at progress k, the line shown while it runs] */
   /* the scan and the repair as lists of steps, shared by the single machines and by the line */
-  const scanSteps = (S, passT, name) => { const R = RUNC, off = y => R.camY - y;
+  let halt = false;   /* set while building a timeline whose fault stops the machine */
+  const scanSteps = (S, passT, name) => { const R = RUNC, off = y => R.camY - y, F = RUN.fault;
     S.push([0.9, k => { RUN.stage = 'scan'; RUN.cam = mix(R.camHome, R.x0, ez(k)); RUN.table = mix(0, off(R.yc[0]), ez(k)); }, name + 'הראש והשולחן נוסעים לתחילת האזור']);
-    R.yc.forEach((y, i) => { const a = RUN.dir[i] > 0 ? R.x0 : R.x1, b = RUN.dir[i] > 0 ? R.x1 : R.x0;
-      S.push([passT, k => { RUN.cam = mix(a, b, k); RUN.table = off(y); RUN.prog[i] = k; RUN.lit = k < 1; }, `${name}סריקה: מעבר ${i + 1} מתוך ${R.n} · קצב שורות ${LT(f1(R.sc.f) + ' kHz')} · רוחב מעבר ${LT(f1(R.sc.swath, 1) + ' mm')}` + (name ? '' : ` · מוצג בהילוך איטי פי ${R.slow}`)]);
-      if (i < R.n - 1) S.push([name ? 0.4 : 0.55, k => { RUN.table = mix(off(y), off(R.yc[i + 1]), ez(k)); }, name + 'השולחן מתקדם ברוחב מעבר אחד']); }); };
+    for (let i = 0; i < R.n; i++) { const y = R.yc[i], a = RUN.dir[i] > 0 ? R.x0 : R.x1, b = RUN.dir[i] > 0 ? R.x1 : R.x0, sym = F && FSYM[F] ? FSYM[F](i) : '';
+      const text = `${name}סריקה: מעבר ${i + 1} מתוך ${R.n} · קצב שורות ${LT(f1(R.sc.f) + ' kHz')} · רוחב מעבר ${LT(f1(R.sc.swath, 1) + ' mm')}` + (name ? '' : ` · מוצג בהילוך איטי פי ${R.slow}`);
+      if (F === 'door' && i === 1) { S.push([passT / 2, k => { RUN.cam = mix(a, b, k / 2); RUN.table = off(y); RUN.prog[i] = k / 2; RUN.lit = true; }, text]);
+        S.push([3.2, () => { RUN.cam = mix(a, b, 0.5); RUN.prog[i] = 0.5; RUN.lit = false; RUN.halted = true; }, `${name}⚠ הצירים נעצרו באמצע מעבר והתאורה כבתה. הדרייבר לא דיווח על שגיאה משלו`]); halt = true; return; }
+      S.push([passT, k => { RUN.cam = mix(a, b, k); RUN.table = off(y); RUN.prog[i] = k; RUN.lit = k < 1; }, (sym ? `${name}⚠ ${sym} · מעבר ${i + 1} מתוך ${R.n}` : text)]);
+      if (i < R.n - 1) S.push([name ? 0.4 : 0.55, k => { RUN.table = mix(off(y), off(R.yc[i + 1]), ez(k)); }, name + 'השולחן מתקדם ברוחב מעבר אחד']); } };
   const repairSteps = (S, name, tm) => { const R = RUNC; let cx = R.lasHome, ty = 0; const go = (x, y, text, d) => { const ax = cx, ay = ty; S.push([d || tm, k => { RUN.stage = 'repair'; RUN.cam2 = mix(ax, x, ez(k)); RUN.table2 = mix(ay, y, ez(k)); }, text]); cx = x; ty = y; };
-    R.fid.forEach((f, i) => { go(f[0] - (R.regX - R.lasHome), R.regY - f[1], `${name}רישום: מצלמת הרישום נוסעת לסימן ${i + 1} מתוך 2`); S.push([tm / 2, k => { RUN.flash = k < 1; }, `${name}רישום: סימן ${i + 1} נמדד, והמכונה מתאימה את מערכת הצירים שלה לפאנל`]); });
-    R.targets.forEach((t, j) => { go(t.p[0], R.lasY - t.p[1], `${name}הראש נוסע אל ${LT(t.id)}: נחושת עודפת שאומתה`); S.push([tm * 1.1, k => { RUN.beam = k < 1; RUN.firing = k < 1 ? j : -1; RUN.burn = k; if (k >= 1) RUN.fixed = Math.max(RUN.fixed, j + 1); }, `${name}הסרה בלייזר ב-${LT(t.id)} · רדיוס כתם ${LT(f1(LZ.w0, 0) + ' µm')} · פגם ${j + 1} מתוך ${R.targets.length}`]); });
+    for (let i = 0; i < R.fid.length; i++) { const f = R.fid[i]; go(f[0] - (R.regX - R.lasHome), R.regY - f[1], `${name}רישום: מצלמת הרישום נוסעת לסימן ${i + 1} מתוך 2`);
+      if (RUN.fault === 'fid' && i === 1) { S.push([tm * 2.4, k => { RUN.flash = k < 1 && Math.floor(k * 6) % 2 === 0; }, `${name}רישום: מחפשים את סימן 2, ושוב, ושוב`]); S.push([3.2, () => { RUN.flash = false; RUN.halted = true; }, `${name}⚠ סימן 2 לא נמצא אחרי שלושה ניסיונות. המכונה עצרה בלי לירות`]); halt = true; return () => { }; }
+      S.push([tm / 2, k => { RUN.flash = k < 1; }, `${name}רישום: סימן ${i + 1} נמדד, והמכונה מתאימה את מערכת הצירים שלה לפאנל`]); }
+    RUN.tg.forEach((t, j) => { go(t.p[0], R.lasY - t.p[1], `${name}הראש נוסע אל ${LT(t.id)}: נחושת עודפת שאומתה`); S.push([tm * 1.1, k => { RUN.beam = k < 1; RUN.firing = k < 1 ? j : -1; RUN.burn = k; if (k >= 1) RUN.fixed = Math.max(RUN.fixed, j + 1); }, RUN.fault === 'defocus' && j > 0 ? `${name}⚠ ${FSYM.defocus()} · פגם ${j + 1} מתוך ${RUN.tg.length}` : `${name}הסרה בלייזר ב-${LT(t.id)} · רדיוס כתם ${LT(f1(LZ.w0, 0) + ' µm')} · פגם ${j + 1} מתוך ${RUN.tg.length}`]); });
     return (text, d) => go(R.lasHome, 0, text, d); };
   /* the cycle as a list of steps: [seconds, what the step does at progress k, the line shown while it runs] */
-  const timeline = kind => { const R = RUNC, S = [], off = y => R.camY - y, nOk = R.defects.filter(d => d.ok).length, nFix = R.targets.length;
-    if (kind === 'aoi') { scanSteps(S, R.passT, '');
-      S.push([2.4, () => { }, `הסריקה הסתיימה: ${nOk} חשדות סומנו, והם עוברים לאימות`]);
+  const timeline = kind => { const R = RUNC, S = [], off = y => R.camY - y, nFalse = RUN.fault === 'vac' ? VACQ.length : 0, nOk = R.defects.filter(d => d.ok && !RUN.lost.has(d.id)).length, nAll = nOk + nFalse, nFix = RUN.tg.length; halt = false;
+    if (kind === 'aoi') { scanSteps(S, R.passT, ''); if (halt) return S;
+      S.push([2.4, () => { }, `הסריקה הסתיימה: ${nAll} חשדות סומנו, והם עוברים לאימות`]);
       S.push([0.9, k => { RUN.cam = mix(R.x0, R.camHome, ez(k)); RUN.table = mix(off(R.yc[R.n - 1]), 0, ez(k)); }, 'חזרה לנקודת הבית']); }
-    else if (kind === 'aos') { const home = repairSteps(S, '', 1.0); S.push([2.0, () => { }, `התיקון הסתיים: ${nFix} פגמי נחושת עודפת הוסרו. חוסר נחושת לא מתוקן כאן`]); home('חזרה לנקודת הבית', 0.9); }
+    else if (kind === 'aos') { const home = repairSteps(S, '', 1.0); if (halt) return S; S.push([2.0, () => { }, RUN.fault === 'defocus' ? `⚠ הירי הסתיים, אבל בכל ${nFix} המטרות נשארה נחושת` : `התיקון הסתיים: ${nFix} פגמי נחושת עודפת הוסרו. חוסר נחושת לא מתוקן כאן`]); home('חזרה לנקודת הבית', 0.9); }
     else { /* the whole line: scan, carry to verification, verify, carry to repair, repair */
       /* the panel is carried overhead: straight up out of the open top, across above the cabinet and the glass, and straight down */
       const span = RUN.dxB - RUN.dxA, top = 2.75, seg = (k, a, b) => ez(Math.max(0, Math.min(1, (k - a) / (b - a)))), carry = (k, x0, x1, z0, z1) => [mix(x0, x1, seg(k, 0.22, 0.78)), 0, k < 0.5 ? mix(z0, top, seg(k, 0, 0.28)) : mix(top, z1, seg(k, 0.72, 1))];
-      scanSteps(S, 1.5, `מכונת ${LT('AOI')} · `);
-      S.push([0.7, k => { RUN.cam = mix(R.x0, R.camHome, ez(k)); RUN.table = mix(off(R.yc[R.n - 1]), 0, ez(k)); }, `מכונת ${LT('AOI')} · ${nOk} חשדות סומנו`]);
+      scanSteps(S, 1.5, `מכונת ${LT('AOI')} · `); if (halt) return S;
+      S.push([0.7, k => { RUN.cam = mix(R.x0, R.camHome, ez(k)); RUN.table = mix(off(R.yc[R.n - 1]), 0, ez(k)); }, `מכונת ${LT('AOI')} · ${nAll} חשדות סומנו`]);
       S.push([2.8, k => { RUN.stage = 'carry'; RUN.pan = carry(k, 0, span / 2, 0, 0.85); }, 'הפאנל מורם ועובר מלמעלה לתחנת האימות']);
       S.push([3.2, k => { RUN.stage = 'verify'; RUN.verd = Math.min(nOk, Math.floor(k * (nOk + 0.5))); }, 'תחנת האימות · מפעיל בודק כל חשד בהגדלה ומחליט: פגם אמיתי או התראת שווא']);
-      S.push([1.8, () => { RUN.verd = nOk; }, `תחנת האימות · ${nOk} פגמים אומתו: ${nFix} של נחושת עודפת עוברים ל-${LT('AOS')}, ${nOk - nFix} של חוסר נחושת עוברים להחלטת הנדסה`]);
+      S.push([1.8, () => { RUN.verd = nOk; }, (nFalse ? `תחנת האימות · ${nFalse} התראות שווא נדחו · ` : `תחנת האימות · `) + `${nOk} פגמים אומתו: ${nFix} של נחושת עודפת עוברים ל-${LT('AOS')}, ${nOk - nFix} של חוסר נחושת עוברים להחלטת הנדסה`]);
       S.push([2.8, k => { RUN.stage = 'carry2'; RUN.pan = carry(k, span / 2, span, 0.85, 0); }, `הפאנל עובר מלמעלה למכונת ${LT('AOS')}`]);
-      repairSteps(S, `מכונת ${LT('AOS')} · `, 0.7);
-      S.push([3.0, () => { }, `הקו סיים: ${nOk} חשדות · ${nOk} אומתו · ${nFix} הוסרו בלייזר · ${nOk - nFix} להחלטת הנדסה`]); }
+      repairSteps(S, `מכונת ${LT('AOS')} · `, 0.7); if (halt) return S;
+      S.push([3.0, () => { }, RUN.fault === 'defocus' ? `⚠ הקו סיים, אבל בכל ${nFix} המטרות שנורו נשארה נחושת` : `הקו סיים: ${nAll} חשדות · ${nOk} אומתו · ${nFix} הוסרו בלייזר · ${nOk - nFix} להחלטת הנדסה`]); }
     return S; };
   let steps = [], total = 0, hudEl = null;
   const hud = text => { if (!hudEl) { hudEl = document.createElement('div'); hudEl.className = 'mrunhud nogl'; hudEl.setAttribute('aria-live', 'polite'); cv.parentNode.appendChild(hudEl); } if (hudEl._t !== text) { hudEl._t = text; hudEl.innerHTML = text; } hudEl.hidden = !text; };
-  const seek = t => { const R = RUNC, line = RUN.kind === 'line'; RUN.tau = t; RUN.prog = [0, 0, 0]; RUN.lit = RUN.beam = RUN.flash = false; RUN.fixed = 0; RUN.firing = -1; RUN.burn = 0; RUN.cam = R.camHome; RUN.cam2 = R.lasHome; RUN.table = RUN.table2 = 0; RUN.pan = [0, 0, 0]; RUN.verd = 0; RUN.stage = RUN.kind === 'aos' ? 'repair' : 'scan'; let left = t, cur = null;
+  const seek = t => { const R = RUNC, line = RUN.kind === 'line'; RUN.tau = t; RUN.prog = [0, 0, 0]; RUN.lit = RUN.beam = RUN.flash = false; RUN.fixed = 0; RUN.firing = -1; RUN.burn = 0; RUN.cam = R.camHome; RUN.cam2 = R.lasHome; RUN.table = RUN.table2 = 0; RUN.pan = [0, 0, 0]; RUN.verd = 0; RUN.halted = false; RUN.stage = RUN.kind === 'aos' ? 'repair' : 'scan'; let left = t, cur = null;
     for (const s of steps) { if (left < s[0]) { s[1](left / s[0]); cur = s; break; } s[1](1); left -= s[0]; } RUN.status = cur ? cur[2] : '';
     const d1 = RUN.cam - R.camHome, d2 = RUN.cam2 - R.lasHome, py = RUN.stage === 'repair' ? RUN.table2 : RUN.stage === 'scan' ? RUN.table : 0;
     RUN.off = line ? { 'aoi:cam': [d1, 0], 'aoi:lens': [d1, 0], 'aoi:strobe': [d1, 0], 'aoi:table': [0, RUN.table], 'aoi:panel': [RUN.pan[0], RUN.pan[1] + py, RUN.pan[2]], 'aos:laser': [d2, 0], 'aos:reg': [d2, 0], 'aos:table': [0, RUN.table2] }
@@ -277,9 +293,11 @@ function fh3dMachine(THREE, cv, V) {
     scanLine.scale.y = R.sw; scanLine.position.set(xa + RUN.cam, R.camY, 0.418); wash.position.set(xa + RUN.cam, R.camY, 0.45); cone.position.set(xa + RUN.cam, R.camY, 0.565);
     beamCore.position.set(xb + RUN.cam2, R.lasY, 0.805); beamGlow.position.copy(beamCore.position); spark.position.set(xb + RUN.cam2, R.lasY, 0.44); const pulse = 0.4 + 0.25 * Math.sin(t * 40); spark.scale.set(pulse, pulse, 1); regGlow.position.set(xb + RUN.cam2 + (R.regX - R.lasHome), R.regY, 1.28);
     if (line) MS.Ct = [RUN.dxA + RUN.pan[0], 0, 1.0];   /* the view follows the panel along the line */
-    paintOv(); hud(RUN.status); return cur; };
-  const runStop = () => { if (!RUN.on) return; if (RUN.kind === 'line' && MS.machine === 'line') { MS.Ct = [0.5, 0, 1.0]; MS.distT = 24; } RUN.on = false; RUN.off = {}; fx.visible = false; ovm.visible = false; hud(''); lastSig = ''; if (api.onRun) api.onRun(false); };
-  const runStart = () => { if (RUN.on || MS.path.length) return false; RUN.kind = MS.machine; const ra = groups.find(r => r.m === 'aoi'), rb = groups.find(r => r.m === 'aos'); RUN.dxA = ra ? ra.dx : 0; RUN.dxB = rb ? rb.dx : 0; RUN.hide = RUN.kind === 'line' ? { 'aos:panel': 1 } : {}; if (RUN.kind === 'line') MS.distT = 13; steps = timeline(RUN.kind); total = steps.reduce((a, s) => a + s[0], 0); RUN.on = true; RUN.t0 = performance.now(); const pr = groups.find(r => r.id === 'panel' && (RUN.kind !== 'line' || r.m === 'aoi')); if (pr) pr.g.add(ovm); ovm.visible = true; fx.visible = true; seek(0); lastSig = ''; if (api.onRun) api.onRun(true); return true; };
+    paintOv(); hud(RUN.status); if (hudEl) hudEl.classList.toggle('alarm', /⚠/.test(RUN.status)); return cur; };
+  const runStop = () => { if (!RUN.on) return; if (RUN.kind === 'line' && MS.machine === 'line') { MS.Ct = [0.5, 0, 1.0]; MS.distT = 24; } if (RUN.close) { MS.Ct = [0.5, 0, 1.0]; MS.distT = 12; RUN.close = false; } RUN.on = false; RUN.off = {}; fx.visible = false; ovm.visible = false; hud(''); lastSig = ''; if (api.onRun) api.onRun(false); };
+  const runStart = () => { if (RUN.on || MS.path.length) return false; RUN.kind = MS.machine; mFaultClose();
+    const can = MFAULTS.filter(f => RUN.kind === 'line' || f.m === RUN.kind), want = MS.fault || ''; RUN.blind = want === 'rand'; RUN.fault = RUN.blind ? can[Math.floor(Math.random() * can.length)].id : can.some(f => f.id === want) ? want : null;
+    RUN.lost = new Set(RUNC.defects.filter(d => d.ok && ((RUN.fault === 'trig' && passOf(d.p[1]) === 1 && (d.p[0] - RUNC.x0) / (RUNC.x1 - RUNC.x0) > 0.6 && (d.p[0] - RUNC.x0) / (RUNC.x1 - RUNC.x0) < 0.8) || (RUN.fault === 'strobe' && passOf(d.p[1]) > 0))).map(d => d.id)); RUN.tg = RUNC.targets.filter(t => !RUN.lost.has(t.id)); RUN.close = !!RUN.fault && RUN.kind !== 'line'; if (RUN.close) { MS.Ct = [0, -0.25, 0.45]; MS.distT = FZOOM; } const ra = groups.find(r => r.m === 'aoi'), rb = groups.find(r => r.m === 'aos'); RUN.dxA = ra ? ra.dx : 0; RUN.dxB = rb ? rb.dx : 0; RUN.hide = RUN.kind === 'line' ? { 'aos:panel': 1 } : {}; if (RUN.kind === 'line') MS.distT = 13; steps = timeline(RUN.kind); total = steps.reduce((a, s) => a + s[0], 0); RUN.on = true; RUN.t0 = performance.now(); const pr = groups.find(r => r.id === 'panel' && (RUN.kind !== 'line' || r.m === 'aoi')); if (pr) pr.g.add(ovm); ovm.visible = true; fx.visible = true; seek(0); lastSig = ''; if (api.onRun) api.onRun(true); return true; };
   /* ---------- per frame: place, light up, dim, aim the camera like the view does ---------- */
   let built = null, lastSig = '', dead = false, frames = 0; const hot = new THREE.Color(C.blue);
   const setLook = (rec, hl, dim, hide) => { rec.g.visible = !hide; if (hide) return; const k = (hl ? 1 : 0) + (dim ? 2 : 0); if (rec.look === k) return; rec.look = k;
@@ -291,7 +309,7 @@ function fh3dMachine(THREE, cv, V) {
   const api = {
     render() { if (dead) return; const inner = MS.path.length ? MS.path[MS.path.length - 1] : null, sigB = inner ? 'in:' + inner : 'm:' + MS.machine;
       if (sigB !== built) { clear(); if (inner) buildInner(inner); else buildMachine(); built = sigB; const far = MS.machine === 'line' && !inner; Object.assign(key.shadow.camera, far ? { left: -18, right: 18, top: 14, bottom: -14, near: 1, far: 70 } : { left: -9, right: 9, top: 9, bottom: -9, near: 1, far: 60 }); key.shadow.camera.updateProjectionMatrix(); floor.position.z = inner ? -1.4 : -0.5; lastSig = ''; }
-      if (RUN.on) { if (MS.sel || inner || MS.machine !== RUN.kind || MS.target > 0.02 || MS.assembling) runStop(); else if (!RUN.manual) { const t = (performance.now() - RUN.t0) / 1000; if (t >= total) runStop(); else seek(t); } }
+      if (RUN.on) { if (MS.sel || inner || MS.machine !== RUN.kind || MS.target > 0.02 || MS.assembling) runStop(); else if (!RUN.manual) { const t = (performance.now() - RUN.t0) / 1000; if (t >= total) { const f = RUN.fault, bl = RUN.blind; runStop(); if (f) mFaultDiag(cv.parentNode, f, bl); } else seek(t); } }
       const s = V.st, sig = [RUN.on ? RUN.tau : '', built, s.yaw.toFixed(4), s.pitch.toFixed(4), s.dist.toFixed(3), MS.C.map(v => v.toFixed(3)).join(), MS.E.toFixed(4), MS.IE.toFixed(4), MS.hover, MS.sel, MS.isel].join('|'); if (sig === lastSig) return; lastSig = sig;
       const selNode = MS.sel && !inner ? (MPARTS.find(p => p.id === MS.sel) || {}).node : null;
       groups.forEach(rec => { if (inner) { const e = MS.IE; rec.g.position.set(e * rec.p.ex[0], e * rec.p.ex[1], e * rec.p.ex[2]); setLook(rec, MS.hover === rec.id, MS.isel != null && MS.isel !== rec.inner, false); return; }
@@ -304,6 +322,8 @@ function fh3dMachine(THREE, cv, V) {
     /* for checks: put the cycle at a given second and draw it */
     runSeek(t) { if (!RUN.on) return null; RUN.manual = true; const c = seek(Math.min(t, total - 1e-6)); lastSig = ''; api.render(); return { status: RUN.status, cam: RUN.cam, table: RUN.table, cam2: RUN.cam2, table2: RUN.table2, pan: RUN.pan.slice(), stage: RUN.stage, verd: RUN.verd, lit: RUN.lit, beam: RUN.beam, flash: RUN.flash, prog: RUN.prog.slice(), fixed: RUN.fixed, total, step: c ? steps.indexOf(c) : -1 }; },
     runLabels: () => labs.filter(q => q.visible).map(q => q.userData.t),
+    runFault: () => ({ fault: RUN.fault, blind: RUN.blind, halted: RUN.halted, lost: [...RUN.lost], targets: RUN.tg.map(t => t.id), alarm: !!(hudEl && hudEl.classList.contains('alarm')) }),
+    runDiag() { if (RUN.fault) mFaultDiag(cv.parentNode, RUN.fault, RUN.blind); },
     runPlan: () => ({ swath: RUNC.sw, U: RUNC.U, passT: RUNC.passT, yc: RUNC.yc.slice(), targets: RUNC.targets.map(t => t.id + ':' + t.cls), defects: RUNC.defects.length, total: timeline(MS.machine).reduce((a, q) => a + q[0], 0) }),
     innerKind: core.innerKind,
     /* for checks: build every inner part alone and compare what was built with the part's box (allowing thin shafts their bearings) */
@@ -347,3 +367,57 @@ MBAR_TOOLS.push({ id: 'run', slot: 'end',
   wire: bar => { const b = bar.querySelector('#mRun'); if (!b) return; const label = on => { b.hidden = !MS.gl; b.setAttribute('aria-pressed', !!on); b.textContent = on ? '❚❚ עצור' : MS.machine === 'line' ? '▶ הפעל את הקו' : MS.machine === 'aos' ? '▶ הפעל תיקון' : '▶ הפעל סריקה'; };
     label(false); if (MS.gl) MS.gl.onRun = label; b.addEventListener('click', () => { if (!MS.gl) return; if (MS.gl.running()) MS.gl.run(false); else { MS.target = 0; MS.assembling = false; const e = document.getElementById('mE'); if (e) e.value = 0; if (MS.sel) mSelect(null); MS.E = Math.min(MS.E, 0.02); MS.gl.run(true); } }); } });
 MHOOK.afterMachine.push(() => { const b = document.getElementById('mRun'); if (b && MS.gl) { MS.gl.run(false); b.hidden = false; b.textContent = MS.machine === 'line' ? '▶ הפעל את הקו' : MS.machine === 'aos' ? '▶ הפעל תיקון' : '▶ הפעל סריקה'; } });
+
+/* ---------- a live fault: inject one into the cycle, watch the symptom, name the cause ----------
+   Each fault changes only what the cycle shows (what is imaged, found, fired or stopped), in the way its physics says,
+   and then asks for the cause. "Random" hides which one it is. Each answer leads to the topic that teaches it. */
+const MFAULTS = [
+  { id: 'vac', m: 'aoi', t: 'דליפת ואקום', node: 'vac', sym: 'באמצע המעבר השני התמונה מטושטשת, ובדיוק שם צצו חשדות שאין להם הסבר. תחנת האימות דחתה אותם.',
+    cause: 'הוואקום לא מחזיק: הפאנל מתרומם במקום אחד ויוצא מעומק השדה',
+    why: 'פאנל שלא נצמד לשולחן מתרומם במקום אחד. עומק השדה של העדשה הוא עשרות מיקרונים, ולכן רק האזור שהתרומם מטושטש. תמונה מטושטשת שונה מהתכנון, והמכונה מסמנת חשדות שווא. בודקים את לחץ הוואקום, את האטמים, ופאנל קטן שלא מכסה את כל החורים.' },
+  { id: 'trig', m: 'aoi', t: 'פולסים חסרים מהאנקודר', node: 'trig', sym: 'במעבר השני יש פסים ריקים לרוחב התמונה, ופגם שהיה באחד מהם לא סומן.',
+    cause: 'הטריגר מהאנקודר מאבד פולסים, ולכן חלק מהשורות לא צולמו',
+    why: 'מצלמת line-scan מצלמת שורה בכל פולס מהאנקודר של הציר: לפי מיקום, לא לפי זמן. פולס שאבד הוא שורה שלא צולמה, ופגם שנפל עליה לא נמצא. בודקים את הכבל והמחבר של האנקודר, רעש על קו הטריגר, והגדרת המחלק.' },
+  { id: 'strobe', m: 'aoi', t: 'התאורה נחלשה', node: 'cam', sym: 'מהמעבר השני והלאה התמונה כהה, והפגמים שם לא סומנו.',
+    cause: 'הסטרוב נחלש או לא נדלק בכל טריגר, ולכן התמונה כהה',
+    why: 'בכל שורה המצלמה אוספת אור רק בזמן ההבזק. הבזק חלש נותן תמונה כהה וניגודיות נמוכה, ופגם קטן לא עובר את סף ההחלטה. בודקים את המתח והזרם לנוריות, את הטמפרטורה שלהן, ואת התזמון בין הטריגר להבזק.' },
+  { id: 'backlash', m: 'aoi', t: 'backlash בציר', node: 'trans', sym: 'המעבר השני, שנוסע בכיוון ההפוך, מוסט הצידה ביחס לראשון ולשלישי, וגם הסימונים שלו מוסטים.',
+    cause: 'backlash בתמסורת: בהיפוך כיוון יש פער שהאנקודר שעל המנוע לא רואה',
+    why: 'מעבר אחד נוסע קדימה והבא חוזר. בהיפוך כיוון הבורג מסתובב מעט לפני שהעומס זז, ואנקודר שעל המנוע סופר את הסיבוב הזה כתנועה. לכן רק המעברים ההפוכים מוסטים, ובאותו גודל. בודקים backlash עם שעון מדידה, ומפצים בבקר או מחליפים את המום.' },
+  { id: 'door', m: 'aoi', t: 'interlock של דלת', node: 'interlock', sym: 'באמצע מעבר הצירים נעצרו והתאורה כבתה. הדרייבר לא דיווח על שגיאה משלו.',
+    cause: 'מעגל ה-interlock נפתח (דלת או מתג), ושרשרת הבטיחות ניתקה את ההנעה',
+    why: 'שרשרת הבטיחות לא עוברת דרך התוכנה: כשמגע הדלת נפתח, ממסר הבטיחות מנתק את ההנעה, והצירים עוצרים בכל מקום שהם. זו לא שגיאת דרייבר, ולכן הוא לא מדווח עליה. בודקים את המגעים בשרשרת לפי הסדר, ואת המחבר של מתג הדלת.' },
+  { id: 'defocus', m: 'aos', t: 'הלייזר לא בפוקוס', node: 'laserunit', sym: 'הלייזר ירה על כל המטרות, אבל בכולן נשארה נחושת. הכתם שנראה במצלמה רחב מהרגיל.',
+    cause: 'הלייזר לא בפוקוס: הכתם רחב, וה-fluence יורד מתחת לסף ההסרה',
+    why: 'fluence הוא אנרגיה ליחידת שטח, ולכן הוא יורד כמו אחד חלקי ריבוע רדיוס הכתם: כתם רחב פי 2 נותן fluence קטן פי 4. מתחת לסף ההסרה הנחושת מתחממת ולא מוסרת. כתם רחב, ולא רק נחושת שנשארה, הוא מה שמבדיל זאת מהספק נמוך. בודקים את גובה הפאנל ואת כיול הפוקוס.' },
+  { id: 'fid', m: 'aos', t: 'סימן רישום לא נמצא', node: 'reg', sym: 'מצלמת הרישום חיפשה את הסימן השני שוב ושוב, ואז המכונה עצרה בלי לירות.',
+    cause: 'סימן הרישום (fiducial) מלוכלך או פגום, ולכן אי אפשר להתאים את מערכת הצירים',
+    why: 'בלי שני סימנים אי אפשר לחשב את ההיסט ואת הסיבוב של הפאנל, ולכן המכונה לא יורה: ירי במקום לא ידוע עלול לחתוך מוליך תקין. בודקים את ניקיון הסימן, את התאורה של מצלמת הרישום, ואת חלון החיפוש.' }
+];
+/* what the HUD says while the fault shows (empty: this pass is not affected) */
+const FSYM = { vac: i => i === 1 ? 'באמצע המעבר התמונה מטושטשת' : '', trig: i => i === 1 ? 'פסים ריקים בתמונה' : '', strobe: i => i > 0 ? 'התמונה כהה' : '',
+  backlash: i => i % 2 === 1 ? 'המעבר מוסט הצידה ביחס לקודם' : '', defocus: () => 'הכתם במצלמה רחב מהרגיל' };
+/* distractors for the AOS faults, which are fewer: wrong, but a reasonable first guess */
+const MFAULT_ALT = { aos: ['מקור הלייזר נחלש, וההספק בכל פולס נמוך מדי', 'תחנת האימות שלחה רשימת מטרות שגויה'] };
+const mFaultOpts = id => { const F = MFAULTS.find(f => f.id === id), same = MFAULTS.filter(f => f.m === F.m && f.id !== id).map(f => f.cause), pool = [...same, ...(MFAULT_ALT[F.m] || [])].slice(0, 3);
+  return [F.cause, ...pool].map(t => [t, pathHash(id + t)]).sort((a, b) => a[1] - b[1]).map(x => x[0]); };
+function mFaultClose() { const el = document.getElementById('mFaultQ'); if (el) el.remove(); }
+function mFaultDiag(host, id, blind) {
+  const F = MFAULTS.find(f => f.id === id); if (!F || !host) return; mFaultClose(); const opts = mFaultOpts(id), el = document.createElement('div');
+  el.id = 'mFaultQ'; el.className = 'mfq nogl'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'אבחון תקלה');
+  el.innerHTML = `<button type="button" class="mfqx" aria-label="סגור">✕</button><p><b>⚠ ${blind ? 'משהו לא תקין במחזור הזה.' : 'תקלה מוזרקת: ' + F.t + '.'}</b> ${F.sym}</p><p><b>מה הסיבה?</b></p><div class="tp">${opts.map((o, j) => `<button type="button" data-fo="${j}">${o}</button>`).join('')}</div><div class="mfqr" aria-live="polite"></div>`;
+  host.appendChild(el); el.querySelector('.mfqx').addEventListener('click', mFaultClose);
+  el.querySelectorAll('[data-fo]').forEach(b => b.addEventListener('click', () => { const ok = opts[+b.dataset.fo] === F.cause; el.querySelectorAll('[data-fo]').forEach(x => { x.disabled = true; if (opts[+x.dataset.fo] === F.cause) x.classList.add('right'); }); if (!ok) b.classList.add('wrong');
+    try { reviewRecord('mf:' + id, ok); } catch (e) { }
+    el.querySelector('.mfqr').innerHTML = `<p><b>${ok ? 'נכון.' : 'לא זה.'}</b> ${F.why}</p><p><button type="button" data-fgo="${F.node}">📖 ${zNode(F.node).t.split(':')[0]}</button> <button type="button" data-fagain>🎲 עוד תקלה אקראית</button></p>`;
+    el.querySelector('[data-fgo]').addEventListener('click', () => go('zoom', F.node));
+    el.querySelector('[data-fagain]').addEventListener('click', () => { MS.fault = 'rand'; const s = document.getElementById('mFault'); if (s) s.value = 'rand'; mFaultClose(); if (MS.gl) MS.gl.run(true); }); })); }
+MS.fault = '';
+/* the fault menu beside the run button: none, random (to diagnose), or one by name; only the faults of the machine shown */
+MBAR_TOOLS.push({ id: 'fault', slot: 'end',
+  html: () => `<label class="vh" for="mFault">תקלה להזרקה</label><select id="mFault" hidden title="הזרק תקלה למחזור הבא"></select>`,
+  wire: bar => { const s = bar.querySelector('#mFault'); if (!s) return; const fill = () => { const can = MFAULTS.filter(f => MS.machine === 'line' || f.m === MS.machine); if (MS.fault && MS.fault !== 'rand' && !can.some(f => f.id === MS.fault)) MS.fault = '';
+      s.innerHTML = `<option value="">בלי תקלה</option><option value="rand">⚠ תקלה אקראית: אבחן</option>` + can.map(f => `<option value="${f.id}">⚠ ${f.t}</option>`).join(''); s.value = MS.fault; s.hidden = !MS.gl; };
+    fill(); s._fill = fill; s.addEventListener('change', () => { MS.fault = s.value; }); } });
+MHOOK.afterMachine.push(() => { const s = document.getElementById('mFault'); if (s && s._fill) s._fill(); mFaultClose(); });
+GO_BEFORE.push(mFaultClose);

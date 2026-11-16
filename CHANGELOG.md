@@ -2,6 +2,23 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.46.0] — 2026-11-16
+
+A live fault in the running machine, and the central subjects on the world map.
+
+- **Inject a fault into the cycle:** a menu beside the run button offers no fault, a random one (to diagnose), or one by name, only from the machine shown. Seven faults, each changing only what its physics changes:
+  - vacuum leak: the panel lifts in one place, that part of the second pass is blurred, and three false calls appear there (the verification station rejects them on the line);
+  - missing encoder pulses: rows of the second pass are not imaged, and a defect in a gap is missed;
+  - weak strobe: from the second pass on the image is dark, and the defects there are missed;
+  - backlash: the pass that runs in the opposite direction is shifted sideways, marks included;
+  - door interlock: the axes stop half way through a pass and the light goes off, with no error from the drive;
+  - laser out of focus: every target is fired, copper is left on all of them;
+  - fiducial not found: the registration camera searches, then the machine stops without firing.
+- **Then diagnose:** at the end of the cycle a panel describes the symptom and asks for the cause (four options), explains the mechanism and how to check it, opens the topic that teaches it, and offers another random fault. The answer goes into the spaced-repetition store.
+- The view moves in on the panel during a faulty cycle and returns when it stops. On the line, a defect the scan missed is not sent to repair.
+- **The world map:** a fifth kind of link, the central subjects (22 links). Calibration runs in its typical order: warm-up, axis, camera, focus, registration, laser, verification.
+- Tests: 17 new checks in the `path` suite (62 in all).
+
 ## [2.45.0] — 2026-11-16
 
 The learning path: where to start, what to do next, and how to keep it.

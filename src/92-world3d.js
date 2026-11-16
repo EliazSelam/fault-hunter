@@ -4,7 +4,7 @@
    (integration questions), a fault here leads there (fault trees), also taught through (the subject's other pages).
    Drawn as SVG projected from 3D, so it turns and zooms on any device, keeps every point a real focusable button,
    and needs no graphics acceleration. Two more views of the same data: a collapsible index and a full text specification. */
-const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה']];
+const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה'], ['central', 'נושא מרכזי משותף', 'כיול, רעש, חום או חקר כשל עוברים דרך שניהם, בסדר הטיפוסי']];
 const zTopicNode = tid => ZOOM.find(n => zWindows(n).some(w => w.startsWith('t:' + tid + ':'))) || null;
 function zRouteNode(r) {
   if (r.startsWith('topic/')) return zTopicNode(r.slice(6));
@@ -20,6 +20,8 @@ function zLinks() {
     (Array.isArray(T.integ) && Array.isArray(T.integ[4]) ? T.integ[4] : []).forEach(x => { const m = zTopicNode(x); if (m) add(n.id, m.id, 'works'); });
     [...JSON.stringify(T.faults).matchAll(/"go":"([^"]+)"/g)].forEach(m => { const q = zRouteNode(m[1]); if (q) add(n.id, q.id, 'fault'); });
     (((typeof SUBJECTS !== 'undefined' && SUBJECTS[T.id]) || {}).pages || []).forEach(pg => { const q = zRouteNode(pg[0]); if (q) add(n.id, q.id, 'page'); }); });
+  /* the central subjects (93-path.js): each item's topics are linked, and each item to the next one in the subject's order */
+  (typeof PCENTRAL !== 'undefined' ? PCENTRAL : []).forEach(C => C.items.forEach((it, i) => { it.nodes.slice(1).forEach(x => add(it.nodes[0], x, 'central')); const nx = C.items[i + 1]; if (nx) add(it.nodes[0], nx.nodes[0], 'central'); }));
   return (ZLINKS = out);
 }
 /* where each topic stands: z by scale, and in its storey a force layout that keeps parts under what they make. No randomness. */

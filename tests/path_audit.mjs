@@ -92,6 +92,40 @@ await pg.click('[data-pt="today"]'); await pg.waitForTimeout(100); ok(await ev((
 await ev(() => { ZG.kind = 'all'; ZG.ctx = 'all'; ZG.q = ''; go('zoom', 'sims'); }); await pg.waitForTimeout(150);
 const G = await ev(() => { const all = zSimList(), f = all.filter(s => SIMFAULT.has(s.kind)).length, total = document.querySelectorAll('.simcard').length; document.querySelector('[data-gk="fault"]').click(); const only = document.querySelectorAll('.simcard').length, kinds = [...new Set(zSimList().filter(s => SIMFAULT.has(s.kind)).map(s => s.kind))].sort().join(); document.querySelector('[data-gk="sim"]').click(); const rest = document.querySelectorAll('.simcard').length; ZG.kind = 'all'; return { f, total, only, rest, all: all.length, kinds }; });
 ok(G.f >= 18 && G.only === G.f && G.rest === G.all - G.f && G.total === G.all && G.kinds === 'fault,rev', 'the gallery has a live-fault group (' + JSON.stringify(G) + ')');
+/* v2.46: a live fault injected into the machine's cycle, and the central subjects on the world map */
+const MF = await ev(() => { const bad = []; MFAULTS.forEach(f => { const o = mFaultOpts(f.id); if (!zNode(f.node) || o.length !== 4 || new Set(o).size !== 4 || o.filter(x => x === f.cause).length !== 1 || !f.sym || !f.why) bad.push(f.id); }); return { n: MFAULTS.length, aoi: MFAULTS.filter(f => f.m === 'aoi').length, aos: MFAULTS.filter(f => f.m === 'aos').length, bad }; });
+ok(MF.n === 7 && MF.aoi === 5 && MF.aos === 2 && MF.bad.length === 0, 'seven live faults, each with a topic, a symptom, an explanation and four distinct options with the cause once (' + JSON.stringify(MF) + ')');
+await pg.setViewportSize({ width: 1200, height: 900 });
+await ev(() => { FH3D.software = true; go('zoom', 'machine'); }); await pg.waitForTimeout(1200);
+const LF = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = {}, txt = r => r.status.replace(/<[^>]+>/g, ''); MS.E = 0; MS.target = 0; MS.assembling = false;
+  o.gl = !!MS.gl; if (!MS.gl) return o; o.menu = [...document.getElementById('mFault').options].map(x => x.value).join();
+  const P = MS.gl.runPlan(), mid2 = 0.9 + P.passT + 0.55 + P.passT * 0.8, at = (f, t) => { MS.gl.run(false); MS.fault = f; MS.gl.run(true); return MS.gl.runSeek(t); };
+  let r = at('', mid2); o.clean = !/⚠/.test(txt(r)) && MS.gl.runFault().fault === null;
+  for (const f of ['vac', 'trig', 'strobe', 'backlash']) { r = at(f, mid2); const F = MS.gl.runFault(); o[f] = { warn: /⚠/.test(txt(r)) && F.alarm, lost: F.lost.join(), close: MS.distT < 7 }; }
+  r = at('vac', P.total - 1.5); o.vacEnd = /9 חשדות/.test(txt(at('vac', P.total - 1.5 - 0.9)));
+  r = at('door', P.total + 5); const D = MS.gl.runFault(); o.door = D.halted && D.alarm && r.prog[1] === 0.5 && r.prog[2] === 0 && !r.lit;
+  MS.gl.run(false); o.back = MS.distT === 12;
+  MS.fault = 'door'; MS.gl.run(true); MS.gl.runDiag(); const q = document.getElementById('mFaultQ'); o.diag = !!q && q.querySelectorAll('[data-fo]').length === 4;
+  const right = [...q.querySelectorAll('[data-fo]')].find(b => b.textContent === MFAULTS.find(f => f.id === 'door').cause); right.click(); o.answer = /נכון/.test(q.querySelector('.mfqr').textContent) && !!q.querySelector('[data-fgo="interlock"]') && reviewLoad()['mf:door'] && reviewLoad()['mf:door'].box === 1;
+  MS.gl.run(false); MS.gl.run(true); o.closedOnRun = !document.getElementById('mFaultQ'); MS.gl.run(false);
+  MS.fault = 'rand'; const seen = new Set(); for (let i = 0; i < 40; i++) { MS.gl.run(true); seen.add(MS.gl.runFault().fault); o.blind = MS.gl.runFault().blind; MS.gl.run(false); } o.rand = [...seen].every(x => MFAULTS.find(f => f.id === x && f.m === 'aoi')) && seen.size >= 3;
+  mSetMachine('aos'); await wait(500); MS.E = 0; o.menuAos = [...document.getElementById('mFault').options].map(x => x.value).join(); o.reset = MS.fault === 'rand';
+  MS.fault = 'defocus'; MS.gl.run(true); r = MS.gl.runSeek(1e9); o.defocus = MS.gl.runLabels().join() === 'D1 ✗,D4 ✗,D6 ✗' && r.fixed === 3; MS.gl.run(false);
+  MS.fault = 'fid'; MS.gl.run(true); r = MS.gl.runSeek(1e9); o.fid = MS.gl.runFault().halted && r.fixed === 0 && !r.beam && /סימן 2 לא נמצא/.test(txt(r)); MS.gl.run(false);
+  mSetMachine('line'); await wait(500); MS.fault = 'trig'; MS.gl.run(true); o.lineTargets = MS.gl.runFault().targets.join() === 'D1,D6'; MS.gl.run(false); MS.fault = ''; mSetMachine('aoi');
+  return o; });
+ok(LF.gl, 'the machine has its 3D picture for the fault checks');
+ok(LF.menu === ',rand,vac,trig,strobe,backlash,door' && LF.menuAos === ',rand,defocus,fid', 'the fault menu offers none, random, and the faults of the machine shown (' + LF.menu + ' / ' + LF.menuAos + ')');
+ok(LF.clean, 'without a fault the cycle shows no warning');
+ok(['vac', 'trig', 'strobe', 'backlash'].every(f => LF[f] && LF[f].warn && LF[f].close), 'each scan fault shows its symptom in the second pass, in an alarm colour, close to the panel');
+ok(LF.trig.lost === 'D4' && LF.strobe.lost === 'D1,D3,D4,D6' && LF.vac.lost === '' && LF.backlash.lost === '', 'missing pulses lose the defect in a gap; a weak strobe loses everything after the first pass; vacuum and backlash lose none');
+ok(LF.vacEnd, 'a vacuum leak adds three false calls to the six real ones'); ok(LF.door, 'an open door stops the axes half way through a pass, light off, with an alarm');
+ok(LF.back, 'the view returns when the faulty cycle stops'); ok(LF.diag && LF.answer, 'the diagnosis asks for the cause, answers with the explanation and the topic, and records the card');
+ok(LF.closedOnRun, 'a new cycle closes the diagnosis'); ok(LF.rand && LF.blind, 'random picks one of the machine’s faults and hides which');
+ok(LF.reset, 'switching machine keeps "random"'); ok(LF.defocus, 'defocus: every target fired, copper left on all three'); ok(LF.fid, 'a missing fiducial stops the repair before any shot');
+ok(LF.lineTargets, 'on the line, a defect the scan missed is not sent to repair');
+const WC = await ev(() => { const L = zLinks(), c = L.filter(e => e.k === 'central'), has = (a, b) => c.some(e => (e.a === a && e.b === b) || (e.a === b && e.b === a)); return { n: c.length, chain: has('bringup', 'enc') && has('enc', 'cam') && has('cam', 'optics') && has('optics', 'reg'), clean: c.every(e => zNode(e.a) && zNode(e.b) && e.a !== e.b) }; });
+ok(WC.n >= 15 && WC.chain && WC.clean, 'the world map links the central subjects: calibration runs warm-up, axis, camera, focus, registration (' + WC.n + ' links)');
 /* the central page */
 await ev(() => go('zoom', 'central')); await pg.waitForTimeout(150);
 const C = await ev(() => ({ chips: document.querySelectorAll('[data-cs]').length, items: document.querySelectorAll('.pth-items li').length, first: document.querySelector('.pth-items b').textContent }));
