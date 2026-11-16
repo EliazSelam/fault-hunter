@@ -197,9 +197,10 @@ function pathMap(P, host) {
 function pathPanel(P, id, now, d, host) {
   const s = pathStages()[id], st = pathState(P, id, now, d), cards = pathCards(id), due = pathDue(id, now, d).length, locked = st === 'locked';
   host.innerHTML = `<h4>${pathEsc(s.t)}</h4>${s.what ? `<p>${s.what}</p>` : ''}${pathMasteryHtml(id, now, d)}<p class="note">${cards.length} כרטיסים לתרגול${due ? `, ${due} לחזרה עכשיו` : ''}. ${locked ? 'השלב נעול: עוברים את הקודם, או בוחנים את עצמך על הכול בלי טעות.' : ''}</p>
-    <div class="pth-acts">${s.go.map(n => `<button type="button" data-open="${n}">📖 ${s.go.length > 1 || s.item ? pathEsc(zNode(n).t.split(':')[0]) : 'קרא את הנושא'}</button>`).join('')}
+    <div class="pth-acts">${typeof bookStageCh === 'function' && bookStageCh(id) ? `<button type="button" data-bkch="${bookStageCh(id)}">📘 פרק ${bookCh()[bookStageCh(id)].n} בספר</button>` : ''}${s.go.map(n => `<button type="button" data-open="${n}">📖 ${s.go.length > 1 || s.item ? pathEsc(zNode(n).t.split(':')[0]) : 'קרא את הנושא'}</button>`).join('')}
     ${locked ? `<button type="button" class="pth-go" data-skip="${id}">⏭ בחינת דילוג (חמש שאלות, בלי טעות)</button>` : `<button type="button" class="pth-go" data-play="${id}">▶ תרגל (${Math.min(PCARDS, cards.length)} כרטיסים)</button>`}</div>`;
   host.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.open)));
+  host.querySelectorAll('[data-bkch]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bkch; BV.exam = null; go('zoom', 'book'); }));
   const pl = host.querySelector('[data-play]'); if (pl) pl.addEventListener('click', () => pathStart('stage', id));
   const sk = host.querySelector('[data-skip]'); if (sk) sk.addEventListener('click', () => pathStart('skip', id));
 }
@@ -298,6 +299,7 @@ function pathProgress(P, host) {
   host.querySelectorAll('[data-wp]').forEach(b => b.addEventListener('click', () => pathStart('stage', b.dataset.wp)));
 }
 /* on every topic page: what of it stays in memory, and a way to practise it */
-nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button></p></section>` : '',
+nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button>${typeof bookStageCh === 'function' && bookStageCh(id) ? ` · <button type="button" class="linkbtn" data-nbook="${bookStageCh(id)}">📘 פרק ${bookCh()[bookStageCh(id)].n} בספר</button>` : ''}</p></section>` : '',
   wire: ({ id }) => { const b = document.querySelector('[data-npr]'); if (b) b.addEventListener('click', () => { PV.sess = pathSession('stage', id); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); });
+    const bk = document.querySelector('[data-nbook]'); if (bk) bk.addEventListener('click', () => { BV.ch = bk.dataset.nbook; BV.exam = null; go('zoom', 'book'); });
     const p = document.querySelector('[data-npath]'); if (p) p.addEventListener('click', () => { PV.sess = null; PV.tab = 'map'; PV.open = id; go('zoom', 'path'); }); } });

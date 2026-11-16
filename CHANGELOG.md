@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.54.0] — 2026-11-16
+
+One spine: the book says where you are and what is next, from everywhere.
+
+- **The course board** at the top of every chapter: the next step (start, read chapter N, its test, or the faults it still needs), a "continue" button that goes straight there (into the test, or the first open fault), certified chapters, cards due today with a way into the daily session, and what stays in memory.
+- **The next step follows the chosen direction** and the certification: the first chapter not yet certified, and in it the first requirement not met.
+- **Everything leads back to the book:** the machine view opens with where the course stands and "continue in the book"; every path stage and every topic page has a button to its chapter.
+- Fixed: the contents counted chapter 0 as certified.
+- Tests: 5 new checks in the `book` suite (128 in all).
+
 ## [2.53.0] — 2026-11-16
 
 Two directions of learning: up from the component, or down from the machine.

@@ -92,6 +92,9 @@ End of `src/93-path.js`: `pathMastery(stage, now, store)` is the only measure of
 ## Two directions (v2.53)
 In `src/95-book.js`: `bookDir()` ('up' | 'down', stored in `fh-book`), `bookParts(dir)` (going down: parts A–G reversed, chapters reversed or by a part's `down` list; part H last), `bookCh()` per direction with `n` (shown) and `n0` (going up; `bookHome` uses it, so homes never move), `bookLinksHtml` (part of / made of from the zoom tree), `bookBridge`. In `src/93-path.js`: `pathTrackStages` reverses node tracks going down, and `pathIdx` replaces the fixed index in unlocking and numbering.
 
+## One spine (v2.54)
+End of `src/97-book-frame.js`: `bookNext(B)` is the next step of the course (first uncertified chapter in the chosen order, then read / exam / faults); `bookDashHtml`/`bookDashWire` draw the course board at the top of every chapter; `bookStageCh(stage)` maps a path stage to its chapter (used by the path panel and the topic page's mastery section); `msideSection('course', 15, ['whole'])` puts the course in the machine view.
+
 ## Continuity rules
 Arrow keys belong to an activity when the focus is in it; the page's level navigation answers only from the page or its navigation (`81-polish.js`). A hub window's state (step, controls, animation step and parameters) is saved before it is replaced or the topic is left, and restored when it opens again (`winSave`/`winRestore` in `84-hub.js`). Animations run on a simulation clock that pause freezes. The topic object is still during an activity and turns only under the pointer or with the focus; it is a keyboard button with a visible button beside it. Visits are called visits ("ביקרת"), not understanding. Each finding from the external review (F01–F06, F08, F10) has its own behaviour check in the zoom suite.
 

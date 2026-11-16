@@ -86,3 +86,23 @@ function bookCertHtml(B) { const order = bookOrder().filter(id => id !== 'b0'), 
     <p><button type="button" class="pth-go" id="bkPrint">🖨️ הדפסה או PDF</button></p></section>`; }
 function bookCertWire(A) { const i = A.querySelector('#bkName'); if (!i) return; i.addEventListener('input', () => { const N = bookLoad(); N.name = i.value; bookSave(N); A.querySelector('#bkNameOut').textContent = i.value || '_____'; });
   A.querySelector('#bkPrint').addEventListener('click', () => { document.body.classList.add('bk-printing'); window.print(); setTimeout(() => document.body.classList.remove('bk-printing'), 500); }); }
+
+/* ---- one spine: the book says where you are and what is next, everywhere ---- */
+/* the chapter of a path stage: the chapter of its topic, or the chapter of its central subject */
+const bookStageCh = id => { const st = pathStages()[id]; if (!st) return null; if (st.node) { const c = bookChOf(st.node); return c ? c.id : null; } const c = Object.values(bookCh()).find(x => x.central === st.track); return c ? c.id : null; };
+/* the next thing to do in the course: the first chapter in the chosen order that is not certified, and its next step */
+function bookNext(B) { const id = bookOrder().find(x => x !== 'b0' && !bookReq(B, x).done) || null; if (!B.read.b0) return { id: 'b0', step: 'start' }; if (!id) return { id: 'b28', step: 'cert' };
+  const R = bookReq(B, id); return { id, step: !B.read[id] && !B.exam[id] ? 'read' : !R.exam ? 'exam' : 'faults', left: R.faults.filter(f => !bookSolved(f)) }; }
+const BSTEP = { start: 'להתחיל בפרק 0', read: 'לקרוא', exam: 'מבחן הפרק', faults: 'לפתור את תקלות הפרק', cert: 'כל הפרקים מוסמכים: התעודה' };
+function bookDashHtml(B) { const N = bookNext(B), c = bookCh()[N.id], order = bookOrder().filter(x => x !== 'b0'), done = order.filter(x => bookReq(B, x).done).length, now = Date.now(), d = reviewLoad();
+  const due = Object.values(d).filter(e => e.due <= now).length, st = Object.keys(pathStages()), n = st.reduce((a, id) => a + pathMastery(id, now, d).n, 0), mem = n ? st.reduce((a, id) => { const M = pathMastery(id, now, d); return a + M.m * M.n; }, 0) / n : 0;
+  return `<div class="bk-dash" role="region" aria-label="לוח הקורס"><div class="bk-dnext"><span class="kb">הצעד הבא</span><b>פרק ${c.n}: ${c.t}</b><span>${BSTEP[N.step]}${N.step === 'faults' ? `: ${N.left.join(', ')}` : ''}</span>
+      <button type="button" class="pth-go" data-dash="next">המשך ←</button></div>
+    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span></div></div>`; }
+function bookDashWire(root) { root.querySelectorAll('[data-dash]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.dash, B = bookLoad(), N = bookNext(B);
+  if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } else if (N.step === 'faults' && N.left.length) { bookOpen('scn:' + N.left[0], N.id); return; } zBookView(); window.scrollTo(0, 0); }
+  else if (k === 'daily') { PV.sess = pathSession('daily'); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); }
+  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); } })); }
+/* in the machine, before anything else: where the course stands */
+msideSection('course', 15, ['whole'], { html: () => { const B = bookLoad(), N = bookNext(B), c = bookCh()[N.id]; return `<div class="bk-mside"><p><b>📖 הקורס</b> · פרק ${c.n}: ${c.t}</p><p class="note">${BSTEP[N.step]}</p><p><button type="button" class="pth-go" id="mBook">המשך בספר ←</button></p></div>`; },
+  wire: () => { const b = document.getElementById('mBook'); if (b) b.addEventListener('click', () => { BV.ch = bookNext(bookLoad()).id; BV.exam = null; go('zoom', 'book'); }); } });

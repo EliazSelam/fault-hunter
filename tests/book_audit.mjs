@@ -107,6 +107,23 @@ ok(/יורד אל/.test(DN.links) && /חלק ז/.test(DN.toc0) && /חלק א/.te
 ok(/בא מתוך/.test(DN.leaf), 'going down, a component chapter says what it comes from');
 ok(DN.top && DN.plan === 'servo,loop,trans', 'going down, the path opens each track at its top stage and the plan deals from the top');
 ok(DN.same && DN.back, 'the direction changes the order only: every asset keeps its home chapter, and going back up restores the numbering');
+/* v2.54: one spine — the next step everywhere */
+const SP = await ev(() => { localStorage.clear(); const steps = [], step = () => { const N = bookNext(bookLoad()); return N.id + ':' + N.step; };
+  steps.push(step()); let B = bookLoad(); B.read.b0 = 1; bookSave(B); steps.push(step()); B = bookLoad(); B.read.b1 = 1; bookSave(B); steps.push(step());
+  B = bookLoad(); B.exam.b1 = { ok: true, sc: 0.9 }; bookSave(B); steps.push(step()); const f = bookFaults('b1'); const P = {}; f.forEach(x => P[x] = { score: 70 }); saveP(P); steps.push(step());
+  BV.ch = 'b3'; zBookView(); const dash = document.querySelector('.bk-dash'), txt = dash.textContent, toc = document.querySelector('.bk-toc summary').textContent.match(/(\d+)\/28/)[1], dn = txt.match(/(\d+)\/28/)[1]; dash.querySelector('[data-dash="next"]').click(); const went = BV.ch, title = document.querySelector('.bk-ch h2').textContent;
+  return { steps, f: f.length, toc, dash: dn, txt: /הצעד הבא/.test(txt) && /פרקים מוסמכים/.test(txt) && /נשאר בזיכרון/.test(txt), went, title }; });
+ok(SP.steps.join() === `b0:start,b1:read,b1:exam,${SP.f ? 'b1:faults' : 'b2:read'},b2:read`, 'the next step follows the course: start, read, test, faults, next chapter (' + SP.steps + ')');
+ok(SP.toc === SP.dash && SP.txt && SP.went === 'b2' && /פרק 2/.test(SP.title), 'the course board on every chapter shows the next step, certified chapters, reviews due and memory, and "continue" goes there');
+const EX = await ev(() => { localStorage.clear(); const B = bookLoad(); B.read.b0 = 1; B.read.b1 = 1; bookSave(B); BV.ch = 'b5'; zBookView(); document.querySelector('[data-dash="next"]').click(); const inExam = !!BV.exam && BV.exam.ch === 'b1'; BV.exam = null; return inExam; });
+ok(EX, 'when the next step is a test, "continue" opens the test');
+const LK = await ev(() => { localStorage.clear(); PV.sess = null; PV.tab = 'map'; PV.open = 'relay'; go('zoom', 'path'); const b = document.querySelector('[data-bkch]'), ch = b && b.dataset.bkch; b.click(); const inBook = !!document.getElementById('bkCh') && BV.ch === ch;
+  PV.open = 'cal:axis'; go('zoom', 'path'); const cal = document.querySelector('[data-bkch]').dataset.bkch;
+  go('zoom', 'relay'); const nb = document.querySelector('[data-nbook]'), nch = nb && nb.dataset.nbook; nb.click(); return { ch, inBook, cal, nch, back: BV.ch === nch && !!document.getElementById('bkCh') }; });
+ok(LK.ch === 'b5' && LK.inBook && LK.cal === 'b24' && LK.nch === 'b5' && LK.back, 'a path stage and a topic page lead to their chapter in the book (' + JSON.stringify(LK) + ')');
+const MSd = await ev(async () => { localStorage.clear(); go('zoom', 'machine'); await new Promise(r => setTimeout(r, 400)); const el = document.querySelector('.bk-mside'), btn = document.getElementById('mBook'); if (!el) return {}; btn.click(); return { text: /הקורס/.test(el.textContent), book: !!document.getElementById('bkCh') && BV.ch === 'b0' }; });
+ok(MSd.text && MSd.book, 'the machine view shows where the course stands and leads into the book');
+await ev(() => localStorage.clear());
 /* chapter 0: self-check recommends where to start */
 const Z = await ev(() => { localStorage.clear(); BV.ch = 'b0'; zBookView(); const rec = () => document.getElementById('bkPlace').textContent; const r0 = rec();
   BOOK_CAN.slice(0, 2).forEach(([p, list]) => list.forEach((_, k) => { const x = document.querySelector(`[data-can="${p}${k}"]`); x.checked = true; x.dispatchEvent(new Event('change')); })); const r1 = rec();

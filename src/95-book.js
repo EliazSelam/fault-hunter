@@ -157,15 +157,16 @@ function zBookView(arg) {
   zCapture();   /* some windows are captured from other pages once; do it before this page is drawn, not in the middle of it */
   const B = bookLoad(); if (arg && bookCh()[arg]) BV.ch = arg; if (!BV.ch) BV.ch = B.last || 'b0'; if (BV.exam) return bookExam();
   const c = bookCh()[BV.ch], order = bookOrder(), i = order.indexOf(c.id), prev = order[i - 1], next = order[i + 1]; B.last = c.id; bookSave(B);
-  const done = order.filter(id => bookStatus(B, id) === 'done').length;
+  const done = order.filter(id => id !== 'b0' && bookStatus(B, id) === 'done').length;
   const toc = `<details class="bk-toc"${c.id === 'b0' ? ' open' : ''}><summary>📖 תוכן העניינים · ${done}/${order.length - 1} פרקים הוסמכו</summary><ol>
     <li><button type="button" class="linkbtn" data-bc="b0">${bookMark(B, 'b0')} פרק 0: ${bookCh().b0.t}</button></li>
     ${bookParts().map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
   const nav = `<nav class="bk-nav" aria-label="ניווט בין פרקים">${prev ? `<button type="button" data-bc="${prev}">→ פרק ${bookCh()[prev].n}</button>` : '<span></span>'}<span>פרק ${c.n} מתוך ${order.length - 1}</span>${next ? `<button type="button" data-bc="${next}">פרק ${bookCh()[next].n} ←</button>` : '<span></span>'}</nav>`;
   const dirBar = `<div class="bk-dir" role="group" aria-label="כיוון הלמידה"><span>כיוון:</span><button type="button" data-dir="up" aria-pressed="${bookDir() === 'up'}">⬆️ מהרכיב למכונה</button><button type="button" data-dir="down" aria-pressed="${bookDir() === 'down'}">⬇️ מהמכונה לרכיב</button></div>`;
-  content.innerHTML = zSubnav('book') + `<div class="bk">` + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
+  content.innerHTML = zSubnav('book') + `<div class="bk">` + (typeof bookDashHtml === 'function' ? bookDashHtml(B) : '') + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
   zWireSub(); content.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
   content.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
+  if (typeof bookDashWire === 'function') bookDashWire(content);
   const A = $('#bkCh'); if (c.id === 'b0') bookZero(A, B); else bookChapter(A, B, c);
   setTitle('זום', 'הספר', `פרק ${c.n}: ${c.t}`);
 }

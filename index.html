@@ -521,6 +521,8 @@ ol.tsteps .ts{color:var(--live-text)}
 @media print{body.bk-printing *{visibility:hidden}body.bk-printing #bkCert,body.bk-printing #bkCert *{visibility:visible}body.bk-printing #bkCert{position:absolute;inset:0;margin:0;max-width:none;border:0}}
 .bk-dir{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.bk-dir button{font:inherit;font-size:.9em;border:1px solid #3078B0;background:#fff;color:#1B2F5A;border-radius:999px;padding:4px 12px;cursor:pointer}.bk-dir button[aria-pressed=true]{background:#1B2F5A;color:#EEE9E0}
 .bk-dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.bk-dircard{font:inherit;text-align:right;display:flex;flex-direction:column;gap:6px;border:2px solid #D6E8F7;background:#fff;color:#4A4540;border-radius:12px;padding:10px 14px;cursor:pointer}.bk-dircard b{color:#1B2F5A;font-size:1.05em}.bk-dircard[aria-pressed=true]{border-color:#1B2F5A;background:#D6E8F7}
+.bk-dash{display:grid;grid-template-columns:minmax(220px,1.2fr) 2fr;gap:10px;background:#1B2F5A;color:#EEE9E0;border-radius:14px;padding:12px 16px;margin:8px 0}.bk-dash .kb{background:#3078B0;color:#EEE9E0;border-color:#3078B0}.bk-dnext{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.bk-dnext b{font-size:1.08em}.bk-dnext .pth-go{background:#EEE9E0;color:#1B2F5A;margin-top:4px}.bk-dstat{display:flex;flex-direction:column;gap:6px;justify-content:center}.bk-dstat .linkbtn{color:#D6E8F7}@media (max-width:640px){.bk-dash{grid-template-columns:1fr}}
+.bk-mside{border:1px solid #3078B0;border-radius:10px;padding:6px 10px;margin:6px 0;background:#EEE9E0;color:#1B2F5A}
 </style>
 </head>
 <body>
@@ -10771,9 +10773,10 @@ function pathMap(P, host) {
 function pathPanel(P, id, now, d, host) {
   const s = pathStages()[id], st = pathState(P, id, now, d), cards = pathCards(id), due = pathDue(id, now, d).length, locked = st === 'locked';
   host.innerHTML = `<h4>${pathEsc(s.t)}</h4>${s.what ? `<p>${s.what}</p>` : ''}${pathMasteryHtml(id, now, d)}<p class="note">${cards.length} כרטיסים לתרגול${due ? `, ${due} לחזרה עכשיו` : ''}. ${locked ? 'השלב נעול: עוברים את הקודם, או בוחנים את עצמך על הכול בלי טעות.' : ''}</p>
-    <div class="pth-acts">${s.go.map(n => `<button type="button" data-open="${n}">📖 ${s.go.length > 1 || s.item ? pathEsc(zNode(n).t.split(':')[0]) : 'קרא את הנושא'}</button>`).join('')}
+    <div class="pth-acts">${typeof bookStageCh === 'function' && bookStageCh(id) ? `<button type="button" data-bkch="${bookStageCh(id)}">📘 פרק ${bookCh()[bookStageCh(id)].n} בספר</button>` : ''}${s.go.map(n => `<button type="button" data-open="${n}">📖 ${s.go.length > 1 || s.item ? pathEsc(zNode(n).t.split(':')[0]) : 'קרא את הנושא'}</button>`).join('')}
     ${locked ? `<button type="button" class="pth-go" data-skip="${id}">⏭ בחינת דילוג (חמש שאלות, בלי טעות)</button>` : `<button type="button" class="pth-go" data-play="${id}">▶ תרגל (${Math.min(PCARDS, cards.length)} כרטיסים)</button>`}</div>`;
   host.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.open)));
+  host.querySelectorAll('[data-bkch]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bkch; BV.exam = null; go('zoom', 'book'); }));
   const pl = host.querySelector('[data-play]'); if (pl) pl.addEventListener('click', () => pathStart('stage', id));
   const sk = host.querySelector('[data-skip]'); if (sk) sk.addEventListener('click', () => pathStart('skip', id));
 }
@@ -10872,8 +10875,9 @@ function pathProgress(P, host) {
   host.querySelectorAll('[data-wp]').forEach(b => b.addEventListener('click', () => pathStart('stage', b.dataset.wp)));
 }
 /* on every topic page: what of it stays in memory, and a way to practise it */
-nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button></p></section>` : '',
+nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button>${typeof bookStageCh === 'function' && bookStageCh(id) ? ` · <button type="button" class="linkbtn" data-nbook="${bookStageCh(id)}">📘 פרק ${bookCh()[bookStageCh(id)].n} בספר</button>` : ''}</p></section>` : '',
   wire: ({ id }) => { const b = document.querySelector('[data-npr]'); if (b) b.addEventListener('click', () => { PV.sess = pathSession('stage', id); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); });
+    const bk = document.querySelector('[data-nbook]'); if (bk) bk.addEventListener('click', () => { BV.ch = bk.dataset.nbook; BV.exam = null; go('zoom', 'book'); });
     const p = document.querySelector('[data-npath]'); if (p) p.addEventListener('click', () => { PV.sess = null; PV.tab = 'map'; PV.open = id; go('zoom', 'path'); }); } });
 /* ============ Two systems that work, in 3D (v2.47) ============
    The vacuum table and the safety chain were taught as steps over a drawing. Here each one runs: you press, it acts,
@@ -11254,15 +11258,16 @@ function zBookView(arg) {
   zCapture();   /* some windows are captured from other pages once; do it before this page is drawn, not in the middle of it */
   const B = bookLoad(); if (arg && bookCh()[arg]) BV.ch = arg; if (!BV.ch) BV.ch = B.last || 'b0'; if (BV.exam) return bookExam();
   const c = bookCh()[BV.ch], order = bookOrder(), i = order.indexOf(c.id), prev = order[i - 1], next = order[i + 1]; B.last = c.id; bookSave(B);
-  const done = order.filter(id => bookStatus(B, id) === 'done').length;
+  const done = order.filter(id => id !== 'b0' && bookStatus(B, id) === 'done').length;
   const toc = `<details class="bk-toc"${c.id === 'b0' ? ' open' : ''}><summary>📖 תוכן העניינים · ${done}/${order.length - 1} פרקים הוסמכו</summary><ol>
     <li><button type="button" class="linkbtn" data-bc="b0">${bookMark(B, 'b0')} פרק 0: ${bookCh().b0.t}</button></li>
     ${bookParts().map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
   const nav = `<nav class="bk-nav" aria-label="ניווט בין פרקים">${prev ? `<button type="button" data-bc="${prev}">→ פרק ${bookCh()[prev].n}</button>` : '<span></span>'}<span>פרק ${c.n} מתוך ${order.length - 1}</span>${next ? `<button type="button" data-bc="${next}">פרק ${bookCh()[next].n} ←</button>` : '<span></span>'}</nav>`;
   const dirBar = `<div class="bk-dir" role="group" aria-label="כיוון הלמידה"><span>כיוון:</span><button type="button" data-dir="up" aria-pressed="${bookDir() === 'up'}">⬆️ מהרכיב למכונה</button><button type="button" data-dir="down" aria-pressed="${bookDir() === 'down'}">⬇️ מהמכונה לרכיב</button></div>`;
-  content.innerHTML = zSubnav('book') + `<div class="bk">` + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
+  content.innerHTML = zSubnav('book') + `<div class="bk">` + (typeof bookDashHtml === 'function' ? bookDashHtml(B) : '') + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
   zWireSub(); content.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
   content.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
+  if (typeof bookDashWire === 'function') bookDashWire(content);
   const A = $('#bkCh'); if (c.id === 'b0') bookZero(A, B); else bookChapter(A, B, c);
   setTitle('זום', 'הספר', `פרק ${c.n}: ${c.t}`);
 }
@@ -11784,6 +11789,26 @@ function bookCertHtml(B) { const order = bookOrder().filter(id => id !== 'b0'), 
     <p><button type="button" class="pth-go" id="bkPrint">🖨️ הדפסה או PDF</button></p></section>`; }
 function bookCertWire(A) { const i = A.querySelector('#bkName'); if (!i) return; i.addEventListener('input', () => { const N = bookLoad(); N.name = i.value; bookSave(N); A.querySelector('#bkNameOut').textContent = i.value || '_____'; });
   A.querySelector('#bkPrint').addEventListener('click', () => { document.body.classList.add('bk-printing'); window.print(); setTimeout(() => document.body.classList.remove('bk-printing'), 500); }); }
+
+/* ---- one spine: the book says where you are and what is next, everywhere ---- */
+/* the chapter of a path stage: the chapter of its topic, or the chapter of its central subject */
+const bookStageCh = id => { const st = pathStages()[id]; if (!st) return null; if (st.node) { const c = bookChOf(st.node); return c ? c.id : null; } const c = Object.values(bookCh()).find(x => x.central === st.track); return c ? c.id : null; };
+/* the next thing to do in the course: the first chapter in the chosen order that is not certified, and its next step */
+function bookNext(B) { const id = bookOrder().find(x => x !== 'b0' && !bookReq(B, x).done) || null; if (!B.read.b0) return { id: 'b0', step: 'start' }; if (!id) return { id: 'b28', step: 'cert' };
+  const R = bookReq(B, id); return { id, step: !B.read[id] && !B.exam[id] ? 'read' : !R.exam ? 'exam' : 'faults', left: R.faults.filter(f => !bookSolved(f)) }; }
+const BSTEP = { start: 'להתחיל בפרק 0', read: 'לקרוא', exam: 'מבחן הפרק', faults: 'לפתור את תקלות הפרק', cert: 'כל הפרקים מוסמכים: התעודה' };
+function bookDashHtml(B) { const N = bookNext(B), c = bookCh()[N.id], order = bookOrder().filter(x => x !== 'b0'), done = order.filter(x => bookReq(B, x).done).length, now = Date.now(), d = reviewLoad();
+  const due = Object.values(d).filter(e => e.due <= now).length, st = Object.keys(pathStages()), n = st.reduce((a, id) => a + pathMastery(id, now, d).n, 0), mem = n ? st.reduce((a, id) => { const M = pathMastery(id, now, d); return a + M.m * M.n; }, 0) / n : 0;
+  return `<div class="bk-dash" role="region" aria-label="לוח הקורס"><div class="bk-dnext"><span class="kb">הצעד הבא</span><b>פרק ${c.n}: ${c.t}</b><span>${BSTEP[N.step]}${N.step === 'faults' ? `: ${N.left.join(', ')}` : ''}</span>
+      <button type="button" class="pth-go" data-dash="next">המשך ←</button></div>
+    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span></div></div>`; }
+function bookDashWire(root) { root.querySelectorAll('[data-dash]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.dash, B = bookLoad(), N = bookNext(B);
+  if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } else if (N.step === 'faults' && N.left.length) { bookOpen('scn:' + N.left[0], N.id); return; } zBookView(); window.scrollTo(0, 0); }
+  else if (k === 'daily') { PV.sess = pathSession('daily'); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); }
+  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); } })); }
+/* in the machine, before anything else: where the course stands */
+msideSection('course', 15, ['whole'], { html: () => { const B = bookLoad(), N = bookNext(B), c = bookCh()[N.id]; return `<div class="bk-mside"><p><b>📖 הקורס</b> · פרק ${c.n}: ${c.t}</p><p class="note">${BSTEP[N.step]}</p><p><button type="button" class="pth-go" id="mBook">המשך בספר ←</button></p></div>`; },
+  wire: () => { const b = document.getElementById('mBook'); if (b) b.addEventListener('click', () => { BV.ch = bookNext(bookLoad()).id; BV.exam = null; go('zoom', 'book'); }); } });
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -12778,7 +12803,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.53.0';
+const APP_VERSION = '2.54.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

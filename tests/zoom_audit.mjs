@@ -238,7 +238,7 @@ ok(await pg.evaluate(() => [...document.querySelector('.zmain').children].map(e 
 await pg.evaluate(() => { document.querySelector('.zpath [data-zn="vac"]').click(); }); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => ZS.node === 'vac'), 'step 3: a path button moves once, to that topic');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); mSetMachine('aoi'); }); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => MSIDE.map(s => s.id).join() === 'visit,mexp,mwhole,inner,whole,part,line' && [...document.querySelectorAll('#mside .msec')].map(e => e.dataset.sec).join() === 'mexp,mwhole,whole'), 'step 3: the machine panel is a list of sections; with nothing selected: progress, the machine\u2019s topics, the machine');
+ok(await pg.evaluate(() => MSIDE.map(s => s.id).join() === 'visit,mexp,course,mwhole,inner,whole,part,line' && [...document.querySelectorAll('#mside .msec')].map(e => e.dataset.sec).join() === 'mexp,course,mwhole,whole'), 'step 3: the machine panel is a list of sections; with nothing selected: progress, the course, the machine\u2019s topics, the machine');
 await pg.evaluate(() => mSelect('table')); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => [...document.querySelectorAll('#mside .msec')].map(e => e.dataset.sec).join() === 'part'), 'step 3: a selected part shows only its section');
 await pg.evaluate(() => { MS.sel = null; mSide(); });
