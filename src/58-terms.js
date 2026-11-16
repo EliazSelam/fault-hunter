@@ -41,6 +41,7 @@ const TERM_NEW = [
   ['bounce', 'הקפצת מגעים', 'הקפצת מגעים: מגע מכני נפתח ונסגר כמה פעמים במילישניות הראשונות, לפני שהוא נח.', 'דיגיטלי'], ['buffer', 'חוצץ', 'Buffer: מגבר שמעביר אות בלי לשנות אותו, אבל עם התנגדות יציאה נמוכה, כך שהוא לא מעמיס על המקור.', 'חשמל ורכיבים'],
   ['voltage follower', 'מגבר עוקב', 'מגבר עוקב: מגבר עם הגבר 1. היציאה שווה לכניסה, אבל יכולה לספק זרם.', 'חשמל ורכיבים'], ["don't care", 'לא משנה', "Don't care (X): ערך שלא משפיע על התוצאה, ואפשר לבחור אותו לנוחות.", 'דיגיטלי'],
   /* machines */
+  ['probe', 'בדיקה (פרוב) של סקופ', 'probe: הכבל והקצה שמחברים את הסקופ לנקודת המדידה. במצב ×1 המעגל רואה את כניסת הסקופ, 1 MΩ; במצב ×10 יש בו נגד של 9 MΩ בטור, המעגל רואה 10 MΩ, והאות מוקטן פי 10.', 'מדידה'],
   ['Safe Torque Off', 'ניתוק מומנט בטוח', 'Safe Torque Off (STO): פונקציית בטיחות בדרייבר שמונעת מומנט במנוע, משני ערוצים.', 'בטיחות ותקנים'],
   ['spring-applied', 'בלם שננעל בקפיץ', 'Spring-applied: בלם שקפיץ סוגר אותו, ומתח משחרר אותו. בלי חשמל, הוא סגור.', 'בקרה ותנועה'],
   ['snap action', 'מנגנון קפיצי במתג', 'Snap action: מנגנון שמעביר את המגע בבת אחת, בלי מצב ביניים, גם כשהלחיצה איטית.', 'חשמל ורכיבים'], ['positive opening', 'פתיחה כפויה', 'Positive opening: מגע NC שהמנגנון פותח בכוח מכני, כך שהוא נפתח גם אם המגע נדבק. נדרש במתגי בטיחות.', 'בטיחות ותקנים'],
@@ -125,6 +126,7 @@ TERM_NEW.forEach(([k, s, f]) => { GLOSS[k] = f; GSHORT[k] = s; });
 
 /* 2. Where each term is explained in depth: route → the page (sheet/arg) */
 const TERM_LINK = {
+  'probe': 'lab/scope',
   'PWM': 's1/pwm', 'Pulse Width Modulation': 's1/pwm', 'duty cycle': 's1/pwm', 'H-bridge': 's1/pwm', 'flyback': 's1/relay', 'Normally Open': 's1/limit', 'Normally Closed': 's1/limit', 'NO': 's1/limit', 'NC': 's1/limit', 'positive opening': 's1/limit', 'snap action': 's1/limit',
   'encoder': 's1/encoder', 'PPR': 's1/encoder', 'quadrature': 's1/encoder', '4–20mA': 's1/loop', 'NAMUR': 's1/loop', 'ballscrew': 's1/screw', 'backlash': 's1/screw', 'dial indicator': 's1/screw', 'clearance fit': 's1/fits', 'interference fit': 's1/fits', 'transition fit': 's1/fits', 'gauge pins': 's1/fits', 'H7': 's1/fits',
   'spool': 's1/cyl', 'spring-applied': 's1/brake', 'Safe Torque Off': 'mot/wire', 'STO': 'mot/wire',

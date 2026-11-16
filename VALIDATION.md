@@ -88,7 +88,7 @@ Result: 24 lessons, 0 undefined terms, 0 incomplete steps. The technical layers 
 
 ## 6. Fault scenario audit (`tests/scenario_audit.mjs`)
 
-All 48 fault scenarios are checked for structure (unique id, at least 3 tests with at least one on the efficient path and one off it, 4 options, valid answer, corrective and preventive fix, failure type, expected behaviour and verification), that the scenario page and its "learn" link both render, and that the teaching layer is complete: a from-zero explanation, a hint ladder of at least two steps, a mechanism chain of at least three steps, and a link to one of the 12 principles. Numbers in the new explanations are recomputed in `VERIFY` (14 entries). Result: 48 scenarios, 0 problems.
+All 51 fault scenarios are checked for structure (unique id, at least 3 tests with at least one on the efficient path and one off it, 4 options, valid answer, corrective and preventive fix, failure type, expected behaviour and verification), that the scenario page and its "learn" link both render, and that the teaching layer is complete: a from-zero explanation, a hint ladder of at least two steps, a mechanism chain of at least three steps, and a link to one of the 12 principles. Numbers in the new explanations are recomputed in `VERIFY` (14 entries). Result: 48 scenarios, 0 problems.
 
 What no script checks: the hints and mechanism chains were written against each scenario's test results and reviewed by hand so that hints never name the answer and explanations use only facts the tests reveal. Not yet reviewed systematically: that every wrong option is contradicted by at least one test result.
 

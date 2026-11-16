@@ -24,7 +24,7 @@ The UI is in Hebrew, with technical terms in English.
 | Integration | From sub-systems to a machine: first power-up, bring-up, calibration, ATP, field faults |
 | Boards | How electronic boards inside a machine are built and fail, with a library of 7 board types |
 | Technical test | 112 interview-style questions in 10 topics, with hints, step-by-step mode and 45 solution schematics |
-| Fault challenge | 48 faults in 4 levels and 11 failure principles, with a hint ladder for each |
+| Fault challenge | 51 faults in 4 levels and 11 failure principles, with a hint ladder for each |
 | 3D simulations | A rotating three-phase field in an induction motor (disconnect a phase, swap two phases, change load and poles), ballscrew backlash with a dial indicator, an AOI scan head over a panel (swaths, overlap, soft edges, a defect in the seam), the laser crater as a Gaussian fluence surface cut by the threshold, and a stepper motor that loses steps under load; drawn in 3D on a canvas, no library, orbit by dragging |
 | Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
 
@@ -43,7 +43,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | verify | 141 numeric answers and formula examples, 32 logic sequences, 321 pages crawled, every question has a topic |
 | models | Every simulation re-implemented independently in Python from the physics: 1795 checks |
 | teach | 24 from-zero lessons: every term defined, every step complete |
-| scenarios | 48 faults: structure, efficient path, answer options |
+| scenarios | 51 faults: structure, efficient path, answer options |
 | figures | The three live figures, the DC motor simulation and the converter simulation, driven by keyboard or sliders: 19422 readouts checked against an independent implementation of their physics (including the 3D field and backlash models) |
 | topics | Every process simulator: steps, quiz answers, every fault tree reachable and acyclic, a click-through to every leaf and back to the normal step, MathML rendered |
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |

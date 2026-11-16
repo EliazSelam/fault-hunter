@@ -2,6 +2,16 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.49.0] — 2026-11-16
+
+A fault for each principle that had none.
+
+- **L1-09, the meter is part of the circuit:** a 12 V reference from two 1 MΩ resistors reads 8 V on a scope probe at ×1 (1 MΩ in parallel), 11.4 V at ×10 or on a 10 MΩ meter. Two good resistors were replaced for nothing.
+- **L2-09, position, not time:** after a parameter restore the line-scan camera triggers from a 51.2 kHz timer instead of the encoder. Right at 250 mm/s, 25% long in the scan direction at 200 mm/s (250 / 200).
+- **L2-10, hysteresis:** a pressure switch replaced by an analog sensor compared at one threshold. Thin panels hold at 61 kPa with ±2 kPa ripple, and "Vacuum OK" flickers; two thresholds (60 in, 55 out) fix it.
+- Each with tests, four options, the teaching layer (plain, a hint ladder, the mechanism chain) and its principle; the principles page now links all twelve. New term: probe.
+- 51 scenarios (was 48).
+
 ## [2.48.0] — 2026-11-16
 
 What stays in memory: a measure of understanding from retrieval, not from visits.
