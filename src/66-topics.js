@@ -71,7 +71,7 @@ VERIFY.push(['TOP vac F kN', 60e3 * 0.51 * 0.61 / 1000, 18.7, 0.05], ['TOP pixel
 /* ---- 3D scene of the cycle ---- */
 function aoiScene(cv) {
   const V = view3(cv, { yaw: -0.55, pitch: 0.62, dist: 14, fov: 480, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const box = (P, x0, x1, y0, y1, z0, z1, fill, alpha, stroke) => { const p = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]]; [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [0, 3, 7, 4]].forEach(f => P.push({ pts: f.map(i => p[i]), fill, alpha, stroke })); };
   const FID = [[-2.2, -2.7], [2.2, -2.7], [-2.2, 2.7]], DEF = [[0.7, 0.9], [-1.3, -0.4], [1.6, 1.9]];
   function paint([si, u]) {
@@ -268,7 +268,7 @@ const mSup = (a, b) => `<msup>${a}${b}</msup>`, mt = s => `<mtext>${s}</mtext>`,
 
 function servoScene(cv, sim) {
   const V = view3(cv, { yaw: -0.5, pitch: 0.45, dist: 13, fov: 420, ox: 150, oy: -70, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const R = svSim(sim || {}), N = R.t.length;
   const box = (P, x0, x1, y0, y1, z0, z1, fill, alpha, stroke) => { const p = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]]; [[0, 1, 2, 3], [4, 5, 6, 7], [0, 1, 5, 4], [2, 3, 7, 6], [1, 2, 6, 5], [0, 3, 7, 4]].forEach(f => P.push({ pts: f.map(i => p[i]), fill, alpha, stroke })); };
   function paint([si, u]) {
@@ -362,7 +362,7 @@ const AOS_MATH = () => { const a = aosPlan(), b = aosPlan({ E: 4, forceN: 1 }); 
 { const a = aosPlan(); VERIFY.push(['AOS F0', a.F0, 2 * 5 / (Math.PI * 36) * 100, 1e-9], ['AOS damage = Nδ·Dc²/(2w²)', a.depth - LZ.tcu, 10 * 0.4 * a.Dc ** 2 / (2 * 36), 1e-9], ['AOS n spots', a.n, 2, 0], ['AOS cleared', a.cleared ? 1 : 0, 1, 0], ['AOS 4uJ Dc', craterCalc(4, 0, 10).Dc, 4.65, 0.01]); }
 function aosScene(cv, sim) {
   const V = view3(cv, { yaw: -0.5, pitch: 0.75, dist: 19, fov: 470, oy: 30, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const plan = aosPlan(sim || {});
   const S = 0.18;                                    /* 1 µm → 0.18 scene units */
   function paint([si, u]) {
@@ -456,7 +456,7 @@ const BU_MATH = () => { const d = buDrop(), r = buRepeat(), r2 = buRepeat(7, 6);
 { const d = buDrop(); VERIFY.push(['BU PSU A', 1.25 * (2 + 1 + 1), 5, 1e-12], ['BU PSU W', 24 * 5, 120, 0], ['BU R', d.R, 0.4667, 0.0005], ['BU dV', d.dV, 1.4, 0.005], ['BU dL um', BU.alpha * BU.L * BU.dT * 1000, 11.7, 0.01]); }
 function buScene(cv, sim) {
   const V = view3(cv, { yaw: -0.6, pitch: 0.5, dist: 13, fov: 450, ox: 110, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const d = buDrop(sim || {}), rep = buRepeat(7, (sim && sim.drift) || 0);
   function paint([si, u]) {
     V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -486,3 +486,6 @@ function buScene(cv, sim) {
   return { V, paint };
 }
 TOPICS.push({ id: 'bringup', t: 'הפעלה ראשונה של מכונה ו-ATP', punch: 'לפני שמכונה זזה, מוכיחים שכל שכבה עובדת, מלמטה למעלה: חיווט, מתחים, בטיחות, תקשורת, כל ציר לבד, ורק אז הכול יחד. ובסוף מוכיחים במספרים.', analogy: 'כמו טייס לפני המראה: רשימת בדיקות קבועה, מלמטה למעלה, ולא מדלגים על שלב גם כשממהרים.', steps: BU_STEPS, faults: BU_FAULTS, quiz: BU_QUIZ, math: BU_MATH, scene: buScene, deep: [['int/power', 'הפעלה ראשונה'], ['int/atp', 'ATP'], ['s1/psu', 'ספק 24V ונפילת מתח'], ['s2/interlock', 'שרשרת הבטיחות'], ['s1/thermal', 'התפשטות תרמית']] });
+
+/* the last n topics added by a later file take their predictions and their solo observations from their own tables */
+function topicsAttach(n) { TOPICS.slice(-n).forEach(T => { T.steps.forEach(s => { if (T.pred[s.id]) s.pred = T.pred[s.id]; }); T.faults.forEach(f => { if (T.solo[f.id]) f.solo = T.solo[f.id]; }); }); }

@@ -149,7 +149,7 @@ ok(await pg.evaluate(() => { let n = 0; ZOOM.forEach(z => { const by = {}; zWind
 { const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp('\\b(' + ns.join('|') + ')\\b').test(document.documentElement.innerHTML), names), 'no company or product names'); }
 /* the right layers first: the views bar and the world map */
 await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'machine,world,sims,node,appx' && back.join() === 'tree,3d,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree, layers and duplicates behind the scenes');
+ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'machine,path,central,world,sims,node,appx' && back.join() === 'tree,3d,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree, layers and duplicates behind the scenes');
 ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === ZOOM.length && document.querySelectorAll('.wstat').length >= 5), 'world map: a point for every topic of the book, appendices included, and the statistics');
 await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => ZS.node === 'relay'), 'world map: a city opens its topic');
@@ -206,7 +206,7 @@ ok(await pg.evaluate(() => document.querySelector('.wmap').getAttribute('role') 
   ok(await p3.evaluate(() => ZS.node === 'laser'), 'F09: back after moving to another topic returns to the first');
   await p3.goto(base + '#/zoom/machine?m=aos&sel=laser'); await p3.waitForTimeout(700);
   ok(await p3.evaluate(() => MS.machine === 'aos' && MS.sel === 'laser'), 'F09: a machine link opens that machine with that part selected');
-  ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,world,sims,node,appx'; }), 'the views bar comes from one list');
+  ok(await p3.evaluate(() => { const top = ZVIEW.list.filter(v => v[2] === 'main').map(v => v[0]).join(); return top === 'machine,path,central,world,sims,node,appx'; }), 'the views bar comes from one list');
   await p3.close(); }
 /* stage 2, step 6: nothing in the zoom tab is reassigned after load */
 { const src = require('fs').readFileSync(path.join(ROOT, 'index.html'), 'utf8');

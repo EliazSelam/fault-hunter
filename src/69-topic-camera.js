@@ -62,7 +62,7 @@ const CAM_MATH = () => { const n = camCalc(), cont = camCalc({ strobe: false }),
 { const n = camCalc(); VERIFY.push(['CAM f', n.f, 250 / 0.00488 / 1000, 1e-9], ['CAM blur strobe', n.blurMot, 0.5, 1e-12], ['CAM Gcu', n.Gcu, 200, 1e-9], ['CAM Glam', n.Glam, 50, 1e-9], ['CAM dof', n.dof, 22.5, 1e-9]); }
 function camScene(cv, sim) {
   const V = view3(cv, { yaw: -0.5, pitch: 0.5, dist: 13, fov: 450, ox: 150, oy: -40, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const R = camCalc(sim || {});
   /* a strip of panel: traces along the scan, one short and one nick */
   const cuAt = (x, y) => { const tr = [[-0.9, -0.55], [-0.15, 0.25], [0.55, 0.85]]; let cu = tr.some(([a, b]) => x > a && x < b); if (y > 0.3 && y < 0.45 && x > -0.55 && x < -0.15) cu = true; if (y > 0.6 && y < 0.68 && x > 0.55 && x < 0.62) cu = false; return cu; };

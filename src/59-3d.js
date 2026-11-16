@@ -1,6 +1,7 @@
 /* ============ Small 3D engine (canvas, no library) and 3D simulations ============ */
 /* camera: yaw/pitch orbit around the origin; z is up */
-function v3(x, y, z) { return [x, y, z]; }
+/* the page colours the canvas drawings read (one place, so every scene reads the same set) */
+function cssPalette() { return { ink: cssv('--ink'), live: cssv('--live'), mech: cssv('--mech') || '#7B5A3C', line: cssv('--line'), tint: cssv('--tint'), text: cssv('--text'), sheet: cssv('--sheet') }; }
 function view3(cv, opts = {}) {
   const st = { yaw: opts.yaw ?? -0.6, pitch: opts.pitch ?? 0.45, dist: opts.dist ?? 9, fov: opts.fov ?? 520, drag: null };
   const ctx = cv.getContext('2d');
@@ -204,7 +205,7 @@ function scanSim(el) {
     <p style="font-size:14px;color:var(--muted);margin:8px 16px">ערכי דוגמה: פאנל 510×610 mm, חיישן line-scan של 8192 פיקסלים, שוליים של 1.5 mm בכל צד של רצועה שבהם התמונה פחות חדה, ו-0.4 s לכל סיבוב בקצה. בכתום-חום: השוליים. בכחול: הרצועה הנוכחית.</p></div>`;
   const cv = $('#scv'), V = view3(cv, { yaw: -0.45, pitch: 0.75, dist: 12, fov: 480, onView: () => draw() });
   let fov = 40, ov = 2, v = 250, dx = 39, t0 = performance.now(), frame = 0;
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const readout = () => {
     const p = scanPlan(fov, ov, v), k = scanGood(dx, fov, ov);
     $('#sfvv').textContent = fov + ' mm'; $('#sovv').textContent = ov + ' mm'; $('#sspv').textContent = v + ' mm/s'; $('#sdxv').textContent = dx + ' mm';
@@ -318,7 +319,7 @@ function stepperSim(el) {
     <p style="font-size:14px;color:var(--muted);margin:8px 16px">מודל איכותי לדוגמה: מומנט החזקה 0.5 N·m, ומומנט ה-pull-out יורד לחצי ב-1000 צעדים מלאים בשנייה. מנוע אמיתי מתואר בגרף מומנט-מהירות בדף הנתונים. ההדמיה מואטת פי 10.</p></div>`;
   const cv = $('#spc'), V = view3(cv, { yaw: -0.4, pitch: 0.6, dist: 9 });
   let rpm = 120, m = 16, TL = 0.1, cmd = 0, act = 0, phase = 0, last = 0, frame = 0;
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const readout = () => {
     const r = stepCalc(rpm, m, TL), lost = Math.floor((cmd - act) / m / 4) * 4;   /* counted in whole electrical cycles (4 full steps) */
     $('#sprv').textContent = rpm + ' rpm'; $('#splv').textContent = TL.toFixed(2) + ' N·m';

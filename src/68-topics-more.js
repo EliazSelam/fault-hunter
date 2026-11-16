@@ -59,7 +59,7 @@ const VAC_MATH = () => { const n = vacCalc(), leak = vacCalc({ C: 0.4 }), bad = 
 { const n = vacCalc(); VERIFY.push(['VAC pss', n.pss, (1.2 * 15 + 0.02 * 101.3) / 1.22, 1e-9], ['VAC tau', n.tau, 2 / 1.22, 1e-9], ['VAC F kN', n.F, (101.3 - n.pss) * 0.3111, 1e-9]); }
 function vacScene(cv, sim) {
   const V = view3(cv, { yaw: -0.55, pitch: 0.6, dist: 14, fov: 440, ox: 120, oy: -10, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const R = vacCalc(sim || {}), T0 = 6;
   const tAt = (si, u) => si < 3 ? 0 : si === 3 ? u * 3 : si <= 5 ? 3 + (si - 4 + u) * 1.5 : 6;
   function paint([si, u]) {
@@ -145,7 +145,7 @@ const SF_MATH = () => { const s = stopCalc(); return [
 { const s = stopCalc(); VERIFY.push(['SF tr', s.tr, 0.04, 1e-12], ['SF stop mm', s.s * 1000, 45, 1e-9]); }
 function safeScene(cv, sim) {
   const V = view3(cv, { yaw: -0.35, pitch: 0.38, dist: 10.5, fov: 470, ox: 40, oy: 20, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   function paint([si, u]) {
     V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
     const st = Object.assign({}, SF_STEPS[si].st, sim || {}), g = safeLogic(st), lead = SF_STEPS[si].lead, P = [];
@@ -190,7 +190,7 @@ TOPICS.push(
     solo: { nores: ['אחרי סגירת הדלת: נורית CH1 דולקת, CH2 כבויה. בדיקה ביד: המתג בדלת זז מעט בתושבת.', 'L1'], bridge: ['כשהדלת פתוחה, שתי נוריות הערוצים עדיין דולקות. בתוך המתג נמצא חוט שמחבר את המגעים.', 'L1'], nuis: ['ביומן: תמיד הדלת הימנית, ותמיד כשהשולחן מאיץ.', 'L1'] },
     integ: ['בהפעלה ראשונה, ציר אחד ממשיך לזוז כשפותחים דלת, והאחרים נעצרים. מה בודקים קודם?', ['מתג הדלת', 'חיווט STO לדרייבר של אותו ציר', 'את המתכון'], 1, 'אם השאר נעצרים, השרשרת עובדת. הציר שלא נעצר לא מקבל את הפקודה.', ['bringup', 'servo']] }
 );
-TOPICS.slice(-2).forEach(T => { T.steps.forEach(s => { if (T.pred[s.id]) s.pred = T.pred[s.id]; }); T.faults.forEach(f => { if (T.solo[f.id]) f.solo = T.solo[f.id]; }); });
+topicsAttach(2);
 
 /* the start page features the process simulator */
 const _showPath68 = showPath;

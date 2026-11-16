@@ -59,7 +59,7 @@ const PW_MATH = () => { const n = pwrCalc(), bad = pwrCalc({ br: [{}, {}, { L: 3
 { const n = pwrCalc(); VERIFY.push(['PW Itot', n.Itot, 7.5, 1e-12], ['PW Pin', n.Pin, 200, 1e-9], ['PW io end', n.branches[1].Vend, 24 - 2 * 2 * 0.0175 * 12 / 0.75, 1e-9]); }
 function pwrScene(cv, sim) {
   const V = view3(cv, { yaw: -0.55, pitch: 0.5, dist: 13, fov: 450, ox: 150, oy: -20, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const R = pwrCalc(sim || {});
   function paint([si, u]) {
     V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -137,7 +137,7 @@ const EC_MATH = () => { const n = ecatCalc(), big = ecatCalc({ bytes: 10500 }); 
 { const n = ecatCalc(); VERIFY.push(['EC bits', n.bits, (30 + 32) * 8, 0], ['EC tframe us', n.tFrame * 1e6, 62 * 8 / 100 + 6, 1e-9]); }
 function ecatScene(cv, sim) {
   const V = view3(cv, { yaw: -0.25, pitch: 0.5, dist: 9.5, fov: 470, oy: 10, onView: () => paint(V.last || [0, 0]) });
-  const ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), tint = cssv('--tint'), text = cssv('--text'), sheet = cssv('--sheet');
+  const { ink, live, mech, line, tint, text, sheet } = cssPalette();
   const R = ecatCalc(sim || {}), N = R.n, X = i => -4 + (i + 1) * 1.35;
   function paint([si, u]) {
     V.last = [si, u]; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); ctx.direction = 'ltr'; ctx.textAlign = 'left';
@@ -178,7 +178,7 @@ TOPICS.push(
     solo: { brk: ['WKC 1 מתוך 6. רק דרייבר X עונה. נורית ה-Link בפורט היוצא של X כבויה.', 'L1'], crc: ['מונה ה-CRC בפורט הכניסה של דרייבר Y עולה, אבל רק כשציר X מאיץ. כבל התקשורת עובר באותה תעלה עם כבל המנוע של X.', 'L1'], over: ['אחרי שהוסיפו העברת תמונה בתוך המחזור, זמן המסגרת כ-850 µs במחזור של 1 ms.', 'L1'] },
     integ: ['אחרי החלפת כבל EtherCAT, ציר Y נעצר ב-watchdog בכל פעם שהשסתומים פועלים יחד. מה בודקים קודם?', ['את הכבל החדש', 'את ה-24V לסלייב של Y בזמן עומס', 'את המתכון'], 1, 'watchdog בזמן עומס חשמלי מצביע על הזנה, לא רק על כבל.', ['pwr', 'servo']] }
 );
-TOPICS.slice(-2).forEach(T => { T.steps.forEach(s => { if (T.pred[s.id]) s.pred = T.pred[s.id]; }); T.faults.forEach(f => { if (T.solo[f.id]) f.solo = T.solo[f.id]; }); });
+topicsAttach(2);
 
 ARCH.pwr = { why: 'כל כרטיס, חיישן ושסתום במכונה תלוי ב-24V יציב. מתח נמוך או רגעי מייצר תקלות שנראות כמו בעיה בכל מקום אחר.',
   f3: ['כמו צנרת מים בבניין: משאבה אחת, וברז ושסתום לכל דירה. הערך: כל חלק במכונה מקבל מתח נכון, ותקלה בחלק אחד לא מפילה את כולם.', 'הרשת נכנסת דרך מפסק לספק. הספק מזין שלושה ענפים, כל אחד דרך פיוז וכבל לצרכנים: דרייברים, I/O, שסתומים. הממשקים: הרשת נכנסת, 24V יוצא לכל תת-מערכת.', 'V_end = V − I·2ρL/A; P_in = V·I_tot/η; I_peak = I_tot + I_inrush מול מגבלת הזרם; t_hold ≈ C(V₁² − V₂²)/(2P_in).'],

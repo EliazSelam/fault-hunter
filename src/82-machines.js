@@ -33,7 +33,9 @@ msideSection('line', 30, ['line'], {
   wire: el => { el.querySelectorAll('[data-mm2]').forEach(b => b.addEventListener('click', () => mSetMachine(b.dataset.mm2))); el.querySelectorAll('[data-zn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zn))); el.querySelectorAll('[data-handoff]').forEach(b => b.addEventListener('click', () => zOpenWindow('proc', 'anim:handoff'))); } });
 
 /* ---- every simulation one click away, grouped by machine ---- */
-const SIMKINDS = new Set(['scene', 'sim', 'figure']);
+const SIMKINDS = new Set(['scene', 'sim', 'figure', 'rev', 'fault']);
+/* live faults: inject a fault (disconnect a block and watch what breaks) or diagnose one (the fault tree) */
+const SIMFAULT = new Set(['rev', 'fault']);
 function zWinCtx(w, node) { return WIN.ctx(w, node); }
 WIN_BASE.ctx = function (w, node) {
   const [k, a] = w.split(':');
@@ -47,19 +49,21 @@ function zSimList() {
   const out = []; ZOOM.forEach(n => zWindows(n).forEach(w => { const i = zInfo(w), an = w.startsWith('anim:'); if (an || SIMKINDS.has(i.kind)) out.push({ w, node: n.id, t: i.t, kind: an ? 'anim' : i.kind, ctx: zWinCtx(w, n.id) }); }));
   return out;
 }
-const ZG = { q: '', ctx: 'all' };
+const ZG = { q: '', ctx: 'all', kind: 'all' };
 function zSimsView() {
   const all = zSimList(), q = ZG.q.trim().toLowerCase();
-  const show = all.filter(s => (ZG.ctx === 'all' || s.ctx === ZG.ctx) && (!q || (s.t + ' ' + zNode(s.node).t).toLowerCase().includes(q)));
+  const show = all.filter(s => (ZG.ctx === 'all' || s.ctx === ZG.ctx) && (ZG.kind === 'all' || (ZG.kind === 'fault') === SIMFAULT.has(s.kind)) && (!q || (s.t + ' ' + zNode(s.node).t).toLowerCase().includes(q)));
   const group = c => show.filter(s => s.ctx === c);
   const card = s => `<button type="button" class="simcard" data-sw="${s.w}" data-sn="${s.node}"><span class="kb">${(ZKIND[s.kind] || [s.kind])[0]}</span><b>${s.t}</b><small>${zNode(s.node).t} · רמה ${zNode(s.node).level}</small></button>`;
   content.innerHTML = zSubnav('sims') + `<h2>כל הסימולציות</h2><p class="lead">${all.length} סימולציות, הדגמות ואיורים חיים, לפי מכונה. לחיצה פותחת את הסימולציה במקומה בעץ.</p>
     <div class="ztbar"><label class="vh" for="sgq">חיפוש סימולציה</label><input id="sgq" type="search" placeholder="חיפוש: מכתש, טריגר, ואקום…" value="${ZG.q}">
-      <span class="ztctx">${[['all', 'הכל'], ['AOI', 'AOI'], ['AOS', 'AOS'], ['SHARED', 'משותף']].map(([k, t]) => `<button type="button" data-gc="${k}" aria-pressed="${ZG.ctx === k}">${t}</button>`).join('')}</span></div>
+      <span class="ztctx">${[['all', 'הכל'], ['AOI', 'AOI'], ['AOS', 'AOS'], ['SHARED', 'משותף']].map(([k, t]) => `<button type="button" data-gc="${k}" aria-pressed="${ZG.ctx === k}">${t}</button>`).join('')}</span>
+      <span class="ztctx" role="group" aria-label="סוג">${[['all', 'הכל'], ['sim', 'הדגמות וסימולציות'], ['fault', 'תקלה חיה: הזרק ואבחן']].map(([k, t]) => `<button type="button" data-gk="${k}" aria-pressed="${ZG.kind === k}">${t}</button>`).join('')}</span></div>
     ${[['AOI', 'מכונת AOI'], ['AOS', 'מכונת AOS'], ['SHARED', 'משותף לשתי המכונות']].map(([c, t]) => group(c).length ? `<h3>${t} <small>(${group(c).length})</small></h3><div class="simgrid">${group(c).map(card).join('')}</div>` : '').join('') || '<p class="note">אין סימולציה שמתאימה לחיפוש.</p>'}`;
   zWireSub();
   $('#sgq').addEventListener('input', e => { ZG.q = e.target.value; const pos = e.target.selectionStart; zSimsView(); const i = $('#sgq'); i.focus(); i.setSelectionRange(pos, pos); });
   content.querySelectorAll('[data-gc]').forEach(b => b.addEventListener('click', () => { ZG.ctx = b.dataset.gc; zSimsView(); }));
+  content.querySelectorAll('[data-gk]').forEach(b => b.addEventListener('click', () => { ZG.kind = b.dataset.gk; zSimsView(); }));
   content.querySelectorAll('[data-sw]').forEach(b => b.addEventListener('click', () => zOpenWindow(b.dataset.sn, b.dataset.sw)));
   setTitle('זום', 'כל הסימולציות', all.length + ' סימולציות');
 }

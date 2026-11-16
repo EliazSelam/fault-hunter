@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.45.0] — 2026-11-16
+
+The learning path: where to start, what to do next, and how to keep it.
+
+- **A syllabus of parallel tracks:** six tracks (basic electricity, circuits and measurement, motion and control, vision and laser, air and safety, control and process) cover the 39 topics once each. Four central subjects are tracks too. A weekly plan deals one stage from each chosen track, at 2, 3, 4 or 6 stages a week; stages already passed are not planned again.
+- **Central subjects, one home each:** calibration (seven items in a typical order, from thermal stability to a known sample), noise and grounding, heat and thermal stability, and failure analysis. Each item points at the topics that teach it and at practice cards. Nothing was deleted or copied: the pages stay where they were.
+- **Practice in the style of a language app:** a stage is practised in sessions of six cards with three lives. A card missed the first time comes back once at the end. A passed session is a crown (three at most); a crown becomes "refresh" when a card is due. A locked stage opens by passing the one before, or by a skip test of five cards with no mistakes. Free mode opens everything. XP, a daily goal and a streak.
+- **Spaced repetition, one store:** every card goes into the same Leitner store the review tab uses (1, 3, 7, 21 days). The daily session mixes the cards that are due from every started stage across topics, then new cards from the next stage of each track.
+- **343 cards from what already exists:** the topics' questions, checks, integration questions and fault trees (asked as "what is the cause", with distractors from the same topic), the lessons' "check yourself" drills, and the question bank (think, reveal, grade yourself).
+- **Live faults under the simulations:** the gallery has a group for injecting a fault (disconnect a block and watch what breaks) and diagnosing one (the fault tree), next to the demonstrations.
+- **Code:** the seven-colour palette read by every canvas drawing is one function, the two-line topic attach is one function, and a dead helper is gone.
+- Tests: a new suite `path` (45 checks): structure, cards, session rules, unlocking and crowns, streak, the daily session, the plan, the screens, the central pages, the palette.
+
 ## [2.44.0] — 2026-11-15
 
 The world map in three dimensions: every topic, every link.
