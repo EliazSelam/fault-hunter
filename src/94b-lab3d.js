@@ -27,8 +27,8 @@ function labKit(G) {
   const canvasTex = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = keep(new T.CanvasTexture(c)); t.colorSpace = T.SRGBColorSpace; return { c, g: c.getContext('2d'), t }; };
   const rr = (g, x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
   /* a label that always faces the camera */
-  const tag = (text, pos, h = 0.42, fg = LABC.navy, bg = 'rgba(238,233,224,.93)') => { const X = canvasTex(512, 128), sp = new T.Sprite(keep(new T.SpriteMaterial({ map: X.t, depthTest: false, transparent: true }))); sp.renderOrder = 20; sp.position.set(pos[0], pos[1], pos[2]); h *= 1.8; sp.scale.set(h * 4, h, 1); scene.add(sp); let last = null;
-    const set = t => { t = String(t); if (t === last) return; last = t; const g = X.g; g.clearRect(0, 0, 512, 128); g.font = '600 54px system-ui, Arial, sans-serif'; g.direction = /[֐-׿]/.test(t) ? 'rtl' : 'ltr'; const w = Math.min(506, g.measureText(t).width + 44); g.fillStyle = bg; rr(g, (512 - w) / 2, 12, w, 104, 30); g.fill(); g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 256, 66); X.t.needsUpdate = true; };
+  const tag = (text, pos, h = 0.42, fg = LABC.navy, bg = 'rgba(238,233,224,.93)') => { const X = canvasTex(512, 128), sp = new T.Sprite(keep(new T.SpriteMaterial({ map: X.t, depthTest: false, transparent: true }))); sp.renderOrder = 20; sp.position.set(pos[0], pos[1], pos[2]); h *= 1.8; sp.scale.set(h * 4, h, 1); sp.userData.s0 = [h * 4, h]; scene.add(sp); let last = null;
+    const set = t => { t = String(t); if (t === last) return; last = t; const g = X.g; g.clearRect(0, 0, 512, 128); g.font = '600 54px system-ui, Arial, sans-serif'; g.direction = /[֐-׿]/.test(t) ? 'rtl' : 'ltr'; let tw = g.measureText(t).width; if (tw > 462) { g.font = `600 ${Math.floor(54 * 462 / tw)}px system-ui, Arial, sans-serif`; tw = g.measureText(t).width; } const w = Math.min(506, tw + 44);   /* a long label gets a smaller font instead of running off its tag */ sp.userData.wf = w / 512; g.fillStyle = bg; rr(g, (512 - w) / 2, 12, w, 104, 30); g.fill(); g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 256, 66); X.t.needsUpdate = true; };
     set(text); return { sp, set, show: v => { sp.visible = v; }, at: p => sp.position.set(p[0], p[1], p[2]) }; };
   /* a flat screen with text (meters, displays) */
   const screen = (pos, w, h, rotY = 0, parent) => { const X = canvasTex(256, 128), m = add(keep(new T.PlaneGeometry(w, h)), keep(new T.MeshBasicMaterial({ map: X.t })), pos, parent); m.rotation.y = rotY; m.castShadow = false; let last = null;
@@ -65,11 +65,11 @@ function labKit(G) {
 const niceStep = (span, n) => { const s = span / n, p = Math.pow(10, Math.floor(Math.log10(s))), f = s / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; };
 const tickFmt = v => { const a = Math.abs(v); return a === 0 ? '0' : a >= 1e6 ? +(v / 1e6).toPrecision(3) + 'M' : a >= 1e3 ? +(v / 1e3).toPrecision(3) + 'k' : a < 0.01 ? v.toExponential(0) : String(+v.toPrecision(3)); };
 function labPlotU(cv) {
-  const g = cv.getContext('2d'), W = cv.width, H = cv.height, pd = { l: 64, r: 16, t: 14, b: 34 }; let o = null;
+  const g = cv.getContext('2d'), pd = { l: 64, r: 16, t: 14, b: 34 }; let o = null, W = cv.width, H = cv.height;
   const map = (v, [a, b], lg, p0, p1) => { if (lg) { v = Math.log10(Math.max(v, 1e-300)); a = Math.log10(a); b = Math.log10(b); } return p0 + (v - a) / (b - a) * (p1 - p0); };
   const U = { g, W, H,
     X: x => map(x, o.x, o.xlog, pd.l, W - pd.r), Y: y => map(Math.max(o.y[0], Math.min(o.y[1], y)), o.y, o.ylog, H - pd.b, pd.t),
-    frame(opt) { o = opt; g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H); g.font = '600 15px system-ui, Arial, sans-serif'; g.lineWidth = 1;
+    frame(opt) { o = opt; const k = cv._k || 1; W = cv.width / k; H = cv.height / k; U.W = W; U.H = H; g.setTransform(k, 0, 0, k, 0, 0); g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H); g.font = '600 15px system-ui, Arial, sans-serif'; g.lineWidth = 1;
       const ticks = (r, lg) => { if (lg) { const out = []; for (let e = Math.ceil(Math.log10(r[0]) - 1e-9); e <= Math.log10(r[1]) + 1e-9; e++) out.push(Math.pow(10, e)); return out; } const s = niceStep(r[1] - r[0], 5), out = []; for (let i = Math.ceil(r[0] / s - 1e-9); i * s <= r[1] + s * 1e-6; i++) out.push(+(i * s).toPrecision(10)); return out; };
       g.fillStyle = LABC.char; g.textAlign = 'center'; g.textBaseline = 'top'; (o.noXT ? [] : ticks(o.x, o.xlog)).forEach(v => { const x = U.X(v); g.strokeStyle = 'rgba(27,47,90,.12)'; g.beginPath(); g.moveTo(x, pd.t); g.lineTo(x, H - pd.b); g.stroke(); g.fillText(tickFmt(v), x, H - pd.b + 5); });
       g.textAlign = 'right'; g.textBaseline = 'middle'; ticks(o.y, o.ylog).forEach(v => { const y = U.Y(v); g.strokeStyle = 'rgba(27,47,90,.12)'; g.beginPath(); g.moveTo(pd.l, y); g.lineTo(W - pd.r, y); g.stroke(); g.fillText(tickFmt(v), pd.l - 6, y); });
@@ -94,8 +94,10 @@ function labMount(THREE, host, spec) {
   G.msg.classList.add('lab-msg'); ctl.appendChild(G.msg);
   const S = { P: Object.assign({}, spec.P), t: 0, run: true, x: {}, acc: 0 }; if (spec.init) spec.init(S);
   (spec.stats || []).forEach(([k, t]) => G.stat(k, t));
-  const upd = spec.build(G, L, S) || (() => { });
+  const pre = new Set(G.scene.children), upd = spec.build(G, L, S) || (() => { });
   /* sliders and switches under the picture, actions and pause on the picture */
+  /* a parameter that changes the size of the scene frames it again (unless the viewer moved the camera) */
+  const refr = ks => { if (spec.reframe && ks.some(k => spec.reframe.includes(k)) && untouched()) { tick(0); autoFrame(); } };
   const rows = [], sl = document.createElement('div'); sl.className = 'lab-sls'; ctl.appendChild(sl);
   (spec.controls || []).forEach(c => { const d = document.createElement('label'); d.className = 'lab-sl'; const list = c.list;
     const toU = v => list ? Math.max(0, list.reduce((bi, x, i) => Math.abs(x - v) < Math.abs(list[bi] - v) ? i : bi, 0)) : c.log ? Math.round(Math.log(v / c.min) / Math.log(c.max / c.min) * 1000) : v,
@@ -103,10 +105,10 @@ function labMount(THREE, host, spec) {
     d.innerHTML = `<span>${c.t}</span><input type="range" min="${list || c.log ? 0 : c.min}" max="${list ? list.length - 1 : c.log ? 1000 : c.max}" step="${list || c.log ? 1 : c.step || 'any'}"><output></output>`;
     const inp = d.querySelector('input'), out = d.querySelector('output'), show = () => { out.innerHTML = LB(c.fmt ? c.fmt(S.P[c.k]) : lf(S.P[c.k]) + (c.u ? ' ' + c.u : '')); };
     inp.setAttribute('aria-label', c.t.replace(/<[^>]+>/g, '')); inp.value = toU(S.P[c.k]); show();
-    inp.addEventListener('input', () => { S.P[c.k] = fromU(+inp.value); if (spec.onSet) spec.onSet(S, c.k); show(); G.touch(); }); rows.push({ k: c.k, sync: () => { inp.value = toU(S.P[c.k]); show(); } }); sl.appendChild(d); });
+    inp.addEventListener('input', () => { S.P[c.k] = fromU(+inp.value); if (spec.onSet) spec.onSet(S, c.k); show(); refr([c.k]); G.touch(); }); rows.push({ k: c.k, sync: () => { inp.value = toU(S.P[c.k]); show(); } }); sl.appendChild(d); });
   (spec.toggles || []).forEach(c => { const g = document.createElement('div'); g.className = 'lab-seg'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', c.t); g.innerHTML = `<span>${c.t}</span>` + c.opts.map(([v, t]) => `<button type="button" data-v="${String(v)}">${t}</button>`).join('');
     const sync = () => g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(String(S.P[c.k]) === b.dataset.v)));
-    g.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.P[c.k] = c.opts.find(x => String(x[0]) === b.dataset.v)[0]; if (spec.onSet) spec.onSet(S, c.k); sync(); G.touch(); })); sync(); rows.push({ k: c.k, sync }); sl.appendChild(g); });
+    g.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.P[c.k] = c.opts.find(x => String(x[0]) === b.dataset.v)[0]; if (spec.onSet) spec.onSet(S, c.k); sync(); refr([c.k]); G.touch(); })); sync(); rows.push({ k: c.k, sync }); sl.appendChild(g); });
   (spec.actions || []).forEach(([t, name]) => G.btn(t, () => api.act(name)));
   const pz = G.btn('⏸ עצירה', () => { S.run = !S.run; pz.textContent = S.run ? '⏸ עצירה' : '▶ המשך'; pz.setAttribute('aria-pressed', String(!S.run)); G.touch(); }, false);
   if (rate !== 1) G.btn(rate < 1 ? `הילוך איטי ×${+(1 / rate).toPrecision(2)}` : `הילוך מהיר ×${rate}`, () => { }).disabled = true;
@@ -114,7 +116,7 @@ function labMount(THREE, host, spec) {
   const TR = spec.trace, PL = spec.plot; let sc = null, pu = null;
   if (TR) { const w = document.createElement('div'); w.className = 'lab-scope'; w.innerHTML = `<canvas width="900" height="${TR.h || 170}" aria-hidden="true"></canvas><p class="lab-leg" lang="en">${TR.keys.map(k => `<span style="--c:${k[2]}">${k[1]}</span>`).join('')}<small>${LB('window ' + lf(TR.span * (TR.disp || 1), 0) + ' ' + (TR.unit || 's'))}</small></p>`; ctl.appendChild(w); sc = { cv: w.querySelector('canvas'), buf: [], n: 0 }; }
   if (PL) { const w = document.createElement('div'); w.className = 'lab-scope lab-plot'; w.innerHTML = `<canvas width="900" height="${PL.h || 260}" aria-hidden="true"></canvas>${PL.leg ? `<p class="lab-leg" lang="en">${PL.leg.map(([t, c]) => `<span style="--c:${c}">${t}</span>`).join('')}</p>` : ''}`; ctl.appendChild(w); pu = labPlotU(w.querySelector('canvas')); }
-  const scopeDraw = () => { const cv = sc.cv, g = cv.getContext('2d'), W = cv.width, H = cv.height, b = sc.buf, n = TR.keys.length; g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H);
+  const scopeDraw = () => { const cv = sc.cv, g = cv.getContext('2d'), k = cv._k || 1, W = cv.width / k, H = cv.height / k, b = sc.buf, n = TR.keys.length; g.setTransform(k, 0, 0, k, 0, 0); g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H);
     const fv = v => typeof v === 'function' ? v(S) : v, li = j => Array.isArray(TR.lanes) ? TR.lanes[j] : TR.lanes ? j : 0, nL = Array.isArray(TR.lanes) ? Math.max(...TR.lanes) + 1 : TR.lanes ? n : 1, lane = j => [H * li(j) / nL + 8, H * (li(j) + 1) / nL - 6];
     const t1 = b.length ? b[b.length - 1][0] : 0, t0 = t1 - TR.span, X = t => 6 + (t - t0) / TR.span * (W - 12);
     for (let k = 1; k < nL; k++) { g.strokeStyle = 'rgba(27,47,90,.14)'; g.beginPath(); g.moveTo(0, H * k / nL); g.lineTo(W, H * k / nL); g.stroke(); }
@@ -122,6 +124,10 @@ function labMount(THREE, host, spec) {
     TR.keys.forEach(([, , col, lo0, hi0], j) => { const lo = fv(lo0), hi = fv(hi0), ln = lane(j); if (b.length < 2) return; const Y = v => ln[1] - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo || 1) * (ln[1] - ln[0]);
       g.strokeStyle = col; g.lineWidth = 2.4; g.beginPath(); b.forEach((r, i) => { const x = X(r[0]), y = Y(r[1][j]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); });
     (TR.names || []).forEach((t, k) => { g.fillStyle = LABC.navy; g.font = '700 14px system-ui, Arial'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(t, 8, H * k / nL + 3); }); };
+  /* the canvases are drawn at their real width (and the screen's pixel ratio), so the text stays 14 px on a phone */
+  const sizeCv = (cv, cssH) => { const w = Math.round(cv.clientWidth || 0), k = Math.min(2, window.devicePixelRatio || 1); if (!w || (cv._w === w && cv._k === k)) return false; cv._w = w; cv._k = k; cv.width = Math.round(w * k); cv.height = Math.round(cssH * k); cv.style.height = cssH + 'px'; return true; };
+  const plotCv = pu ? ctl.querySelector('.lab-plot canvas') : null, resize = () => { if (sc && sizeCv(sc.cv, TR.h || 170)) scopeDraw(); if (pu && sizeCv(plotCv, PL.h || 260)) PL.draw(pu, R, S); };
+  const cro = new ResizeObserver(resize); cro.observe(ctl);
   /* the loop */
   let R = spec.calc(S.P, S);
   const hud = () => { (spec.stats || []).forEach(([k, , f]) => { G.statEl[k].textContent = f(R, S); }); const m = spec.msg ? spec.msg(R, S) : ''; if (m !== G.msg._m) { G.msg._m = m; G.msg.innerHTML = m; } G.msg.classList.toggle('alarm', !!(spec.alarm && spec.alarm(R, S))); };
@@ -134,12 +140,54 @@ function labMount(THREE, host, spec) {
   G.setLoop(dt => tick(dt), () => S.run && (spec.busy ? spec.busy(S, R) : true));
   Object.assign(api, {
     lab: spec.id, state: () => ({ P: Object.assign({}, S.P), t: S.t, x: JSON.parse(JSON.stringify(S.x)), R: spec.calc(S.P, S), msg: G.msg.textContent, alarm: G.msg.classList.contains('alarm') }),
-    set(o) { Object.assign(S.P, o); Object.keys(o).forEach(k => spec.onSet && spec.onSet(S, k)); rows.forEach(r => r.sync()); tick(0); G.touch(); return api.state(); },
+    set(o) { Object.assign(S.P, o); Object.keys(o).forEach(k => spec.onSet && spec.onSet(S, k)); rows.forEach(r => r.sync()); tick(0); refr(Object.keys(o)); G.touch(); return api.state(); },
     act(name) { const a = spec.act && spec.act[name]; if (a) a(S); rows.forEach(r => r.sync()); if (!S.run) { S.run = true; pz.textContent = '⏸ עצירה'; pz.setAttribute('aria-pressed', 'false'); } tick(0); G.touch(); return api.state(); },
     advance(sec) { const run = S.run, hr = 1 / 120; S.run = true; let left = sec / rate; while (left > 1e-12) { const d = Math.min(hr, left); tick(d, false); left -= d; } if (sc) scopeDraw(); if (pu) PL.draw(pu, R, S); S.run = run; api.renderNow(); return api.state(); },
     scope: () => sc ? sc.buf.slice() : null, ctl,
-    getState: () => ({ v: 1, P: Object.assign({}, S.P), orbit: api.orbit() }), setState(s) { if (!s) return; if (s.P) api.set(s.P); api.setOrbit(s.orbit); } });
-  tick(0); if (sc) scopeDraw(); api.renderNow(); return api;
+    getState: () => ({ v: 1, P: Object.assign({}, S.P), orbit: api.orbit(), user: !untouched() }),
+    setState(s) { if (!s) return; if (s.P) api.set(s.P); if (s.user && s.orbit) api.setOrbit(s.orbit); } });   /* a camera the viewer moved comes back; an automatic one is framed again for this size */
+  /* framing: the camera's target and distance are solved so that everything the lab built (its meshes, its labels and the points
+     in spec.frame) fits between the HUD cards and the button bar, at any width. Solved again on resize, unless the viewer moved the camera. */
+  const V3 = THREE.Vector3, tmp = new V3(); let auto = null;
+  const framePts = () => { G.scene.updateMatrixWorld(true); const pts = [], spr = [];
+    G.scene.children.filter(o => !pre.has(o)).forEach(r => r.traverse(o => { if (o.isSprite) { if (o.visible && o.userData.wf) spr.push(o); return; } if (!o.isMesh || o.isInstancedMesh || o.userData.noFrame) return;
+      const gm = o.geometry; if (!gm.boundingBox) gm.computeBoundingBox(); const b = gm.boundingBox; for (let i = 0; i < 8; i++) pts.push(new V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(o.matrixWorld)); }));
+    (typeof spec.frame === 'function' ? spec.frame(S) : spec.frame || []).forEach(p => pts.push(new V3(p[0], p[1], p[2]))); return { pts, spr }; };
+  const bounds = (F, cam) => { const v = new V3(), tf = Math.tan(cam.fov * Math.PI / 360), a = cam.aspect; let x0 = 9, x1 = -9, y0 = 9, y1 = -9; const put = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
+    F.pts.forEach(p => { v.copy(p).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) { put(-9, -9); put(9, 9); } else put(v.x / (z * tf * a), v.y / (z * tf)); });
+    F.spr.forEach(s => { v.copy(s.getWorldPosition(tmp)).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) return; const cx = v.x / (z * tf * a), cy = v.y / (z * tf), dx = s.scale.x * s.userData.wf / 2 / (z * tf * a), dy = s.scale.y * 0.82 / 2 / (z * tf); put(cx - dx, cy - dy); put(cx + dx, cy + dy); });
+    return [x0, x1, y0, y1]; };
+  /* the bands the HUD takes at the top and the bottom, in CSS px (a running opening animation scales the rects: divide it out) */
+  const bands = () => { const r = api.root.getBoundingClientRect(), k = r.width / (api.root.clientWidth || r.width || 1), sb = G.stats.getBoundingClientRect(), bb = G.bar.getBoundingClientRect(), inside = G.stats.parentElement === api.root;
+    return [inside && sb.height ? (sb.bottom - r.top) / k + 8 : 10, bb.height ? (r.bottom - bb.top) / k + 8 : 10]; };
+  const room = () => { const [top, bot] = bands(), W = api.root.clientWidth, H = api.root.clientHeight, side = 12 / W; return [-1 + 2 * side, 1 - 2 * side, -1 + 2 * bot / H, 1 - 2 * top / H]; };
+  /* on a narrow stage (a phone) the HUD cards go under the picture, so the whole stage is left to the lab */
+  const placeStats = () => { const narrow = api.root.clientWidth && api.root.clientWidth <= 640, inside = G.stats.parentElement === api.root; if (narrow && inside) ctl.insertBefore(G.stats, ctl.firstChild); else if (!narrow && !inside) api.root.insertBefore(G.stats, G.bar); };
+  const autoFrame = () => { if (!api.root.clientWidth || !api.root.clientHeight) return; const F = framePts(); if (!F.pts.length) return; const cam = G.cam, O = G.O, [ax0, ax1, ay0, ay1] = room(), Rv = new V3(), Uv = new V3();
+    for (let it = 0; it < 40; it++) { G.place(); cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(F, cam), tf = Math.tan(cam.fov * Math.PI / 360), s = Math.max((x1 - x0) / (ax1 - ax0), (y1 - y0) / (ay1 - ay0)), dx = (x0 + x1 - ax0 - ax1) / 2, dy = (y0 + y1 - ay0 - ay1) / 2;
+      if (Math.abs(s - 1) < 0.003 && Math.abs(dx) < 0.003 && Math.abs(dy) < 0.003) break; Rv.setFromMatrixColumn(cam.matrixWorld, 0); Uv.setFromMatrixColumn(cam.matrixWorld, 1); const kx = dx * O.dist * tf * cam.aspect, ky = dy * O.dist * tf;
+      O.t = [O.t[0] + Rv.x * kx + Uv.x * ky, O.t[1] + Rv.y * kx + Uv.y * ky, O.t[2] + Rv.z * kx + Uv.z * ky]; O.dist = Math.max(4, Math.min(140, O.dist * (it < 30 ? s : Math.max(1, s) * 1.01))); }
+    G.place(); auto = { yaw: O.yaw, pitch: O.pitch, dist: O.dist }; G.touch(); };
+  const untouched = () => !auto || (Math.abs(G.O.yaw - auto.yaw) < 1e-9 && Math.abs(G.O.pitch - auto.pitch) < 1e-9 && Math.abs(G.O.dist - auto.dist) < 1e-9);
+  /* labels grow on a narrow stage (a phone), so their text stays readable when the camera has to move back */
+  const tagScale = () => { const k = Math.max(1, Math.min(1.7, 640 / (api.root.clientWidth || 640))); G.scene.traverse(o => { if (o.isSprite && o.userData.s0) o.scale.set(o.userData.s0[0] * k, o.userData.s0[1] * k, 1); }); };
+  /* on a narrow stage (a phone) a wide lab is limited by the width; the stage's height then follows the content, so there is no empty band.
+     Only while the camera is automatic; at most a few passes per width, so it cannot oscillate. */
+  let fitW = 0, fitN = 0;
+  const fitHeight = () => { const host = api.root.parentElement, W = api.root.clientWidth, H = api.root.clientHeight; if (!W || !H || !host) return; if (W > 640) { if (host.style.height) host.style.height = ''; return; }
+    if (W !== fitW) { fitW = W; fitN = 0; } if (fitN++ > 3) return; G.place(); G.cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(framePts(), G.cam), [top, bot] = bands();
+    /* the content's own aspect (height over width, in pixels) gives the height at which the content fills the width exactly */
+    const asp = ((y1 - y0) * H) / Math.max(1e-6, (x1 - x0) * W), want = Math.round(Math.max(280, Math.min(470, asp * (W - 24) + top + bot + 6))); api.fitInfo = { W, H, asp, want, top, bot, n: fitN, b: [x0, x1, y0, y1] }; if (Math.abs(want - H) > 6) host.style.height = want + 'px'; };
+  G.onFit(() => { placeStats(); tagScale(); if (untouched()) { autoFrame(); fitHeight(); } });
+  /* for the checks: render once without the shadow floor and report where the lab's pixels are, and how many fall under the HUD cards or the bar */
+  api.frameCheck = () => { const hid = []; G.scene.traverse(o => { if (o.material && o.material.isShadowMaterial && o.visible) { o.visible = false; hid.push(o); } }); api.renderNow();
+    const gl = G.renderer.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(w * h * 4); gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px); hid.forEach(o => { o.visible = true; }); api.renderNow();
+    const r = api.root.getBoundingClientRect(), k = w / r.width, rect = e => { const b = e.getBoundingClientRect(); return b.width ? [(b.left - r.left) * k, (b.top - r.top) * k, (b.right - r.left) * k, (b.bottom - r.top) * k] : null; }, sR = rect(G.stats), bR = rect(G.bar);
+    let x0 = w, x1 = -1, y0 = h, y1 = -1, n = 0, inS = 0, inB = 0; const inR = (R, x, y) => R && x >= R[0] && x < R[2] && y >= R[1] && y < R[3];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (px[(y * w + x) * 4 + 3] < 12) continue; const yy = h - 1 - y; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; if (inR(sR, x, yy)) inS++; if (inR(bR, x, yy)) inB++; }
+    return { w, h, k, n, box: [x0, y0, x1, y1], inS, inB, dist: G.O.dist, auto: !!auto }; };
+  const d0 = api.destroy; api.destroy = () => { cro.disconnect(); d0(); };
+  tick(0); resize(); if (sc) scopeDraw(); placeStats(); tagScale(); autoFrame(); fitHeight(); api.renderNow(); return api;
 }
 
 /* the windows: 3d:<lab id>, on its topic, first among the demonstrations */

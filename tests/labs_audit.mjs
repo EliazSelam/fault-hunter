@@ -38,6 +38,33 @@ const TERMS = await ev(async () => { const k = Object.keys(GLOSS); LEX.forEach(e
     (s.controls || []).forEach(c => [c.list ? c.list[0] : c.min, c.list ? c.list[c.list.length - 1] : c.max].forEach(v => { h.set({ [c.k]: v }); h.advance(s.rate && s.rate < 1 ? 0.03 : 0.5); grab(); }));
     txt.push(s.title); toks(txt.join(' \n ')).forEach(t => (bad[t] = bad[t] || []).includes(id) || bad[t].push(id)); } return bad; });
 ok(Object.keys(TERMS).length === 0, 'undefined terms in the labs: ' + JSON.stringify(TERMS));
+/* ---- framing: at desktop width and on a phone, every lab is drawn whole, inside the stage, and nothing hides under the HUD cards or the button bar.
+   Checked on the rendered pixels (the shadow floor hidden), not on the framing code's own numbers. Canvases are drawn at the screen's pixel ratio. ---- */
+const frameRun = async (page, tag) => { const out = [];
+  for (const [id] of COV.labs) { await page.evaluate(id => { zOpenWindow(LABS[id].node, '3d:' + id); }, id);
+    /* wait for the window's opening animation (a transform) to end, so the page is measured as it stays */
+    await page.waitForFunction(id => { const h = window.__fh = [...document.querySelectorAll('.lab-wrap')].map(w => w.parentNode.fh3d).find(x => x && x.lab === id); return h && Math.abs(h.root.getBoundingClientRect().width - h.root.clientWidth) < 0.5; }, id, { timeout: 4000 }).catch(() => {}); await page.waitForTimeout(120);
+    const f = await page.evaluate(() => { const h = window.__fh; if (!h) return null; const r = h.frameCheck(), cvs = [...h.ctl.querySelectorAll('canvas')].map(c => [c.width, Math.round(c.clientWidth * Math.min(2, devicePixelRatio))]); return Object.assign(r, { cvs, P: h.state().P, o: h.orbit() }); });
+    if (!f) { out.push(id + ': not mounted'); continue; } const m = 4 * f.k, edge = f.box[0] >= m && f.box[1] >= m && f.box[2] <= f.w - 1 - m && f.box[3] <= f.h - 1 - m;
+    if (f.n < 2000) out.push(`${id}: almost nothing drawn (${f.n} px)`); if (!edge) out.push(`${id}: cut at the stage's edge (${f.box.map(Math.round)} of ${f.w}×${f.h})`); if (f.inS > 30 || f.inB > 30) out.push(`${id}: ${f.inS} px under the HUD cards, ${f.inB} under the bar (${JSON.stringify({ P: f.P, o: f.o, box: f.box })})`);
+    if (!f.cvs.every(([a, b]) => Math.abs(a - b) <= 2)) out.push(`${id}: a canvas is not drawn at its real width (${JSON.stringify(f.cvs)})`); }
+  ok(out.length === 0, tag + ': ' + out.join('; ')); return out; };
+await frameRun(pg, 'desktop framing');
+/* the camera: automatic framing comes back automatic; a camera the viewer moved comes back where it was; a parameter that resizes the scene frames it again */
+const CAM = await ev(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), get = id => [...document.querySelectorAll('.lab-wrap')].map(w => w.parentNode.fh3d).find(x => x && x.lab === id), o = {};
+  zOpenWindow('interlock', '3d:interlock'); await wait(900); let h = get('interlock'); o.auto = h.getState().user === false; h.set({ D: 100 }); const d1 = h.orbit().dist; h.set({ D: 800 }); o.grow = h.orbit().dist > d1 * 1.1;
+  h.setOrbit({ yaw: 1.1 }); o.user = h.getState().user === true; zOpenWindow('resistor', '3d:resistor'); await wait(700); zOpenWindow('interlock', '3d:interlock'); await wait(900); h = get('interlock'); o.back = Math.abs(h.orbit().yaw - 1.1) < 1e-9;
+  h.setOrbit({ yaw: 0.65 }); const d2 = h.orbit().dist; h.set({ D: 100 }); o.kept = h.orbit().dist === d2; return o; });
+ok(CAM.auto && CAM.grow, 'camera: automatic, and framed again when the door moves away (' + JSON.stringify(CAM) + ')'); ok(CAM.user && CAM.back && CAM.kept, 'camera: a viewer\'s camera is kept, restored, and not reframed under them (' + JSON.stringify(CAM) + ')');
+const ph = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); ph.on('pageerror', e => errs.push('phone: ' + e.message));
+await ph.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href + '#/zoom/resistor'); await ph.waitForTimeout(600);
+await frameRun(ph, 'phone framing');
+const PH = await ph.evaluate(() => { const h = window.__fh, s = h.ctl.parentElement.querySelector('.fh3d-stats'), b = h.root.querySelector('.fh3d-bar'), host = h.root.parentElement; return { under: s.parentElement === h.ctl, cols: getComputedStyle(s).gridTemplateColumns.split(' ').length, wrap: getComputedStyle(b).flexWrap, H: host.clientHeight, fit: h.fitInfo }; });
+ok(PH.under && PH.cols === 2 && PH.wrap === 'nowrap', 'phone: the HUD cards move under the picture in two columns, and the button bar scrolls instead of wrapping (' + JSON.stringify(PH) + ')');
+const PB = await ph.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), get = id => [...document.querySelectorAll('.lab-wrap')].map(w => w.parentNode.fh3d).find(x => x && x.lab === id), o = {};
+  for (const id of ['resistor', 'brake']) { zOpenWindow(LABS[id].node, '3d:' + id); await wait(1200); const h = get(id); o[id] = h.root.parentElement.clientHeight; } return o; });
+ok(PB.resistor <= 300 && PB.brake >= 440, 'phone: the stage follows the lab: a wide board gets a short stage, a tall column a tall one (' + JSON.stringify(PB) + ')');
+await ph.close();
 const LIVE = await ev(() => FH3D_LIVE.size); ok(LIVE <= 2, 'stages that left the page are freed (' + LIVE + ' still alive)'); ok(warns.length === 0, 'WebGL context warnings: ' + warns.slice(0, 2));
 
 /* ---- the numbers, recomputed here ---- */

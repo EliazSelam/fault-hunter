@@ -31,23 +31,23 @@ const FIT3 = { nom: 25, H7: [0, 21], g6: [-20, -7], k6: [2, 15], p6: [22, 35], v
 const fitClass = sh => { const s = FIT3[sh], mn = FIT3.H7[0] - s[1], mx = FIT3.H7[1] - s[0]; return { mn, mx, kind: mn >= 0 ? 'clear' : mx <= 0 ? 'inter' : 'trans' }; };
 lab3d({ id: 'fit', node: 'fits', title: 'התאמות וטולרנסים: חור H7 מול g6, k6, p6',
   note: 'אי אפשר לייצר מידה מדויקת; מגדירים תחום. חור Ø25 H7 יכול להיות בין 25.000 ל-25.021 מ"מ. את הציר בוחרים לפי מה שרוצים: g6 תמיד קטן מהחור (מרווח, חלקים שזזים), p6 תמיד גדול ממנו (הידוק, לחיצה או חימום), ו-k6 באמצע (מעבר). כל לחיצה מייצרת זוג חלקים אקראי בתוך הטולרנס ומרכיבה אותם. המרווח מוגדל מאוד בתמונה.',
-  cam: { yaw: 0.6, pitch: 0.35, dist: 15, t: [-1.5, 1.6, 0] },
+  cam: { yaw: 0.6, pitch: 0.35, dist: 15, t: [-1.5, 1.6, 0] }, frame: [[-4.7, 0.5, -1], [-4.7, 2.7, 1]],
   P: { sh: 'g6' },
   toggles: [{ k: 'sh', t: 'ציר', opts: [['g6', 'g6 (מרווח)'], ['k6', 'k6 (מעבר)'], ['p6', 'p6 (הידוק)']] }],
   actions: [['🎲 ייצר והרכב', 'sample']],
   init: S => Object.assign(S.x, { hole: 10.5, shaft: -13.5, ph: 1, n: 0, nc: 0, ni: 0, seed: 11 }),
   onSet: (S, k) => { if (k === 'sh') { const s = FIT3[S.P.sh]; Object.assign(S.x, { hole: 10.5, shaft: (s[0] + s[1]) / 2, ph: 1, n: 0, nc: 0, ni: 0 }); } },
   act: { sample: S => { const x = S.x, r = () => { x.seed = (x.seed * 16807) % 2147483647; return x.seed / 2147483647; }, s = FIT3[S.P.sh]; x.hole = +(FIT3.H7[0] + r() * (FIT3.H7[1] - FIT3.H7[0])).toFixed(1); x.shaft = +(s[0] + r() * (s[1] - s[0])).toFixed(1); x.ph = 0; x.n++; if (x.hole - x.shaft >= 0) x.nc++; else x.ni++; } },
-  step(S, h) { const x = S.x, stop = x.hole - x.shaft < 0 ? 0.72 : 1; x.ph = Math.min(stop, x.ph + h / 1.6); },
+  step(S, h) { const x = S.x, stop = x.hole - x.shaft < 0 ? 1 / 3 : 1; x.ph = Math.min(stop, x.ph + h / 1.2); },
   calc: (P, S) => { const x = S.x, c = fitClass(P.sh); return Object.assign(c, { hole: x.hole, shaft: x.shaft, clr: x.hole - x.shaft, Dh: FIT3.nom + x.hole / 1000, Ds: FIT3.nom + x.shaft / 1000, ph: x.ph }); },
   stats: [['h', 'קוטר החור', R => R.Dh.toFixed(4) + ' mm'], ['s', 'קוטר הציר', R => R.Ds.toFixed(4) + ' mm'], ['c', 'מרווח (+) / הידוק (−)', R => (R.clr >= 0 ? '+' : '') + lf(R.clr, 1) + ' µm'], ['k', 'סוג ההתאמה', R => ({ clear: 'מרווח', trans: 'מעבר', inter: 'הידוק' })[R.kind]]],
-  plot: { h: 240, leg: [['hole H7', LABC.navy], ['shaft', LABC.brown], ['this pair', LABC.char]], draw(U, R, S) { const s = FIT3[S.P.sh]; U.frame({ x: [0, 6], y: [-30, 45], xl: '', yl: 'deviation from 25.000 mm (µm)', noXT: 1 }).hl(0, LABC.char, 'nominal Ø25.000');
+  plot: { h: 240, leg: [['hole H7', LABC.navy], ['shaft', LABC.brown], ['this pair', LABC.char]], draw(U, R, S) { const s = FIT3[S.P.sh]; U.frame({ x: [0, 6], y: [-30, 45], xl: '', yl: 'deviation (µm)', noXT: 1 }).hl(0, LABC.char, 'nominal Ø25.000');
     U.rect(1, 2.4, FIT3.H7[0], FIT3.H7[1], 'rgba(27,47,90,.35)').rect(3.6, 5, s[0], s[1], 'rgba(123,90,60,.45)').text('H7', 1.7, FIT3.H7[1] + 4, LABC.navy, 'center').text(S.P.sh, 4.3, s[1] + 4, LABC.brown, 'center').dot(1.7, R.hole, LABC.navy).dot(4.3, R.shaft, LABC.brown); } },
   build(G, L, S) {
     const { mat, K, add } = G; const ring = add(K.tube(1.9, -0.8, 0.8, 0.8, 'x'), mat.navy, [0, 1.6, 0]); L.block(1.6, 0.8, 4.2, [0, 0.4, 0], mat.char);
-    const shaft = add(K.can(1.0, -4.5, 0, 0.06, 'x'), mat.alu, [0, 1.6, 0]); const tg = L.tag('', [0, 3.9, 0], 0.4), sp = L.spark([-0.85, 1.6, 0], 1.0); let key = '';
+    const shaft = add(K.can(1.0, -3, 0, 0.06, 'x'), mat.alu, [0, 1.6, 0]); const tg = L.tag('', [0, 3.9, 0], 0.4), sp = L.spark([-0.85, 1.6, 0], 1.0); let key = '';
     return (dt, R, S) => { const k = R.hole + '|' + R.shaft; if (k !== key) { key = k; const rh = Math.max(0.55, 1.0 + R.clr * FIT3.vis); ring.geometry = K.tube(1.9, -0.8, 0.8, 1.9 - rh, 'x'); }
-      shaft.position.x = -5.0 + R.ph * 5.8; sp.set(R.clr < 0 && R.ph >= 0.72 ? 0.8 : 0); tg.set(R.clr >= 0 ? `מרווח ${lf(R.clr, 1)} µm` : `הידוק ${lf(-R.clr, 1)} µm: דרוש כוח`); }; },
+      shaft.position.x = -1.6 + R.ph * 2.4; sp.set(R.clr < 0 && R.ph >= 1 / 3 - 1e-9 ? 0.8 : 0);   /* the tip meets the ring's face at ph = 1/3 */ tg.set(R.clr >= 0 ? `מרווח ${lf(R.clr, 1)} µm` : `הידוק ${lf(-R.clr, 1)} µm: דרוש כוח`); }; },
   msg: (R, S) => { const x = S.x, base = R.kind === 'clear' ? `<b>${LB('H7/' + S.P.sh)}: התאמה חופשית.</b> תמיד מרווח, בין ${LB(R.mn + '')} ל-${LB(R.mx + ' µm')}. לחלקים שזזים או שמפרקים: גלגלת על ציר, פין מיקום שנשלף.`
     : R.kind === 'inter' ? `<b>${LB('H7/' + S.P.sh)}: התאמת הידוק.</b> הציר תמיד גדול מהחור, בין ${LB(-R.mx + '')} ל-${LB(-R.mn + ' µm')}. מרכיבים בלחיצה או מחממים את החלק החיצוני; אחרי ההרכבה הוא לא זז ולא מסתובב (מסב בבית, גלגל שיניים על ציר).`
     : `<b>${LB('H7/' + S.P.sh)}: התאמת מעבר.</b> בין מרווח של ${LB(R.mx + ' µm')} להידוק של ${LB(-R.mn + ' µm')}: תלוי בזוג. מיקום מדויק, הרכבה בפטיש גומי.`;
@@ -130,7 +130,7 @@ const ILK3 = { K: 2000, K2: 1600, hand: 2.0, swing: 0.15, k: 0.006 };   /* ISO 1
 const ilkCalc = (v, a, D) => { const sc = stopCalc({ v, a }), T = sc.tr + v / a; let S = ILK3.K * T; if (S > 500) S = Math.max(500, ILK3.K2 * T); return { tr: sc.tr, s: sc.s, T, S, th: D / 1000 / ILK3.hand }; };
 lab3d({ id: 'interlock', node: 'interlock', title: 'interlock של דלת: לעצור לפני שהיד מגיעה, או לנעול',
   note: 'מתג הדלת פותח את שרשרת הבטיחות ברגע שהדלת זזה. אבל הציר לא עוצר מיד: זמן תגובה של המתג, הממסר וה-STO, ואחריו בלימה. אם היד מגיעה לאזור הסכנה לפני שהציר עצר, ה-interlock לא הגן. התקן (ISO 13855) נותן מרחק מינימלי S = K·T, עם K = 2000 mm/s לתנועת יד. כשאי אפשר להרחיק, נועלים את הדלת עד עצירה (guard locking). בלי תוספות קירוב (C) של התקן; הזמן מואט פי 4.',
-  cam: { yaw: 0.65, pitch: 0.45, dist: 17, t: [0, 1.2, 0.8] }, rate: 0.25,
+  cam: { yaw: 0.65, pitch: 0.45, dist: 17, t: [0, 1.2, 0.8] }, rate: 0.25, reframe: ['D'], frame: S => { const zd = -0.3 + S.P.D * ILK3.k; return [[-5.6, 0, zd], [-5.6, 3.4, zd], [0, 1.6, zd + 1.7]]; },
   P: { v: 0.5, a: 5, D: 300, lock: 'no' },
   controls: [{ k: 'v', t: 'מהירות הציר', min: 0.1, max: 1, step: 0.05, u: 'm/s' }, { k: 'a', t: 'תאוטה בעצירה', min: 1, max: 20, step: 0.5, u: 'm/s²' }, { k: 'D', t: 'מרחק דלת–סכנה', min: 50, max: 800, step: 10, u: 'mm' }],
   toggles: [{ k: 'lock', t: 'נעילת דלת', opts: [['no', 'אין (interlock בלבד)'], ['yes', 'יש (guard locking)']] }],
@@ -145,14 +145,16 @@ lab3d({ id: 'interlock', node: 'interlock', title: 'interlock של דלת: לע�
   stats: [['t', 'זמן עצירה T', R => lf(R.T * 1000, 0) + ' ms'], ['s', 'S נדרש', R => lf(R.S, 0) + ' mm'], ['h', 'היד מגיעה אחרי', R => lf(R.th * 1000, 0) + ' ms'], ['r', 'תוצאה', (R, S) => S.P.lock === 'yes' ? 'נעול עד עצירה' : R.safe ? 'בטוח' : 'לא בטוח']],
   trace: { keys: [['vel', 'axis speed (m/s)', LABC.navy, 0, 1.05], ['hand', 'hand (mm)', LABC.brown, 0, S => S.P.D]], names: ['axis speed', 'hand from the door (top = hazard)'], lanes: 1, span: 0.5 },
   build(G, L, S) {
-    const { mat, K, add } = G; L.block(9, 0.4, 5, [0, -0.2, 0], mat.char); [[-4.4, -2.4], [4.4, -2.4], [-4.4, 2.4], [4.4, 2.4]].forEach(([x, z]) => L.block(0.2, 3.6, 0.2, [x, 1.8, z], mat.alu)); add(G.box(9, 0.1, 5, 0.02), mat.glass, [0, 3.6, 0]);
-    L.block(7.5, 0.3, 0.6, [0, 0.15, -0.8], mat.alu); const car = L.group([0, 0, -0.8]); L.block(1.2, 1.2, 1.0, [0, 0.9, 0], mat.navy, car); add(K.can(0.12, 0.1, 0.9, 0.03), mat.cream, [0, 0.0, 0], car).position.y = 0.0;
-    const zone = add(G.box(7.5, 0.02, 0.3, 0.01), L.glowMat(mat.brown), [0, 0.04, 0]); L.tag('אזור סכנה', [3.0, 1.0, 0], 0.28);
-    const door = L.group([0, 0, 0]); add(G.box(3.8, 3.0, 0.08, 0.03), mat.glass, [0, 1.8, 0], door); add(G.box(3.8, 0.12, 0.12, 0.02), mat.alu, [0, 3.25, 0], door); const tongue = add(G.box(0.4, 0.15, 0.12, 0.02), mat.alu, [2.0, 2.4, 0], door);
-    const sw = L.block(0.5, 0.6, 0.4, [2.4, 2.4, 0], mat.navy); const lockLed = L.led([2.4, 2.8, 0.25], G.C.light, 0.09); void sw; void tongue;
-    const hand = L.group([0, 1.2, 0]); add(K.can(0.22, -0.6, 0.6, 0.12, 'z'), mat.cream, [0, 0, 0], hand); add(G.box(0.5, 0.18, 0.4, 0.08), mat.cream, [0, 0, -0.75], hand); const tg = L.tag('', [-2.0, 4.3, 1.0], 0.36);
-    return (dt, R, S) => { const z = 0.3 + S.P.D * ILK3.k; door.position.z = z; door.position.x = -R.door * 3.6; [sw, lockLed.o].forEach(o => { o.position.z = z + (o === lockLed.o ? 0.25 : 0); }); lockLed.set(R.locked); car.position.x = S.x.pos * 20;
-      hand.visible = R.door > 0.5; hand.position.z = z + 0.9 - R.hand * ILK3.k; L.heat(zone.material, R.hit ? 1.4 : 0); tg.set(`S ≥ ${lf(R.S, 0)} mm · D = ${S.P.D} mm`); }; },
+    const { mat, K, add } = G, k = ILK3.k, zh = -0.3; const base = L.block(9, 0.4, 1, [0, -0.2, 0], mat.char), roof = add(G.box(9, 0.1, 1, 0.02), mat.glass, [0, 3.6, 0]); [-4.4, 4.4].forEach(x => L.block(0.2, 3.6, 0.2, [x, 1.8, -2.4], mat.alu));
+    const front = [-4.4, 4.4].map(x => L.block(0.2, 3.6, 0.2, [x, 1.8, 0], mat.alu));
+    L.block(7.5, 0.3, 0.6, [0, 0.15, -0.8], mat.alu); const car = L.group([0, 0, -0.8]); L.block(1.2, 1.2, 1.0, [0, 0.9, 0], mat.navy, car);
+    const zone = add(G.box(7.5, 0.02, 0.3, 0.01), L.glowMat(mat.brown), [0, 0.04, zh + 0.15]); L.tag('אזור סכנה', [3.0, 1.0, zh + 0.15], 0.28);
+    const door = L.group([0, 0, 0]); add(G.box(3.8, 3.0, 0.08, 0.03), mat.glass, [0, 1.8, 0], door); add(G.box(3.8, 0.12, 0.12, 0.02), mat.alu, [0, 3.25, 0], door); add(G.box(0.4, 0.15, 0.12, 0.02), mat.alu, [2.0, 2.4, 0], door);
+    const sw = L.block(0.5, 0.6, 0.4, [2.4, 2.4, 0], mat.navy), lockLed = L.led([2.4, 2.8, 0.25], G.C.light, 0.09);
+    const hand = L.group([0, 1.2, 0]); add(K.can(0.22, -0.6, 0.6, 0.12, 'z'), mat.cream, [0, 0, 0.95], hand); add(G.box(0.5, 0.18, 0.4, 0.08), mat.cream, [0, 0, 0.2], hand); const tg = L.tag('', [-2.0, 4.3, 0], 0.36);
+    return (dt, R, S) => { const zd = zh + S.P.D * k; base.scale.z = zd + 2.5; base.position.z = (zd - 2.5) / 2; roof.scale.z = zd + 2.5; roof.position.z = (zd - 2.5) / 2; front.forEach(o => { o.position.z = zd; });
+      door.position.z = zd; door.position.x = -R.door * 3.6; sw.position.z = zd; lockLed.o.position.z = zd + 0.25; lockLed.set(R.locked); car.position.x = S.x.pos * 20; tg.at([-2.0, 4.3, zd]);
+      hand.visible = R.door > 0.5; hand.position.z = zd - R.hand * k; L.heat(zone.material, R.hit ? 1.4 : 0); tg.set(`S ≥ ${lf(R.S, 0)} mm · D = ${S.P.D} mm`); }; },   /* the hand's tip (its front at z = 0 in the group) reaches the hazard line zh after D */
   msg: (R, S) => { const x = S.x;
     if (x.hit) return `<b>היד הגיעה לאזור הסכנה כשהציר עוד זז.</b> היד צריכה ${LB(lf(R.th * 1000, 0) + ' ms')}, והציר עוצר רק אחרי ${LB('T = ' + lf(R.T * 1000, 0) + ' ms')} (${LB(lf(R.tr * 1000, 0) + ' ms')} תגובה + ${LB(lf(S.P.v / S.P.a * 1000, 0) + ' ms')} בלימה). הרחיקו את הדלת ל-${LB('S ≥ ' + lf(R.S, 0) + ' mm')}, הקטינו את המהירות, או נעלו את הדלת.`;
     if (S.P.lock === 'yes' && x.treq != null) return x.tdoor == null ? '<b>בקשת פתיחה: הדלת נעולה.</b> הבקשה עוצרת את הציר, והנעילה משתחררת רק כשהוא עומד.' : `<b>הדלת נפתחה רק אחרי עצירה מלאה (${LB(lf((R.tstop || 0) * 1000, 0) + ' ms')}).</b> עם נעילה המרחק לא קובע. המחיר: המפעיל מחכה, ומתג הנעילה עצמו חייב להיות בדרגת בטיחות מתאימה.`;

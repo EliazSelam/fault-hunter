@@ -49,7 +49,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |
 | map, zoom, sims | Every asset has a place in the master map and one home in the zoom tree; every window renders; nothing an old page used is unreachable |
 | path, book | The learning path and the course book: every topic in one track and one chapter, cards and calculations, certification |
-| labs | The 25 3D labs: each mounts, runs and frees its WebGL context, and its numbers are recomputed from the textbook formula (241 checks); every topic has an animated or 3D window |
+| labs | The 25 3D labs: each mounts, runs and frees its WebGL context, and its numbers are recomputed from the textbook formula, and every lab is checked on the rendered pixels at desktop and phone size (247 checks); every topic has an animated or 3D window |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 

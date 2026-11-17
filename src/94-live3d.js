@@ -75,14 +75,14 @@ function fh3dStage(THREE, container, label, cam0) {
   const onWheel = e => { if (document.activeElement !== root && !root.contains(document.activeElement)) return; e.preventDefault(); O.dist = Math.max(8, Math.min(60, O.dist * (e.deltaY > 0 ? 1.08 : 0.93))); touch(); };
   const onKey = e => { if (e.target !== root) return; const k = e.key, f = { ArrowLeft: () => O.yaw -= 0.1, ArrowRight: () => O.yaw += 0.1, ArrowUp: () => O.pitch = Math.min(1.4, O.pitch + 0.08), ArrowDown: () => O.pitch = Math.max(-0.1, O.pitch - 0.08), '+': () => O.dist = Math.max(8, O.dist * 0.9), '=': () => O.dist = Math.max(8, O.dist * 0.9), '-': () => O.dist = Math.min(60, O.dist * 1.1) }[k]; if (f) { f(); e.preventDefault(); touch(); } };
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); root.addEventListener('wheel', onWheel, { passive: false }); root.addEventListener('keydown', onKey);
-  const fit = () => { const w = root.clientWidth || 800, h = root.clientHeight || 520; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 1 ? 46 : 32; cam.updateProjectionMatrix(); touch(); };
+  const fitHooks = [], fit = () => { const w = root.clientWidth || 800, h = root.clientHeight || 520; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 1 ? 46 : 32; cam.updateProjectionMatrix(); fitHooks.forEach(f => f(w, h)); touch(); };
   const ro = new ResizeObserver(fit); ro.observe(root); const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) touch(); }); io.observe(root);
   Object.assign(api, { pause() { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } }, resume() { paused = false; last = 0; touch(); }, orbit: () => ({ yaw: O.yaw, pitch: O.pitch, dist: O.dist }), setOrbit(o) { if (o) { Object.assign(O, o); touch(); } },
     renderNow() { step(0); place(); renderer.render(scene, cam); api.frames++; },
     destroy() { if (dead) return; dead = true; FH3D_LIVE.delete(api); if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
       K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (container.contains(root)) container.removeChild(root); } });
   fit(); FH3D_LIVE.add(api);
-  return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, msg, btn, bar, el, touch, api, setLoop(s, b) { step = s; busy = b; } };
+  return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, stats, msg, btn, bar, el, touch, api, cam, O, place, renderer, onFit: f => fitHooks.push(f), setLoop(s, b) { step = s; busy = b; } };
 }
 
 /* ---- the vacuum table: a press, a pump-down, a pressure switch ----

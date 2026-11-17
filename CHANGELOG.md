@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.55.1] — 2026-11-17
+
+The labs on every screen: framed by themselves, readable on a phone.
+
+- **Automatic framing:** each lab's camera target and distance are solved so that everything the lab built (its parts, its labels, and any moving part's travel) fits between the HUD cards and the button bar, at any width. Solved again on resize; a camera the viewer moved stays where it is, and comes back where it was. A parameter that changes the size of the scene (the door's distance in the interlock lab) frames it again.
+- **On a phone:** the HUD cards move under the picture, the button bar scrolls instead of wrapping, labels grow, long labels shrink their font instead of running off their tag, and the stage's height follows the lab (a wide board gets a short stage, the brake's column a tall one).
+- **Scopes and curves are drawn at their real width** and the screen's pixel ratio, so their text stays 14 px on a phone (it was scaled down from a fixed 900 px canvas).
+- Fixed: in the interlock lab the enclosure's front is now the door, at the distance D from the hazard, and the hand's tip reaches the hazard exactly when it has moved D. The fits lab's shaft travels a shorter way.
+- Fixed: the interlock message while the axis is still stopping.
+- Tests: the `labs` suite (247 checks) renders every lab at desktop width and on a phone (390 × 844, pixel ratio 2) and checks the rendered pixels: nothing cut at the stage's edge, nothing under the HUD cards or the bar, canvases at their real width; and that the camera is kept, restored and reframed as described.
+
 ## [2.55.0] — 2026-11-17
 
 Something that moves on every topic: 25 new 3D labs, so that every topic of the machine now has an animated or real-time 3D window.
@@ -12,7 +23,7 @@ Something that moves on every topic: 25 new 3D labs, so that every topic of the 
   - mechanisms and systems: ball screw backlash, ISO fits H7/g6, k6, p6, the servo axis in 3D (same model as the loop), a solenoid valve from the controller output to vacuum with four faults to diagnose, a door interlock against ISO 13855 safety distance and guard locking, registration from two fiducials, a seven-step bring-up, and the line (AOI, buffer and verification: false calls are throughput).
 - **Every number is computed** from the formula the topic teaches, or from the existing models (`stopCalc`, `svSim`/`SV`); illustrative constants are named as such in each lab's note. Fast transients are shown in slow motion and say so.
 - **WebGL contexts are freed:** a stage that leaves the page is destroyed before a new one is made (`FH3D_LIVE`).
-- Tests: a new `labs` suite (241 checks) mounts every lab, runs its actions, round-trips its state, and recomputes every lab's numbers from the textbook formula, independently of the lab's code; it also fails if any topic has no moving window, or if a lab's text uses an English term that is not defined.
+- Tests: a new `labs` suite (241 checks at the time) mounts every lab, runs its actions, round-trips its state, and recomputes every lab's numbers from the textbook formula, independently of the lab's code; it also fails if any topic has no moving window, or if a lab's text uses an English term that is not defined.
 - Nine new terms (rating, PN, Vgs, bleeder, CCM, DCM, override, guard locking, skew). Formulas in the labs are never glossed ("Ns" is not nanoseconds).
 - The model-check output files have neutral names.
 
