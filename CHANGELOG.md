@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.56.0] — 2026-11-17
+
+The older 3D windows and the page itself, on a phone.
+
+- **The vacuum table and the safety chain** are framed like the labs: the camera is solved from what is on the stage (for the chain, the door's swing too), the message is under the picture at every width, and on a phone the cards go under it as well and the stage's height follows the scene. The zoom limits follow the framed distance.
+- **The scan head on a phone:** its cards, button bar, part card and parts list go under the picture, which is left to the head alone. The view is centered (on a wide stage the head sits left of the middle, beside the parts list), and the camera steps back where the stage is too narrow for the head. A part shown by the camera tour is centered too.
+- **More width for a window on a phone:** on a screen up to 520 px the page, the sheet and the window frames give up most of their side margins; a 390 px screen keeps 342 px for a window (it was 294). The drawing frame keeps its border and inner line, without the zone strips.
+- The framing code of the labs is now one helper (`fh3dFit`) that any stage calls.
+- Housekeeping: no file and no message, in any version, names a company. A vendor-prefixed system-font keyword left the CSS font stacks (`system-ui` already covers it, so nothing looks different) and a few notes were reworded; the repository's history was rewritten to match, so a clone made before this version has to be cloned again.
+- Tests: the `labs` suite (250 checks) also renders the vacuum table, the safety chain with its door closed and open, and the scan head (every camera, assembled and exploded) at desktop width and on a phone, and checks the pixels: nothing cut, nothing under a card, the head centered and alone on a phone, a phone window at least 330 px wide.
+
 ## [2.55.1] — 2026-11-17
 
 The labs on every screen: framed by themselves, readable on a phone.

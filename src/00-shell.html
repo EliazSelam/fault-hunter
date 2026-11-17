@@ -75,6 +75,9 @@ nav.sheets button[aria-selected="true"]{background:var(--sheet);border-color:var
 .titleblock div:last-child{border-left:none}
 .titleblock b{display:block;font-size:12px;font-weight:500;color:var(--muted)}
 @media (max-width:640px){.sheet{padding:28px 16px 0}.titleblock{grid-template-columns:repeat(2,minmax(0,1fr));margin:24px -6px 10px}.titleblock div:nth-child(2){border-left:none}}
+/* a phone: the page's frames give their side margins to the content (a 390 px screen keeps 342 px for a window, was 294); the drawing frame
+   keeps its border and its inner line, without the zone strips */
+@media (max-width:520px){.wrap{padding:12px 6px 40px}.sheet{padding:22px 8px 0;border-width:1px}.sheet::before{inset:4px}.zones-top,.zones-side{display:none}.titleblock{margin:24px -4px 10px}.sheet .zwin{padding:8px 8px}}
 
 .sheet h2{margin:0 0 4px;color:var(--ink);font-size:clamp(22px,3vw,30px);line-height:1.2}
 .lead{margin:0 0 20px;max-width:72ch}
@@ -441,6 +444,8 @@ nav.sheets button[hidden]{display:none}
 .lab-host .fh3d-stats{grid-template-columns:repeat(4,auto)}.lab-ctl>.fh3d-stats{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.lab-ctl>.fh3d-stats .fh3d-stat{min-width:0;padding:5px 10px;box-shadow:none;backdrop-filter:none}.lab-ctl>.fh3d-stats .fh3d-stat b{font-size:15px}.lab-host .fh3d-bar button[disabled]{opacity:.7;cursor:default}
 @container (max-width:640px){.fh3dhost.lab-host{height:min(470px,60vh);min-height:280px}.lab-host .fh3d-root{min-height:0}
 .lab-host .fh3d-bar{flex-wrap:nowrap;overflow-x:auto;left:8px;right:8px;bottom:8px;padding:6px 8px;scrollbar-width:none}.lab-host .fh3d-bar button{flex:none;white-space:nowrap;font-size:12px;padding:4px 10px}.lab-sls{grid-template-columns:1fr}.lab-ctl .fh3d-msg.lab-msg{font-size:13px;padding:8px 12px}}
+.fh3dhost.narrow{height:min(115cqw,62vh,480px);min-height:300px}.fh3dhost.narrow .fh3d-root{min-height:0}
+.lab-ctl>.fh3d-bar,.lab-ctl>.fh3d-parts,.lab-ctl>.fh3d-info{position:static;width:auto;max-height:none;box-shadow:none;backdrop-filter:none}.lab-ctl>.fh3d-parts{flex-direction:row;flex-wrap:wrap}.lab-ctl>.fh3d-parts b{flex-basis:100%}.lab-ctl>.fh3d-info[hidden]{display:none}
 .lab-ctl{display:grid;gap:10px}.lab-ctl .fh3d-msg.lab-msg{position:static;width:auto;padding:10px 14px;font-size:14px;line-height:1.6;box-shadow:none;backdrop-filter:none}
 .lab-sls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 16px;align-items:center}.lab-sl{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}.lab-sl input{width:100%;accent-color:#3078B0;min-width:90px}.lab-sl output{font-weight:700;color:#1B2F5A;min-width:76px;text-align:left;font-variant-numeric:tabular-nums}
 .lab-seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}.lab-seg span{margin-inline-end:4px}.lab-seg button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid rgba(27,47,90,.45);background:transparent;color:#1B2F5A;cursor:pointer}.lab-seg button[aria-pressed="true"]{background:#1B2F5A;color:#EEE9E0}.lab-seg button:focus-visible{outline:2px solid #3078B0;outline-offset:2px}

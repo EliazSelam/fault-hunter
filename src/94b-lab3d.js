@@ -94,7 +94,7 @@ function labMount(THREE, host, spec) {
   G.msg.classList.add('lab-msg'); ctl.appendChild(G.msg);
   const S = { P: Object.assign({}, spec.P), t: 0, run: true, x: {}, acc: 0 }; if (spec.init) spec.init(S);
   (spec.stats || []).forEach(([k, t]) => G.stat(k, t));
-  const pre = new Set(G.scene.children), upd = spec.build(G, L, S) || (() => { });
+  const upd = spec.build(G, L, S) || (() => { });
   /* sliders and switches under the picture, actions and pause on the picture */
   /* a parameter that changes the size of the scene frames it again (unless the viewer moved the camera) */
   const refr = ks => { if (spec.reframe && ks.some(k => spec.reframe.includes(k)) && untouched()) { tick(0); autoFrame(); } };
@@ -146,48 +146,10 @@ function labMount(THREE, host, spec) {
     scope: () => sc ? sc.buf.slice() : null, ctl,
     getState: () => ({ v: 1, P: Object.assign({}, S.P), orbit: api.orbit(), user: !untouched() }),
     setState(s) { if (!s) return; if (s.P) api.set(s.P); if (s.user && s.orbit) api.setOrbit(s.orbit); } });   /* a camera the viewer moved comes back; an automatic one is framed again for this size */
-  /* framing: the camera's target and distance are solved so that everything the lab built (its meshes, its labels and the points
-     in spec.frame) fits between the HUD cards and the button bar, at any width. Solved again on resize, unless the viewer moved the camera. */
-  const V3 = THREE.Vector3, tmp = new V3(); let auto = null;
-  const framePts = () => { G.scene.updateMatrixWorld(true); const pts = [], spr = [];
-    G.scene.children.filter(o => !pre.has(o)).forEach(r => r.traverse(o => { if (o.isSprite) { if (o.visible && o.userData.wf) spr.push(o); return; } if (!o.isMesh || o.isInstancedMesh || o.userData.noFrame) return;
-      const gm = o.geometry; if (!gm.boundingBox) gm.computeBoundingBox(); const b = gm.boundingBox; for (let i = 0; i < 8; i++) pts.push(new V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(o.matrixWorld)); }));
-    (typeof spec.frame === 'function' ? spec.frame(S) : spec.frame || []).forEach(p => pts.push(new V3(p[0], p[1], p[2]))); return { pts, spr }; };
-  const bounds = (F, cam) => { const v = new V3(), tf = Math.tan(cam.fov * Math.PI / 360), a = cam.aspect; let x0 = 9, x1 = -9, y0 = 9, y1 = -9; const put = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
-    F.pts.forEach(p => { v.copy(p).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) { put(-9, -9); put(9, 9); } else put(v.x / (z * tf * a), v.y / (z * tf)); });
-    F.spr.forEach(s => { v.copy(s.getWorldPosition(tmp)).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) return; const cx = v.x / (z * tf * a), cy = v.y / (z * tf), dx = s.scale.x * s.userData.wf / 2 / (z * tf * a), dy = s.scale.y * 0.82 / 2 / (z * tf); put(cx - dx, cy - dy); put(cx + dx, cy + dy); });
-    return [x0, x1, y0, y1]; };
-  /* the bands the HUD takes at the top and the bottom, in CSS px (a running opening animation scales the rects: divide it out) */
-  const bands = () => { const r = api.root.getBoundingClientRect(), k = r.width / (api.root.clientWidth || r.width || 1), sb = G.stats.getBoundingClientRect(), bb = G.bar.getBoundingClientRect(), inside = G.stats.parentElement === api.root;
-    return [inside && sb.height ? (sb.bottom - r.top) / k + 8 : 10, bb.height ? (r.bottom - bb.top) / k + 8 : 10]; };
-  const room = () => { const [top, bot] = bands(), W = api.root.clientWidth, H = api.root.clientHeight, side = 12 / W; return [-1 + 2 * side, 1 - 2 * side, -1 + 2 * bot / H, 1 - 2 * top / H]; };
-  /* on a narrow stage (a phone) the HUD cards go under the picture, so the whole stage is left to the lab */
-  const placeStats = () => { const narrow = api.root.clientWidth && api.root.clientWidth <= 640, inside = G.stats.parentElement === api.root; if (narrow && inside) ctl.insertBefore(G.stats, ctl.firstChild); else if (!narrow && !inside) api.root.insertBefore(G.stats, G.bar); };
-  const autoFrame = () => { if (!api.root.clientWidth || !api.root.clientHeight) return; const F = framePts(); if (!F.pts.length) return; const cam = G.cam, O = G.O, [ax0, ax1, ay0, ay1] = room(), Rv = new V3(), Uv = new V3();
-    for (let it = 0; it < 40; it++) { G.place(); cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(F, cam), tf = Math.tan(cam.fov * Math.PI / 360), s = Math.max((x1 - x0) / (ax1 - ax0), (y1 - y0) / (ay1 - ay0)), dx = (x0 + x1 - ax0 - ax1) / 2, dy = (y0 + y1 - ay0 - ay1) / 2;
-      if (Math.abs(s - 1) < 0.003 && Math.abs(dx) < 0.003 && Math.abs(dy) < 0.003) break; Rv.setFromMatrixColumn(cam.matrixWorld, 0); Uv.setFromMatrixColumn(cam.matrixWorld, 1); const kx = dx * O.dist * tf * cam.aspect, ky = dy * O.dist * tf;
-      O.t = [O.t[0] + Rv.x * kx + Uv.x * ky, O.t[1] + Rv.y * kx + Uv.y * ky, O.t[2] + Rv.z * kx + Uv.z * ky]; O.dist = Math.max(4, Math.min(140, O.dist * (it < 30 ? s : Math.max(1, s) * 1.01))); }
-    G.place(); auto = { yaw: O.yaw, pitch: O.pitch, dist: O.dist }; G.touch(); };
-  const untouched = () => !auto || (Math.abs(G.O.yaw - auto.yaw) < 1e-9 && Math.abs(G.O.pitch - auto.pitch) < 1e-9 && Math.abs(G.O.dist - auto.dist) < 1e-9);
-  /* labels grow on a narrow stage (a phone), so their text stays readable when the camera has to move back */
-  const tagScale = () => { const k = Math.max(1, Math.min(1.7, 640 / (api.root.clientWidth || 640))); G.scene.traverse(o => { if (o.isSprite && o.userData.s0) o.scale.set(o.userData.s0[0] * k, o.userData.s0[1] * k, 1); }); };
-  /* on a narrow stage (a phone) a wide lab is limited by the width; the stage's height then follows the content, so there is no empty band.
-     Only while the camera is automatic; at most a few passes per width, so it cannot oscillate. */
-  let fitW = 0, fitN = 0;
-  const fitHeight = () => { const host = api.root.parentElement, W = api.root.clientWidth, H = api.root.clientHeight; if (!W || !H || !host) return; if (W > 640) { if (host.style.height) host.style.height = ''; return; }
-    if (W !== fitW) { fitW = W; fitN = 0; } if (fitN++ > 3) return; G.place(); G.cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(framePts(), G.cam), [top, bot] = bands();
-    /* the content's own aspect (height over width, in pixels) gives the height at which the content fills the width exactly */
-    const asp = ((y1 - y0) * H) / Math.max(1e-6, (x1 - x0) * W), want = Math.round(Math.max(280, Math.min(470, asp * (W - 24) + top + bot + 6))); api.fitInfo = { W, H, asp, want, top, bot, n: fitN, b: [x0, x1, y0, y1] }; if (Math.abs(want - H) > 6) host.style.height = want + 'px'; };
-  G.onFit(() => { placeStats(); tagScale(); if (untouched()) { autoFrame(); fitHeight(); } });
-  /* for the checks: render once without the shadow floor and report where the lab's pixels are, and how many fall under the HUD cards or the bar */
-  api.frameCheck = () => { const hid = []; G.scene.traverse(o => { if (o.material && o.material.isShadowMaterial && o.visible) { o.visible = false; hid.push(o); } }); api.renderNow();
-    const gl = G.renderer.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(w * h * 4); gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px); hid.forEach(o => { o.visible = true; }); api.renderNow();
-    const r = api.root.getBoundingClientRect(), k = w / r.width, rect = e => { const b = e.getBoundingClientRect(); return b.width ? [(b.left - r.left) * k, (b.top - r.top) * k, (b.right - r.left) * k, (b.bottom - r.top) * k] : null; }, sR = rect(G.stats), bR = rect(G.bar);
-    let x0 = w, x1 = -1, y0 = h, y1 = -1, n = 0, inS = 0, inB = 0; const inR = (R, x, y) => R && x >= R[0] && x < R[2] && y >= R[1] && y < R[3];
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (px[(y * w + x) * 4 + 3] < 12) continue; const yy = h - 1 - y; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; if (inR(sR, x, yy)) inS++; if (inR(bR, x, yy)) inB++; }
-    return { w, h, k, n, box: [x0, y0, x1, y1], inS, inB, dist: G.O.dist, auto: !!auto }; };
+  /* framing and the narrow layout: the shared helper (fh3dFit in 94), with the controls as the place under the picture */
+  const FR = fh3dFit(G, { under: ctl, frame: () => typeof spec.frame === 'function' ? spec.frame(S) : spec.frame || [] }), autoFrame = FR.autoFrame, untouched = FR.untouched; api.frameCheck = FR.frameCheck;
   const d0 = api.destroy; api.destroy = () => { cro.disconnect(); d0(); };
-  tick(0); resize(); if (sc) scopeDraw(); placeStats(); tagScale(); autoFrame(); fitHeight(); api.renderNow(); return api;
+  tick(0); resize(); if (sc) scopeDraw(); FR.all(); api.renderNow(); return api;
 }
 
 /* the windows: 3d:<lab id>, on its topic, first among the demonstrations */

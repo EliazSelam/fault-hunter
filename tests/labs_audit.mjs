@@ -64,6 +64,38 @@ ok(PH.under && PH.cols === 2 && PH.wrap === 'nowrap', 'phone: the HUD cards move
 const PB = await ph.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), get = id => [...document.querySelectorAll('.lab-wrap')].map(w => w.parentNode.fh3d).find(x => x && x.lab === id), o = {};
   for (const id of ['resistor', 'brake']) { zOpenWindow(LABS[id].node, '3d:' + id); await wait(1200); const h = get(id); o[id] = h.root.parentElement.clientHeight; } return o; });
 ok(PB.resistor <= 300 && PB.brake >= 440, 'phone: the stage follows the lab: a wide board gets a short stage, a tall column a tall one (' + JSON.stringify(PB) + ')');
+/* ---- v2.56: the older 3D windows (the vacuum table, the safety chain, the scan head) at desktop width and on a phone: drawn whole, nothing over
+   the picture but the button bar, the message and the cards under it on a phone; the page gives a phone window most of the screen's width ---- */
+const OLD3 = async (page, tag) => { const out = [];
+  for (const [node, w] of [['vac', '3d:vacuum'], ['safety', '3d:chain'], ['laserunit', '3d:scanhead']]) {
+    await page.evaluate(([n, w]) => zOpenWindow(n, w), [node, w]);
+    /* the window of this topic, mounted, and the zoom's opening animation over (no scale left on the way up) */
+    await page.waitForFunction(w => { const s = document.querySelector(`#hubpanel .zwin[data-w="${w}"]`), b = s && s.querySelector('.zbody'), r = b && b.fh3d && b.querySelector('.fh3d-root'); return r && Math.abs(b.getBoundingClientRect().width - b.offsetWidth) < 0.5 && Math.abs(r.getBoundingClientRect().width - r.clientWidth) < 0.5; }, w, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(150);
+    const f = await page.evaluate(async w => { const wait = ms => new Promise(r => setTimeout(r, ms)), s = document.querySelector(`#hubpanel .zwin[data-w="${w}"]`), b = s && s.querySelector('.zbody'), h = b && b.fh3d; if (!h || !h.frameCheck) return null;
+      const root = b.querySelector('.fh3d-root'), ctl = b.querySelector('.lab-ctl'), o = { W: Math.round(b.getBoundingClientRect().width), vw: innerWidth, rootW: root.clientWidth, inRoot: [...root.children].filter(e => !/^(STYLE|CANVAS)$/.test(e.tagName)).map(e => e.className.replace('fh3d-card ', '')),
+        under: [...ctl.children].map(e => e.className.replace('fh3d-card ', '')), fc: [h.frameCheck()] };
+      if (w === '3d:chain') { h.event('door'); h.settle(); await wait(50); o.fc.push(h.frameCheck()); h.event('door'); h.settle(); }
+      if (w === '3d:vacuum') { h.set({ small: true }); await wait(50); o.fc.push(h.frameCheck()); h.set({ small: false }); }
+      if (w === '3d:scanhead') { for (const c of ['hero', 'front', 'top']) for (const x of [0, 1]) { h.setCamera(c, true); h.setExplode(x, true); await wait(40); o.fc.push(Object.assign(h.frameCheck(), { c: c + x })); } h.setCamera('hero', true); h.setExplode(0, true);
+        o.state = JSON.stringify(h.getState()); const host = b.querySelector('.fh3dhost'); o.cls = host.className; }
+      return o; }, w);
+    if (!f) { out.push(w + ': not mounted'); continue; } const phone = f.vw <= 520;
+    f.fc.forEach(c => { const m = 4 * c.k, edge = c.box[0] >= m && c.box[1] >= m && c.box[2] <= c.w - 1 - m && c.box[3] <= c.h - 1 - m, mid = Math.abs((c.box[0] + c.box[2]) / 2 - c.w / 2) / c.w, nm = w + (c.c ? ' ' + c.c : '');
+      if (c.n < 2000) out.push(`${nm}: almost nothing drawn (${c.n} px)`);
+      if (w !== '3d:scanhead') { if (!edge) out.push(`${nm}: cut at the edge (${c.box} of ${c.w}×${c.h})`); if (c.inS > 30 || c.inB > 30) out.push(`${nm}: ${c.inS} px under the cards, ${c.inB} under the bar`); }
+      else if (phone) { if (!edge) out.push(`${nm}: cut at the edge on a phone (${c.box} of ${c.w}×${c.h})`); if (mid > 0.08) out.push(`${nm}: not in the middle on a phone (${(mid * 100).toFixed(1)}% off)`); if (c.inS) out.push(`${nm}: ${c.inS} px under a card on a phone`); } });
+    const msgUnder = f.under.some(x => /fh3d-msg/.test(x)), statsUnder = f.under.includes('fh3d-stats');
+    if (w !== '3d:scanhead' && (!msgUnder || f.inRoot.some(x => /fh3d-msg/.test(x)))) out.push(`${w}: the message is not under the picture (${f.inRoot} / ${f.under})`);
+    if (w !== '3d:scanhead' && phone !== statsUnder) out.push(`${w}: the cards are ${statsUnder ? 'under' : 'on'} the picture at ${f.vw}px`);
+    if (w === '3d:scanhead' && phone && (f.inRoot.length || !['fh3d-bar', 'fh3d-stats', 'fh3d-info', 'fh3d-parts'].every(x => f.under.includes(x)) || !/narrow/.test(f.cls))) out.push(`scan head: on a phone the picture is not left to the head (${f.inRoot} / ${f.under} / ${f.cls})`);
+    if (w === '3d:scanhead' && !phone && (f.under.length || f.inRoot.length !== 4)) out.push(`scan head: at desktop width its cards moved (${f.inRoot} / ${f.under})`);
+    if (phone && f.W < 330) out.push(`${w}: a phone window is ${f.W}px of ${f.vw}px`); }
+  ok(out.length === 0, tag + ': ' + out.join('; ')); };
+await OLD3(pg, 'older 3D windows, desktop'); await OLD3(ph, 'older 3D windows, phone');
+/* the scan head on a phone: destroyed, it takes its cards from under the picture too; mounted again without a place under it, it keeps them on the picture */
+const SHD = await ph.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), b = document.querySelector('#hubpanel .zwin[data-w="3d:scanhead"] .zbody'), h = b.fh3d, ctl = b.querySelector('.lab-ctl'), host = b.querySelector('.fh3dhost');
+  h.destroy(); const o = { left: ctl.children.length + host.children.length, cls: host.className }; const h2 = FH3D.mountScanHead(THREE, host, { reducedMotion: true }); await wait(300); o.kept = host.querySelector('.fh3d-root').children.length; o.k = h2.frameCheck().camK; h2.destroy(); return o; });
+ok(SHD.left === 0 && !/narrow/.test(SHD.cls) && SHD.kept === 6 && SHD.k === 1, 'scan head on a phone: destroy takes everything it put under the picture; without a place under it, it keeps its layout (' + JSON.stringify(SHD) + ')');
 await ph.close();
 const LIVE = await ev(() => FH3D_LIVE.size); ok(LIVE <= 2, 'stages that left the page are freed (' + LIVE + ' still alive)'); ok(warns.length === 0, 'WebGL context warnings: ' + warns.slice(0, 2));
 

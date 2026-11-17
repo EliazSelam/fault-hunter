@@ -81,6 +81,8 @@ function fh3dKit(THREE) {
   const tube = (r, y0, y1, wall, axis) => lathe([[r - wall, y0], [r - 0.04, y0], [r, y0 + 0.04], [r, y1 - 0.04], [r - 0.04, y1], [r - wall, y1], [r - wall, y0]], axis);
   return { C, trash, keep, paint, rnd, brushed, knurl, studio, rshape, rbox, lathe, can, tube };
 }
+/* the half-width (as a tangent) the head needs at its camera distances: a narrow stage steps back until its view is this wide */
+const SH_FITW = 0.33, SH_NX = 0.11;
 function fh3dMountScanHead(THREE, container, opts) {
   opts = opts || {}; const reduce = !!opts.reducedMotion, K = fh3dKit(THREE), C = K.C, trash = K.trash, keep = K.keep, V = (a, b, c) => Array.isArray(a) ? new THREE.Vector3(a[0], a[1], a[2]) : new THREE.Vector3(a, b, c);
   /* ---------- DOM ---------- */
@@ -207,7 +209,9 @@ function fh3dMountScanHead(THREE, container, opts) {
   const O = { yaw: -0.5, pitch: 0.2, dist: 50, tx: 0, ty: -4.4, tz: 1.5 }, G = Object.assign({}, O); let camT = 1, camFrom = null, dirty = true, paused = false, visible = true, dead = false, raf = 0, last = 0;
   const ease = k => k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, touch = () => { dirty = true; if (!raf && !paused && !dead) raf = requestAnimationFrame(frame); };
   const goCam = (v, instant) => { Object.assign(G, { yaw: v[0], pitch: v[1], dist: v[2], tx: v[3][0], ty: v[3][1], tz: v[3][2] }); if (instant || reduce) { Object.assign(O, G); camT = 1; } else { camFrom = Object.assign({}, O); camT = 0; } touch(); };
-  const applyCam = () => { const cp = Math.cos(O.pitch); cam.position.set(O.tx + O.dist * cp * Math.sin(O.yaw), O.ty + O.dist * Math.sin(O.pitch), O.tz + O.dist * cp * Math.cos(O.yaw)); cam.lookAt(O.tx, O.ty, O.tz); };
+  /* camK: on a narrow stage the camera steps back by this factor, so the head keeps the width it has on a wide one */
+  let camK = 1, narrow = false;
+  const applyCam = () => { const cp = Math.cos(O.pitch), d = O.dist * camK; cam.position.set(O.tx + d * cp * Math.sin(O.yaw), O.ty + d * Math.sin(O.pitch), O.tz + d * cp * Math.cos(O.yaw)); cam.lookAt(O.tx, O.ty, O.tz); };
   const applyExplode = () => { const k = ease(S.explode); moves.forEach(([g, v]) => g.position.set(v.x * k, v.y * k, v.z * k)); beam.visible = S.beam && S.explode < 0.02; };
   const qy = new THREE.Quaternion(), qx = new THREE.Quaternion(), AX = V(1, 0, 0), trail = [];
   const applyBeam = () => { const T = shTrace(S.a1, S.a2); spin1.quaternion.copy(qy.setFromAxisAngle(UP, S.a1 * Math.PI / 180)); spin2.quaternion.copy(qx.setFromAxisAngle(AX, S.a2 * Math.PI / 180));
@@ -250,7 +254,12 @@ function fh3dMountScanHead(THREE, container, opts) {
   const onWheel = e => { if (document.activeElement !== root && !root.contains(document.activeElement)) return; e.preventDefault(); free(); O.dist = Math.max(12, Math.min(90, O.dist * (e.deltaY > 0 ? 1.08 : 0.93))); sync(); touch(); };
   const onKey = e => { if (e.target !== root) return; const k = e.key; let used = true; if (k === 'ArrowLeft') { free(); O.yaw -= 0.1; } else if (k === 'ArrowRight') { free(); O.yaw += 0.1; } else if (k === 'ArrowUp') { free(); O.pitch = Math.min(1.45, O.pitch + 0.08); } else if (k === 'ArrowDown') { free(); O.pitch = Math.max(-0.3, O.pitch - 0.08); } else if (k === '+' || k === '=') { free(); O.dist = Math.max(12, O.dist * 0.9); } else if (k === '-') { free(); O.dist = Math.min(90, O.dist * 1.1); } else if (k === 'Escape') api.select(null); else used = false; if (used) { e.preventDefault(); sync(); touch(); } };
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); cv.addEventListener('pointerleave', onLeave); root.addEventListener('wheel', onWheel, { passive: false }); root.addEventListener('keydown', onKey);
-  const fit = () => { const w = root.clientWidth || 800, h = root.clientHeight || 520; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 1 ? 46 : 32; cam.updateProjectionMatrix(); touch(); };
+  /* on a narrow stage (a phone, ≤ 640 px) the cards, the bar and the parts list go under the picture (opts.under), so the picture is left to the head */
+  const under = opts.under, layout = () => { const n = !!under && root.clientWidth > 0 && root.clientWidth <= 640; if (n === narrow) return; narrow = n; container.classList.toggle('narrow', n); (n ? [bar, stats, info, pbox] : [stats, info, bar, pbox]).forEach(e => (n ? under : root).appendChild(e)); };
+  const fit = () => { layout(); const w = root.clientWidth || 800, h = root.clientHeight || 520; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 1 ? 46 : 32; cam.updateProjectionMatrix();
+    camK = narrow ? Math.max(1, Math.min(2.4, SH_FITW / (Math.tan(cam.fov * Math.PI / 360) * cam.aspect))) : 1;
+    /* the wide stage keeps the head left of the middle, beside the parts list; a narrow one has the list under the picture, so the view shifts to center it */
+    if (narrow) cam.setViewOffset(w, h, -SH_NX * w, 0, w, h); else cam.clearViewOffset(); touch(); };
   const ro = new ResizeObserver(fit); ro.observe(root); const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) touch(); }); io.observe(root);
   const watch = setInterval(() => { if (!root.isConnected) api.destroy(); }, 1500);
   /* ---------- the handle ---------- */
@@ -258,15 +267,20 @@ function fh3dMountScanHead(THREE, container, opts) {
     setExplode(t, instant) { S.explodeTo = Math.max(0, Math.min(1, +t || 0)); if (instant || reduce) S.explode = S.explodeTo; sync(); touch(); }, getExplode: () => S.explodeTo,
     setBeam(on) { S.beam = !!on; if (!S.beam) { trail.length = 0; } sync(); touch(); },
     setCamera(name, instant) { if (!CAMS[name]) return; S.camera = name; goCam(CAMS[name], instant); sync(); },
-    select(id) { S.selected = parts[id] ? id : null; setHull('sel', S.selected); dim(); if (S.selected && S.tour >= 0) { const b = new THREE.Box3().setFromObject(parts[id]), c = b.getCenter(V(0, 0, 0)); goCam([O.yaw + 0.5, 0.3, 26, [c.x, c.y, c.z]]); } sync(); touch(); if (opts.onSelect) opts.onSelect(S.selected); },
+    select(id) { S.selected = parts[id] ? id : null; setHull('sel', S.selected); dim(); if (S.selected && S.tour >= 0) { const b = new THREE.Box3().setFromObject(parts[id]), c = b.getCenter(V(0, 0, 0)), y = O.yaw + 0.5, sh = narrow ? SH_NX * 2 * Math.tan(cam.fov * Math.PI / 360) * cam.aspect * 26 * camK : 0; goCam([y, 0.3, 26, [c.x + Math.cos(y) * sh, c.y, c.z - Math.sin(y) * sh]]); }   /* on a narrow stage the target moves by the view's shift, so the part is in the middle */ sync(); touch(); if (opts.onSelect) opts.onSelect(S.selected); },
     highlight(id) { id = parts[id] ? id : null; if (id === S.hover) return; S.hover = id; setHull('hover', id === S.selected ? null : id); touch(); if (opts.onHover) opts.onHover(id); },
     getState: () => ({ v: 1, explode: S.explodeTo, beam: S.beam, camera: S.camera, selected: S.selected, orbit: { yaw: G.yaw, pitch: G.pitch, dist: G.dist }, speed: S.speed }),
     setState(s) { if (!s) return; if (s.speed) S.speed = s.speed === 5 ? 5 : 1; if (s.explode != null) api.setExplode(s.explode, true); if (s.beam != null) api.setBeam(s.beam); if (s.camera && CAMS[s.camera]) api.setCamera(s.camera, true); else if (s.orbit) { S.camera = null; Object.assign(G, s.orbit); Object.assign(O, G); camT = 1; } if ('selected' in s) api.select(s.selected); sync(); touch(); },
     pause() { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } }, resume() { paused = false; last = 0; touch(); }, resize: fit, trace: () => shTrace(S.a1, S.a2), angles: (a, b) => { S.a1 = a; S.a2 = b; touch(); },
     renderNow() { applyExplode(); const T = applyBeam(); hud(T); applyCam(); renderer.render(scene, cam); },
+    frameCheck() { const hid = []; scene.traverse(o => { if (o.material && o.material.isShadowMaterial && o.visible) { o.visible = false; hid.push(o); } }); api.renderNow();
+      const gl = renderer.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(w * h * 4); gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px); hid.forEach(o => { o.visible = true; }); api.renderNow();
+      const r = root.getBoundingClientRect(), k = w / r.width, R = [stats, info, bar, pbox].filter(e => e.parentElement === root && !e.hidden).map(e => { const b = e.getBoundingClientRect(); return [(b.left - r.left) * k, (b.top - r.top) * k, (b.right - r.left) * k, (b.bottom - r.top) * k]; });
+      let x0 = w, x1 = -1, y0 = h, y1 = -1, n = 0, inS = 0; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (px[(y * w + x) * 4 + 3] < 12) continue; const yy = h - 1 - y; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; if (R.some(q => x >= q[0] && x < q[2] && yy >= q[1] && yy < q[3])) inS++; }
+      return { w, h, k, n, box: [x0, y0, x1, y1], inS, camK, narrow }; },
     destroy() { if (dead) return; dead = true; if (raf) cancelAnimationFrame(raf); clearInterval(watch); ro.disconnect(); io.disconnect();
       cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointerleave', onLeave); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
-      trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (container.contains(root)) container.removeChild(root); } };
+      trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); [stats, info, bar, pbox].forEach(e => e.remove()); container.classList.remove('narrow'); if (container.contains(root)) container.removeChild(root); } };
   /* ---------- start ---------- */
   fit(); Object.assign(O, { yaw: CAMS.hero[0], pitch: CAMS.hero[1], dist: CAMS.hero[2] }); Object.assign(G, O); dim(); sync();
   if (opts.initialState) api.setState(opts.initialState); else if (reduce) { S.explode = S.explodeTo = 0; }
@@ -276,9 +290,9 @@ window.FH3D = { mountScanHead: fh3dMountScanHead, software: false };
 
 /* ---- the window: the laser unit's object at the showcase level ---- */
 function fh3dWindow(el) {
-  el.innerHTML = `<div class="fh3dhost"></div><p class="note">ראש הסריקה מכוון את הקרן בלי להזיז את הפאנל: שתי מראות קטנות מסיטות אותה, ועדשה אחת ממקדת אותה על המישור. לחצו על חלק כדי לקרוא עליו, הזיזו את "פירוק" כדי לראות מה בפנים, והדליקו את הקרן כדי לעקוב אחרי האור. המספרים הם דוגמה ללימוד, מחושבים מאותו מודל לייזר של שאר החלונות, ולא מפרט של יצרן.</p>`;
+  el.innerHTML = `<div class="lab-wrap"><div class="fh3dhost"></div><div class="lab-ctl nogl"></div></div><p class="note">ראש הסריקה מכוון את הקרן בלי להזיז את הפאנל: שתי מראות קטנות מסיטות אותה, ועדשה אחת ממקדת אותה על המישור. לחצו על חלק כדי לקרוא עליו, הזיזו את "פירוק" כדי לראות מה בפנים, והדליקו את הקרן כדי לעקוב אחרי האור. המספרים הם דוגמה ללימוד, מחושבים מאותו מודל לייזר של שאר החלונות, ולא מפרט של יצרן.</p>`;
   const host = el.querySelector('.fh3dhost'); if (typeof THREE === 'undefined') { host.innerHTML = '<p class="note">ספריית התלת-ממד לא נטענה.</p>'; return null; }
-  const h = FH3D.mountScanHead(THREE, host, { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, lang: 'he' }); el.fh3d = h; if (!h) return null;
+  const h = FH3D.mountScanHead(THREE, host, { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, lang: 'he', under: el.querySelector('.lab-ctl') }); el.fh3d = h; if (!h) return null;
   return { getState: () => h.getState(), setState: s => h.setState(s), pause: () => h.pause(), resume: () => h.resume(), destroy: () => h.destroy() };
 }
 WIN.add({ id: 'fh3d', test: w => w === '3d:scanhead', info: () => ({ kind: 'sim', t: 'ראש הסריקה של הלייזר בתלת-ממד: פירוק, קרן ומסלול האור' }), mount: (w, el) => fh3dWindow(el), ctx: () => 'AOS' });

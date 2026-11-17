@@ -64,7 +64,7 @@ function fh3dStage(THREE, container, label, cam0) {
   const bar = el('div', 'fh3d-card fh3d-bar'); root.appendChild(bar);
   const btn = (t, fn, pressed) => { const b = el('button', '', t); b.type = 'button'; if (pressed != null) b.setAttribute('aria-pressed', pressed); b.addEventListener('click', () => fn(b)); bar.appendChild(b); return b; };
   /* orbit */
-  const O = Object.assign({}, cam0); let dirty = true, raf = 0, last = 0, paused = false, visible = true, dead = false, busy = () => false, step = () => { };
+  const O = Object.assign({}, cam0), lim = { min: 8, max: 60 }; let dirty = true, raf = 0, last = 0, paused = false, visible = true, dead = false, busy = () => false, step = () => { };
   const touch = () => { dirty = true; if (!raf && !paused && !dead) raf = requestAnimationFrame(frame); };
   const place = () => { const cp = Math.cos(O.pitch); cam.position.set(O.t[0] + O.dist * cp * Math.sin(O.yaw), O.t[1] + O.dist * Math.sin(O.pitch), O.t[2] + O.dist * cp * Math.cos(O.yaw)); cam.lookAt(O.t[0], O.t[1], O.t[2]); };
   const api = { frames: 0, root };
@@ -72,8 +72,8 @@ function fh3dStage(THREE, container, label, cam0) {
     step(dt); place(); renderer.render(scene, cam); api.frames++; dirty = false; if (busy() || drag) raf = requestAnimationFrame(frame); else last = 0; }
   let drag = null;
   const onDown = e => { drag = { x: e.clientX, y: e.clientY }; cv.setPointerCapture(e.pointerId); touch(); }, onMove = e => { if (!drag) return; O.yaw -= (e.clientX - drag.x) * 0.006; O.pitch = Math.max(-0.1, Math.min(1.4, O.pitch + (e.clientY - drag.y) * 0.005)); drag.x = e.clientX; drag.y = e.clientY; touch(); }, onUp = () => { drag = null; };
-  const onWheel = e => { if (document.activeElement !== root && !root.contains(document.activeElement)) return; e.preventDefault(); O.dist = Math.max(8, Math.min(60, O.dist * (e.deltaY > 0 ? 1.08 : 0.93))); touch(); };
-  const onKey = e => { if (e.target !== root) return; const k = e.key, f = { ArrowLeft: () => O.yaw -= 0.1, ArrowRight: () => O.yaw += 0.1, ArrowUp: () => O.pitch = Math.min(1.4, O.pitch + 0.08), ArrowDown: () => O.pitch = Math.max(-0.1, O.pitch - 0.08), '+': () => O.dist = Math.max(8, O.dist * 0.9), '=': () => O.dist = Math.max(8, O.dist * 0.9), '-': () => O.dist = Math.min(60, O.dist * 1.1) }[k]; if (f) { f(); e.preventDefault(); touch(); } };
+  const onWheel = e => { if (document.activeElement !== root && !root.contains(document.activeElement)) return; e.preventDefault(); O.dist = Math.max(lim.min, Math.min(lim.max, O.dist * (e.deltaY > 0 ? 1.08 : 0.93))); touch(); };
+  const onKey = e => { if (e.target !== root) return; const k = e.key, f = { ArrowLeft: () => O.yaw -= 0.1, ArrowRight: () => O.yaw += 0.1, ArrowUp: () => O.pitch = Math.min(1.4, O.pitch + 0.08), ArrowDown: () => O.pitch = Math.max(-0.1, O.pitch - 0.08), '+': () => O.dist = Math.max(lim.min, O.dist * 0.9), '=': () => O.dist = Math.max(lim.min, O.dist * 0.9), '-': () => O.dist = Math.min(lim.max, O.dist * 1.1) }[k]; if (f) { f(); e.preventDefault(); touch(); } };
   cv.addEventListener('pointerdown', onDown); cv.addEventListener('pointermove', onMove); cv.addEventListener('pointerup', onUp); root.addEventListener('wheel', onWheel, { passive: false }); root.addEventListener('keydown', onKey);
   const fitHooks = [], fit = () => { const w = root.clientWidth || 800, h = root.clientHeight || 520; renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = w / h < 1 ? 46 : 32; cam.updateProjectionMatrix(); fitHooks.forEach(f => f(w, h)); touch(); };
   const ro = new ResizeObserver(fit); ro.observe(root); const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) touch(); }); io.observe(root);
@@ -82,7 +82,53 @@ function fh3dStage(THREE, container, label, cam0) {
     destroy() { if (dead) return; dead = true; FH3D_LIVE.delete(api); if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
       K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (container.contains(root)) container.removeChild(root); } });
   fit(); FH3D_LIVE.add(api);
-  return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, stats, msg, btn, bar, el, touch, api, cam, O, place, renderer, onFit: f => fitHooks.push(f), setLoop(s, b) { step = s; busy = b; } };
+  return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, stats, msg, btn, bar, el, touch, api, cam, O, lim, place, renderer, base: new Set(scene.children), onFit: f => fitHooks.push(f), setLoop(s, b) { step = s; busy = b; } };
+}
+
+/* ---- framing and the narrow layout, for any stage (v2.56; written for the labs in v2.55.1) ----
+   The camera's target and distance are solved so that what was built on the stage (its meshes, its labels, and o.frame: points or a
+   function returning points, for a moving part's travel) fits between the HUD cards and the button bar, at any width; solved again on
+   resize unless the viewer moved the camera. o.under is the place under the picture: the message goes there at every width (o.msgUnder),
+   the HUD cards on a narrow stage (≤ 640 px), where labels also grow and the stage's height follows the content. */
+function fh3dFit(G, o) {
+  o = o || {}; const api = G.api, V3 = G.THREE.Vector3, tmp = new V3(), under = o.under; let auto = null, fitW = 0, fitN = 0;
+  if (under && o.msgUnder) { G.msg.classList.add('lab-msg'); under.insertBefore(G.msg, under.firstChild); }
+  const framePts = () => { G.scene.updateMatrixWorld(true); const pts = [], spr = [];
+    G.scene.children.filter(c => !G.base.has(c)).forEach(r => r.traverse(c => { if (c.isSprite) { if (c.visible && c.userData.wf) spr.push(c); return; } if (!c.isMesh || c.isInstancedMesh || c.userData.noFrame) return;
+      const gm = c.geometry; if (!gm.boundingBox) gm.computeBoundingBox(); const b = gm.boundingBox; for (let i = 0; i < 8; i++) pts.push(new V3(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).applyMatrix4(c.matrixWorld)); }));
+    (typeof o.frame === 'function' ? o.frame() : o.frame || []).forEach(p => pts.push(new V3(p[0], p[1], p[2]))); return { pts, spr }; };
+  const bounds = (F, cam) => { const v = new V3(), tf = Math.tan(cam.fov * Math.PI / 360), a = cam.aspect; let x0 = 9, x1 = -9, y0 = 9, y1 = -9; const put = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
+    F.pts.forEach(p => { v.copy(p).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) { put(-9, -9); put(9, 9); } else put(v.x / (z * tf * a), v.y / (z * tf)); });
+    F.spr.forEach(s => { v.copy(s.getWorldPosition(tmp)).applyMatrix4(cam.matrixWorldInverse); const z = -v.z; if (z < 0.05) return; const cx = v.x / (z * tf * a), cy = v.y / (z * tf), dx = s.scale.x * s.userData.wf / 2 / (z * tf * a), dy = s.scale.y * 0.82 / 2 / (z * tf); put(cx - dx, cy - dy); put(cx + dx, cy + dy); });
+    return [x0, x1, y0, y1]; };
+  /* the bands the HUD takes at the top and the bottom, in CSS px (a running opening animation scales the rects: divide it out) */
+  const bands = () => { const r = api.root.getBoundingClientRect(), k = r.width / (api.root.clientWidth || r.width || 1), sb = G.stats.getBoundingClientRect(), bb = G.bar.getBoundingClientRect(), inside = G.stats.parentElement === api.root, mi = G.msg.parentElement === api.root ? G.msg.getBoundingClientRect() : null;
+    const top = Math.max(inside && sb.height ? (sb.bottom - r.top) / k + 8 : 10, mi && mi.height ? (mi.bottom - r.top) / k + 8 : 10); return [top, bb.height ? (r.bottom - bb.top) / k + 8 : 10]; };
+  const room = () => { const [top, bot] = bands(), W = api.root.clientWidth, H = api.root.clientHeight, side = 12 / W; return [-1 + 2 * side, 1 - 2 * side, -1 + 2 * bot / H, 1 - 2 * top / H]; };
+  const narrow = () => api.root.clientWidth && api.root.clientWidth <= 640;
+  const placeStats = () => { if (!under) return; const inside = G.stats.parentElement === api.root; if (narrow() && inside) under.insertBefore(G.stats, under.firstChild); else if (!narrow() && !inside) api.root.insertBefore(G.stats, G.bar); };
+  const autoFrame = () => { if (!api.root.clientWidth || !api.root.clientHeight) return; const F = framePts(); if (!F.pts.length) return; const cam = G.cam, O = G.O, [ax0, ax1, ay0, ay1] = room(), Rv = new V3(), Uv = new V3();
+    for (let it = 0; it < 40; it++) { G.place(); cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(F, cam), tf = Math.tan(cam.fov * Math.PI / 360), s = Math.max((x1 - x0) / (ax1 - ax0), (y1 - y0) / (ay1 - ay0)), dx = (x0 + x1 - ax0 - ax1) / 2, dy = (y0 + y1 - ay0 - ay1) / 2;
+      if (Math.abs(s - 1) < 0.003 && Math.abs(dx) < 0.003 && Math.abs(dy) < 0.003) break; Rv.setFromMatrixColumn(cam.matrixWorld, 0); Uv.setFromMatrixColumn(cam.matrixWorld, 1); const kx = dx * O.dist * tf * cam.aspect, ky = dy * O.dist * tf;
+      O.t = [O.t[0] + Rv.x * kx + Uv.x * ky, O.t[1] + Rv.y * kx + Uv.y * ky, O.t[2] + Rv.z * kx + Uv.z * ky]; O.dist = Math.max(4, Math.min(140, O.dist * (it < 30 ? s : Math.max(1, s) * 1.01))); }
+    G.place(); auto = { yaw: G.O.yaw, pitch: G.O.pitch, dist: G.O.dist }; G.lim.max = Math.max(60, G.O.dist * 1.8); G.lim.min = Math.min(8, G.O.dist * 0.35); G.touch(); };
+  const untouched = () => !auto || (Math.abs(G.O.yaw - auto.yaw) < 1e-9 && Math.abs(G.O.pitch - auto.pitch) < 1e-9 && Math.abs(G.O.dist - auto.dist) < 1e-9);
+  /* labels grow on a narrow stage, so their text stays readable when the camera has to move back */
+  const tagScale = () => { const k = Math.max(1, Math.min(1.7, 640 / (api.root.clientWidth || 640))); G.scene.traverse(c => { if (c.isSprite && c.userData.s0) c.scale.set(c.userData.s0[0] * k, c.userData.s0[1] * k, 1); }); };
+  /* on a narrow stage a wide scene is limited by the width; the stage's height then follows the content's own aspect (only while the
+     camera is automatic, and only a few passes per width, so it cannot oscillate) */
+  const fitHeight = () => { const host = api.root.parentElement, W = api.root.clientWidth, H = api.root.clientHeight; if (!W || !H || !host || !under) return; if (W > 640) { if (host.style.height) host.style.height = ''; return; }
+    if (W !== fitW) { fitW = W; fitN = 0; } if (fitN++ > 3) return; G.place(); G.cam.updateMatrixWorld(true); const [x0, x1, y0, y1] = bounds(framePts(), G.cam), [top, bot] = bands();
+    const asp = ((y1 - y0) * H) / Math.max(1e-6, (x1 - x0) * W), want = Math.round(Math.max(280, Math.min(o.hMax || 470, asp * (W - 24) + top + bot + 6))); api.fitInfo = { W, H, asp, want, top, bot, n: fitN, b: [x0, x1, y0, y1] }; if (Math.abs(want - H) > 6) host.style.height = want + 'px'; };
+  G.onFit(() => { placeStats(); tagScale(); if (untouched()) { autoFrame(); fitHeight(); } });
+  /* for the checks: render once without the shadow floor and report where the pixels are, and how many fall under the HUD cards or the bar */
+  const frameCheck = () => { const hid = []; G.scene.traverse(c => { if (c.material && c.material.isShadowMaterial && c.visible) { c.visible = false; hid.push(c); } }); api.renderNow();
+    const gl = G.renderer.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(w * h * 4); gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px); hid.forEach(c => { c.visible = true; }); api.renderNow();
+    const r = api.root.getBoundingClientRect(), k = w / r.width, rect = e => { if (e.parentElement !== api.root) return null; const b = e.getBoundingClientRect(); return b.width ? [(b.left - r.left) * k, (b.top - r.top) * k, (b.right - r.left) * k, (b.bottom - r.top) * k] : null; }, sR = rect(G.stats), bR = rect(G.bar), mR = rect(G.msg);
+    let x0 = w, x1 = -1, y0 = h, y1 = -1, n = 0, inS = 0, inB = 0; const inR = (R, x, y) => R && x >= R[0] && x < R[2] && y >= R[1] && y < R[3];
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { if (px[(y * w + x) * 4 + 3] < 12) continue; const yy = h - 1 - y; n++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (yy < y0) y0 = yy; if (yy > y1) y1 = yy; if (inR(sR, x, yy) || inR(mR, x, yy)) inS++; if (inR(bR, x, yy)) inB++; }
+    return { w, h, k, n, box: [x0, y0, x1, y1], inS, inB, dist: G.O.dist, auto: !!auto }; };
+  return { autoFrame, untouched, frameCheck, all() { placeStats(); tagScale(); autoFrame(); fitHeight(); } };
 }
 
 /* ---- the vacuum table: a press, a pump-down, a pressure switch ----
@@ -102,7 +148,7 @@ function fh3dMountVacuum(THREE, container, opts) {
   /* the panel: a thin board with traces; its bow is drawn exaggerated */
   const ptex = K.paint(512, 340, (g, w, h) => { g.fillStyle = '#1B2F5A'; g.fillRect(0, 0, w, h); g.strokeStyle = '#7B5A3C'; g.lineWidth = 5; for (let i = 0; i < 14; i++) { g.beginPath(); g.moveTo(10, 20 + i * 23); g.lineTo(w * 0.4, 20 + i * 23); g.lineTo(w * 0.55, 32 + i * 23); g.lineTo(w - 10, 32 + i * 23); g.stroke(); } }); ptex.colorSpace = T3.SRGBColorSpace;
   const pgeo = (w) => K.keep(new T3.BoxGeometry(w, 0.12, 7.4, 24, 1, 16)), panelMat = K.keep(new T3.MeshPhysicalMaterial({ map: ptex, roughness: 0.5, clearcoat: 0.6 }));
-  const panel = add(pgeo(11.6), panelMat, [0, 2, 0]); const base = Float32Array.from(panel.geometry.attributes.position.array);
+  const panel = add(pgeo(11.6), panelMat, [0, 2.07, 0]); const base = Float32Array.from(panel.geometry.attributes.position.array);
   /* under the table: a riser and a zone valve per zone, all to a collector, then to the venturi's throat */
   const zoneLed = VAC3.z.map(([x, z]) => { pipe([x, -0.8, z], [x, -1.9, z], 0.16, mat.alu); add(box(0.6, 0.45, 0.45, 0.06), mat.navy, [x, -1.4, z]); add(K.can(0.2, -0.22, 0.22, 0.04), mat.brown, [x, -1.4, z + 0.42]).rotation.x = Math.PI / 2; const l = add(K.keep(new T3.SphereGeometry(0.08, 12, 8)), led(C.light), [x + 0.33, -1.25, z]); pipe([x, -1.9, z], [0, -2.3, 0], 0.13, mat.alu); return l; });
   pipe([0, -2.3, 0], [8.6, -2.3, 0], 0.2, mat.alu);
@@ -159,9 +205,10 @@ function fh3dMountVacuum(THREE, container, opts) {
     /* for checks: jump to a time of the pump-down */
     seek(t) { vc = vac3Calc(S.small, S.recipe); S.phase = 'pump'; S.lower = 1; S.t = t; api.renderNow(); return api.state(); },
     state: () => { const p = pNow(); return { phase: S.phase, small: S.small, recipe: S.recipe, t: S.t, p, dp: VT.patm - p, ok: S.phase === 'pump' && p <= VT.patm - VT.th, pss: vc.pss, tth: vc.tth, tau: vc.tau, reach: vc.reach, open: vc.open, F: (VT.patm - p) * vc.A, flow: suck.P.geometry.attributes.position.array.filter((v, i) => i % 3 === 1 && v > -50).length, msg: msg.textContent, alarm: msg.classList.contains('alarm') }; },
-    getState: () => ({ v: 1, small: S.small, recipe: S.recipe, orbit: api.orbit() }),
-    setState(s) { if (!s) return; api.set({ small: !!s.small, recipe: s.recipe }); api.setOrbit(s.orbit); } });
-  sync(); api.renderNow(); return api;
+    getState: () => ({ v: 1, small: S.small, recipe: S.recipe, orbit: api.orbit(), user: !FR.untouched() }),
+    setState(s) { if (!s) return; api.set({ small: !!s.small, recipe: s.recipe }); if (s.user && s.orbit) api.setOrbit(s.orbit); } });
+  const FR = fh3dFit(G, { under: opts.under, msgUnder: true }); api.frameCheck = FR.frameCheck;
+  sync(); hud(); FR.all(); api.renderNow(); return api;
 }
 
 /* ---- the safety chain: a door, an emergency stop, a safety relay, a drive and its motor ---- */
@@ -208,8 +255,10 @@ function fh3dMountChain(THREE, container, opts) {
     () => Math.abs(door - (S.door ? 0 : 1)) > 0.002 || Math.abs(press - (S.estop ? 1 : 0)) > 0.002 || w > 0 || S.on || S.fault || chainAB(S).A || chainAB(S).B);
   Object.assign(api, { event: e => { ev(e); return api.state(); }, state: () => Object.assign({}, S, chainAB(S), { speed: w, alarm: msg.classList.contains('alarm'), msgText: msg.textContent }),
     settle() { for (let i = 0; i < 400; i++) { door = S.door ? 0 : 1; press = S.estop ? 1 : 0; w = S.on ? 1 : 0; } api.renderNow(); return api.state(); },
-    getState: () => ({ v: 1, logic: S, orbit: api.orbit() }), setState(s) { if (!s) return; if (s.logic) S = Object.assign({}, CHAIN0, s.logic); api.setOrbit(s.orbit); sync(); touch(); } });
-  sync(); api.renderNow(); return api;
+    getState: () => ({ v: 1, logic: S, orbit: api.orbit(), user: !FR.untouched() }), setState(s) { if (!s) return; if (s.logic) S = Object.assign({}, CHAIN0, s.logic); if (s.user && s.orbit) api.setOrbit(s.orbit); sync(); touch(); } });
+  /* the frame holds the door open too: it swings out toward the viewer (its far edge at the end and half way) */
+  const FR = fh3dFit(G, { under: opts.under, msgUnder: true, frame: [[-5.6, -0.9, 4.8], [-5.6, 3.9, 4.8], [-3.1, -0.9, 3.1], [-3.1, 3.9, 3.1]] }); api.frameCheck = FR.frameCheck;
+  sync(); hud(); FR.all(); api.renderNow(); return api;
 }
 Object.assign(FH3D, { vacuum: fh3dMountVacuum, chain: fh3dMountChain });
 
@@ -217,8 +266,8 @@ Object.assign(FH3D, { vacuum: fh3dMountVacuum, chain: fh3dMountChain });
 const LIVE3D = { '3d:vacuum': ['vac', 'שולחן הוואקום בתלת-ממד: לוחצים, שואבים, והמתג מחליט', 'vacuum', 'הפאנל הוא המכסה של מערכת הוואקום. השסתום פותח אוויר דחוס לוונטורי, הצוואר הצר שלו יונק את האזורים מתחת לפאנל, ומתג הלחץ מאשר לבקר להמשיך רק כשהלחץ עבר את הסף. נסו פאנל קטן עם כל האזורים פתוחים: הלחץ מתייצב מעל הסף, והמכונה מחכה. המספרים מאותו מודל שאיבה של הנושא; הדליפה של אזור פתוח היא ערך להמחשה.'],
   '3d:chain': ['safety', 'שרשרת הבטיחות בתלת-ממד: דלת, עצירת חירום, ממסר ודרייבר', 'chain', 'שני ערוצים נפרדים עוברים דרך מתג הדלת ודרך עצירת החירום. ממסר הבטיחות מנתק כשאחד מהם נפתח, ומתחיל מחדש רק ב-Reset, כששניהם סגורים ושניהם נפתחו מאז ההתחלה הקודמת. הדליקו את התקלה "מגע מרותך", פתחו וסגרו את הדלת, ולחצו Reset.'] };
 WIN.add({ id: 'live3d', test: w => !!LIVE3D[w], info: w => ({ kind: 'sim', t: LIVE3D[w][1] }), ctx: () => 'SHARED',
-  mount: (w, el) => { const [, , fn, note] = LIVE3D[w]; el.innerHTML = `<div class="fh3dhost"></div><p class="note">${note}</p>`; const host = el.querySelector('.fh3dhost');
+  mount: (w, el) => { const [, , fn, note] = LIVE3D[w]; el.innerHTML = `<div class="lab-wrap"><div class="fh3dhost lab-host"></div><div class="lab-ctl nogl"></div></div><p class="note">${note}</p>`; const wrap = el.querySelector('.lab-wrap'), host = wrap.querySelector('.fh3dhost');
     if (typeof THREE === 'undefined') { host.innerHTML = '<p class="note">ספריית התלת-ממד לא נטענה.</p>'; return null; }
-    const h = FH3D[fn](THREE, host, { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches }); el.fh3d = h; if (!h) return null;
+    const h = FH3D[fn](THREE, host, { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, under: wrap.querySelector('.lab-ctl') }); el.fh3d = wrap.fh3d = h; if (!h) return null;
     return { getState: () => h.getState(), setState: s => h.setState(s), pause: () => h.pause(), resume: () => h.resume(), destroy: () => h.destroy() }; } });
 Object.entries(LIVE3D).forEach(([w, [node]]) => { const n = zNode(node); if (n && !n.around.includes(w)) n.around.unshift(w); });
