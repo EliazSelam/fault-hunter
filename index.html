@@ -437,6 +437,11 @@ nav.sheets button[hidden]{display:none}
 .ssbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 0}.ssbar button,.ssexp button,.ssv button{font:inherit;font-size:14px;padding:6px 14px;border:1px solid var(--ink);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.ssbar [data-ss="start"]{background:var(--ink);color:var(--sheet);font-weight:700}.ssbar [aria-pressed="true"],.ssv [aria-pressed="true"]{background:var(--live);color:#fff;border-color:var(--live)}.ssbar button:disabled{opacity:.45;cursor:not-allowed}.ssnote{font-size:12px;color:var(--muted)}.sspre button{font-size:12px;padding:4px 12px;border-color:var(--line)}
 .sslist h4{margin:12px 0 6px}.sscase{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;border-bottom:1px solid var(--line);padding:6px 0;font-size:14px}.sspos{direction:ltr;color:var(--muted);font-size:12px}.ssv{margin-inline-start:auto;display:inline-flex;gap:6px}.ssv button{font-size:12px;padding:3px 10px}.ssroute{flex-basis:100%;color:var(--live);font-weight:600}.ssexp{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.ssrec{width:100%;direction:ltr;text-align:left;white-space:pre-wrap;font-size:12px;background:var(--tint);border-radius:10px;padding:10px;max-height:300px;overflow:auto}
 .fh3dhost{height:min(680px,78vh);min-height:460px;margin:6px 0 10px}
+.fh3dhost.lab-host{height:min(540px,64vh);min-height:380px;margin:6px 0 8px}.lab-host .fh3d-root{min-height:360px}
+.lab-ctl{display:grid;gap:10px}.lab-ctl .fh3d-msg.lab-msg{position:static;width:auto;padding:10px 14px;font-size:14px;line-height:1.6;box-shadow:none;backdrop-filter:none}
+.lab-sls{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 16px;align-items:center}.lab-sl{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:14px}.lab-sl input{width:100%;accent-color:#3078B0;min-width:90px}.lab-sl output{font-weight:700;color:#1B2F5A;min-width:76px;text-align:left;font-variant-numeric:tabular-nums}
+.lab-seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:14px}.lab-seg span{margin-inline-end:4px}.lab-seg button{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid rgba(27,47,90,.45);background:transparent;color:#1B2F5A;cursor:pointer}.lab-seg button[aria-pressed="true"]{background:#1B2F5A;color:#EEE9E0}.lab-seg button:focus-visible{outline:2px solid #3078B0;outline-offset:2px}
+.lab-scope canvas{width:100%;height:auto;display:block;border-radius:12px;border:1px solid var(--line)}.lab-leg{display:flex;flex-wrap:wrap;gap:4px 14px;margin:4px 2px 0;font-size:13px;direction:ltr;justify-content:flex-end}.lab-leg span::before{content:'';display:inline-block;width:14px;height:3px;border-radius:2px;background:var(--c);margin-inline-end:6px;vertical-align:middle}.lab-leg small{opacity:.75}
 canvas.mgl{position:absolute;top:0;left:0;pointer-events:none}canvas.mtop{position:relative;z-index:1}.hubmid{position:relative}canvas.mgl.hubgl{border-radius:50%;background:radial-gradient(circle at 50% 45%, rgba(214,232,247,.95) 0%, rgba(214,232,247,.35) 60%, transparent 72%)}.hubobj.mtop{background:none}
 .mrunhud{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;max-width:92%;padding:7px 16px;border-radius:999px;background:rgba(238,233,224,.94);border:1px solid rgba(27,47,90,.3);color:#1B2F5A;font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(13,24,48,.35);text-align:center}.mbar #mRun{background:var(--live);color:#fff;border-color:var(--live);font-weight:700}.mbar #mRun[hidden]{display:none}
 .wmap.w3d{touch-action:none;cursor:grab;outline:none}.wmap.w3d:active{cursor:grabbing}.wmap.w3d:focus-visible{outline:3px solid #D6E8F7;outline-offset:-3px}.w3d .wcity{opacity:var(--d,1);cursor:pointer}.w3d .wedges line{stroke:#D6E8F7;stroke-opacity:var(--o,.3);stroke-width:1.3}.w3d .wedges line.wk-works{stroke:#3078B0;stroke-width:1.6;stroke-dasharray:7 5}.w3d .wedges line.wk-fault{stroke:#7B5A3C;stroke-width:1.6}.w3d .wedges line.wk-page{stroke:#EEE9E0;stroke-dasharray:2 5}.w3d .wedges line.wk-central{stroke:#D6E8F7;stroke-width:2.4;stroke-dasharray:.1 6;stroke-linecap:round}
@@ -6341,6 +6346,16 @@ const TERM_NEW = [
   ['MIT', 'רישיון קוד פתוח מתירני', 'MIT: רישיון קוד פתוח שמתיר שימוש חופשי, בתנאי שמשאירים את הודעת זכויות היוצרים.', 'כללי'], ['GPL', 'רישיון קוד פתוח', 'GPL: רישיון קוד פתוח שמחייב שכל גרסה משנית שמופצת תהיה גם היא תחת GPL.', 'כללי'],
   ['CircuitJS', 'סימולטור מעגלים בדפדפן', 'CircuitJS: סימולטור מעגלים חשמליים שרץ בדפדפן, של Paul Falstad ו-Iain Sharp.', 'כללי'], ['Anatomy', 'סקיל לאיורים איזומטריים', 'Anatomy: כלי (skill) שבונה איורים איזומטריים אינטראקטיביים, שבהם האובייקט הוא ההסבר.', 'כללי']
 ];
+/* v2.55: terms the 3D labs use */
+TERM_NEW.push(['rating', 'דירוג', 'דירוג (rating): הערך המרבי שהיצרן מתיר לרכיב, למשל הספק, מתח או זרם, בתנאים מוגדרים. מתכננים עם מרווח מתחתיו.', 'חשמל ורכיבים'],
+  ['PN', 'צומת P-N', 'צומת PN: מגע בין סיליקון מסוג P (חסר אלקטרונים) לסוג N (עודף אלקטרונים). בגבול נוצרת שכבת מחסור, והיא הבסיס של דיודה, LED וטרנזיסטור.', 'חשמל ורכיבים'],
+  ['Vgs', 'מתח שער-מקור', 'Vgs: המתח בין השער (gate) למקור (source) של MOSFET. הוא שקובע אם יש תעלה ובכמה היא פתוחה.', 'חשמל ורכיבים'],
+  ['bleeder', 'נגד פריקה', 'נגד פריקה (bleeder): נגד קבוע על קבל גדול שמרוקן אותו אחרי כיבוי, כדי שלא יישאר מתח מסוכן.', 'חשמל ורכיבים'],
+  ['CCM', 'זרם רציף בסליל', 'CCM (continuous conduction mode): מצב של ספק ממותג שבו הזרם בסליל לא יורד לאפס במחזור. אז בממיר buck המתח במוצא הוא D·Vin.', 'מכונות והספק'],
+  ['DCM', 'זרם לא רציף בסליל', 'DCM (discontinuous conduction mode): בעומס קטן הזרם בסליל מגיע לאפס בכל מחזור, והמתח במוצא תלוי גם בעומס.', 'מכונות והספק'],
+  ['override', 'הפעלה ידנית', 'override ידני: כפתור או בורג על שסתום שמזיז את הבוכנה ביד, בלי חשמל. משמש לבדיקה ולהפרדה בין תקלה חשמלית לתקלה מכנית או פנאומטית.', 'אינטגרציה ובדיקות'],
+  ['guard locking', 'נעילת דלת מגן', 'guard locking: נעילה של דלת מגן שמשתחררת רק כשהמכונה במצב בטוח, למשל אחרי עצירה מלאה. מונעת כניסה לפני שהתנועה המסוכנת נגמרה.', 'בטיחות ותקנים'],
+  ['skew', 'עיוות זוויתי', 'skew: עיוות שבו שני הצירים של התמונה לא ניצבים זה לזה. שני סימני ייחוס לא מגלים אותו; צריך שלושה.', 'PCB, AOI ו-AOS']);
 TERM_NEW.push(
   ['TO-92', 'מארז טרנזיסטור קטן', 'TO-92: מארז פלסטיק קטן עם שלוש רגליים, לטרנזיסטורים ורגולטורים בהספק נמוך.', 'חשמל ורכיבים'],
   ['Slow', 'פיוז השהיה', 'T (Slow, slow-blow): פיוז שעומד בזרם התנעה קצר ונשרף רק בזרם יתר מתמשך.', 'חשמל ורכיבים'], ['Fast', 'פיוז מהיר', 'F (Fast): פיוז שנשרף מהר בזרם יתר, להגנה על אלקטרוניקה רגישה.', 'חשמל ורכיבים'],
@@ -10906,7 +10921,11 @@ function chainLogic(S0, ev) {
 }
 
 /* ---- a small stage shared by both: renderer, studio, light, orbit, HUD, a frame that runs only while needed ---- */
+/* every live stage, so one that left the page frees its WebGL context before a new one is made (a browser keeps only a few) */
+const FH3D_LIVE = new Set(), fh3dSweep = () => FH3D_LIVE.forEach(a => { if (!a.root.isConnected) a.destroy(); });
+GO_BEFORE.push(() => setTimeout(fh3dSweep, 0));
 function fh3dStage(THREE, container, label, cam0) {
+  fh3dSweep();
   const K = fh3dKit(THREE), C = K.C, keep = K.keep, V = (x, y, z) => new THREE.Vector3(x, y, z);
   container.innerHTML = ''; const root = document.createElement('div'); root.className = 'fh3d-root nogl'; root.tabIndex = 0; root.setAttribute('role', 'group'); root.setAttribute('aria-label', label + '. גרירה מסובבת, חצים מסובבים, פלוס ומינוס מקרבים.');
   const style = document.createElement('style'); style.textContent = FH3D_CSS + '.fh3d-msg{position:absolute;top:12px;right:12px;width:min(300px,46%);padding:9px 13px;font-size:13px;line-height:1.5}.fh3d-msg b{color:#1B2F5A}.fh3d-msg.alarm{background:rgba(123,90,60,.95);color:#EEE9E0}.fh3d-msg.alarm b{color:#EEE9E0}'; root.appendChild(style); container.appendChild(root);
@@ -10956,9 +10975,9 @@ function fh3dStage(THREE, container, label, cam0) {
   const ro = new ResizeObserver(fit); ro.observe(root); const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) touch(); }); io.observe(root);
   Object.assign(api, { pause() { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } }, resume() { paused = false; last = 0; touch(); }, orbit: () => ({ yaw: O.yaw, pitch: O.pitch, dist: O.dist }), setOrbit(o) { if (o) { Object.assign(O, o); touch(); } },
     renderNow() { step(0); place(); renderer.render(scene, cam); api.frames++; },
-    destroy() { if (dead) return; dead = true; if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
+    destroy() { if (dead) return; dead = true; FH3D_LIVE.delete(api); if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
       K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (container.contains(root)) container.removeChild(root); } });
-  fit();
+  fit(); FH3D_LIVE.add(api);
   return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, msg, btn, bar, el, touch, api, setLoop(s, b) { step = s; busy = b; } };
 }
 
@@ -11099,6 +11118,939 @@ WIN.add({ id: 'live3d', test: w => !!LIVE3D[w], info: w => ({ kind: 'sim', t: LI
     const h = FH3D[fn](THREE, host, { reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches }); el.fh3d = h; if (!h) return null;
     return { getState: () => h.getState(), setState: s => h.setState(s), pause: () => h.pause(), resume: () => h.resume(), destroy: () => h.destroy() }; } });
 Object.entries(LIVE3D).forEach(([w, [node]]) => { const n = zNode(node); if (n && !n.around.includes(w)) n.around.unshift(w); });
+/* ============ Labs in 3D: an animated, interactive model for every topic that had none (v2.55) ============
+   A lab is data: parameters (sliders, switches, actions), a pure calc(P, S) that is the only source of every number on the screen,
+   an optional step(S, h) for what changes in time, build(G, L, S) that makes the 3D model and returns how it moves, the HUD cards,
+   the message, and either a scope (traces over time) or a plot (a curve with the working point) under the picture.
+   The stage is the one the vacuum table and the safety chain use (fh3dStage): its own renderer, the studio light, orbit, palette
+   shades only (the resistor's colour code is the one exception, as in the components lesson), drawing only while visible and running.
+   rate is simulated seconds per real second (a coil's millisecond transient is shown slowed down, and says so).
+   Every handle has getState/setState/pause/resume/destroy and, for the checks, state(), set(), advance(simulated seconds) and act(). */
+const LABS = {};
+const lab3d = spec => (LABS[spec.id] = spec);
+const lf = (x, d = 2) => { if (!Number.isFinite(x)) return '∞'; const a = Math.abs(x); return a >= 1000 ? x.toFixed(0) : a >= 100 ? x.toFixed(Math.max(0, d - 2)) : a >= 10 ? x.toFixed(Math.max(0, d - 1)) : x.toFixed(d); };
+const LB = t => `<bdi dir="ltr" class="nogl">${t}</bdi>`;   /* formulas and numbers: left to right, never glossed ("Ns" is not nanoseconds) */
+const E12 = [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82];
+const e12 = (lo, hi) => { const out = []; for (let m = 1; m <= 1e7; m *= 10) E12.forEach(v => { const x = +(v * m / 10).toPrecision(3); if (x >= lo - 1e-9 && x <= hi + 1e-9) out.push(x); }); return out; };
+const ohm = R => R >= 1e6 ? lf(R / 1e6) + ' MΩ' : R >= 1e3 ? lf(R / 1e3) + ' kΩ' : lf(R) + ' Ω';
+const amp = I => Math.abs(I) >= 1 ? lf(I) + ' A' : Math.abs(I) >= 1e-3 ? lf(I * 1e3) + ' mA' : lf(I * 1e6) + ' µA';
+const watt = P => Math.abs(P) >= 1 ? lf(P) + ' W' : lf(P * 1e3) + ' mW';
+/* the 4-band code: two digits and a multiplier */
+const rbands = R => { const e = Math.floor(Math.log10(R) + 1e-9) - 1, d = Math.round(R / Math.pow(10, e)); return [Math.floor(d / 10), d % 10, e]; };
+const LABC = { navy: '#1B2F5A', blue: '#3078B0', brown: '#7B5A3C', char: '#4A4540', light: '#D6E8F7', cream: '#EEE9E0' };
+
+/* ---- the kit a lab builds with ---- */
+function labKit(G) {
+  const { THREE: T, K, C, scene, mat, add, box, pipe } = G, keep = K.keep;
+  const sph = (r, m, p, parent) => add(keep(new T.SphereGeometry(r, 14, 10)), m, p, parent);
+  const wire = (pts, m, r) => { r = r || 0.055; m = m || mat.brown; for (let i = 1; i < pts.length; i++) pipe(pts[i - 1], pts[i], r, m); pts.slice(1, -1).forEach(p => sph(r, m, p)); return pts; };
+  const canvasTex = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const t = keep(new T.CanvasTexture(c)); t.colorSpace = T.SRGBColorSpace; return { c, g: c.getContext('2d'), t }; };
+  const rr = (g, x, y, w, h, r) => { g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); };
+  /* a label that always faces the camera */
+  const tag = (text, pos, h = 0.42, fg = LABC.navy, bg = 'rgba(238,233,224,.93)') => { const X = canvasTex(512, 128), sp = new T.Sprite(keep(new T.SpriteMaterial({ map: X.t, depthTest: false, transparent: true }))); sp.renderOrder = 20; sp.position.set(pos[0], pos[1], pos[2]); h *= 1.8; sp.scale.set(h * 4, h, 1); scene.add(sp); let last = null;
+    const set = t => { t = String(t); if (t === last) return; last = t; const g = X.g; g.clearRect(0, 0, 512, 128); g.font = '600 54px system-ui, Arial, sans-serif'; g.direction = /[֐-׿]/.test(t) ? 'rtl' : 'ltr'; const w = Math.min(506, g.measureText(t).width + 44); g.fillStyle = bg; rr(g, (512 - w) / 2, 12, w, 104, 30); g.fill(); g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 256, 66); X.t.needsUpdate = true; };
+    set(text); return { sp, set, show: v => { sp.visible = v; }, at: p => sp.position.set(p[0], p[1], p[2]) }; };
+  /* a flat screen with text (meters, displays) */
+  const screen = (pos, w, h, rotY = 0, parent) => { const X = canvasTex(256, 128), m = add(keep(new T.PlaneGeometry(w, h)), keep(new T.MeshBasicMaterial({ map: X.t })), pos, parent); m.rotation.y = rotY; m.castShadow = false; let last = null;
+    const api = { m, set(t, sub) { const k = t + '|' + (sub || ''); if (k === last) return; last = k; const g = X.g; g.fillStyle = LABC.light; g.fillRect(0, 0, 256, 128); g.fillStyle = LABC.navy; g.font = '700 50px ui-monospace, Menlo, monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 128, sub ? 50 : 66); if (sub) { g.font = '600 24px system-ui, sans-serif'; g.fillText(sub, 128, 104); } X.t.needsUpdate = true; } }; api.set('—'); return api; };
+  /* a material that glows (heat, light) */
+  const glowMat = (base, col) => { const m = keep(base.clone()); m.emissive = new T.Color(col == null ? C.brown : col); m.emissiveIntensity = 0; return m; };
+  const heat = (m, k) => { m.emissiveIntensity = Math.max(0, Math.min(1.5, k)) * 1.6; };
+  const board = (w, d, pos = [0, -0.12, 0]) => { const tex = K.paint(512, 512, (g, W, H) => { g.fillStyle = LABC.navy; g.fillRect(0, 0, W, H); g.strokeStyle = 'rgba(214,232,247,.16)'; g.lineWidth = 2; for (let i = 0; i < W; i += 32) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, H); g.stroke(); g.beginPath(); g.moveTo(0, i); g.lineTo(W, i); g.stroke(); } });
+    tex.colorSpace = T.SRGBColorSpace; tex.wrapS = tex.wrapT = T.RepeatWrapping; tex.repeat.set(w / 4, d / 4); return add(box(w, 0.2, d, 0.06), keep(new T.MeshPhysicalMaterial({ map: tex, roughness: 0.55, clearcoat: 0.6 })), pos); };
+  /* a resistor body along x with its colour code */
+  const res = (pos, len = 1.3, r = 0.24, parent) => { const X = canvasTex(64, 256), m = keep(new T.MeshPhysicalMaterial({ map: X.t, roughness: 0.5, clearcoat: 0.5 })); m.emissive = new T.Color(C.brown); m.emissiveIntensity = 0;
+    const body = add(keep(new T.CylinderGeometry(r, r, len, 28, 1)), m, pos, parent); body.rotation.z = Math.PI / 2;
+    [-1, 1].forEach(s => pipe([pos[0] + s * len / 2, pos[1], pos[2]], [pos[0] + s * (len / 2 + 0.4), pos[1], pos[2]], 0.04, mat.alu, parent));
+    const bands = R => { const g = X.g, [a, b, e] = rbands(R), cols = [DIG[a], DIG[b], e >= 0 ? DIG[e] : 'gold', 'gold']; g.fillStyle = '#d9c7a3'; g.fillRect(0, 0, 64, 256); [44, 84, 124, 196].forEach((y, i) => { g.fillStyle = BAND[cols[i]]; g.fillRect(0, y, 64, 22); }); X.t.needsUpdate = true; };
+    bands(1000); return { body, m, bands, heat: k => heat(m, k), ends: [[pos[0] - len / 2 - 0.4, pos[1], pos[2]], [pos[0] + len / 2 + 0.4, pos[1], pos[2]]] }; };
+  /* a bulb whose filament lights with power (k = 1 at rated) */
+  const lamp = (pos, r = 0.42) => { add(K.can(r * 0.55, -r * 1.4, -r * 0.65, 0.04), mat.alu, pos); add(keep(new T.SphereGeometry(r, 24, 16)), mat.glass, pos); const fm = glowMat(mat.cream, C.light), f = add(keep(new T.SphereGeometry(r * 0.3, 14, 10)), fm, pos);
+    const pl = new T.PointLight(C.light, 0, 6); pl.position.set(pos[0], pos[1], pos[2]); scene.add(pl);
+    return { set: k => { k = Math.max(0, Math.min(1.5, k)); fm.emissiveIntensity = 3.2 * k; fm.color.setHex(k > 0.05 ? C.cream : C.char); f.scale.setScalar(0.7 + 0.6 * Math.min(1, k)); pl.intensity = 6 * k; } }; };
+  /* an indicator */
+  const led = (pos, col = C.light, r = 0.12, parent) => { const m = G.led(col), o = add(keep(new T.SphereGeometry(r, 14, 10)), m, pos, parent); return { o, set: on => { m.emissiveIntensity = on ? 2.4 : 0; m.color.setHex(on ? col : C.char); } }; };
+  const block = (w, h, d, pos, m, parent) => add(box(w, h, d, Math.min(0.08, w / 6, h / 6, d / 6)), m || mat.navy, pos, parent);
+  const torus = (pos, R, r, m, axis = 'y', parent) => { const o = add(keep(new T.TorusGeometry(R, r, 10, 40)), m, pos, parent); if (axis === 'y') o.rotation.x = Math.PI / 2; if (axis === 'x') o.rotation.y = Math.PI / 2; return o; };
+  /* a winding of n turns, axis along y in its group */
+  const coil = (pos, axis, R, len, n, m, parent) => { const g = new T.Group(); g.position.set(pos[0], pos[1], pos[2]); (parent || scene).add(g); for (let i = 0; i < n; i++) { const t = torus([0, 0, 0], R, Math.min(0.07, len / n / 2.2), m || mat.brown, 'y', g); t.position.y = -len / 2 + (i + 0.5) * len / n; } if (axis === 'x') g.rotation.z = Math.PI / 2; if (axis === 'z') g.rotation.x = Math.PI / 2; return g; };
+  const group = (pos, parent) => { const g = new T.Group(); if (pos) g.position.set(pos[0], pos[1], pos[2]); (parent || scene).add(g); return g; };
+  /* a glowing spark that can be shown or hidden */
+  const spark = (pos, s = 0.9) => { const sp = new T.Sprite(keep(new T.SpriteMaterial({ map: K.paint(64, 64, (g, w) => { const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2); r.addColorStop(0, 'rgba(238,233,224,1)'); r.addColorStop(0.3, 'rgba(214,232,247,.9)'); r.addColorStop(1, 'rgba(48,120,176,0)'); g.fillStyle = r; g.fillRect(0, 0, w, w); }), transparent: true, depthWrite: false, blending: T.AdditiveBlending })));
+    sp.position.set(pos[0], pos[1], pos[2]); sp.scale.setScalar(s); sp.visible = false; scene.add(sp); return { sp, set: k => { sp.visible = k > 0.02; sp.scale.setScalar(s * (0.4 + Math.min(1.5, k))); } }; };
+  return { sph, wire, tag, screen, glowMat, heat, board, res, lamp, led, block, torus, coil, group, spark, canvasTex, rr };
+}
+
+/* ---- a small plot: axes in English, a curve or two, the working point ---- */
+const niceStep = (span, n) => { const s = span / n, p = Math.pow(10, Math.floor(Math.log10(s))), f = s / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; };
+const tickFmt = v => { const a = Math.abs(v); return a === 0 ? '0' : a >= 1e6 ? +(v / 1e6).toPrecision(3) + 'M' : a >= 1e3 ? +(v / 1e3).toPrecision(3) + 'k' : a < 0.01 ? v.toExponential(0) : String(+v.toPrecision(3)); };
+function labPlotU(cv) {
+  const g = cv.getContext('2d'), W = cv.width, H = cv.height, pd = { l: 64, r: 16, t: 14, b: 34 }; let o = null;
+  const map = (v, [a, b], lg, p0, p1) => { if (lg) { v = Math.log10(Math.max(v, 1e-300)); a = Math.log10(a); b = Math.log10(b); } return p0 + (v - a) / (b - a) * (p1 - p0); };
+  const U = { g, W, H,
+    X: x => map(x, o.x, o.xlog, pd.l, W - pd.r), Y: y => map(Math.max(o.y[0], Math.min(o.y[1], y)), o.y, o.ylog, H - pd.b, pd.t),
+    frame(opt) { o = opt; g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H); g.font = '600 15px system-ui, Arial, sans-serif'; g.lineWidth = 1;
+      const ticks = (r, lg) => { if (lg) { const out = []; for (let e = Math.ceil(Math.log10(r[0]) - 1e-9); e <= Math.log10(r[1]) + 1e-9; e++) out.push(Math.pow(10, e)); return out; } const s = niceStep(r[1] - r[0], 5), out = []; for (let i = Math.ceil(r[0] / s - 1e-9); i * s <= r[1] + s * 1e-6; i++) out.push(+(i * s).toPrecision(10)); return out; };
+      g.fillStyle = LABC.char; g.textAlign = 'center'; g.textBaseline = 'top'; (o.noXT ? [] : ticks(o.x, o.xlog)).forEach(v => { const x = U.X(v); g.strokeStyle = 'rgba(27,47,90,.12)'; g.beginPath(); g.moveTo(x, pd.t); g.lineTo(x, H - pd.b); g.stroke(); g.fillText(tickFmt(v), x, H - pd.b + 5); });
+      g.textAlign = 'right'; g.textBaseline = 'middle'; ticks(o.y, o.ylog).forEach(v => { const y = U.Y(v); g.strokeStyle = 'rgba(27,47,90,.12)'; g.beginPath(); g.moveTo(pd.l, y); g.lineTo(W - pd.r, y); g.stroke(); g.fillText(tickFmt(v), pd.l - 6, y); });
+      g.strokeStyle = LABC.navy; g.lineWidth = 1.5; g.beginPath(); g.moveTo(pd.l, pd.t); g.lineTo(pd.l, H - pd.b); g.lineTo(W - pd.r, H - pd.b); g.stroke();
+      g.fillStyle = LABC.navy; g.font = '700 15px system-ui, Arial, sans-serif'; g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(o.xl || '', W - pd.r, H - 2); g.save(); g.translate(14, pd.t); g.rotate(-Math.PI / 2); g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText(o.yl || '', 0, 0); g.restore(); return U; },
+    curve(f, col, w = 2.6, dash) { const n = 260; g.strokeStyle = col; g.lineWidth = w; g.setLineDash(dash || []); g.beginPath(); let pen = false; for (let i = 0; i <= n; i++) { const u = i / n, x = o.xlog ? o.x[0] * Math.pow(o.x[1] / o.x[0], u) : o.x[0] + u * (o.x[1] - o.x[0]), y = f(x); if (!Number.isFinite(y)) { pen = false; continue; } const px = U.X(x), py = U.Y(y); pen ? g.lineTo(px, py) : g.moveTo(px, py); pen = true; } g.stroke(); g.setLineDash([]); return U; },
+    poly(pts, col, w = 2.6) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(U.X(x), U.Y(y)) : g.moveTo(U.X(x), U.Y(y))); g.stroke(); return U; },
+    dot(x, y, col = LABC.navy, r = 7) { g.fillStyle = col; g.strokeStyle = LABC.cream; g.lineWidth = 2.5; g.beginPath(); g.arc(U.X(x), U.Y(y), r, 0, 7); g.fill(); g.stroke(); return U; },
+    hl(y, col, t) { const py = U.Y(y); g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([6, 5]); g.beginPath(); g.moveTo(pd.l, py); g.lineTo(W - pd.r, py); g.stroke(); g.setLineDash([]); if (t) { g.fillStyle = col; g.font = '600 14px system-ui, Arial'; g.textAlign = 'left'; g.textBaseline = 'bottom'; g.fillText(t, pd.l + 6, py - 2); } return U; },
+    vl(x, col, t) { const px = U.X(x); g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([6, 5]); g.beginPath(); g.moveTo(px, pd.t); g.lineTo(px, H - pd.b); g.stroke(); g.setLineDash([]); if (t) { g.fillStyle = col; g.font = '600 14px system-ui, Arial'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(t, px + 5, pd.t + 2); } return U; },
+    band(y0, y1, col) { g.fillStyle = col; g.fillRect(pd.l, U.Y(y1), W - pd.r - pd.l, U.Y(y0) - U.Y(y1)); return U; },
+    rect(x0, x1, y0, y1, col) { g.fillStyle = col; g.fillRect(U.X(x0), U.Y(y1), U.X(x1) - U.X(x0), U.Y(y0) - U.Y(y1)); return U; },
+    text(t, x, y, col = LABC.navy, al = 'left') { g.fillStyle = col; g.font = '600 14px system-ui, Arial'; g.textAlign = al; g.textBaseline = 'middle'; g.fillText(t, U.X(x), U.Y(y)); return U; } };
+  return U;
+}
+
+/* ---- mounting a lab: the stage, the controls under it, the scope or the plot ---- */
+function labMount(THREE, host, spec) {
+  host.innerHTML = '<div class="fh3dhost lab-host"></div><div class="lab-ctl nogl"></div>';
+  const G = fh3dStage(THREE, host.querySelector('.lab-host'), spec.title, Object.assign({}, spec.cam)); if (!G) return null;
+  const L = labKit(G), ctl = host.querySelector('.lab-ctl'), api = G.api, rate = spec.rate || 1;
+  G.msg.classList.add('lab-msg'); ctl.appendChild(G.msg);
+  const S = { P: Object.assign({}, spec.P), t: 0, run: true, x: {}, acc: 0 }; if (spec.init) spec.init(S);
+  (spec.stats || []).forEach(([k, t]) => G.stat(k, t));
+  const upd = spec.build(G, L, S) || (() => { });
+  /* sliders and switches under the picture, actions and pause on the picture */
+  const rows = [], sl = document.createElement('div'); sl.className = 'lab-sls'; ctl.appendChild(sl);
+  (spec.controls || []).forEach(c => { const d = document.createElement('label'); d.className = 'lab-sl'; const list = c.list;
+    const toU = v => list ? Math.max(0, list.reduce((bi, x, i) => Math.abs(x - v) < Math.abs(list[bi] - v) ? i : bi, 0)) : c.log ? Math.round(Math.log(v / c.min) / Math.log(c.max / c.min) * 1000) : v,
+      fromU = u => list ? list[Math.round(u)] : c.log ? +(c.min * Math.pow(c.max / c.min, u / 1000)).toPrecision(3) : +u;
+    d.innerHTML = `<span>${c.t}</span><input type="range" min="${list || c.log ? 0 : c.min}" max="${list ? list.length - 1 : c.log ? 1000 : c.max}" step="${list || c.log ? 1 : c.step || 'any'}"><output></output>`;
+    const inp = d.querySelector('input'), out = d.querySelector('output'), show = () => { out.innerHTML = LB(c.fmt ? c.fmt(S.P[c.k]) : lf(S.P[c.k]) + (c.u ? ' ' + c.u : '')); };
+    inp.setAttribute('aria-label', c.t.replace(/<[^>]+>/g, '')); inp.value = toU(S.P[c.k]); show();
+    inp.addEventListener('input', () => { S.P[c.k] = fromU(+inp.value); if (spec.onSet) spec.onSet(S, c.k); show(); G.touch(); }); rows.push({ k: c.k, sync: () => { inp.value = toU(S.P[c.k]); show(); } }); sl.appendChild(d); });
+  (spec.toggles || []).forEach(c => { const g = document.createElement('div'); g.className = 'lab-seg'; g.setAttribute('role', 'group'); g.setAttribute('aria-label', c.t); g.innerHTML = `<span>${c.t}</span>` + c.opts.map(([v, t]) => `<button type="button" data-v="${String(v)}">${t}</button>`).join('');
+    const sync = () => g.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(String(S.P[c.k]) === b.dataset.v)));
+    g.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.P[c.k] = c.opts.find(x => String(x[0]) === b.dataset.v)[0]; if (spec.onSet) spec.onSet(S, c.k); sync(); G.touch(); })); sync(); rows.push({ k: c.k, sync }); sl.appendChild(g); });
+  (spec.actions || []).forEach(([t, name]) => G.btn(t, () => api.act(name)));
+  const pz = G.btn('⏸ עצירה', () => { S.run = !S.run; pz.textContent = S.run ? '⏸ עצירה' : '▶ המשך'; pz.setAttribute('aria-pressed', String(!S.run)); G.touch(); }, false);
+  if (rate !== 1) G.btn(rate < 1 ? `הילוך איטי ×${+(1 / rate).toPrecision(2)}` : `הילוך מהיר ×${rate}`, () => { }).disabled = true;
+  /* the scope (traces over simulated time) or the plot */
+  const TR = spec.trace, PL = spec.plot; let sc = null, pu = null;
+  if (TR) { const w = document.createElement('div'); w.className = 'lab-scope'; w.innerHTML = `<canvas width="900" height="${TR.h || 170}" aria-hidden="true"></canvas><p class="lab-leg" lang="en">${TR.keys.map(k => `<span style="--c:${k[2]}">${k[1]}</span>`).join('')}<small>${LB('window ' + lf(TR.span * (TR.disp || 1), 0) + ' ' + (TR.unit || 's'))}</small></p>`; ctl.appendChild(w); sc = { cv: w.querySelector('canvas'), buf: [], n: 0 }; }
+  if (PL) { const w = document.createElement('div'); w.className = 'lab-scope lab-plot'; w.innerHTML = `<canvas width="900" height="${PL.h || 260}" aria-hidden="true"></canvas>${PL.leg ? `<p class="lab-leg" lang="en">${PL.leg.map(([t, c]) => `<span style="--c:${c}">${t}</span>`).join('')}</p>` : ''}`; ctl.appendChild(w); pu = labPlotU(w.querySelector('canvas')); }
+  const scopeDraw = () => { const cv = sc.cv, g = cv.getContext('2d'), W = cv.width, H = cv.height, b = sc.buf, n = TR.keys.length; g.direction = 'ltr'; g.fillStyle = LABC.cream; g.fillRect(0, 0, W, H);
+    const fv = v => typeof v === 'function' ? v(S) : v, li = j => Array.isArray(TR.lanes) ? TR.lanes[j] : TR.lanes ? j : 0, nL = Array.isArray(TR.lanes) ? Math.max(...TR.lanes) + 1 : TR.lanes ? n : 1, lane = j => [H * li(j) / nL + 8, H * (li(j) + 1) / nL - 6];
+    const t1 = b.length ? b[b.length - 1][0] : 0, t0 = t1 - TR.span, X = t => 6 + (t - t0) / TR.span * (W - 12);
+    for (let k = 1; k < nL; k++) { g.strokeStyle = 'rgba(27,47,90,.14)'; g.beginPath(); g.moveTo(0, H * k / nL); g.lineTo(W, H * k / nL); g.stroke(); }
+    (TR.marks || []).forEach(([v0, j, col]) => { const ln = lane(j), v = fv(v0), lo = fv(TR.keys[j][3]), hi = fv(TR.keys[j][4]), y = ln[1] - (v - lo) / (hi - lo) * (ln[1] - ln[0]); g.strokeStyle = col; g.setLineDash([5, 5]); g.lineWidth = 1.2; g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke(); g.setLineDash([]); });
+    TR.keys.forEach(([, , col, lo0, hi0], j) => { const lo = fv(lo0), hi = fv(hi0), ln = lane(j); if (b.length < 2) return; const Y = v => ln[1] - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo || 1) * (ln[1] - ln[0]);
+      g.strokeStyle = col; g.lineWidth = 2.4; g.beginPath(); b.forEach((r, i) => { const x = X(r[0]), y = Y(r[1][j]); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); });
+    (TR.names || []).forEach((t, k) => { g.fillStyle = LABC.navy; g.font = '700 14px system-ui, Arial'; g.textAlign = 'left'; g.textBaseline = 'top'; g.fillText(t, 8, H * k / nL + 3); }); };
+  /* the loop */
+  let R = spec.calc(S.P, S);
+  const hud = () => { (spec.stats || []).forEach(([k, , f]) => { G.statEl[k].textContent = f(R, S); }); const m = spec.msg ? spec.msg(R, S) : ''; if (m !== G.msg._m) { G.msg._m = m; G.msg.innerHTML = m; } G.msg.classList.toggle('alarm', !!(spec.alarm && spec.alarm(R, S))); };
+  const simStep = h => { S.t += h; if (spec.step) spec.step(S, h); };
+  const advanceSim = hs => { if (spec.dt) { S.acc += hs; while (S.acc >= spec.dt * 0.999999) { S.acc -= spec.dt; simStep(spec.dt); } } else if (spec.step) { const n = Math.max(1, Math.ceil(hs / (spec.hmax || 1 / 240))); for (let i = 0; i < n; i++) simStep(hs / n); } else S.t += hs; };
+  let pn = 0;
+  const tick = (dtReal, draw = true) => { const hs = dtReal * rate; if (S.run && hs > 0) advanceSim(hs); R = spec.calc(S.P, S); upd(dtReal, R, S);
+    if (sc && S.run && hs > 0) { sc.buf.push([S.t, TR.keys.map(([k]) => +(typeof k === 'function' ? k(R, S) : R[k]) || 0)]); while (sc.buf.length > 2 && sc.buf[0][0] < S.t - TR.span) sc.buf.shift(); if (draw && ++sc.n % 2 === 0) scopeDraw(); }
+    if (pu && draw && (++pn % 3 === 0 || dtReal === 0)) PL.draw(pu, R, S); hud(); };
+  G.setLoop(dt => tick(dt), () => S.run && (spec.busy ? spec.busy(S, R) : true));
+  Object.assign(api, {
+    lab: spec.id, state: () => ({ P: Object.assign({}, S.P), t: S.t, x: JSON.parse(JSON.stringify(S.x)), R: spec.calc(S.P, S), msg: G.msg.textContent, alarm: G.msg.classList.contains('alarm') }),
+    set(o) { Object.assign(S.P, o); Object.keys(o).forEach(k => spec.onSet && spec.onSet(S, k)); rows.forEach(r => r.sync()); tick(0); G.touch(); return api.state(); },
+    act(name) { const a = spec.act && spec.act[name]; if (a) a(S); rows.forEach(r => r.sync()); if (!S.run) { S.run = true; pz.textContent = '⏸ עצירה'; pz.setAttribute('aria-pressed', 'false'); } tick(0); G.touch(); return api.state(); },
+    advance(sec) { const run = S.run, hr = 1 / 120; S.run = true; let left = sec / rate; while (left > 1e-12) { const d = Math.min(hr, left); tick(d, false); left -= d; } if (sc) scopeDraw(); if (pu) PL.draw(pu, R, S); S.run = run; api.renderNow(); return api.state(); },
+    scope: () => sc ? sc.buf.slice() : null, ctl,
+    getState: () => ({ v: 1, P: Object.assign({}, S.P), orbit: api.orbit() }), setState(s) { if (!s) return; if (s.P) api.set(s.P); api.setOrbit(s.orbit); } });
+  tick(0); if (sc) scopeDraw(); api.renderNow(); return api;
+}
+
+/* the windows: 3d:<lab id>, on its topic, first among the demonstrations */
+WIN.add({ id: 'lab3d', test: w => w.startsWith('3d:') && !!LABS[w.slice(3)], info: w => ({ kind: 'sim', t: LABS[w.slice(3)].title }), ctx: () => 'SHARED',
+  mount: (w, el) => { const spec = LABS[w.slice(3)]; el.innerHTML = `<div class="lab-wrap"></div><p class="note">${spec.note}</p>`; const host = el.querySelector('.lab-wrap');
+    if (typeof THREE === 'undefined') { host.innerHTML = '<p class="note">ספריית התלת-ממד לא נטענה.</p>'; return null; }
+    const h = labMount(THREE, host, spec); el.fh3d = h; if (!h) return null;
+    return { getState: () => h.getState(), setState: s => h.setState(s), pause: () => h.pause(), resume: () => h.resume(), destroy: () => h.destroy() }; } });
+/* called once, after the last lab file */
+function labRegister() { Object.values(LABS).forEach(spec => { const n = zNode(spec.node), w = '3d:' + spec.id; if (n && !n.around.includes(w)) n.around.unshift(w); }); }
+/* ============ Labs in 3D, part 1: the components (resistor, source, switch, fuse, terminal, capacitor, coil, diode, transistor, transformer) ============
+   Each calc is the formula the topic teaches; tests/labs_audit.mjs recomputes every one from scratch. Where a lab uses an
+   illustrative constant (a time constant of heating, the arc of an opening contact), its note says so. */
+const vI = (I, Iref) => (Math.abs(I) <= 1e-9 ? 0 : 0.5 + 6 * Math.min(1.5, Math.sqrt(Math.abs(I) / Iref)));
+/* a flow of charge along a loop, re-laid only when its speed changes */
+function labFlow(G, n, size, col) { const f = G.flow(n, size == null ? 0.3 : size, col == null ? G.C.light : col); let key = ''; return { f, set(paths) { const k = paths.map(p => p.v.toFixed(2) + (p.k || '')).join('|'); if (k !== key) { key = k; f.set(paths); } }, step: dt => f.step(dt) }; }
+/* a battery on the board: a navy can with a light band, + towards the front */
+function labBattery(G, L, x, z, label) { const { mat } = G; L.block(1.3, 1.5, 1.1, [x, 0.75, z], mat.navy); L.block(1.32, 0.22, 1.12, [x, 1.15, z], mat.light); G.add(G.K.can(0.13, 1.5, 1.72, 0.03), mat.alu, [x, 0, z + 0.32]); G.add(G.K.can(0.18, 1.5, 1.6, 0.02), mat.char, [x, 0, z - 0.32]); if (label) L.tag(label, [x, 2.35, z], 0.4); }
+/* a meter: a body with a screen facing the camera */
+function labMeter(G, L, pos, label) { L.block(1.7, 1.2, 0.5, pos, G.mat.char); const s = L.screen([pos[0], pos[1] + 0.05, pos[2] + 0.26], 1.4, 0.7); if (label) L.tag(label, [pos[0], pos[1] + 1.0, pos[2]], 0.34); return s; }
+
+/* ---- resistor: V, I, P and the heat the body has to shed ---- */
+const RES3 = { rise: 85, tau: 6 };   /* 85 °C above ambient at the rated power (155 °C at 70 °C ambient, typical metal film); time constant illustrative */
+lab3d({ id: 'resistor', node: 'resistor', title: 'נגד בתלת-ממד: מתח, זרם, הספק וחום',
+  note: 'הנגד הופך אנרגיה חשמלית לחום, P = V²/R, והגוף חייב לפזר את החום לאוויר. הדירוג (rating) הוא ההספק שבו הגוף מגיע לטמפרטורה המותרת. ההתחממות כאן לפי מודל פשוט: עלייה של כ-85°C בהספק הנקוב (155°C בסביבה של 70°C, טיפוסי לנגד מתכתי), וקבוע זמן של כמה שניות להמחשה. פסי הצבע מתעדכנים לפי הערך.',
+  cam: { yaw: 0.32, pitch: 0.72, dist: 17, t: [0, 0.3, 0] },
+  P: { V: 12, R: 470, Pr: 0.25 },
+  controls: [{ k: 'V', t: 'מתח המקור', min: 0, max: 24, step: 0.5, u: 'V' }, { k: 'R', t: 'התנגדות', list: e12(10, 10000), fmt: ohm }],
+  toggles: [{ k: 'Pr', t: 'דירוג', opts: [[0.125, '⅛ W'], [0.25, '¼ W'], [0.5, '½ W'], [1, '1 W']] }],
+  init: S => { S.x.th = 0; },
+  calc: (P, S) => { const I = P.V / P.R, Pw = P.V * I; return { I, Pw, k: Pw / P.Pr, Tss: 25 + RES3.rise * Pw / P.Pr, T: 25 + S.x.th }; },
+  step: (S, h) => { const Pw = S.P.V * S.P.V / S.P.R; S.x.th += (RES3.rise * Pw / S.P.Pr - S.x.th) * (1 - Math.exp(-h / RES3.tau)); },
+  stats: [['I', 'זרם', R => amp(R.I)], ['P', 'הספק', R => watt(R.Pw)], ['k', 'מהדירוג', R => Math.round(R.k * 100) + '%'], ['T', 'טמפרטורת הגוף', R => lf(R.T, 0) + ' °C']],
+  trace: { keys: [[R => R.T, 'surface T (°C)', LABC.navy, 0, 300]], span: 30, marks: [[155, 0, LABC.brown]] },
+  build(G, L, S) {
+    L.board(12, 7); labBattery(G, L, -4.6, 0, 'מקור'); const r = L.res([0, 0.5, 2.2], 1.7, 0.3), am = labMeter(G, L, [4.4, 0.75, 0], 'מד זרם'), tg = L.tag('', [0, 1.6, 2.2], 0.42);
+    const loop = [[-4.6, 0.15, 0.55], [-4.6, 0.15, 2.2], [-1.25, 0.15, 2.2], [-1.25, 0.5, 2.2], [1.25, 0.5, 2.2], [1.25, 0.15, 2.2], [4.4, 0.15, 2.2], [4.4, 0.15, -2.2], [-4.6, 0.15, -2.2], [-4.6, 0.15, -0.55]];
+    L.wire(loop.slice(0, 4)); L.wire(loop.slice(4)); const cur = labFlow(G, 90, 0.32); let lastR = 0;
+    return (dt, R, S) => { if (S.P.R !== lastR) { lastR = S.P.R; r.bands(S.P.R); } r.heat((R.T - 25) / 120); am.set(amp(R.I)); tg.set(ohm(S.P.R) + ' · ' + lf(R.T, 0) + ' °C'); cur.set([{ pts: loop, v: vI(R.I, 0.5) }]); cur.step(dt); }; },
+  msg: (R, S) => R.k > 1 ? `<b>עומס יתר: ${LB(watt(R.Pw))} על נגד של ${LB(watt(S.P.Pr))}.</b> כאן, באוויר של ${LB('25 °C')}, הגוף יגיע לכ-${LB(lf(R.Tss, 0) + ' °C')}; בתוך ארון חם (${LB('70 °C')}) לכ-${LB(lf(R.Tss + 45, 0) + ' °C')}, מעל המותר (${LB('155 °C')}). הנגד יכהה, ישנה ערך ובסוף ייפתח. בחרו דירוג גבוה יותר או התנגדות גדולה יותר.`
+    : R.k > 0.5 ? `<b>${Math.round(R.k * 100)}% מהדירוג.</b> זה עובד, אבל חם: הגוף יגיע לכ-${LB(lf(R.Tss, 0) + ' °C')}. המקובל לתכנן עד כמחצית הדירוג, כדי שהרכיב יחזיק שנים.`
+    : `<b>${LB('I = V/R = ' + lf(S.P.V) + ' V / ' + ohm(S.P.R) + ' = ' + amp(R.I))}</b>, ו-${LB('P = V·I = ' + watt(R.Pw))}. הגוף יתייצב בערך ${LB(lf(R.Tss - 25, 0) + ' °C')} מעל הסביבה. הכפילו את המתח: ההספק גדל פי ארבעה.`,
+  alarm: R => R.k > 1 });
+
+/* ---- a real source: the voltage at the terminals drops with the load ---- */
+lab3d({ id: 'source', node: 'source', title: 'מקור מתח אמיתי: התנגדות פנימית, עומס והעברת הספק',
+  note: 'כל מקור אמיתי הוא מקור אידאלי E עם התנגדות פנימית r בטור. הזרם עובר גם דרך r, ולכן המתח בהדקים קטן ככל שהעומס "כבד" יותר (RL קטן). הגרף מראה את ההספק בעומס: הוא מקסימלי כש-RL = r, ואז חצי מההספק נשרף בתוך המקור.',
+  cam: { yaw: 0.25, pitch: 0.62, dist: 18, t: [0.3, 0.6, 0] },
+  P: { E: 12, r: 0.5, RL: 10 },
+  controls: [{ k: 'E', t: 'מתח פנימי E', min: 1.5, max: 24, step: 0.5, u: 'V' }, { k: 'r', t: 'התנגדות פנימית r', min: 0.05, max: 5, log: 1, fmt: ohm }, { k: 'RL', t: 'עומס RL', min: 0.1, max: 1000, log: 1, fmt: ohm }],
+  calc: P => { const I = P.E / (P.r + P.RL); return { I, V: I * P.RL, Vr: I * P.r, Pl: I * I * P.RL, Pi: I * I * P.r, eta: P.RL / (P.r + P.RL), Pmax: P.E * P.E / (4 * P.r) }; },
+  stats: [['V', 'מתח בהדקים', R => lf(R.V) + ' V'], ['I', 'זרם', R => amp(R.I)], ['P', 'הספק בעומס', R => watt(R.Pl)], ['e', 'נצילות', R => Math.round(R.eta * 100) + '%']],
+  plot: { h: 240, leg: [['P in the load', LABC.navy], ['RL = r', LABC.brown]], draw(U, R, S) { const P = S.P; U.frame({ x: [0.1, 1000], xlog: 1, y: [0, R.Pmax * 1.15], xl: 'RL (Ω)', yl: 'P load (W)' }).vl(P.r, LABC.brown, 'RL = r').curve(x => P.E * P.E * x / ((P.r + x) * (P.r + x)), LABC.navy).dot(P.RL, R.Pl); } },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 7, [0.5, -0.12, 0]);
+    /* the source: a glass case with the ideal source and r inside */
+    add(G.box(2.6, 2.2, 1.8, 0.12), mat.glass, [-4.2, 1.1, 0]); L.block(0.9, 1.2, 0.9, [-4.8, 0.7, 0], mat.navy); L.tag('E', [-4.8, 1.75, 0.6], 0.36); const ri = L.res([-3.6, 0.7, 0.45], 0.7, 0.18); ri.bands(1); L.tag('r', [-3.6, 1.3, 0.45], 0.36);
+    add(K.can(0.14, 2.2, 2.45, 0.03), mat.alu, [-3.4, 0, 0.6]); add(K.can(0.14, 2.2, 2.45, 0.03), mat.char, [-3.4, 0, -0.6]);
+    const lp = L.lamp([4.2, 1.3, 0], 0.6), vm = labMeter(G, L, [0.6, 0.75, 2.4], 'מתח בהדקים');
+    /* the voltage column: E split into I·r (inside) and V (at the terminals) */
+    const colV = L.block(0.6, 1, 0.6, [-1.4, 0.5, -1.6], mat.blue), colR = L.block(0.6, 1, 0.6, [-1.4, 1.5, -1.6], mat.brown); L.tag('E = V + I·r', [-1.4, 4.6, -1.6], 0.34);
+    const loop = [[-3.4, 2.45, 0.6], [-3.4, 2.7, 0.6], [-3.4, 2.7, 1.6], [4.2, 2.7, 1.6], [4.2, 0.15, 1.6], [4.2, 0.15, 0.0], [4.2, 0.15, -1.6], [4.2, 2.7, -1.6], [-3.4, 2.7, -1.6], [-3.4, 2.7, -0.6], [-3.4, 2.45, -0.6]];
+    L.wire(loop.slice(0, 5)); L.wire(loop.slice(6)); G.pipe([4.2, 0.15, 1.6], [4.2, 0.15, 0.6], 0.055, mat.brown); G.pipe([4.2, 0.15, -0.6], [4.2, 0.15, -1.6], 0.055, mat.brown); const cur = labFlow(G, 110, 0.3);
+    return (dt, R, S) => { const h = 3.2 / 24; colV.scale.y = Math.max(0.01, R.V * h); colV.position.y = R.V * h / 2; colR.scale.y = Math.max(0.01, R.Vr * h); colR.position.y = R.V * h + R.Vr * h / 2; lp.set(R.Pl / Math.max(1e-9, R.Pmax)); vm.set(lf(R.V) + ' V'); ri.heat(R.Pi / 40); cur.set([{ pts: loop, v: vI(R.I, 6) }]); cur.step(dt); }; },
+  msg: (R, S) => S.P.RL < S.P.r ? `<b>רוב ההספק נשרף בתוך המקור (${Math.round(R.Pi / (R.Pi + R.Pl) * 100)}%).</b> כך נראה קצר: המתח בהדקים צונח ל-${LB(lf(R.V) + ' V')}, והמקור עצמו מתחמם. סוללה בקצר מתנפחת; ספק נכנס להגנה.`
+    : Math.abs(S.P.RL - S.P.r) / S.P.r < 0.25 ? `<b>העברת הספק מקסימלית: ${LB('RL ≈ r')}.</b> העומס מקבל ${LB(watt(R.Pl))}, אבל הנצילות רק כ-50%: אותו הספק נשרף בפנים. ספקים לא עובדים כך; אנטנות ומגברים כן.`
+    : `<b>${LB('V = E·RL/(RL + r) = ' + lf(R.V) + ' V')}</b>. הנפילה הפנימית ${LB('I·r = ' + lf(R.Vr) + ' V')}. הקטינו את RL (עומס כבד יותר) וראו את המתח בהדקים יורד, כמו פנסי מכונית שמתעממים כשמתניעים.`,
+  alarm: (R, S) => S.P.RL < S.P.r });
+
+/* ---- a push button: contact bounce, an RC filter and a Schmitt trigger ---- */
+const SW3 = { Vcc: 5, Vth: 2.5, hi: 3.0, lo: 2.0, press: [0, 0.25, 0.4, 0.75, 0.95, 1.35, 1.5, 2.1, 2.2], release: [0, 0.15, 0.3, 0.5, 0.6] };   /* bounce times in ms (illustrative); Schmitt thresholds illustrative */
+const swContact = (pressed, dtms) => { const seq = pressed ? SW3.press : SW3.release; let n = 0; seq.forEach(t => { if (dtms >= t) n++; }); return pressed ? n % 2 === 1 : n % 2 === 0; };
+lab3d({ id: 'switch', node: 'switch', title: 'לחצן: קפיצות מגע, מסנן RC ו-Schmitt trigger',
+  note: 'מגע מתכתי לא נסגר פעם אחת: הוא קופץ כמה פעמים במשך אלפיות שנייה עד שהוא נח. בקר מהיר סופר כל קפיצה כלחיצה. מסנן RC מחליק את הקפיצות, ו-Schmitt trigger (שני ספים) הופך את העקומה החלקה למעבר אחד נקי. הקפיצות כאן הן תבנית להמחשה; הזמן מואט פי 100.',
+  cam: { yaw: 0.2, pitch: 0.75, dist: 17, t: [0.4, 0.4, 0] }, rate: 0.01, dt: 2e-6,
+  P: { tau: 1, filt: 'on' },
+  controls: [{ k: 'tau', t: 'קבוע זמן RC', list: [0.1, 0.2, 0.5, 1, 2, 5], u: 'ms' }],
+  toggles: [{ k: 'filt', t: 'הבקר קורא', opts: [['off', 'את המגע ישירות'], ['on', 'דרך RC ו-Schmitt']] }],
+  actions: [['👇 לחיצה', 'press'], ['👆 שחרור', 'release']],
+  init: S => Object.assign(S.x, { pressed: false, te: -1, v: SW3.Vcc, out: 1, raw: 1, nRaw: 0, nOut: 0, t0: 0, tOut: null }),
+  act: { press: S => { if (S.x.pressed) return; Object.assign(S.x, { pressed: true, te: S.t, nRaw: 0, nOut: 0, tOut: null }); }, release: S => { if (!S.x.pressed) return; Object.assign(S.x, { pressed: false, te: S.t }); } },
+  step(S, h) { const x = S.x, closed = x.te < 0 ? false : swContact(x.pressed, (S.t - x.te) * 1000), raw = closed ? 0 : SW3.Vcc, tau = S.P.tau / 1000;
+    x.v += (raw - x.v) * (1 - Math.exp(-h / tau)); const rawL = raw > SW3.Vth ? 1 : 0; if (x.raw === 1 && rawL === 0) x.nRaw++; x.raw = rawL;
+    const out = x.out ? (x.v < SW3.lo ? 0 : 1) : (x.v > SW3.hi ? 1 : 0); if (x.out === 1 && out === 0) { x.nOut++; if (x.tOut == null && x.pressed) x.tOut = (S.t - x.te) * 1000; } x.out = out; x.vraw = raw; },
+  calc: (P, S) => { const x = S.x; return { raw: x.vraw == null ? SW3.Vcc : x.vraw, v: x.v, out: x.out * SW3.Vcc, seen: P.filt === 'on' ? x.out * SW3.Vcc : (x.raw ? SW3.Vcc : 0), n: P.filt === 'on' ? x.nOut : x.nRaw, nRaw: x.nRaw, nOut: x.nOut, delay: x.tOut }; },
+  stats: [['b', 'הלחצן', (R, S) => S.x.pressed ? 'לחוץ' : 'משוחרר'], ['n', 'לחיצות שהבקר ספר', R => String(R.n)], ['r', 'קפיצות במגע', R => String(R.nRaw)], ['d', 'השהיית המסנן', R => R.delay == null ? '—' : lf(R.delay) + ' ms']],
+  trace: { keys: [['raw', 'contact (V)', LABC.navy, -0.3, 5.3], ['v', 'RC (V)', LABC.blue, -0.3, 5.3], ['seen', 'MCU input (V)', LABC.brown, -0.3, 5.3]], names: ['contact', 'after RC', 'MCU input'], lanes: 1, span: 0.012, disp: 1000, unit: 'ms', marks: [[SW3.hi, 1, LABC.char], [SW3.lo, 1, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 7, [0.5, -0.12, 0]);
+    /* the button: base, cap, two contact leaves (the moving one bounces) */
+    L.block(2.0, 0.8, 2.0, [-4.2, 0.4, 0], mat.char); const cap = add(K.can(0.6, 0, 0.6, 0.12), mat.blue, [-4.2, 0.8, 0]); add(G.box(1.8, 0.05, 0.4, 0.02), mat.alu, [-4.2, 1.9, 1.2]);
+    const leaf = add(G.box(1.6, 0.06, 0.36, 0.02), mat.alu, [-4.4, 2.3, 1.2]); add(G.box(0.3, 0.6, 0.36, 0.04), mat.char, [-5.2, 2.0, 1.2]); L.tag('מגע', [-4.2, 3.0, 1.2], 0.34);
+    const rp = L.res([-1.4, 0.4, -1.6], 1.1, 0.2); rp.bands(10000); L.tag('pull-up', [-1.4, 1.1, -1.6], 0.3);
+    const rf = L.res([-0.9, 0.4, 1.5], 1.1, 0.2); rf.bands(10000); add(K.can(0.32, 0, 0.9, 0.05), mat.navy, [0.8, 0, 0.6]); L.tag('RC', [0, 1.4, 1.2], 0.34);
+    L.block(1.2, 0.4, 0.9, [2.4, 0.2, 0.6], mat.dark); L.tag('Schmitt', [2.4, 0.9, 0.6], 0.3); L.block(2.2, 0.5, 2.0, [5.0, 0.25, 0], mat.dark); const sc = L.screen([5.0, 0.51, 0.3], 1.7, 0.85); sc.m.rotation.x = -Math.PI / 2; L.tag('בקר', [5.0, 1.0, -0.9], 0.34); const lamp = L.led([5.8, 0.6, 0.9], G.C.light, 0.14);
+    L.wire([[-4.2, 0.15, 1.0], [-4.2, 0.15, 1.5], [-1.6, 0.15, 1.5]]); L.wire([[-0.2, 0.15, 1.5], [0.8, 0.15, 1.5], [0.8, 0.15, 0.95], [1.8, 0.15, 0.6]]); L.wire([[-4.2, 0.15, -1.0], [-4.2, 0.15, -1.6], [-2.1, 0.15, -1.6]]); L.wire([[3.0, 0.15, 0.6], [3.9, 0.15, 0.6]]);
+    let pz = 0, last = '';
+    return (dt, R, S) => { const x = S.x, closed = R.raw < 1; pz += ((x.pressed ? 1 : 0) - pz) * Math.min(1, dt * 14); cap.position.y = 0.8 - 0.25 * pz; leaf.rotation.z = closed ? -0.0 : (x.pressed ? 0.12 : 0.22); leaf.position.y = closed ? 1.98 : 2.3;
+      const k = R.n + '|' + R.nRaw + '|' + S.P.filt; if (k !== last) { last = k; sc.set(String(R.n), S.P.filt === 'on' ? 'מסונן' : 'ישיר'); } lamp.set(R.seen < 2.5); rf.heat(0); }; },
+  msg: (R, S) => { const x = S.x; if (x.te < 0) return '<b>לחצו "לחיצה".</b> שימו לב לגרף העליון: המגע עצמו. הזמן מואט פי 100, וחלון הגרף 12 ms.';
+    if (S.P.filt === 'off') return R.n > 1 ? `<b>לחיצה אחת, הבקר ספר ${R.n}.</b> המגע קפץ ${R.nRaw} פעמים בכ-${LB('2 ms')}, והבקר, שקורא אלפי פעמים בשנייה, ראה כל קפיצה. החליפו ל"דרך RC ו-Schmitt".` : '<b>המגע נסגר.</b> בלחיצה הבאה, ספרו את המעברים בגרף העליון.';
+    if (R.n === 0) return x.pressed ? '<b>המתח על הקבל יורד…</b> ה-Schmitt יתחלף כשיעבור את הסף התחתון.' : '<b>לחצו שוב "לחיצה".</b>';
+    return R.n > 1 ? `<b>קבוע הזמן קצר מדי (${LB(S.P.tau + ' ms')}).</b> המתח על הקבל מספיק לחצות את הספים בין קפיצה לקפיצה, והבקר עדיין ספר ${R.n}. הגדילו את τ.` : `<b>מעבר נקי אחד.</b> ה-RC מחליק את הקפיצות (הגרף האמצעי), וה-Schmitt לא משנה מצב עד שהמתח עובר את הסף השני. המחיר: השהיה של ${LB(R.delay == null ? '—' : lf(R.delay) + ' ms')}. τ גדול מדי יאט לחיצות מהירות.`; },
+  alarm: (R, S) => R.n > 1 && S.x.pressed });
+
+/* ---- a fuse: heat builds as I², and a slow fuse lets a short inrush through ---- */
+const FUSE3 = { In: 2, melt: 2.25, tau: { F: 0.05, T: 2 }, inrush: [10, 0.005] };   /* normalized model: θ' = ((I/In)² − θ)/τ, melts at θ = 2.25 (never below 1.5×In); illustrative, not a maker's curve */
+const fuseBlow = (k, type) => k * k <= FUSE3.melt ? Infinity : -FUSE3.tau[type] * Math.log(1 - FUSE3.melt / (k * k));
+lab3d({ id: 'fuse', node: 'fuse', title: 'פיוז: חום שמצטבר כ-I², מהיר מול איטי',
+  note: 'חוט הפיוז מתחמם כמו נגד, P = I²R, ונמס כשהחום שהצטבר עובר סף. בזרם קטן החום מתפזר ומתייצב מתחת לסף, ולכן הפיוז מחזיק; בזרם גדול הוא נמס מהר יותר. פיוז איטי (T) צובר חום לאט, ולכן מעביר זרם התנעה קצר שפיוז מהיר (F) לא מעביר. המודל מנורמל להמחשה (נמס מעל פי 1.5 מהנקוב), לא עקומת יצרן; הזמן מואט פי 5.',
+  cam: { yaw: 0.25, pitch: 0.62, dist: 16, t: [0, 0.8, 0] }, rate: 0.2, hmax: 2e-4,
+  P: { k: 0.8, type: 'F' },
+  controls: [{ k: 'k', t: 'זרם העומס', min: 0, max: 5, step: 0.05, fmt: v => lf(v * FUSE3.In) + ' A (' + lf(v, 2) + '×In)' }],
+  toggles: [{ k: 'type', t: 'סוג', opts: [['F', 'מהיר (F)'], ['T', 'איטי (T)']] }],
+  actions: [['⚡ זרם התנעה', 'inrush'], ['🔧 החלף פיוז', 'replace']],
+  init: S => Object.assign(S.x, { th: 0, blown: false, tb: null, ti: -1, peak: 0, survived: null }),
+  act: { inrush: S => { if (!S.x.blown) Object.assign(S.x, { ti: S.t, peak: S.x.th, survived: null }); }, replace: S => Object.assign(S.x, { th: 0, blown: false, tb: null, ti: -1, peak: 0, survived: null, t0: S.t }) },
+  onSet: (S, k) => { if (k === 'type' || k === 'k') S.x.t0 = S.t; },
+  step(S, h) { const x = S.x, t0 = S.t - h, end = x.ti + FUSE3.inrush[1], o = x.ti >= 0 && !x.blown ? Math.max(0, Math.min(S.t, end) - Math.max(t0, x.ti)) : 0, inr = o > 0, tau = FUSE3.tau[S.P.type];
+    const heat = (k, d) => { if (d > 0) x.th += (k * k - x.th) * (1 - Math.exp(-d / tau)); }, kb = x.blown ? 0 : S.P.k, k = inr ? Math.max(kb, FUSE3.inrush[0]) : kb;
+    heat(k, o); heat(kb, h - o); if (inr) x.peak = Math.max(x.peak, x.th); if (x.ti >= 0 && S.t >= end && x.survived == null && !x.blown) x.survived = x.peak;
+    if (!x.blown && x.th >= FUSE3.melt) { x.blown = true; x.tb = S.t - (inr ? x.ti : (x.t0 || 0)); x.byInrush = inr; } x.kNow = k; },
+  calc: (P, S) => { const x = S.x, k = x.kNow == null ? P.k : x.kNow; return { k, I: k * FUSE3.In, th: x.th, rel: x.th / FUSE3.melt, blown: x.blown, tBlow: fuseBlow(P.k, P.type) }; },
+  stats: [['I', 'זרם', R => lf(R.I) + ' A'], ['k', 'פי הנקוב', R => lf(R.k) + '×In'], ['h', 'חום מהסף', R => Math.round(Math.min(1, R.rel) * 100) + '%'], ['s', 'מצב', R => R.blown ? 'נשרף' : 'שלם']],
+  trace: { keys: [['k', 'I / In', LABC.navy, 0, 11], [R => R.th, 'heat θ', LABC.brown, 0, 2.6]], names: ['I / In', 'heat (θ)'], lanes: 1, span: 0.5, disp: 1000, unit: 'ms', marks: [[FUSE3.melt, 1, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(12, 6);
+    add(K.can(0.42, -1.6, 1.6, 0.05, 'x', 40), mat.glass, [0, 1.0, 0]); [-1, 1].forEach(s => add(K.can(0.47, s < 0 ? -2.05 : 1.45, s < 0 ? -1.45 : 2.05, 0.06, 'x'), mat.alu, [0, 1.0, 0]));
+    const fil = L.glowMat(mat.alu, G.C.light), a = add(G.K.keep(new G.THREE.CylinderGeometry(0.04, 0.04, 3.0, 8)), fil, [0, 1.0, 0]); a.rotation.z = Math.PI / 2;
+    const bead = add(G.K.keep(new G.THREE.SphereGeometry(0.13, 14, 10)), fil, [0, 1.0, 0]); const stubs = [-1, 1].map(s => { const o = add(G.K.keep(new G.THREE.CylinderGeometry(0.04, 0.04, 1.2, 8)), mat.char, [s * 0.95, 0.94, 0]); o.rotation.z = Math.PI / 2 + s * 0.18; o.visible = false; return o; });
+    [-1.75, 1.75].forEach(x => { L.block(0.5, 0.9, 1.0, [x, 0.45, 0], mat.alu); }); labBattery(G, L, -4.7, 0, '24 V'); const lp = L.lamp([4.6, 1.1, 0], 0.55); L.tag('עומס', [4.6, 2.2, 0], 0.34); const tg = L.tag('', [0, 2.2, 0], 0.4);
+    const loop = [[-4.7, 0.15, 0.55], [-4.7, 0.15, 1.6], [-1.75, 0.15, 1.6], [-1.75, 1.0, 0.5], [1.75, 1.0, 0.5], [1.75, 0.15, 1.6], [4.6, 0.15, 1.6], [4.6, 0.15, -1.6], [-4.7, 0.15, -1.6], [-4.7, 0.15, -0.55]];
+    L.wire([loop[0], loop[1], loop[2]]); L.wire([[-1.75, 0.15, 1.6], [-1.75, 0.15, 0.5]]); L.wire([[1.75, 0.15, 0.5], [1.75, 0.15, 1.6], loop[6], loop[7], loop[8], loop[9]]); const cur = labFlow(G, 70, 0.3);
+    return (dt, R, S) => { const bl = R.blown; a.visible = !bl; bead.visible = !bl && S.P.type === 'T'; stubs.forEach(o => { o.visible = bl; }); L.heat(fil, R.th / FUSE3.melt * 1.2); fil.color.setHex(R.th / FUSE3.melt > 0.4 ? G.C.cream : G.C.light);
+      lp.set(bl ? 0 : Math.min(1.4, R.k * R.k)); tg.set(bl ? 'נשרף' : `${FUSE3.In} A ${S.P.type}`); cur.set([{ pts: loop, v: bl ? 0 : vI(R.k, 1) }]); cur.step(dt); }; },
+  msg: (R, S) => { const x = S.x, t = S.P.type;
+    if (R.blown) return `<b>הפיוז נשרף${x.byInrush ? ' בזרם ההתנעה' : ''}${x.tb != null ? ' אחרי ' + LB(lf(x.tb * 1000, 1) + ' ms') : ''}.</b> החוט צבר חום מעל נקודת ההיתוך. ${x.byInrush ? 'פיוז מהיר לא מבדיל בין התנעה קצרה לקצר. בכניסה של ספק (קבלים נטענים) שמים פיוז T.' : 'מצאו את הסיבה לפני שמחליפים: פיוז חדש באותו עומס יישרף שוב.'} לחצו "החלף פיוז".`;
+    if (x.survived != null) return `<b>זרם ההתנעה עבר.</b> ${LB('10×In')} למשך ${LB('5 ms')} העלה את החום רק ל-${Math.round(x.survived / FUSE3.melt * 100)}% מהסף, כי לפיוז ${t === 'T' ? 'האיטי' : ''} יש קבוע זמן ארוך. הוא עדיין נשרף בקצר שנמשך.`;
+    if (R.k <= 1) return `<b>בזרם עד הנקוב החום מתייצב מתחת לסף</b> (θ = (I/In)² ≤ 1), והפיוז מחזיק תמיד. נסו "זרם התנעה" עם פיוז מהיר ואחר כך עם איטי.`;
+    return R.tBlow === Infinity ? `<b>עומס יתר קל (${LB(lf(R.k) + '×In')}).</b> החום מתייצב ב-${Math.round(R.k * R.k / FUSE3.melt * 100)}% מהסף: הפיוז חם אבל לא נשרף. פיוז לא מגן על עומס יתר קטן; את זה עושה מפסק תרמי או הבקר.` : `<b>${LB(lf(R.k) + '×In')}: הפיוז יישרף אחרי כ-${LB(lf(R.tBlow * 1000, 1) + ' ms')}</b> (${LB('t = −τ·ln(1 − θm/k²)')}). ככל שהזרם גדול יותר, מהר יותר.`; },
+  alarm: R => R.blown });
+
+/* ---- a terminal: contact resistance, heat and intermittent contact ---- */
+const TERM3 = { Rth: 40, tau: 8, Vs: 24, worn: 0.05 };   /* K/W of a small terminal and its time constant (illustrative); above 50 mΩ the contact is called worn */
+lab3d({ id: 'terminal', node: 'connector', title: 'הדק ומחבר: התנגדות מגע, חום וניתוקים רגעיים',
+  note: 'מגע טוב בהדק או במחבר הוא כמה מיליאוהם. בורג רופף, חמצון או פין שחוק מעלים את התנגדות המגע: על הזרם נופל מתח, P = I²·Rc מתפזר בנקודה קטנה, והיא מתחממת. מגע רופף גם מתנתק לרגע ברעידה. ערכי ההתנגדות התרמית וקבוע הזמן להמחשה.',
+  cam: { yaw: 0.35, pitch: 0.6, dist: 15, t: [0, 0.8, 0] },
+  P: { I: 5, Rc: 0.008 },
+  controls: [{ k: 'I', t: 'זרם', min: 0.1, max: 16, step: 0.1, u: 'A' }, { k: 'Rc', t: 'התנגדות מגע', min: 0.002, max: 0.5, log: 1, fmt: v => lf(v * 1000, 1) + ' mΩ' }],
+  actions: [['🔩 הדק', 'tight'], ['🪛 שחרר', 'loose'], ['〰 נער את הכבל', 'wiggle']],
+  init: S => Object.assign(S.x, { th: 0, wig: -1, open: false, drops: 0 }),
+  act: { tight: S => { S.P.Rc = 0.005; S.x.drops = 0; }, loose: S => { S.P.Rc = 0.15; }, wiggle: S => { S.x.wig = S.t; S.x.drops = 0; } },
+  step(S, h) { const x = S.x, w = x.wig >= 0 && S.t - x.wig < 2.5, worn = S.P.Rc > TERM3.worn; const o = w && worn && Math.sin(S.t * 53) * Math.sin(S.t * 31.7) > 0.45; if (o && !x.open) x.drops++; x.open = o;
+    const P = x.open ? 0 : S.P.I * S.P.I * S.P.Rc; x.th += (TERM3.Rth * P - x.th) * (1 - Math.exp(-h / TERM3.tau)); x.wiggling = w; },
+  calc: (P, S) => { const x = S.x, I = x.open ? 0 : P.I, Vd = I * P.Rc; return { I, Vd, Pc: I * Vd, T: 25 + x.th, Tss: 25 + TERM3.Rth * P.I * P.I * P.Rc, Vl: x.open ? 0 : TERM3.Vs - Vd, open: x.open, worn: P.Rc > TERM3.worn }; },
+  stats: [['v', 'מתח על המגע', R => lf(R.Vd * 1000, 1) + ' mV'], ['p', 'הספק במגע', R => watt(R.Pc)], ['t', 'טמפרטורת המגע', R => lf(Math.min(R.T, 999), 0) + ' °C'], ['d', 'ניתוקים', (R, S) => String(S.x.drops)]],
+  trace: { keys: [['Vl', 'load V', LABC.navy, 0, 26], [R => R.T, 'contact T (°C)', LABC.brown, 0, 300]], names: ['load voltage', 'contact temperature'], lanes: 1, span: 12 },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(11, 6); const blk = L.group([0, 0, 0]);
+    L.block(1.6, 1.8, 2.4, [0, 0.9, 0], mat.cream, blk); add(G.box(1.0, 0.1, 1.0, 0.03), mat.char, [0, 1.85, 0.4], blk); const screw = add(K.can(0.32, 0, 0.3, 0.06), mat.alu, [0, 1.8, 0.4], blk); add(G.box(0.5, 0.05, 0.08, 0.01), mat.char, [0, 0, 0], screw).position.y = 0.32;
+    const clampM = L.glowMat(mat.brown), cl = add(G.box(0.7, 0.4, 0.9, 0.04), clampM, [0, 1.0, 0.2], blk);
+    const cab = L.group([0, 0, 0]); G.pipe([0, 1.0, 1.2], [0, 1.0, 3.2], 0.24, mat.hose, cab); G.pipe([0, 1.0, 0.2], [0, 1.0, 1.25], 0.12, mat.brown, cab); G.pipe([0, 1.0, 3.2], [-4.2, 1.0, 3.2], 0.24, mat.hose, cab);
+    G.pipe([0, 1.0, -1.2], [0, 1.0, -2.6], 0.24, mat.hose); G.pipe([0, 1.0, -2.6], [4.0, 1.0, -2.6], 0.24, mat.hose); const lp = L.lamp([4.2, 1.2, 0], 0.55); G.pipe([4.0, 1.0, -2.6], [4.2, 0.5, -0.5], 0.08, mat.brown);
+    labBattery(G, L, -4.6, 0, '24 V'); const tg = L.tag('', [0, 2.9, 0.4], 0.4); const sp = L.spark([0, 1.2, 0.9], 0.8); const cur = labFlow(G, 60, 0.3);
+    const loop = [[-4.6, 1.0, 3.2], [0, 1.0, 3.2], [0, 1.0, 0.2], [0, 1.0, -2.6], [4.0, 1.0, -2.6], [4.2, 0.6, -0.4]];
+    return (dt, R, S) => { const x = S.x; L.heat(clampM, (R.T - 25) / 150); screw.position.y = 1.8 + Math.min(0.35, (S.P.Rc - 0.005) * 2); screw.rotation.y = -S.P.Rc * 30;
+      cab.position.x = x.wiggling ? Math.sin(S.t * 40) * 0.12 : 0; cab.rotation.y = x.wiggling ? Math.sin(S.t * 33) * 0.05 : 0; sp.set(R.open ? 0.9 : 0); lp.set(R.open ? 0 : Math.min(1.2, R.I / 8));
+      tg.set(lf(S.P.Rc * 1000, 1) + ' mΩ · ' + lf(Math.min(R.T, 999), 0) + ' °C'); cur.set([{ pts: loop, v: R.open ? 0 : vI(R.I, 8) }]); cur.step(dt); }; },
+  msg: (R, S) => { const x = S.x;
+    if (x.drops > 0) return `<b>${x.drops} ניתוקים רגעיים בניעור.</b> מגע שחוק או רופף (${LB(lf(S.P.Rc * 1000, 0) + ' mΩ')}) מאבד מגע לאלפיות שנייה. זו תקלה "שבאה והולכת": בקר מאבד אות, דרייבר נכנס לתקלה, ובמעבדה הכל תקין. מהדקים, מחליפים פין, ובודקים בניעור.`;
+    if (R.Tss > 100) return `<b>מגע חם: ${LB(watt(R.I * R.I * S.P.Rc))} בנקודה קטנה, עד כ-${LB(lf(Math.min(R.Tss, 999), 0) + ' °C')}.</b> פלסטיק ההדק מתרכך, הבידוד נשרף, וההתנגדות עולה עוד: הסלמה. מצלמה תרמית מוצאת את זה לפני השריפה.`;
+    if (R.worn) return `<b>${LB(lf(S.P.Rc * 1000, 0) + ' mΩ')}: מגע שחוק.</b> בזרם קטן עדיין עובד, אבל נערו את הכבל, או העלו את הזרם.`;
+    return `<b>מגע תקין: ${LB(lf(S.P.Rc * 1000, 1) + ' mΩ')}.</b> על ${LB(lf(R.I) + ' A')} נופלים ${LB(lf(R.Vd * 1000, 1) + ' mV')} ומתפזרים ${LB(watt(R.Pc))}. לחצו "שחרר" או הגדילו את ההתנגדות.`; },
+  alarm: (R, S) => S.x.drops > 0 || R.Tss > 100 });
+
+/* ---- a capacitor: charge and discharge through R, τ = RC ---- */
+lab3d({ id: 'capacitor', node: 'capacitor', title: 'קבל: טעינה ופריקה דרך נגד, τ = RC',
+  note: 'קבל אוגר מטען על שני לוחות. דרך נגד הוא לא נטען מיד: הזרם גדול כשהקבל ריק וקטן ככל שהוא מתמלא, והמתח מתקרב ל-E באקספוננט. אחרי τ = RC הוא ב-63%, ואחרי 5τ כמעט מלא. בפריקה הזרם הפוך. נקודות על הלוחות: מטען חיובי וחומים, שלילי כחולים.',
+  cam: { yaw: 0.3, pitch: 0.6, dist: 17, t: [0, 0.9, 0] },
+  P: { E: 10, R: 10000, C: 100e-6, sw: 'chg' },
+  controls: [{ k: 'E', t: 'מתח המקור', min: 1, max: 24, step: 0.5, u: 'V' }, { k: 'R', t: 'נגד', list: e12(1000, 47000), fmt: ohm }, { k: 'C', t: 'קבל', list: [22e-6, 47e-6, 100e-6, 220e-6, 470e-6], fmt: v => lf(v * 1e6, 0) + ' µF' }],
+  toggles: [{ k: 'sw', t: 'מתג', opts: [['chg', 'טעינה מהמקור'], ['dis', 'פריקה דרך הנגד']] }],
+  init: S => { S.x.v = 0; },
+  onSet: (S, k) => { if (k === 'sw') S.x.ts = S.t; },
+  step: (S, h) => { const tau = S.P.R * S.P.C, Vs = S.P.sw === 'chg' ? S.P.E : 0; S.x.v += (Vs - S.x.v) * (1 - Math.exp(-h / tau)); },
+  calc: (P, S) => { const tau = P.R * P.C, Vs = P.sw === 'chg' ? P.E : 0, v = S.x.v; return { tau, v, i: (Vs - v) / P.R, W: 0.5 * P.C * v * v, pct: v / P.E }; },
+  stats: [['v', 'מתח על הקבל', R => lf(R.v) + ' V'], ['i', 'זרם', R => amp(R.i)], ['t', 'τ = RC', R => lf(R.tau) + ' s'], ['w', 'אנרגיה', R => R.W >= 1 ? lf(R.W) + ' J' : lf(R.W * 1000) + ' mJ']],
+  trace: { keys: [['v', 'v_C (V)', LABC.navy, 0, 24], [R => R.i * 1000, 'i (mA)', LABC.brown, -25, 25]], names: ['voltage on C', 'current (+ charging, − discharging)'], lanes: 1, span: 12 },
+  build(G, L, S) {
+    const { mat, K, add, THREE: T } = G; L.board(12, 7); const plateA = add(G.box(0.12, 2.4, 2.0, 0.03), mat.alu, [0.9, 1.4, 0]), plateB = add(G.box(0.12, 2.4, 2.0, 0.03), mat.alu, [2.1, 1.4, 0]); add(G.box(1.0, 2.2, 1.8, 0.05), mat.glass, [1.5, 1.4, 0]);
+    const N = 60, mk = (col, x) => { const g = K.keep(new T.SphereGeometry(0.06, 8, 6)), m = new T.InstancedMesh(g, G.led(col), N), M = new T.Matrix4(); for (let i = 0; i < N; i++) { M.makeTranslation(x, 0.35 + (i % 10) * 0.21, -0.85 + Math.floor(i / 10) * 0.34); m.setMatrixAt(i, M); } m.material.emissiveIntensity = 1.6; G.scene.add(m); return m; };
+    const qp = mk(G.C.brown, 0.78), qn = mk(G.C.blue, 2.22); const field = [-0.6, 0, 0.6].flatMap(z => [0.8, 1.4, 2.0].map(y => { const o = G.pipe([0.98, y, z], [2.02, y, z], 0.025, L.glowMat(mat.light, G.C.light)); return o; }));
+    labBattery(G, L, -4.6, 0, 'E'); const r = L.res([-1.2, 0.5, 2.3], 1.3, 0.24); L.tag('R', [-1.2, 1.2, 2.3], 0.34);
+    /* the switch: a lever between the source and the discharge path */
+    L.block(0.5, 0.4, 0.5, [-3.0, 0.2, 2.3], mat.char); const lever = L.group([-3.0, 0.45, 2.3]); add(G.box(1.1, 0.08, 0.12, 0.02), mat.alu, [0.55, 0, 0], lever); add(K.can(0.1, 0, 0.2, 0.02), mat.alu, [-3.6, 0.2, 2.9]); add(K.can(0.1, 0, 0.2, 0.02), mat.alu, [-3.6, 0.2, 1.7]);
+    L.wire([[-4.6, 0.15, 0.55], [-4.6, 0.15, 2.9], [-3.6, 0.15, 2.9]]); L.wire([[-3.6, 0.15, 1.7], [-3.6, 0.15, 1.2], [-4.6, 0.15, 1.2]]); L.wire([[-3.0, 0.15, 2.3], [-1.85, 0.15, 2.3], [-1.85, 0.5, 2.3]]); L.wire([[-0.55, 0.5, 2.3], [-0.55, 0.15, 2.3], [0.9, 0.15, 2.3], [0.9, 0.15, 1.0]]); L.wire([[2.1, 0.15, -1.0], [2.1, 0.15, -2.4], [-4.6, 0.15, -2.4], [-4.6, 0.15, -0.55]]);
+    const loopC = [[-4.6, 0.15, 0.55], [-4.6, 0.15, 2.9], [-3.6, 0.15, 2.9], [-3.0, 0.15, 2.3], [-0.55, 0.15, 2.3], [0.9, 0.15, 2.3], [0.9, 0.15, 1.0], [0.9, 1.4, 0]], loopB = [[2.1, 1.4, 0], [2.1, 0.15, -1.0], [2.1, 0.15, -2.4], [-4.6, 0.15, -2.4], [-4.6, 0.15, -0.55]];
+    const vm = labMeter(G, L, [4.6, 0.75, 0.6], 'v על הקבל'); const cur = labFlow(G, 70, 0.3); let lastR = 0;
+    return (dt, R, S) => { if (S.P.R !== lastR) { lastR = S.P.R; r.bands(S.P.R); } const n = Math.round(Math.min(1, R.v / 24) * N); qp.count = n; qn.count = n; field.forEach(o => { o.material.emissiveIntensity = 2 * Math.min(1, R.v / 12); o.visible = R.v > 0.2; });
+      lever.rotation.y = S.P.sw === 'chg' ? -0.85 : 0.85; vm.set(lf(R.v) + ' V'); const sp = vI(R.i, 0.002), rev = p => p.slice().reverse();
+      cur.set(R.i >= 0 ? [{ pts: loopC, v: sp }, { pts: loopB, v: sp }] : [{ pts: rev(loopC), v: sp, k: 'r' }, { pts: rev(loopB), v: sp }]); cur.step(dt); }; },
+  msg: (R, S) => S.P.sw === 'chg' ? (R.pct > 0.99 ? `<b>הקבל מלא: ${LB(lf(R.v) + ' V')}, ואין זרם.</b> במצב יציב קבל חוסם DC. הוא אוגר ${LB(R.W >= 1 ? lf(R.W) + ' J' : lf(R.W * 1000) + ' mJ')} (${LB('½CV²')}). העבירו את המתג לפריקה.` : `<b>טעינה: ${LB('v(t) = E(1 − e^(−t/τ))')}, τ = ${LB(lf(R.tau) + ' s')}.</b> הזרם הכי גדול בהתחלה (${LB('E/R')}) ודועך. אחרי τ המתח ב-63%, אחרי ${LB('5τ = ' + lf(5 * R.tau) + ' s')} כמעט מלא.`)
+    : (R.v < 0.01 * S.P.E ? '<b>הקבל ריק.</b> החזירו את המתג לטעינה. נסו קבל גדול פי 4: τ גדל פי 4.' : `<b>פריקה דרך הנגד: ${LB('v(t) = V0·e^(−t/τ)')}.</b> הזרם הפוך (הגרף התחתון שלילי). קבל טעון אחרי כיבוי הוא סכנה: לכן שמים נגד פריקה (bleeder) על קבלי ספק.`) });
+
+/* ---- a coil: current that refuses to change, and the spike when it is cut ---- */
+const COIL3 = { E: 24, R: 48, Vd: 0.7, Roff: 2000 };   /* a 24 V relay coil; without a diode the opening contact is modelled as 2 kΩ (arc and leakage, illustrative) */
+lab3d({ id: 'coil', node: 'coil', title: 'סליל: זרם שלא משתנה בבת אחת, וקוץ המתח בניתוק',
+  note: 'סליל מתנגד לשינוי בזרם: v = L·di/dt. בחיבור הזרם עולה בהדרגה (τ = L/R). בניתוק הזרם "רוצה" להמשיך: בלי דרך, המתח קופץ למאות וולטים והמגע יורה ניצוץ. דיודה במקביל (flyback) נותנת לזרם לולאה לדעוך בה. בלי דיודה המודל מניח 2 kΩ במגע הנפתח, להמחשה; הזמן מואט פי 50.',
+  cam: { yaw: 0.25, pitch: 0.6, dist: 17, t: [0, 0.9, 0] }, rate: 0.02,
+  P: { L: 1, sw: 'off', diode: 'yes' },
+  controls: [{ k: 'L', t: 'השראות', list: [0.1, 0.2, 0.5, 1, 2], u: 'H' }],
+  toggles: [{ k: 'sw', t: 'מתג', opts: [['on', 'סגור'], ['off', 'פתוח']] }, { k: 'diode', t: 'דיודת flyback', opts: [['yes', 'יש'], ['no', 'אין']] }],
+  init: S => Object.assign(S.x, { i: 0, vpk: 0, vsw: 0 }),
+  onSet: (S, k) => { if (k === 'sw' && S.P.sw === 'off') S.x.vpk = 0; },
+  step(S, h) { const x = S.x, P = S.P, on = P.sw === 'on', tau = on ? P.L / COIL3.R : P.diode === 'yes' ? P.L / COIL3.R : P.L / (COIL3.R + COIL3.Roff), iss = on ? COIL3.E / COIL3.R : P.diode === 'yes' ? -COIL3.Vd / COIL3.R : 0;
+    const v0 = on ? 0 : P.diode === 'yes' ? COIL3.E + (x.i > 0 ? COIL3.Vd : 0) : COIL3.E + x.i * COIL3.Roff; x.vpk = Math.max(x.vpk, v0);   /* the voltage at the start of the step: the peak is at the instant of opening */
+    x.i = iss + (x.i - iss) * Math.exp(-h / tau); if (!on && x.i < 0) x.i = 0; x.vsw = on ? 0 : P.diode === 'yes' ? COIL3.E + (x.i > 0 ? COIL3.Vd : 0) : COIL3.E + x.i * COIL3.Roff; x.vpk = Math.max(x.vpk, on ? 0 : x.vsw); },
+  calc: (P, S) => ({ i: S.x.i, vsw: S.x.vsw, vpk: S.x.vpk, tau: P.L / COIL3.R, W: 0.5 * P.L * S.x.i * S.x.i }),
+  stats: [['i', 'זרם בסליל', R => amp(R.i)], ['v', 'מתח על המגע', R => lf(R.vsw, 0) + ' V'], ['t', 'τ = L/R', R => lf(R.tau * 1000, 1) + ' ms'], ['w', 'אנרגיה ½·L·i²', R => lf(R.W * 1000, 1) + ' mJ']],
+  trace: { keys: [['i', 'i (A)', LABC.navy, 0, 0.55], ['vsw', 'V switch (V)', LABC.brown, 0, 1100]], names: ['coil current', 'voltage across the contact'], lanes: 1, span: 0.12, disp: 1000, unit: 'ms', marks: [[COIL3.E, 1, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(12, 7); add(K.can(0.42, -1.6, 1.6, 0.05, 'x'), mat.char, [0.8, 1.2, 0]); const coil = L.coil([0.8, 1.2, 0], 'x', 0.62, 2.6, 18, mat.brown);
+    const rings = [0.9, 1.5, 2.1].map(s => { const m = L.glowMat(mat.light, G.C.light); m.transparent = true; const o = L.torus([0.8, 1.2, 0], 1.0, 0.03, m, 'x'); o.scale.set(s, s * 1.8, s * 1.0); return o; });
+    labBattery(G, L, -4.6, 0, '24 V'); L.block(0.6, 0.3, 0.6, [-2.4, 0.15, 2.2], mat.char); const lev = L.group([-2.7, 0.4, 2.2]); add(G.box(0.9, 0.07, 0.14, 0.02), mat.alu, [0.45, 0, 0], lev); add(K.can(0.1, 0, 0.42, 0.02), mat.alu, [-1.8, 0, 2.2]); const sp = L.spark([-1.85, 0.5, 2.2], 1.2);
+    const dg = L.group([0.8, 0, -1.9]); L.block(0.9, 0.45, 0.45, [0, 0.3, 0], mat.dark, dg); add(G.box(0.12, 0.47, 0.47, 0.01), mat.light, [0.3, 0.3, 0], dg); L.tag('דיודה', [0.8, 1.0, -1.9], 0.32);
+    L.wire([[-4.6, 0.15, 0.55], [-4.6, 0.15, 2.2], [-2.7, 0.15, 2.2]]); L.wire([[-1.8, 0.15, 2.2], [-0.9, 0.15, 2.2], [-0.9, 1.2, 0.0], [-0.8, 1.2, 0]]); L.wire([[2.4, 1.2, 0], [2.6, 1.2, 0], [2.6, 0.15, -2.6], [-4.6, 0.15, -2.6], [-4.6, 0.15, -0.55]]);
+    const dW = [L.wire([[-0.9, 0.15, 1.0], [-0.9, 0.15, -1.9], [0.35, 0.15, -1.9]]), L.wire([[1.25, 0.15, -1.9], [2.6, 0.15, -1.9]])]; const cur = labFlow(G, 80, 0.3);
+    const main = [[-4.6, 0.15, 0.55], [-4.6, 0.15, 2.2], [-2.7, 0.15, 2.2], [-1.8, 0.15, 2.2], [-0.9, 0.15, 2.2], [-0.9, 1.2, 0], [2.6, 1.2, 0], [2.6, 0.15, -2.6], [-4.6, 0.15, -2.6], [-4.6, 0.15, -0.55]], fly = [[-0.9, 1.2, 0], [2.6, 1.2, 0], [2.6, 0.15, -1.9], [-0.9, 0.15, -1.9], [-0.9, 1.0, 0]];
+    return (dt, R, S) => { const on = S.P.sw === 'on', dio = S.P.diode === 'yes'; dg.visible = dio; lev.rotation.z = on ? 0 : 0.5; sp.set(!on && R.vsw > 200 ? R.vsw / 600 : 0); rings.forEach(o => { o.material.emissiveIntensity = 2.2 * R.i / 0.5; o.material.opacity = Math.min(1, R.i / 0.25); o.visible = R.i > 0.004; });
+      cur.set(R.i <= 1e-4 ? [] : [{ pts: on ? main : dio ? fly : main.slice(4, 7), v: vI(R.i, 0.5) }]); cur.step(dt); }; },
+  msg: (R, S) => S.P.sw === 'on' ? `<b>הזרם עולה בהדרגה: ${LB('i = (E/R)(1 − e^(−t/τ))')}, τ = L/R = ${LB(lf(R.tau * 1000, 1) + ' ms')}.</b> הסליל אוגר אנרגיה בשדה המגנטי (הטבעות). פתחו את המתג.`
+    : S.P.diode === 'no' ? (R.vpk > 100 ? `<b>קוץ של ${LB(lf(R.vpk, 0) + ' V')} על המגע.</b> הזרם לא יכול להיעצר בבת אחת, אז הסליל מעלה מתח עד שהוא מוצא דרך: קשת במגע, או פריצה של הטרנזיסטור שמפעיל את הממסר. כך נשרפים כרטיסי פלט. החזירו את הדיודה.` : '<b>אין דיודה.</b> סגרו ופתחו את המתג.')
+    : (R.vpk > 0 ? `<b>הדיודה סוגרת לולאה:</b> הזרם ממשיך להסתובב בסליל ובדיודה ודועך עם τ = ${LB(lf(R.tau * 1000, 1) + ' ms')}. המתח על המגע רק ${LB('E + 0.7 V')}. המחיר: הממסר או הבלם משתחררים לאט יותר.` : '<b>סגרו את המתג.</b>'),
+  alarm: (R, S) => S.P.sw === 'off' && S.P.diode === 'no' && R.vpk > 100 });
+
+/* ---- a diode and an LED: the I-V curve, the load line, the depletion layer ---- */
+const DIO3 = { VT: 0.025852, si: { Is: 1e-14, n: 1, Vbi: 0.75 }, led: { Is: 1.6e-19, n: 2, Vbi: 1.9 }, zener: { Is: 1e-14, n: 1, Vbi: 0.75, Vz: 5.1, rz: 5 } };
+const dioI = (V, type) => { const d = DIO3[type]; return d.Is * (Math.exp(Math.min(V, 4) / (d.n * DIO3.VT)) - 1) + (d.Vz && V < -d.Vz ? (V + d.Vz) / d.rz : 0); };
+const dioSolve = (Vin, R, type) => { let lo = -20, hi = 4; for (let i = 0; i < 90; i++) { const m = (lo + hi) / 2; if ((Vin - m) / R - dioI(m, type) > 0) lo = m; else hi = m; } const Vd = (lo + hi) / 2; return { Vd, I: (Vin - Vd) / R }; };
+lab3d({ id: 'diode', node: 'diode', title: 'דיודה, LED וזנר: עקומת I-V, קו עומס ושכבת המחסור',
+  note: 'דיודה היא צומת PN. בכיוון קדמי שכבת המחסור (האזור הבהיר באמצע) מצטמצמת, והזרם עולה באקספוננט אחרי כ-0.7 V בסיליקון או כ-2 V ב-LED. בכיוון הפוך השכבה מתרחבת ואין זרם, עד הפריצה: בזנר היא מתוכננת, במתח מדויק. נקודת העבודה היא החיתוך של עקומת הדיודה עם קו העומס של הנגד.',
+  cam: { yaw: 0.25, pitch: 0.55, dist: 16, t: [0, 1.0, 0] },
+  P: { Vin: 5, R: 330, type: 'led' },
+  controls: [{ k: 'Vin', t: 'מתח המקור', min: -12, max: 12, step: 0.1, u: 'V' }, { k: 'R', t: 'נגד טורי', list: e12(100, 10000), fmt: ohm }],
+  toggles: [{ k: 'type', t: 'רכיב', opts: [['si', 'דיודת סיליקון'], ['led', 'LED'], ['zener', 'זנר 5.1 V']] }],
+  calc: P => { const s = dioSolve(P.Vin, P.R, P.type), d = DIO3[P.type], reg = s.I > 1e-4 ? 'fwd' : d.Vz && s.Vd < -d.Vz + 0.05 && s.I < -1e-4 ? 'bd' : 'off'; return Object.assign(s, { Pd: s.Vd * s.I, reg, w: Math.min(3.2, Math.sqrt(Math.max(0.02, d.Vbi - s.Vd) / d.Vbi)) }); },
+  stats: [['i', 'זרם', R => amp(R.I)], ['v', 'מתח על הרכיב', R => lf(R.Vd, 3) + ' V'], ['p', 'הספק ברכיב', R => watt(Math.abs(R.Pd))], ['r', 'מצב', R => ({ fwd: 'מוליך', off: 'חסום', bd: 'פריצה' })[R.reg]]],
+  plot: { h: 250, leg: [['diode I(V)', LABC.navy], ['load line (Vin − V)/R', LABC.brown]], draw(U, R, S) { const P = S.P, im = Math.max(5, Math.abs(P.Vin) / P.R * 1150); U.frame({ x: [P.type === 'zener' ? -7 : -3, 2.6], y: [-im, im], xl: 'V diode (V)', yl: 'I (mA)' }).hl(0, LABC.char).curve(v => 1000 * dioI(v, P.type), LABC.navy).curve(v => 1000 * (P.Vin - v) / P.R, LABC.brown, 2, [8, 6]).dot(R.Vd, 1000 * R.I); } },
+  build(G, L, S) {
+    const { mat, add } = G; L.board(12, 7); const pM = L.glowMat(mat.brown, G.C.brown), nM = L.glowMat(mat.blue, G.C.blue);
+    const P = add(G.box(2.4, 1.6, 1.6, 0.06), pM, [-1.2, 1.3, 0]), N = add(G.box(2.4, 1.6, 1.6, 0.06), nM, [1.2, 1.3, 0]), dep = add(G.box(1, 1.64, 1.64, 0.02), L.glowMat(mat.light, G.C.light), [0, 1.3, 0]); L.tag('P', [-1.6, 2.5, 0], 0.4); L.tag('N', [1.6, 2.5, 0], 0.4); L.tag('שכבת מחסור', [0, 3.1, 0], 0.32);
+    const dome = add(G.K.keep(new G.THREE.SphereGeometry(0.75, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2)), L.glowMat(mat.glass, G.C.light), [0, 2.1, 0]); dome.material.opacity = 0.35; const pl = new G.THREE.PointLight(G.C.light, 0, 9); pl.position.set(0, 2.8, 0); G.scene.add(pl);
+    labBattery(G, L, -4.8, 0, 'Vin'); const r = L.res([-2.6, 0.5, 2.3], 1.2, 0.22); L.wire([[-4.8, 0.15, 0.55], [-4.8, 0.15, 2.3], [-3.6, 0.15, 2.3], [-3.6, 0.5, 2.3]]); L.wire([[-2.0, 0.5, 2.3], [-1.8, 0.5, 2.3], [-1.8, 0.15, 2.3], [-2.4, 0.15, 1.3], [-2.4, 1.3, 0]]); L.wire([[2.4, 1.3, 0], [3.2, 1.3, 0], [3.2, 0.15, -2.3], [-4.8, 0.15, -2.3], [-4.8, 0.15, -0.55]]);
+    const vm = labMeter(G, L, [4.6, 0.75, 1.4], 'מתח על הדיודה'); const car = labFlow(G, 70, 0.28); let lastR = 0;
+    const path = [[-4.8, 0.15, 0.55], [-4.8, 0.15, 2.3], [-3.6, 0.5, 2.3], [-2.0, 0.5, 2.3], [-2.4, 1.3, 0], [2.4, 1.3, 0], [3.2, 1.3, 0], [3.2, 0.15, -2.3], [-4.8, 0.15, -2.3], [-4.8, 0.15, -0.55]];
+    return (dt, R, S) => { if (S.P.R !== lastR) { lastR = S.P.R; r.bands(S.P.R); } dep.scale.x = 0.25 + 0.55 * R.w; dome.visible = S.P.type === 'led'; const glow = S.P.type === 'led' && R.I > 0 ? Math.min(1.4, R.I / 0.015) : 0; L.heat(dome.material, glow); pl.intensity = 5 * glow;
+      L.heat(pM, R.reg === 'bd' ? 0.4 : 0); L.heat(nM, R.reg === 'bd' ? 0.4 : 0); vm.set(lf(R.Vd, 2) + ' V'); car.set(Math.abs(R.I) < 1e-5 ? [] : [{ pts: R.I > 0 ? path : path.slice().reverse(), v: vI(R.I, 0.02), k: R.I > 0 ? 'f' : 'r' }]); car.step(dt); }; },
+  msg: (R, S) => { const t = S.P.type;
+    if (R.reg === 'fwd') return `<b>מוליך: ${LB(lf(R.Vd, 2) + ' V')} על ה${t === 'led' ? '-LED' : 'דיודה'}, ${LB(amp(R.I))}.</b> המתח על הצומת כמעט לא משתנה עם הזרם (הקו התלול בגרף), ולכן הנגד הוא שקובע את הזרם: ${LB('I ≈ (Vin − Vf)/R')}. ${t === 'led' && R.I > 0.025 ? 'מעל כ-20 mA ה-LED מתחמם ומתבלה: הגדילו את R.' : ''}`;
+    if (R.reg === 'bd') return `<b>פריצה מבוקרת: ${LB(lf(-R.Vd, 2) + ' V')} על הזנר.</b> בכיוון הפוך הזנר מחזיק מתח קבוע, והנגד סופג את ההפרש. כך מייצבים מתח ומגנים על כניסות.`;
+    return R.Vd < 0 ? `<b>חסום:</b> בכיוון הפוך שכבת המחסור מתרחבת, ועובר רק זרם זליגה זעיר. ${t === 'zener' ? `הגדילו את המתח ההפוך מעבר ל-${LB('5.1 V')}.` : 'דיודה רגילה נפרצת רק במתח גבוה בהרבה, ואז נהרסת.'}` : `<b>מתחת לסף ההולכה.</b> ${LB(lf(R.Vd, 2) + ' V')} לא מספיק כדי לצמצם את שכבת המחסור. ${t === 'led' ? 'LED צריך כ-2 V.' : 'סיליקון צריך כ-0.6–0.7 V.'}`; },
+  alarm: (R, S) => S.P.type === 'led' && R.I > 0.03 });
+
+/* ---- a MOSFET as a switch: on, off, and the half-on state that burns it ---- */
+const MOS3 = { Vdd: 24, RL: 12, Vth: 2.5, K: 2.67, Rth: { none: 62, sink: 5 } };   /* a 24 V, 2 A lamp (taken as 12 Ω); Rds(on) ≈ 50 mΩ at 10 V; θja of a bare TO-220 and with a heatsink (typical) */
+const mosSolve = (Vgs, P = MOS3) => { const Vov = Vgs - P.Vth; if (Vov <= 0) return { Id: 0, Vds: P.Vdd, reg: 'off' }; const Isat = P.K / 2 * Vov * Vov;
+  if (P.Vdd - P.RL * Isat >= Vov) return { Id: Isat, Vds: P.Vdd - P.RL * Isat, reg: 'sat' }; const b = P.K * Vov + 1 / P.RL, Vds = (b - Math.sqrt(Math.max(0, b * b - 2 * P.K * P.Vdd / P.RL))) / P.K; return { Id: (P.Vdd - Vds) / P.RL, Vds, reg: 'lin' }; };
+lab3d({ id: 'mosfet', node: 'mosfet', title: 'טרנזיסטור MOSFET כמתג: סגור, פתוח, ובאמצע הוא נשרף',
+  note: `מתח על השער (gate) מושך אלקטרונים ויוצר תעלה בין source ל-drain. מתחת לסף (${LB('Vth')}) אין תעלה; הרבה מעליו התעלה רחבה, ההתנגדות זעירה, והטרנזיסטור מתג סגור. באמצע הוא "חצי פתוח": גם זרם וגם מתח עליו, וההספק ${LB('P = Vds·Id')} גדול. זה מה שקורה כשמחברים MOSFET של 10 V ישר ליציאה של 3.3 V. מודל ריבועי פשוט, ערכים טיפוסיים.`,
+  cam: { yaw: 0.3, pitch: 0.55, dist: 17, t: [0.3, 1.0, 0] },
+  P: { Vgs: 0, hs: 'none' },
+  controls: [{ k: 'Vgs', t: 'מתח שער Vgs', min: 0, max: 10, step: 0.05, u: 'V' }],
+  toggles: [{ k: 'hs', t: 'קירור', opts: [['none', 'בלי גוף קירור'], ['sink', 'עם גוף קירור']] }],
+  calc: P => { const s = mosSolve(P.Vgs), Pm = s.Id * s.Vds; return Object.assign(s, { Pm, Pl: s.Id * s.Id * MOS3.RL, Tj: 25 + Pm * MOS3.Rth[P.hs], Vov: Math.max(0, P.Vgs - MOS3.Vth) }); },
+  stats: [['i', 'זרם Id', R => lf(R.Id) + ' A'], ['v', 'Vds', R => lf(R.Vds) + ' V'], ['p', 'הספק בטרנזיסטור', R => watt(R.Pm)], ['t', 'טמפרטורת צומת', R => R.Tj > 400 ? '> 400 °C' : lf(R.Tj, 0) + ' °C']],
+  plot: { h: 250, leg: [['I_D (A)', LABC.navy], ['P in the MOSFET (W)', LABC.brown]], draw(U, R, S) { U.frame({ x: [0, 10], y: [0, 12.5], xl: 'Vgs (V)', yl: 'I_D (A) · P (W)' }).vl(MOS3.Vth, LABC.char, 'Vth').curve(v => mosSolve(v).Id, LABC.navy).curve(v => { const s = mosSolve(v); return s.Id * s.Vds; }, LABC.brown).dot(S.P.Vgs, R.Id).dot(S.P.Vgs, R.Pm, LABC.brown); } },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 7, [0.4, -0.12, 0]);
+    /* the package: a TO-220 with its tab, three legs, an optional heatsink */
+    const bodyM = L.glowMat(mat.char), pkg = L.group([-1.6, 0, 1.6]); add(G.box(1.2, 1.2, 0.45, 0.05), bodyM, [0, 1.3, 0], pkg); add(G.box(1.2, 0.9, 0.12, 0.02), mat.alu, [0, 2.3, -0.17], pkg); [-0.38, 0, 0.38].forEach((x, i) => { G.pipe([x, 0.7, 0], [x, 0.12, 0], 0.05, mat.alu, pkg); L.tag('GDS'[i], [x - 1.6, 0.35, 2.05], 0.26); });
+    const sink = L.group([-1.6, 0, 1.2]); for (let i = 0; i < 6; i++) add(G.box(1.6, 2.0, 0.07, 0.02), mat.alu, [0, 1.6, -0.1 - i * 0.22], sink);
+    /* the cut-away: P substrate, N+ source and drain, oxide, gate, the channel */
+    const cx = 2.6, sub = add(G.box(3.6, 1.1, 1.6, 0.05), mat.brown, [cx, 0.65, -1.4]); add(G.box(0.9, 0.4, 1.62, 0.03), mat.blue, [cx - 1.25, 1.02, -1.4]); add(G.box(0.9, 0.4, 1.62, 0.03), mat.blue, [cx + 1.25, 1.02, -1.4]); add(G.box(1.6, 0.08, 1.62, 0.01), mat.glass, [cx, 1.26, -1.4]); add(G.box(1.6, 0.3, 1.5, 0.04), mat.alu, [cx, 1.45, -1.4]);
+    const chan = add(G.box(1.6, 0.05, 1.5, 0.01), L.glowMat(mat.light, G.C.light), [cx, 1.18, -1.4]); L.tag('gate', [cx, 2.0, -1.4], 0.3); L.tag('source', [cx - 1.4, 1.6, -0.5], 0.26); L.tag('drain', [cx + 1.4, 1.6, -0.5], 0.26); void sub;
+    const lp = L.lamp([4.8, 1.4, 1.8], 0.6); L.tag('24 V · 2 A', [4.8, 2.6, 1.8], 0.32); labBattery(G, L, -5.2, -0.6, '24 V'); L.block(1.4, 0.5, 1.0, [-4.4, 0.25, 2.3], mat.navy); L.tag('בקר', [-4.4, 0.9, 2.3], 0.3);
+    L.wire([[-3.7, 0.15, 2.3], [-2.0, 0.15, 2.3], [-2.0, 0.15, 1.6]]); L.wire([[-1.6, 0.15, 1.6], [-1.6, 0.15, 3.0], [4.8, 0.15, 3.0], [4.8, 0.15, 2.3]]); L.wire([[-1.2, 0.15, 1.6], [-1.2, 0.15, -2.8], [-5.2, 0.15, -2.8], [-5.2, 0.15, -1.15]]); L.wire([[-5.2, 0.15, -0.05], [-5.2, 0.15, 0.6], [5.6, 0.15, 0.6], [5.6, 0.15, 1.8], [5.3, 0.6, 1.8]]);
+    const el = labFlow(G, 50, 0.24), cur = labFlow(G, 60, 0.3), loop = [[-5.2, 0.15, -0.05], [-5.2, 0.15, 0.6], [5.6, 0.15, 0.6], [5.6, 0.15, 1.8], [4.8, 0.6, 1.8], [4.8, 0.15, 3.0], [-1.6, 0.15, 3.0], [-1.6, 0.15, 1.6], [-1.2, 0.15, 1.6], [-1.2, 0.15, -2.8], [-5.2, 0.15, -2.8], [-5.2, 0.15, -1.15]];
+    return (dt, R, S) => { sink.visible = S.P.hs === 'sink'; L.heat(bodyM, (R.Tj - 25) / 150); chan.scale.y = 0.1 + 3 * Math.min(1, R.Vov / 7.5); chan.visible = R.Vov > 0; L.heat(chan.material, Math.min(1, R.Vov / 4)); lp.set(R.Pl / 48);
+      el.set(R.Id > 1e-4 ? [{ pts: [[cx - 1.25, 1.15, -1.0], [cx + 1.25, 1.15, -1.0]], v: vI(R.Id, 2) * 0.6 }, { pts: [[cx - 1.25, 1.15, -1.8], [cx + 1.25, 1.15, -1.8]], v: vI(R.Id, 2) * 0.6 }] : []); el.step(dt); cur.set(R.Id > 1e-4 ? [{ pts: loop, v: vI(R.Id, 2) }] : []); cur.step(dt); }; },
+  msg: (R, S) => R.reg === 'off' ? `<b>כבוי: Vgs מתחת לסף (${LB(MOS3.Vth + ' V')}).</b> אין תעלה, אין זרם, וכל 24 V על הטרנזיסטור. ההספק אפס, כי אין זרם.`
+    : R.reg === 'lin' ? `<b>מתג סגור: ${LB('Vds = ' + lf(R.Vds, 2) + ' V')}.</b> התעלה רחבה, ההתנגדות ${LB('Rds(on) ≈ ' + lf(R.Vds / R.Id * 1000, 0) + ' mΩ')}, וההספק בטרנזיסטור רק ${LB(watt(R.Pm))}. הנורה מקבלת כמעט הכל.`
+    : `<b>חצי פתוח: ${LB(lf(R.Id) + ' A')} וגם ${LB(lf(R.Vds) + ' V')} עליו, ${LB('P = ' + watt(R.Pm))}.</b> ${R.Tj > 150 ? `הצומת מגיע ל-${LB(R.Tj > 400 ? '> 400 °C' : lf(R.Tj, 0) + ' °C')}: הטרנזיסטור יישרף. ` : ''}מתג חייב להיות כבוי או דלוק עד הסוף: הגבירו את Vgs ל-10 V, או בחרו MOSFET מסוג logic level.`,
+  alarm: R => R.Tj > 150 });
+
+/* ---- a transformer: turns ratio, and why it does not work on DC ---- */
+const XF3 = { V: 230, f: 50, Lm: 10, Rp: 5, sat: 1.2 };   /* magnetizing inductance and winding resistance illustrative; the core saturates at 1.2× the AC peak flux */
+lab3d({ id: 'xfmr', node: 'xfmr', title: 'שנאי: יחס ליפופים, הספק שעובר, ולמה DC לא עובד',
+  note: `זרם חילופין בליפוף הראשוני יוצר שטף משתנה בליבה, והשטף המשתנה משרה מתח בליפוף המשני: ${LB('Vs = Vp·Ns/Np')}. הזרם מתחלף ביחס ההפוך, וההספק (כמעט) שווה בשני הצדדים. ב-DC השטף עולה עד שהליבה ברוויה, ואז אין שינוי ואין מתח במשני; הזרם בראשוני מוגבל רק בהתנגדות הנחושת. החצים בליבה מראים את כיוון השטף; הזמן מואט פי 50.`,
+  cam: { yaw: 0.3, pitch: 0.5, dist: 18, t: [0.2, 1.4, 0] }, rate: 0.02,
+  P: { N: 19.2, RL: 10, mode: 'ac' },
+  controls: [{ k: 'N', t: 'יחס Np/Ns', list: [1, 2, 5, 9.6, 19.2], fmt: v => v + ' : 1' }, { k: 'RL', t: 'עומס במשני', list: e12(1, 100), fmt: ohm }],
+  toggles: [{ k: 'mode', t: 'מקור', opts: [['ac', '230 V AC'], ['dc', '230 V DC (בטעות)']] }],
+  init: S => Object.assign(S.x, { lam: 0, t0: 0 }),
+  onSet: (S, k) => { if (k === 'mode') { S.x.t0 = S.t; S.x.lam = 0; } },
+  step(S, h) { if (S.P.mode === 'dc') S.x.lam = Math.min(XF3.sat * XF3.V * Math.SQRT2 / (2 * Math.PI * XF3.f), S.x.lam + XF3.V * h); },
+  calc: (P, S) => { const w = 2 * Math.PI * XF3.f, Vpk = XF3.V * Math.SQRT2, lsat = XF3.sat * Vpk / w;
+    if (P.mode === 'ac') { const vp = Vpk * Math.sin(w * S.t), vs = vp / P.N, is = vs / P.RL, im = -Vpk / (w * XF3.Lm) * Math.cos(w * S.t), Vs = XF3.V / P.N, Is = Vs / P.RL;
+      return { vp, vs, is, ip: is / P.N + im, phi: -Math.cos(w * S.t), Vs, Is, Ip: Is / P.N, Pw: Vs * Is, sat: false, tsat: null }; }
+    const sat = S.x.lam >= lsat - 1e-9, vs = sat ? 0 : XF3.V / P.N, ip = sat ? XF3.V / XF3.Rp : S.x.lam / XF3.Lm + vs / P.RL / P.N; return { vp: XF3.V, vs, is: vs / P.RL, ip, phi: S.x.lam / (Vpk / w), Vs: vs, Is: vs / P.RL, Ip: ip, Pw: XF3.V * ip, sat, tsat: lsat / XF3.V }; },
+  stats: [['vs', 'מתח במשני', (R, S) => S.P.mode === 'ac' ? lf(R.Vs) + ' V rms' : lf(R.vs) + ' V'], ['is', 'זרם במשני', (R, S) => S.P.mode === 'ac' ? lf(R.Is) + ' A rms' : lf(R.is) + ' A'], ['ip', 'זרם בראשוני', (R, S) => S.P.mode === 'ac' ? lf(R.Ip, 3) + ' A rms' : lf(R.ip, 1) + ' A'], ['p', 'הספק', R => watt(R.Pw)]],
+  trace: { keys: [['vp', 'v_p (V)', LABC.navy, -340, 340], ['vs', 'v_s (V)', LABC.blue, S => -1.1 * 325 / S.P.N, S => 1.1 * 325 / S.P.N], ['ip', 'i_p (A)', LABC.brown, -3, 50]], names: ['primary voltage', 'secondary voltage (own scale)', 'primary current'], lanes: 1, span: 0.06, disp: 1000, unit: 'ms' },
+  build(G, L, S) {
+    const { mat, add } = G; const core = L.group([0, 1.6, 0]), cm = L.glowMat(mat.char, G.C.blue);
+    for (let i = 0; i < 9; i++) { const z = -0.8 + i * 0.2; [[0, 2.0, 4.6, 0.6], [0, -2.0, 4.6, 0.6], [-2.0, 0, 0.6, 3.4], [2.0, 0, 0.6, 3.4]].forEach(([x, y, w, h]) => add(G.box(w, h, 0.18, 0.02), cm, [x, y, z], core)); }
+    const turns = n => Math.max(2, Math.min(18, n)); let coilP = L.coil([-2.0, 1.6, 0], 'y', 0.75, 3.0, 18, mat.brown), coilS = null, lastN = 0;
+    const pm = L.glowMat(mat.brown); coilP.children.forEach(c => { c.material = pm; });
+    const fl = labFlow(G, 90, 0.34), lp = L.lamp([5.4, 1.6, 0], 0.6), tg = L.tag('', [0, 4.6, 0], 0.4); L.tag('ראשוני', [-2.0, -0.5, 1.4], 0.32); L.tag('משני', [2.0, -0.5, 1.4], 0.32);
+    L.block(1.4, 1.0, 1.0, [-5.4, 0.5, 0], mat.navy); L.tag('230 V', [-5.4, 1.4, 0], 0.32); L.wire([[-4.7, 0.6, 0.3], [-2.0, 0.6, 0.9]]); L.wire([[-4.7, 0.6, -0.3], [-2.0, 2.7, -0.9]]); L.wire([[2.0, 0.6, 0.9], [5.4, 0.6, 0.3], [5.4, 0.9, 0]]); L.wire([[2.0, 2.7, -0.9], [5.9, 2.7, -0.4], [5.9, 1.2, -0.2]]);
+    const path = [[-2, 3.6, 0], [2, 3.6, 0], [2, -0.4, 0], [-2, -0.4, 0], [-2, 3.6, 0]];
+    return (dt, R, S) => { if (S.P.N !== lastN) { lastN = S.P.N; if (coilS) { coilS.parent.remove(coilS); } coilS = L.coil([2.0, 1.6, 0], 'y', 0.75, 3.0, turns(Math.round(18 / S.P.N)), mat.brown); }
+      const ac = S.P.mode === 'ac'; L.heat(pm, ac ? 0 : Math.min(1.5, R.ip / 30)); L.heat(cm, Math.min(1, Math.abs(R.phi)) * 0.15); lp.set(Math.abs(R.vs) * Math.abs(R.is) / Math.max(1, (325 / S.P.N) * (325 / S.P.N) / S.P.RL));
+      tg.set(ac ? `${S.P.N} : 1 → ${lf(R.Vs)} V` : R.sat ? 'רוויה: 0 V במשני' : 'השטף עולה'); fl.set(Math.abs(R.phi) < 0.02 ? [] : [{ pts: R.phi > 0 ? path : path.slice().reverse(), v: 3 * Math.min(1.2, Math.abs(R.phi)), k: R.phi > 0 ? 'a' : 'b' }]); fl.step(dt); }; },
+  msg: (R, S) => S.P.mode === 'ac' ? `<b>${LB('Vs = Vp·Ns/Np = 230/' + S.P.N + ' = ' + lf(R.Vs) + ' V')}</b>, והזרם הפוך: ${LB('Ip = Is·Ns/Np = ' + lf(R.Ip, 3) + ' A')}. מה שיוצא במשני (${LB(watt(R.Pw))}) נכנס בראשוני. השטף מתחלף 50 פעם בשנייה, ורק השינוי שלו משרה מתח.`
+    : R.sat ? `<b>הליבה ברוויה אחרי ${LB(lf(R.tsat * 1000, 1) + ' ms')}.</b> השטף כבר לא משתנה, ולכן אין מתח במשני. בראשוני רק התנגדות הנחושת: ${LB('I = 230/' + XF3.Rp + ' = ' + lf(XF3.V / XF3.Rp, 0) + ' A')}. הפיוז נשרף או הליפוף נשרף. שנאי לא עובד על DC.` : '<b>השטף עולה בקו ישר</b> (DC קבוע על הליפוף). כל עוד הוא עולה יש מתח במשני; זה לא יימשך.',
+  alarm: (R, S) => S.P.mode === 'dc' && R.sat });
+/* ============ Labs in 3D, part 2: small circuits and drives (sensors, measurement, logic, switching supply, input card, DC motor, holding brake) ============ */
+
+/* ---- an inductive proximity sensor counting the teeth of a wheel ---- */
+const SEN3 = { Sn: 4, Sa: 0.81, teeth: 12, depth: 5, hyst: 0.1, fmax: 800, mat: { steel: [1, 'פלדה'], ss: [0.7, 'נירוסטה'], al: [0.4, 'אלומיניום'] } };   /* Sn of an M12 sensor, correction factors and switching frequency: typical, from public specifications */
+lab3d({ id: 'prox', node: 'sensors', title: 'חיישן קרבה השראי סופר שיניים: מרחק, חומר ותדר',
+  note: `חיישן השראי יוצר שדה מגנטי מתחלף מול הפנים שלו. מתכת שנכנסת לשדה סופגת אנרגיה, והחיישן מחליף מצב. מרחק הזיהוי הנקוב ${LB('Sn')} נמדד מול פלדה; מתכות אחרות נראות "רחוקות" יותר (מקדם תיקון), ומתקינים עד ${LB('Sa = 0.81·Sn')} כדי שיהיה מרווח. לכל חיישן גם תדר מיתוג מרבי. הזמן מואט פי 20; ערכים טיפוסיים.`,
+  cam: { yaw: 0.15, pitch: 0.35, dist: 16, t: [0.6, 1.6, 0] }, rate: 0.05, hmax: 4e-5,
+  P: { gap: 2, mat: 'steel', rpm: 300 },
+  controls: [{ k: 'gap', t: 'מרווח לשן', min: 0.5, max: 8, step: 0.1, u: 'mm' }, { k: 'rpm', t: 'מהירות הגלגל', min: 0, max: 6000, step: 10, u: 'rpm' }],
+  toggles: [{ k: 'mat', t: 'חומר', opts: Object.entries(SEN3.mat).map(([k, v]) => [k, v[1]]) }],
+  init: S => Object.assign(S.x, { phi: 0, tgt: 0, out: 0, pend: 0, edges: [] }),
+  step(S, h) { const x = S.x, P = S.P, Sr = SEN3.Sn * SEN3.mat[P.mat][0]; x.phi += P.rpm / 60 * 2 * Math.PI * h; const u = (x.phi * SEN3.teeth / (2 * Math.PI)) % 1, d = u < 0.5 ? P.gap : P.gap + SEN3.depth;
+    if (d <= Sr) x.tgt = 1; else if (d > Sr * (1 + SEN3.hyst)) x.tgt = 0; if (x.tgt !== x.out) { x.pend += h; if (x.pend >= 1 / (2 * SEN3.fmax)) { x.out = x.tgt; x.pend = 0; if (x.out) { x.edges.push(S.t); if (x.edges.length > 3) x.edges.shift(); } } } else x.pend = 0; x.tooth = u < 0.5 ? 1 : 0; },
+  calc: (P, S) => { const x = S.x, f = P.rpm / 60 * SEN3.teeth, Sr = SEN3.Sn * SEN3.mat[P.mat][0], Sa = SEN3.Sa * Sr, e = x.edges, n = e.length, recent = n >= 2 && S.t - e[n - 1] < 2 * (e[n - 1] - e[n - 2]) + 0.002;   /* a pulse overdue by twice the last period: the wheel stopped */
+    const rpmM = n >= 2 && recent ? 60 / (SEN3.teeth * (e[n - 1] - e[n - 2])) : 0; return { f, Sr, Sa, rpmM, inRange: P.gap <= Sr, safe: P.gap <= Sa, fast: f > SEN3.fmax, tgt: x.tgt, out: x.out, tooth: x.tooth || 0 }; },
+  stats: [['f', 'תדר השיניים', R => lf(R.f, 0) + ' Hz'], ['m', 'מהירות שהבקר מודד', R => lf(R.rpmM, 0) + ' rpm'], ['s', 'מרחק זיהוי Sr', R => lf(R.Sr, 2) + ' mm'], ['o', 'יציאה', R => R.out ? 'ON' : 'OFF']],
+  trace: { keys: [['tooth', 'tooth at face', LABC.char, -0.2, 1.2], ['tgt', 'metal in range', LABC.blue, -0.2, 1.2], ['out', 'output', LABC.brown, -0.2, 1.2]], names: ['tooth under the face', 'metal within Sr', 'sensor output'], lanes: 1, span: 0.04, disp: 1000, unit: 'ms' },
+  build(G, L, S) {
+    const { mat, K, add, THREE: T } = G, cx = -1.2, cy = 1.8, Rr = 2.0, MM = 0.12; const wheel = L.group([cx, cy, 0]); add(K.can(Rr, -0.3, 0.3, 0.04, 'z', 64), mat.alu, [0, 0, 0], wheel); add(K.can(0.3, -0.6, 0.6, 0.03, 'z'), mat.char, [0, 0, 0], wheel);
+    for (let i = 0; i < SEN3.teeth; i++) { const a = (i + 0.25) / SEN3.teeth * 2 * Math.PI, o = add(G.box(0.62, 0.62 * 0.9, 0.6, 0.04), mat.navy, [Math.cos(a) * (Rr + 0.28), Math.sin(a) * (Rr + 0.28), 0], wheel); o.rotation.z = a; }
+    L.block(1.2, 1.4, 1.2, [cx, -0.3, 0], mat.char); L.board(13, 6, [0.5, -1.15, 0]);
+    const sen = L.group([0, cy, 0]); add(K.can(0.36, 0, 2.6, 0.04, 'x'), mat.alu, [0, 0, 0], sen); add(K.can(0.37, 0, 0.12, 0.02, 'x'), mat.cream, [0, 0, 0], sen); add(K.can(0.42, 0.9, 1.2, 0.02, 'x'), mat.char, [0, 0, 0], sen); const ld = L.led([2.65, 0.25, 0], G.C.light, 0.1, sen);
+    const fm = L.glowMat(mat.glass, G.C.blue), fld = add(K.keep(new T.SphereGeometry(1, 24, 12, 0, Math.PI)), fm, [0, 0, 0], sen); fld.rotation.y = -Math.PI / 2; fm.opacity = 0.18; L.heat(fm, 0.3);
+    G.pipe([2.6, cy, 0], [5.2, cy, 0], 0.09, mat.hose); G.pipe([5.2, cy, 0], [5.2, 0.2, 0], 0.09, mat.hose); L.block(1.8, 1.0, 1.2, [5.2, -0.2, 0], mat.navy); const sc = L.screen([5.2, -0.2, 0.62], 1.5, 0.75); L.tag('בקר', [5.2, 0.6, 0], 0.32); const tg = L.tag('', [cx + Rr + 1.4, cy + 1.6, 0], 0.38);
+    return (dt, R, S) => { wheel.rotation.z = -S.x.phi; sen.position.x = cx + Rr + 0.59 + S.P.gap * MM; fld.scale.setScalar(R.Sr * MM * 1.4 + 0.25); fld.scale.x = 0.4; ld.set(!!R.out); sc.set(lf(R.rpmM, 0), 'rpm'); tg.set(`Sr ${lf(R.Sr, 1)} mm · Sa ${lf(R.Sa, 1)} mm`); }; },
+  msg: (R, S) => !R.inRange ? `<b>המרווח (${LB(S.P.gap + ' mm')}) גדול ממרחק הזיהוי מול ${SEN3.mat[S.P.mat][1]} (${LB('Sr = ' + lf(R.Sr, 2) + ' mm')}).</b> החיישן לא רואה את השיניים, והבקר חושב שהגלגל עומד. ${S.P.mat !== 'steel' ? 'אלומיניום ונירוסטה מחלישים פחות את השדה, ולכן נראים רחוקים יותר.' : ''}`
+    : R.fast ? `<b>${LB(lf(R.f, 0) + ' Hz')}, מעל תדר המיתוג של החיישן (~${LB(SEN3.fmax + ' Hz')}).</b> השיניים חולפות מהר יותר מזמן התגובה של המתנד, והיציאה לא מספיקה להתחלף: הבקר מודד ${LB(lf(R.rpmM, 0) + ' rpm')} במקום ${LB(S.P.rpm + ' rpm')}. פתרון: פחות שיניים, או חיישן מהיר יותר (Hall, מגנטי).`
+    : !R.safe ? `<b>עובד עכשיו, בלי מרווח ביטחון.</b> ${LB(S.P.gap + ' mm')} נמצא בין ${LB('Sa = ' + lf(R.Sa, 2))} ל-${LB('Sr = ' + lf(R.Sr, 2) + ' mm')}: טמפרטורה, פיזור ייצור או רעידה יוציאו אותו מהטווח לסירוגין. מתקינים עד Sa.`
+    : `<b>תקין: ${LB(lf(R.f, 0) + ' Hz')}, הבקר מודד ${LB(lf(R.rpmM, 0) + ' rpm')}.</b> ${LB('rpm = 60/(שיניים × זמן בין פולסים)')}. נסו אלומיניום, או הרחיקו את החיישן.`,
+  alarm: R => !R.inRange || R.fast });
+
+/* ---- measuring is touching: the instrument loads the circuit ---- */
+const MEAS3 = { Vs: 10, inst: { dmm: [10e6, 'מולטימטר', 'DMM 10 MΩ'], x1: [1e6, 'סקופ ×1', 'scope ×1 (1 MΩ)'], x10: [10e6, 'סקופ ×10', 'scope ×10 (10 MΩ)'], an: [2e5, 'מד מחוגים', 'analog 20 kΩ/V (200 kΩ)'] } };
+const measCalc = (R, Rm, Vs = MEAS3.Vs) => { const Rp = R * Rm / (R + Rm), Vm = Vs * Rp / (R + Rp); return { Rp, Vm, Vt: Vs / 2, err: Vm / (Vs / 2) - 1 }; };
+lab3d({ id: 'loading', node: 'meas', title: 'מדידה היא נגיעה: המכשיר מעמיס את המעגל',
+  note: 'מכשיר מדידה הוא נגד: מולטימטר 10 MΩ, סקופ 1 MΩ (או 10 MΩ עם פרוב ×10), ומד מחוגים ישן אפילו 200 kΩ. כשמודדים מתח על נגד, המכשיר מתחבר אליו במקביל ומשנה את מה שנמדד. בנגדים קטנים זה זניח; כשההתנגדות במעגל מתקרבת להתנגדות המכשיר, הקריאה נמוכה מהאמת.',
+  cam: { yaw: 0.1, pitch: 0.7, dist: 16, t: [0, 0.6, 0.4] },
+  P: { R: 100000, inst: 'dmm' },
+  controls: [{ k: 'R', t: 'R1 = R2', list: e12(100, 10e6), fmt: ohm }],
+  toggles: [{ k: 'inst', t: 'מכשיר', opts: Object.entries(MEAS3.inst).map(([k, v]) => [k, v[1]]) }],
+  calc: P => { const Rm = MEAS3.inst[P.inst][0], c = measCalc(P.R, Rm); return Object.assign(c, { Rm, i1: (MEAS3.Vs - c.Vm) / P.R, i2: c.Vm / P.R, im: c.Vm / Rm }); },
+  stats: [['t', 'המתח באמת', R => lf(R.Vt, 3) + ' V'], ['m', 'המכשיר מראה', R => lf(R.Vm, 3) + ' V'], ['e', 'שגיאה', R => (R.err * 100).toFixed(Math.abs(R.err) < 0.01 ? 2 : 1) + '%'], ['r', 'התנגדות המכשיר', R => ohm(R.Rm)]],
+  plot: { h: 240, leg: Object.values(MEAS3.inst).map((v, i) => [v[2], [LABC.navy, LABC.brown, LABC.blue, LABC.char][i]]), draw(U, R, S) { U.frame({ x: [100, 10e6], xlog: 1, y: [0, 105], xl: 'R1 = R2 (Ω)', yl: 'reading / true (%)' }); Object.entries(MEAS3.inst).forEach(([k, v], i) => U.curve(x => 100 * measCalc(x, v[0]).Vm / 5, [LABC.navy, LABC.brown, LABC.blue, LABC.char][i], k === S.P.inst ? 3.4 : 1.4, k === S.P.inst ? null : [6, 5])); U.dot(S.P.R, 100 * R.Vm / 5); } },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(12, 7); L.block(1.2, 1.0, 1.0, [-4.8, 0.5, -1.0], mat.navy); L.tag('10 V', [-4.8, 1.4, -1.0], 0.34); L.block(1.0, 0.3, 1.0, [4.8, 0.15, -1.0], mat.char); L.tag('GND', [4.8, 0.8, -1.0], 0.3);
+    const r1 = L.res([-2.2, 0.45, -1.0], 1.6, 0.26), r2 = L.res([2.2, 0.45, -1.0], 1.6, 0.26); L.tag('R1', [-2.2, 1.2, -1.0], 0.32); L.tag('R2', [2.2, 1.2, -1.0], 0.32); add(K.can(0.14, 0, 0.5, 0.02), mat.alu, [0, 0, -1.0]);
+    L.wire([[-4.2, 0.15, -1.0], [-3.4, 0.15, -1.0], [-3.4, 0.45, -1.0]]); L.wire([[-1.0, 0.45, -1.0], [-0.4, 0.45, -1.0], [-0.4, 0.15, -1.0], [1.0, 0.15, -1.0], [1.0, 0.45, -1.0]]); L.wire([[3.4, 0.45, -1.0], [3.4, 0.15, -1.0], [4.3, 0.15, -1.0]]);
+    const body = L.block(2.6, 1.6, 0.8, [0, 0.8, 2.4], mat.char); void body; const sc = L.screen([0, 0.95, 2.81], 2.1, 1.0); const nm = L.tag('', [0, 2.1, 2.4], 0.36);
+    G.pipe([0, 0.55, 0.2], [0, 0.6, -0.95], 0.05, mat.brown); G.pipe([-0.5, 1.4, 2.0], [0, 0.55, 0.2], 0.07, mat.brown); G.pipe([0.6, 1.4, 2.0], [4.6, 0.4, -0.5], 0.07, mat.hose);
+    const fl = labFlow(G, 80, 0.28); let last = 0;
+    return (dt, R, S) => { if (S.P.R !== last) { last = S.P.R; r1.bands(S.P.R); r2.bands(S.P.R); } sc.set(lf(R.Vm, 3) + ' V', MEAS3.inst[S.P.inst][2]); nm.set(MEAS3.inst[S.P.inst][1] + ' · ' + ohm(R.Rm));
+      const sp = i => vI(i * S.P.R, 5); fl.set([{ pts: [[-4.2, 0.15, -1.0], [-3.4, 0.45, -1.0], [-1.0, 0.45, -1.0], [0, 0.45, -1.0]], v: sp(R.i1) }, { pts: [[0, 0.45, -1.0], [1.0, 0.45, -1.0], [3.4, 0.45, -1.0], [4.3, 0.15, -1.0]], v: sp(R.i2), w: R.i2 / R.i1 }, { pts: [[0, 0.6, -0.95], [0, 0.55, 0.2], [-0.5, 1.4, 2.0]], v: sp(R.im), w: R.im / R.i1 }]); fl.step(dt); }; },
+  msg: (R, S) => Math.abs(R.err) < 0.01 ? `<b>המכשיר "שקוף": ${LB(ohm(R.Rm))} גדול בהרבה מ-${LB(ohm(S.P.R))}.</b> הוא לוקח זרם זעיר, והקריאה (${LB(lf(R.Vm, 3) + ' V')}) כמעט האמת. הגדילו את הנגדים.`
+    : `<b>המכשיר עצמו נגד במקביל ל-R2.</b> ${LB('R2 ∥ Rm = ' + ohm(R.Rp))}, ולכן המחלק מראה ${LB(lf(R.Vm, 3) + ' V')} במקום ${LB('5 V')} (${(R.err * 100).toFixed(1)}%). ${S.P.inst === 'x1' ? 'פרוב ×10 מעלה את ההתנגדות פי 10.' : S.P.inst === 'an' ? 'מד מחוגים "מושך" זרם כדי להזיז את המחט.' : 'בצמתים בעכבה גבוהה (חיישנים, שערים) מודדים עם באפר.'}`,
+  alarm: R => R.err < -0.1 });
+
+/* ---- a ripple counter: memory, counting, dividing a frequency ---- */
+const LOG3 = { tpd: 0.15 };   /* propagation delay, enlarged to be seen (a real gate: nanoseconds) */
+lab3d({ id: 'counter', node: 'logic', title: 'מונה ripple: שלושה flip-flops, ספירה וחלוקת תדר',
+  note: 'flip-flop זוכר ביט אחד ומתהפך בכל ירידה של השעון שלו. כששרשרים שלושה, כל אחד מקבל את היציאה של הקודם כשעון: Q0 מתחלף בחצי מהתדר, Q1 ברבע, Q2 בשמינית, ושלושתם יחד סופרים 0 עד 7 בבינארי. כל שלב מוסיף השהיה, ולכן בזמן ה-ripple המונה עובר דרך ערכים זמניים. ההשהיה כאן מוגדלת כדי שתיראה.',
+  cam: { yaw: 0.05, pitch: 0.75, dist: 16, t: [0.3, 0.6, 0.4] },
+  P: { f: 1, tpd: 'on' },
+  controls: [{ k: 'f', t: 'תדר השעון', min: 0.25, max: 4, step: 0.05, u: 'Hz' }],
+  toggles: [{ k: 'tpd', t: 'השהיה בין שלבים', opts: [['on', 'מוגדלת (להמחשה)'], ['off', 'זניחה']] }],
+  actions: [['⟲ איפוס', 'reset']],
+  init: S => Object.assign(S.x, { q: [0, 0, 0], ev: [], clk: 1, ph: 0, seen: [] }),
+  act: { reset: S => Object.assign(S.x, { q: [0, 0, 0], ev: [], seen: [], ph: 0, clk: 1 }) },
+  step(S, h) { const x = S.x, d = S.P.tpd === 'on' ? LOG3.tpd : 0; x.ph = (x.ph + S.P.f * h) % 1; const c = x.ph < 0.5 ? 1 : 0; if (x.clk === 1 && c === 0) x.ev.push([S.t + d, 0]); x.clk = c;
+    for (let guard = 0; guard < 8; guard++) { x.ev.sort((a, b) => a[0] - b[0]); if (!x.ev.length || x.ev[0][0] > S.t + 1e-12) break; const [te, i] = x.ev.shift(); x.q[i] ^= 1; const n = x.q[0] + 2 * x.q[1] + 4 * x.q[2]; x.seen.push(n); if (x.seen.length > 12) x.seen.shift(); if (x.q[i] === 0 && i < 2) x.ev.push([te + d, i + 1]); } },
+  calc: (P, S) => { const q = S.x.q; return { clk: S.x.clk, q0: q[0], q1: q[1], q2: q[2], n: q[0] + 2 * q[1] + 4 * q[2], rip: S.x.ev.length > 0, f0: P.f / 2, f2: P.f / 8 }; },
+  stats: [['n', 'ספירה', R => `${R.n} (${R.q2}${R.q1}${R.q0})`], ['a', 'תדר Q0', R => lf(R.f0, 3) + ' Hz'], ['c', 'תדר Q2', R => lf(R.f2, 3) + ' Hz'], ['p', 'מחזור Q2', R => lf(1 / R.f2, 2) + ' s']],
+  trace: { keys: [['clk', 'CLK', LABC.char, -0.2, 1.2], ['q0', 'Q0', LABC.navy, -0.2, 1.2], ['q1', 'Q1', LABC.blue, -0.2, 1.2], ['q2', 'Q2', LABC.brown, -0.2, 1.2]], names: ['CLK', 'Q0 (÷2)', 'Q1 (÷4)', 'Q2 (÷8)'], lanes: 1, span: 12, h: 200 },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 6, [0.5, -0.12, 0]); add(K.can(0.4, 0, 0.6, 0.06, 'x'), mat.alu, [-5.2, 0.45, 0]); L.tag('שעון', [-4.9, 1.3, 0], 0.32); const lc = L.led([-4.9, 0.4, 0.8], G.C.light, 0.13);
+    const leds = [-2.2, 0.6, 3.4].map((x, i) => { L.block(1.6, 0.4, 1.1, [x, 0.2, 0], mat.dark); for (let p = 0; p < 4; p++) [-0.62, 0.62].forEach(z => add(G.box(0.12, 0.2, 0.18, 0.02), mat.alu, [x - 0.6 + p * 0.4, 0.1, z])); L.tag(`FF${i} → Q${i}`, [x, 1.0, 0], 0.3); return L.led([x, 0.55, 1.4], G.C.light, 0.18); });
+    L.wire([[-4.6, 0.15, 0], [-3.0, 0.15, 0]]); L.wire([[-1.4, 0.15, 0.3], [-0.2, 0.15, 0.3]]); L.wire([[1.4, 0.15, 0.3], [2.6, 0.15, 0.3]]); [-2.2, 0.6, 3.4].forEach(x => L.wire([[x, 0.15, 0.55], [x, 0.15, 1.4], [x, 0.4, 1.4]]));
+    const sc = L.screen([5.6, 0.75, 1.2], 1.6, 0.8, -0.5); L.block(1.9, 1.1, 0.3, [5.65, 0.65, 1.05], mat.char).rotation.y = -0.5; const pulse = labFlow(G, 30, 0.3);
+    return (dt, R, S) => { lc.set(!!R.clk); leds[0].set(!!R.q0); leds[1].set(!!R.q1); leds[2].set(!!R.q2); sc.set(String(R.n), `${R.q2}${R.q1}${R.q0}`); pulse.set(R.rip ? [{ pts: [[-1.4, 0.3, 0.3], [3.4, 0.3, 0.3]], v: 6 }] : []); pulse.step(dt); }; },
+  msg: (R, S) => { const sn = S.x.seen.slice(-5).join(' → ');
+    return S.P.tpd === 'on' ? `<b>ripple:</b> כל שלב מתהפך רק אחרי שהקודם ירד, ולכן במעבר מ-3 ל-4 המונה עובר ${LB('3 → 2 → 0 → 4')}. המעברים האחרונים: ${LB(sn || '—')}. מי שקורא את המונה באמצע ripple מקבל ערך שגוי; מונה סינכרוני מתהפך בבת אחת.`
+      : `<b>כל flip-flop מחלק את התדר ב-2:</b> ${LB('f(Qn) = f/2^(n+1)')}: ${LB(lf(R.f0, 2) + ' Hz')}, ${LB(lf(R.f0 / 2, 3) + ' Hz')}, ${LB(lf(R.f2, 3) + ' Hz')}. כך מחלקים שעון מהיר, וכך flip-flop הוא תא זיכרון: הוא שומר את המצב עד הירידה הבאה.`; } });
+
+/* ---- a buck converter: duty cycle, inductor ripple, CCM and DCM ---- */
+const BUCK3 = { Vin: 24, C: 100e-6 };
+function buckCalc(P) { const Ts = 1 / P.f, Kc = 2 * P.L / (P.RL * Ts), ccm = Kc >= 1 - P.D, M = ccm ? P.D : 2 / (1 + Math.sqrt(1 + 4 * Kc / (P.D * P.D))), Vo = M * BUCK3.Vin, Io = Vo / P.RL;
+  if (ccm) { const dI = (BUCK3.Vin - Vo) * P.D * Ts / P.L; return { Ts, Kc, ccm, Vo, Io, dI, Imin: Io - dI / 2, Imax: Io + dI / 2, D2: 1 - P.D, dV: dI * Ts / (8 * BUCK3.C) }; }
+  const Ipk = (BUCK3.Vin - Vo) * P.D * Ts / P.L; return { Ts, Kc, ccm, Vo, Io, dI: Ipk, Imin: 0, Imax: Ipk, D2: Ipk * P.L / (Vo * Ts), dV: null }; }
+const buckIL = (c, D, u) => { u = u - Math.floor(u); if (c.ccm) return u < D ? c.Imin + c.dI * u / D : c.Imax - c.dI * (u - D) / (1 - D); return u < D ? c.Imax * u / D : u < D + c.D2 ? c.Imax * (1 - (u - D) / c.D2) : 0; };
+lab3d({ id: 'buck', node: 'psu', title: 'ספק ממותג (buck): מחזור עבודה, אדוות זרם, רציף ולא רציף',
+  note: `ספק ממותג מדליק ומכבה טרנזיסטור עשרות אלפי פעמים בשנייה. כשהוא דולק, הסליל נטען מהכניסה; כשהוא כבוי, הסליל ממשיך לדחוף זרם דרך הדיודה. הממוצע במוצא: ${LB('Vo = D·Vin')}, בלי לשרוף אנרגיה בנגד. אם העומס קטן, הזרם בסליל מגיע לאפס בכל מחזור (DCM), ו-${LB('Vo')} כבר לא ${LB('D·Vin')}. המיתוג מואט מאוד בתצוגה; הגרף אמיתי.`,
+  cam: { yaw: 0.15, pitch: 0.7, dist: 17, t: [0.4, 0.6, 0.2] },
+  P: { D: 0.5, f: 100e3, L: 47e-6, RL: 5 },
+  controls: [{ k: 'D', t: 'מחזור עבודה D', min: 0.05, max: 0.95, step: 0.01, fmt: v => Math.round(v * 100) + '%' }, { k: 'f', t: 'תדר מיתוג', list: [20e3, 50e3, 100e3, 200e3, 500e3], fmt: v => v / 1000 + ' kHz' }, { k: 'L', t: 'סליל', list: [10e-6, 22e-6, 47e-6, 100e-6, 220e-6], fmt: v => Math.round(v * 1e6) + ' µH' }, { k: 'RL', t: 'עומס', list: e12(1, 100), fmt: ohm }],
+  calc: (P, S) => { const c = buckCalc(P), u = (S.t * 0.7) % 1; return Object.assign(c, { u, on: u < P.D, iL: buckIL(c, P.D, u) }); },
+  stats: [['v', 'מתח מוצא', R => lf(R.Vo) + ' V'], ['i', 'זרם עומס', R => amp(R.Io)], ['d', 'אדוות זרם ΔI', R => amp(R.dI)], ['m', 'מצב', R => R.ccm ? 'CCM רציף' : 'DCM לא רציף']],
+  plot: { h: 240, leg: [['inductor current iL', LABC.navy], ['load current Io', LABC.blue], ['switch ON', LABC.light]], draw(U, R, S) { const D = S.P.D; U.frame({ x: [0, 3], y: [0, Math.max(0.05, R.Imax) * 1.25], xl: 't / Ts', yl: 'iL (A)' }); for (let k = 0; k < 3; k++) U.rect(k, k + D, 0, Math.max(0.05, R.Imax) * 1.25, 'rgba(214,232,247,.8)');
+    U.hl(R.Io, LABC.blue, 'Io').curve(x => buckIL(R, D, x), LABC.navy, 2.8); const xa = (S.t * 0.7) % 3; U.dot(xa, buckIL(R, D, xa)); } },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 6.5, [0.3, -0.12, 0]); labBattery(G, L, -5.4, 0, '24 V'); add(K.can(0.35, 0, 1.1, 0.05), mat.navy, [-3.9, 0, -1.2]); L.tag('Cin', [-3.9, 1.6, -1.2], 0.28);
+    const swM = L.glowMat(mat.char, G.C.light); add(G.box(1.0, 1.0, 0.4, 0.05), swM, [-2.2, 0.5, 1.4]); L.tag('מתג (MOSFET)', [-2.2, 1.4, 1.4], 0.3); L.block(0.9, 0.4, 0.5, [-0.6, 0.2, -0.4], mat.dark).rotation.y = Math.PI / 2; add(G.box(0.52, 0.42, 0.1, 0.01), mat.light, [-0.6, 0.2, -0.05]); L.tag('דיודה', [-0.6, 0.9, -0.6], 0.28);
+    const ind = L.group([1.2, 0.7, 1.4]); L.torus([0, 0, 0], 0.55, 0.22, mat.char, 'z', ind); for (let i = 0; i < 16; i++) { const a = i / 16 * 2 * Math.PI, o = L.torus([Math.cos(a) * 0.55, Math.sin(a) * 0.55, 0], 0.26, 0.04, mat.brown, 'z', ind); o.rotation.order = 'ZYX'; o.rotation.set(0, Math.PI / 2, a + Math.PI / 2); } L.tag('L', [1.2, 1.7, 1.4], 0.32);
+    add(K.can(0.35, 0, 1.1, 0.05), mat.navy, [2.9, 0, 0]); L.tag('Cout', [2.9, 1.6, 0], 0.28); const rl = L.res([4.6, 0.45, 0], 1.3, 0.24); const tg = L.tag('', [4.6, 1.4, 0], 0.4);
+    const pOn = [[-5.4, 0.15, 0.55], [-5.4, 0.15, 1.4], [-2.2, 0.15, 1.4], [0.2, 0.15, 1.4], [1.2, 0.7, 1.4], [2.2, 0.15, 1.4], [3.7, 0.15, 1.4], [3.7, 0.15, 0], [5.5, 0.15, 0], [5.5, 0.15, -2.2], [-5.4, 0.15, -2.2], [-5.4, 0.15, -0.55]], pOff = [[-0.6, 0.15, -0.4], [-0.6, 0.15, 1.4], [0.2, 0.15, 1.4], [1.2, 0.7, 1.4], [2.2, 0.15, 1.4], [3.7, 0.15, 1.4], [3.7, 0.15, 0], [5.5, 0.15, 0], [5.5, 0.15, -2.2], [-0.6, 0.15, -2.2], [-0.6, 0.15, -0.4]];
+    L.wire(pOn.slice(0, 4)); L.wire(pOn.slice(5, 10)); L.wire([pOn[9], pOn[10], pOn[11]]); L.wire([[-0.6, 0.15, -0.65], [-0.6, 0.15, -2.2]]); L.wire([[-0.6, 0.15, -0.15], [-0.6, 0.15, 1.4]]); const fl = labFlow(G, 90, 0.3); let lastR = 0;
+    return (dt, R, S) => { if (S.P.RL !== lastR) { lastR = S.P.RL; rl.bands(S.P.RL); } L.heat(swM, R.on ? 1 : 0); tg.set('Vo = ' + lf(R.Vo) + ' V'); const v = vI(R.iL, 3); fl.set(R.iL < 1e-4 ? [] : [{ pts: R.on ? pOn : pOff, v, k: R.on ? 'on' : 'off' }]); fl.step(dt); }; },
+  msg: (R, S) => R.ccm ? `<b>רציף (CCM): ${LB('Vo = D·Vin = ' + Math.round(S.P.D * 100) + '% × 24 = ' + lf(R.Vo) + ' V')}.</b> הזרם בסליל עולה כשהמתג דולק וירד כשהוא כבוי, סביב ${LB('Io = ' + amp(R.Io))}. האדווה ${LB('ΔI = (Vin − Vo)·D/(L·f) = ' + amp(R.dI))}: סליל גדול או תדר גבוה מקטינים אותה. אדוות המתח ${LB('ΔV = ΔI/(8·f·C) = ' + lf(R.dV * 1000, 2) + ' mV')}.`
+    : `<b>לא רציף (DCM):</b> העומס קטן, והזרם בסליל מגיע לאפס בכל מחזור. עכשיו ${LB('Vo = ' + lf(R.Vo) + ' V')}, יותר מ-${LB('D·Vin = ' + lf(S.P.D * 24) + ' V')}. בספק אמיתי הבקר מודד את המוצא ומקטין את D בעצמו (לולאה סגורה).` });
+
+/* ---- a 24 V input card: an optocoupler, the IEC zones, a filter ---- */
+const IO3 = { R: 4700, Vf: 1.2, Ion: 0.002, filt: 0.003, off: 5, on: 15, noise: 6 };   /* typical type 1 input: 4.7 kΩ, optocoupler LED, 3 ms filter; zones from IEC 61131-2 */
+lab3d({ id: 'input', node: 'iocards', title: 'כרטיס קלט 24 V: אופטוקופלר, אזורי מצב וסינון',
+  note: `כניסה דיגיטלית של בקר היא נגד ונורית של אופטוקופלר. כשהזרם מספיק, האור מפעיל טרנזיסטור בצד הלוגי, בלי חיבור חשמלי בין הצדדים. התקן (IEC 61131-2) מגדיר: עד 5 V בטוח ${LB('OFF')}, מ-15 V בטוח ${LB('ON')}, ובאמצע לא מוגדר. מסנן של כמה אלפיות שנייה מתעלם מקפיצות קצרות. רעש של 50 Hz, חוט קרוע ומתח נמוך נראים כאן בדיוק כמו בשטח. הזמן מואט פי 20.`,
+  cam: { yaw: 0.2, pitch: 0.6, dist: 16, t: [0.3, 0.8, 0] }, rate: 0.05, hmax: 1e-4,
+  P: { V: 24, noise: 'off', wire: 'ok' },
+  controls: [{ k: 'V', t: 'מתח מהחיישן', min: 0, max: 30, step: 0.5, u: 'V' }],
+  toggles: [{ k: 'noise', t: 'רעש 50 Hz', opts: [['off', 'אין'], ['on', '±6 V']] }, { k: 'wire', t: 'חוט', opts: [['ok', 'תקין'], ['cut', 'קרוע']] }],
+  init: S => Object.assign(S.x, { bit: 0, pend: 0, tog: [] }),
+  step(S, h) { const x = S.x, P = S.P, vin = P.wire === 'cut' ? 0 : P.V + (P.noise === 'on' ? IO3.noise * Math.sin(2 * Math.PI * 50 * S.t) : 0), I = Math.max(0, (vin - IO3.Vf) / IO3.R), opto = I >= IO3.Ion ? 1 : 0;
+    if (opto !== x.bit) { x.pend += h; if (x.pend >= IO3.filt) { x.bit = opto; x.pend = 0; x.tog.push(S.t); } } else x.pend = 0; while (x.tog.length && x.tog[0] < S.t - 0.2) x.tog.shift(); Object.assign(x, { vin, I, opto }); },
+  calc: (P, S) => { const x = S.x, vin = x.vin == null ? (P.wire === 'cut' ? 0 : P.V) : x.vin, Vdc = P.wire === 'cut' ? 0 : P.V, Idc = Math.max(0, (Vdc - IO3.Vf) / IO3.R);
+    return { vin, I: x.I == null ? Idc : x.I, opto: x.opto == null ? (Idc >= IO3.Ion ? 1 : 0) : x.opto, bit: x.bit, zone: Vdc <= IO3.off ? 'off' : Vdc >= IO3.on ? 'on' : 'mid', Vth: IO3.Vf + IO3.Ion * IO3.R, chat: x.tog.length * 5, Idc }; },
+  stats: [['v', 'מתח בכניסה', R => lf(R.vin, 1) + ' V'], ['i', 'זרם בנורית', R => amp(R.I)], ['o', 'אופטוקופלר', R => R.opto ? 'ON' : 'OFF'], ['b', 'הביט בבקר', R => String(R.bit)]],
+  trace: { keys: [['vin', 'input V', LABC.navy, -6, 36], ['opto', 'opto', LABC.blue, -0.2, 1.2], ['bit', 'PLC bit', LABC.brown, -0.2, 1.2]], names: ['input voltage (5 V and 15 V lines)', 'optocoupler', 'bit after the 3 ms filter'], lanes: 1, span: 0.1, disp: 1000, unit: 'ms', marks: [[IO3.off, 0, LABC.char], [IO3.on, 0, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 6, [0.3, -0.12, 0]); const sen = L.group([-5.0, 0.8, 0]); add(K.can(0.4, 0, 2.0, 0.04, 'x'), mat.alu, [-1, 0, 0], sen); const sl = L.led([0.95, 0.3, 0], G.C.light, 0.1, sen); L.tag('חיישן', [-5.6, 1.7, 0], 0.32);
+    const cable = [[-4.0, 0.8, 0], [-2.8, 0.8, 0.8], [-2.0, 0.6, 0.8]], cut = L.spark([-3.4, 0.8, 0.4], 0.5); L.wire(cable, mat.hose, 0.09);
+    L.block(4.6, 2.2, 2.6, [0.6, 1.1, 0], mat.glass); L.block(0.5, 0.8, 1.2, [-1.6, 0.4, 0.8], mat.cream); const rr = L.res([-0.3, 0.45, 0.8], 1.0, 0.2); rr.bands(4700);
+    const opto = L.group([1.4, 0, 0.8]); add(G.box(1.2, 0.8, 0.9, 0.06), mat.glass, [0, 0.5, 0], opto); const ol = L.led([-0.25, 0.5, 0], G.C.light, 0.13, opto); add(G.box(0.3, 0.4, 0.4, 0.04), mat.dark, [0.3, 0.5, 0], opto); L.tag('אופטו', [1.4, 1.3, 0.8], 0.28);
+    const cl = L.led([2.6, 1.8, 1.32], G.C.light, 0.13); L.block(1.8, 1.1, 1.0, [4.8, 0.55, -0.2], mat.navy); const sc = L.screen([4.8, 0.6, 0.31], 1.5, 0.75); L.tag('CPU', [4.8, 1.4, -0.2], 0.3);
+    L.wire([[-1.35, 0.4, 0.8], [-0.95, 0.45, 0.8]]); L.wire([[0.35, 0.45, 0.8], [1.15, 0.5, 0.8]]); L.wire([[1.75, 0.5, 0.8], [3.0, 0.5, 0.8], [3.9, 0.5, 0.2]], mat.alu, 0.04); const fl = labFlow(G, 40, 0.26);
+    return (dt, R, S) => { const c = S.P.wire === 'cut'; cut.set(c ? 0.6 : 0); sl.set(!c && S.P.V > 10); ol.set(!!R.opto); cl.set(!!R.bit); sc.set('I0.0 = ' + R.bit); L.heat(rr.m, 0);
+      fl.set(R.I > 1e-5 ? [{ pts: [[-4.0, 0.8, 0], [-2.8, 0.8, 0.8], [-1.35, 0.4, 0.8], [0.35, 0.45, 0.8], [1.15, 0.5, 0.8]], v: vI(R.I, 0.005) }] : []); fl.step(dt); }; },
+  msg: (R, S) => { if (S.P.wire === 'cut') return `<b>חוט קרוע: 0 V, והבקר רואה ${LB('OFF')}.</b> אם החיישן מחובר כ-NO (נסגר כשיש חלק), חוט קרוע נראה בדיוק כמו "אין חלק", ואף אחד לא יודע. לכן כניסות בטיחות מחווטים NC: קרע נראה כמו בקשת עצירה, הצד הבטוח.`;
+    if (R.chat > 20) return `<b>הקלט מקפץ: הביט התחלף ${R.chat} פעם בשנייה.</b> המתח הממוצע (${LB(S.P.V + ' V')}) באזור הלא מוגדר, והרעש מעביר אותו מעל ומתחת לסף (${LB(lf(R.Vth, 1) + ' V')}) לפרקי זמן ארוכים מהמסנן. מקור כזה: מתח נמוך בגלל נפילה בכבל, או חיישן שמחובר לא נכון. מדדו בכניסה.`;
+    return R.zone === 'on' ? `<b>${LB('ON')} בטוח: ${LB(S.P.V + ' V')} (מעל ${LB('15 V')}).</b> ${LB('I = (V − 1.2)/4.7k = ' + amp(R.Idc))}. ${S.P.noise === 'on' ? 'הרעש לא מספיק כדי לרדת מתחת לסף, והמסנן בולע את השאר.' : 'הפעילו רעש, ואחר כך הורידו את המתח ל-12 V.'}`
+      : R.zone === 'off' ? `<b>${LB('OFF')} בטוח: ${LB(S.P.V + ' V')} (עד ${LB('5 V')}).</b> מה שמתחת לסף לא מדליק את הנורית באופטו.` : `<b>אזור לא מוגדר: ${LB(S.P.V + ' V')}.</b> הסף בכרטיס הזה ${LB('≈ ' + lf(R.Vth, 1) + ' V')}, אבל בכרטיס אחר הוא שונה. מערכת תקינה לא נמצאת כאן; אם מדדתם כאן, חפשו נפילת מתח או חיישן חלש.`; },
+  alarm: (R, S) => R.chat > 20 || S.P.wire === 'cut' });
+
+/* ---- a DC motor: speed follows voltage, current follows torque ---- */
+const MOT3 = { R: 1.2, K: 0.05, J: 2e-4, b: 1e-5, slow: 50 };
+const motSS = (V, TL, P = MOT3) => { const w = (P.K * V / P.R - TL) / (P.K * P.K / P.R + P.b); return Math.max(0, w); };
+lab3d({ id: 'dcmotor', node: 'motor', title: 'מנוע DC: מהירות לפי מתח, זרם לפי עומס',
+  note: 'זרם בליפופי הרוטור בתוך שדה המגנטים יוצר מומנט: T = K·I. כשהרוטור מסתובב הוא גם גנרטור, ומייצר מתח נגדי (back-EMF) E = K·ω. לכן הזרם I = (V − K·ω)/R: במהירות גבוהה הוא קטן, ובמנוע תקוע הוא מוגבל רק בהתנגדות. המהירות נקבעת לפי המתח, והזרם לפי העומס. הסיבוב בתצוגה מואט פי 50.',
+  cam: { yaw: 0.4, pitch: 0.45, dist: 16, t: [0.6, 1.4, 0] }, hmax: 5e-4,
+  P: { V: 12, TL: 0.05 },
+  controls: [{ k: 'V', t: 'מתח', min: 0, max: 24, step: 0.5, u: 'V' }, { k: 'TL', t: 'עומס (מומנט)', min: 0, max: 1.2, step: 0.01, u: 'N·m' }],
+  init: S => Object.assign(S.x, { w: 0, ang: 0 }),
+  step(S, h) { const x = S.x, P = S.P, i = (P.V - MOT3.K * x.w) / MOT3.R, Tm = MOT3.K * i; if (x.w <= 1e-9 && Tm <= P.TL) { x.w = 0; return; } x.w = Math.max(0, x.w + (Tm - MOT3.b * x.w - P.TL) / MOT3.J * h); x.ang += x.w * h; },
+  calc: (P, S) => { const w = S.x.w, i = (P.V - MOT3.K * w) / MOT3.R, Pin = P.V * i, Pout = P.TL * w; return { w, rpm: w * 60 / (2 * Math.PI), i, T: MOT3.K * i, E: MOT3.K * w, Pin, Pout, eta: Pin > 1e-9 ? Pout / Pin : 0, wss: motSS(P.V, P.TL), stall: w < 1e-6 && P.V > 0, Istall: P.V / MOT3.R }; },
+  stats: [['n', 'מהירות', R => lf(R.rpm, 0) + ' rpm'], ['i', 'זרם', R => lf(R.i, 2) + ' A'], ['e', 'back-EMF', R => lf(R.E, 2) + ' V'], ['p', 'הספק מכני', R => watt(R.Pout)]],
+  trace: { keys: [['rpm', 'speed (rpm)', LABC.navy, 0, 4800], ['i', 'current (A)', LABC.brown, 0, 21]], names: ['speed', 'current'], lanes: 1, span: 4 },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 6, [0.5, -0.12, 0]); const cy = 1.5; add(K.tube(1.2, -2.2, 1.0, 0.06, 'x'), mat.glass, [0, cy, 0]); add(K.can(1.22, -2.4, -2.2, 0.04, 'x'), mat.navy, [0, cy, 0]); add(K.can(1.22, 1.0, 1.2, 0.04, 'x'), mat.navy, [0, cy, 0]);
+    [1, -1].forEach(s => add(G.box(3.0, 0.32, 1.6, 0.06), mat.navy, [-0.6, cy + s * 0.92, 0])); L.block(2.2, 0.9, 1.6, [-0.6, 0.45, 0], mat.char);
+    const rot = L.group([-0.6, cy, 0]); add(K.can(0.62, -1.4, 1.4, 0.04, 'x'), mat.char, [0, 0, 0], rot); for (let i = 0; i < 3; i++) { const o = add(G.box(2.6, 0.18, 1.3, 0.05), mat.brown, [0, 0, 0], rot); o.rotation.x = i * Math.PI / 3; }
+    G.pipe([1.2, cy, 0], [3.4, cy, 0], 0.14, mat.alu); const fw = L.group([3.6, cy, 0]); add(K.can(1.1, -0.25, 0.25, 0.04, 'x'), mat.alu, [0, 0, 0], fw); for (let i = 0; i < 6; i++) { const a = i / 6 * 2 * Math.PI; add(G.box(0.52, 0.16, 0.16, 0.03), mat.navy, [0.27, Math.cos(a) * 0.8, Math.sin(a) * 0.8], fw); }
+    const bandM = L.glowMat(mat.brown), band = L.torus([3.6, cy, 0], 1.16, 0.09, bandM, 'x'); L.tag('עומס (בלם)', [3.6, cy + 1.8, 0], 0.3); labBattery(G, L, -4.6, 1.4, ''); const tg = L.tag('', [-0.6, cy + 1.9, 0], 0.4);
+    const loop = [[-4.6, 0.15, 1.95], [-4.6, 0.15, 2.6], [-2.4, 0.15, 2.6], [-2.4, cy, 0.4], [-2.4, cy, -0.4], [-2.4, 0.15, -2.2], [-4.6, 0.15, -2.2], [-4.6, 0.15, 0.85]]; L.wire(loop.slice(0, 4)); L.wire(loop.slice(4)); const fl = labFlow(G, 60, 0.3); let va = 0;
+    return (dt, R, S) => { va += R.w / MOT3.slow * dt; rot.rotation.x = va; fw.rotation.x = va; band.scale.setScalar(1 - 0.03 * Math.min(1, S.P.TL)); L.heat(bandM, S.P.TL * R.w / 60);
+      tg.set(lf(R.rpm, 0) + ' rpm · ' + lf(R.i, 1) + ' A'); fl.set(R.i > 1e-3 ? [{ pts: loop, v: vI(R.i, 15) }] : []); fl.step(dt); }; },
+  msg: (R, S) => R.stall ? `<b>המנוע תקוע.</b> בלי מהירות אין back-EMF, והזרם מוגבל רק בהתנגדות הליפוף: ${LB('I = V/R = ' + lf(R.Istall, 1) + ' A')}. המומנט המרבי ${LB('K·V/R = ' + lf(MOT3.K * S.P.V / MOT3.R, 2) + ' N·m')} קטן מהעומס. מנוע תקוע מתחמם מהר: לכן הדרייבר מגביל זרם.`
+    : `<b>${LB('I = (V − K·ω)/R = (' + lf(S.P.V, 1) + ' − ' + lf(R.E, 2) + ')/' + MOT3.R + ' = ' + lf(R.i, 2) + ' A')}.</b> במצב יציב המומנט ${LB('K·I')} מאזן את העומס. העלו את העומס: המנוע מאט, ה-back-EMF קטן, והזרם עולה עד שהמומנט שוב מאזן. מהירות יציבה: ${LB(lf(R.wss * 60 / (2 * Math.PI), 0) + ' rpm')}.`,
+  alarm: R => R.stall });
+
+/* ---- a holding brake: spring-applied, released by a coil; the diode makes it late ---- */
+const BRK3 = { V: 24, R: 48, L: 0.8, on: 0.35, off: 0.15, Vd: 0.7, Vc: 48, tr: 0.010, g: 9.81, floor: -0.05 };   /* a small 24 V brake: pull-in and drop-out currents and armature travel illustrative, typical in size */
+const brakeEngage = sup => { const iss = sup === 'diode' ? -BRK3.Vd / BRK3.R : -BRK3.Vc / BRK3.R, i0 = BRK3.V / BRK3.R, tau = BRK3.L / BRK3.R; return tau * Math.log((i0 - iss) / (BRK3.off - iss)) + BRK3.tr; };
+lab3d({ id: 'brake', node: 'brake', title: 'בלם החזקה: קפיץ סוגר, סליל משחרר, והדיודה מאחרת',
+  note: 'בלם החזקה של ציר אנכי נסגר בכוח קפיצים ומשתחרר כשסליל מושך את הלוח (armature). בלי מתח הוא בולם: כך ציר לא נופל בהפסקת חשמל. אבל הסליל לא מתרוקן מיד: עם דיודה הזרם דועך לאט (τ = L/R) עד זרם השחרור, ובזמן הזה הציר נופל. וריסטור (או זנר) סופג את האנרגיה מהר יותר. הזמן מואט פי 10; ערכים להמחשה בסדר גודל אמיתי.',
+  cam: { yaw: 0.55, pitch: 0.18, dist: 24, t: [-0.3, 1.9, 0] }, rate: 0.1, hmax: 1e-4,
+  P: { coil: 'on', sup: 'diode', servo: 'on' },
+  toggles: [{ k: 'coil', t: 'מתח לסליל', opts: [['on', 'יש'], ['off', 'אין']] }, { k: 'sup', t: 'דיכוי', opts: [['diode', 'דיודה'], ['var', 'וריסטור']] }, { k: 'servo', t: 'סרבו', opts: [['on', 'מחזיק'], ['off', 'כבוי']] }],
+  actions: [['⚡ הפסקת חשמל', 'loss'], ['⟲ אפס', 'reset']],
+  init: S => Object.assign(S.x, { i: BRK3.V / BRK3.R, a: 1, rel: 1, z: 0, v: 0, tOff: null, tEng: null, z0: 0 }),
+  act: { loss: S => { S.P.coil = 'off'; S.P.servo = 'off'; Object.assign(S.x, { tOff: S.t, tEng: null, z0: S.x.z }); }, reset: S => { S.P.coil = 'on'; S.P.servo = 'on'; Object.assign(S.x, { i: BRK3.V / BRK3.R, a: 1, rel: 1, z: 0, v: 0, tOff: null, tEng: null, z0: 0 }); } },
+  onSet: (S, k) => { if (k === 'coil' && S.P.coil === 'off') Object.assign(S.x, { tOff: S.t, tEng: null, z0: S.x.z }); },
+  step(S, h) { const x = S.x, P = S.P, on = P.coil === 'on', iss = on ? BRK3.V / BRK3.R : P.sup === 'diode' ? -BRK3.Vd / BRK3.R : -BRK3.Vc / BRK3.R; x.i = iss + (x.i - iss) * Math.exp(-h * BRK3.R / BRK3.L); if (!on && x.i < 0) x.i = 0;
+    if (x.i >= BRK3.on) x.rel = 1; else if (x.i <= BRK3.off) x.rel = 0; x.a += Math.sign(x.rel - x.a) * Math.min(Math.abs(x.rel - x.a), h / BRK3.tr); const eng = x.a <= 1e-9;
+    if (eng && x.tOff != null && x.tEng == null) x.tEng = S.t - x.tOff; if (P.servo === 'on' || eng) x.v = 0; else { x.v -= BRK3.g * h; x.z += x.v * h; if (x.z <= BRK3.floor) { x.z = BRK3.floor; x.v = 0; } } },
+  calc: (P, S) => { const x = S.x; return { i: x.i, a: x.a, eng: x.a <= 1e-9, z: x.z, zmm: x.z * 1000, drop: (x.z0 - x.z) * 1000, tEng: x.tEng, tTh: brakeEngage(P.sup), falling: x.v < -1e-6 || (P.servo === 'off' && x.a > 1e-9 && x.z > BRK3.floor), crash: x.z <= BRK3.floor }; },
+  stats: [['i', 'זרם בסליל', R => lf(R.i * 1000, 0) + ' mA'], ['b', 'הבלם', R => R.eng ? 'סגור (בולם)' : R.a >= 1 ? 'משוחרר' : 'בתנועה'], ['t', 'זמן עד סגירה', R => R.tEng == null ? '—' : lf(R.tEng * 1000, 1) + ' ms'], ['z', 'נפילת הציר', R => lf(Math.max(0, R.drop), 2) + ' mm']],
+  trace: { keys: [['i', 'coil current (A)', LABC.navy, 0, 0.55], ['a', 'armature (1 = released)', LABC.blue, -0.1, 1.1], ['zmm', 'axis z (mm)', LABC.brown, -10, 0.5]], names: ['coil current (0.35 pull-in, 0.15 drop-out)', 'armature', 'axis height (mm)'], lanes: 1, span: 0.1, disp: 1000, unit: 'ms', marks: [[BRK3.on, 0, LABC.char], [BRK3.off, 0, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.block(1.0, 7.0, 1.0, [-1.2, 0.0, 0], mat.navy); G.pipe([-0.55, -3.2, 0.3], [-0.55, 3.2, 0.3], 0.07, mat.alu); G.pipe([-0.55, -3.2, -0.3], [-0.55, 3.2, -0.3], 0.07, mat.alu); L.block(3.0, 0.4, 2.2, [0, -3.25, 0], mat.char);
+    const car = L.group([0, 0, 0]); L.block(1.4, 1.2, 1.4, [0, 0, 0], mat.alu, car); L.block(1.2, 1.4, 1.2, [0.2, -1.3, 0], mat.char, car); L.tag('עומס', [1.4, -1.3, 0], 0.3);
+    const top = 3.9; add(K.can(0.7, top - 0.2, top + 1.4, 0.06), mat.navy, [-1.2, 0, 0]); L.tag('מנוע', [-2.6, top + 0.8, 0], 0.3); const cm = L.glowMat(mat.char, G.C.light); add(K.can(0.75, top + 1.5, top + 2.1, 0.05), cm, [-1.2, 0, 0]);
+    const arm = add(K.can(0.72, 0, 0.12, 0.03), mat.alu, [-1.2, top + 2.2, 0]); add(K.can(0.7, top + 2.45, top + 2.6, 0.03), mat.brown, [-1.2, 0, 0]); L.tag('בלם', [-1.2, top + 3.2, 0], 0.32);
+    const tg = L.tag('', [1.8, 0.8, 0], 0.36), car0 = 0.6;   /* 1 mm of fall = 0.075 units on screen */
+    return (dt, R, S) => { car.position.y = car0 + Math.max(-50, R.zmm) * 0.075; L.heat(cm, R.i / 0.5); arm.position.y = top + 2.2 - (1 - R.a) * 0.22; tg.set('z = ' + lf(R.zmm, 2) + ' mm'); }; },
+  msg: (R, S) => { const x = S.x;
+    if (R.crash) return '<b>הציר נפל עד העצירה המכנית.</b> הבלם משוחרר והסרבו כבוי: אף אחד לא מחזיק. בציר אנכי משחררים בלם רק אחרי שהסרבו מחזיק מומנט, וסוגרים אותו לפני שמורידים את המומנט.';
+    if (x.tOff != null && R.tEng != null) return `<b>הבלם נסגר אחרי ${LB(lf(R.tEng * 1000, 1) + ' ms')}${x.z0 - x.z > 1e-6 ? `, והציר נפל ${LB(lf(R.drop, 2) + ' mm')}` : ''}.</b> ${S.P.sup === 'diode' ? `עם דיודה הזרם בסליל דועך לאט (${LB('τ = L/R = ' + lf(BRK3.L / BRK3.R * 1000, 1) + ' ms')}) עד זרם השחרור. נסו וריסטור: ${LB(lf(brakeEngage('var') * 1000, 1) + ' ms')}.` : 'הווריסטור מחזיק מתח גבוה על הסליל בזמן הכיבוי, והאנרגיה נספגת מהר.'} ${x.z0 - x.z > 1e-6 ? LB('½·g·t² ') + 'בזמן הזה: בלי סרבו, כל אלפית שנייה נחשבת.' : ''}`;
+    if (R.falling) return '<b>הציר נופל:</b> הבלם עוד משוחרר והסרבו כבוי.';
+    return `<b>${R.eng ? 'הבלם סגור: הקפיצים לוחצים, אין מתח בסליל.' : 'הבלם משוחרר: הסליל מושך את הלוח נגד הקפיצים.'}</b> לחצו "הפסקת חשמל": הסליל והסרבו נכבים יחד. זמן הסגירה הצפוי: ${LB(lf(R.tTh * 1000, 1) + ' ms')}.`; },
+  alarm: R => R.crash || R.falling });
+/* ============ Labs in 3D, part 3: mechanisms and systems (ball screw, fits, servo axis, solenoid valve, door interlock, registration, bring-up, the line) ============ */
+
+/* ---- a ball screw with backlash: lost motion at every reversal ---- */
+const TRN3 = { f: 0.25, eta: 0.9, k: 0.8, mag: 20 };   /* command frequency; ball screw efficiency (typical); screen units per mm; the gap is drawn 20× larger */
+lab3d({ id: 'screw', node: 'trans', title: 'בורג כדורי ו-backlash: התנועה שהולכת לאיבוד בהיפוך',
+  note: 'המנוע מסובב את הבורג, והאום (והשולחן שמחובר אליו) נע פסיעה אחת בכל סיבוב. אם יש מרווח (backlash) בין האום לשולחן או בתוך האום, בכל היפוך כיוון המנוע מסתובב קצת לפני שהשולחן זז. אנקודר על המנוע לא רואה את זה; סרגל לינארי על השולחן כן. הפסיעה היא גם יחס התמסורת: היא קובעת את המומנט שהמנוע צריך. המרווח מוגדל פי 20 בתמונה.',
+  cam: { yaw: 0.3, pitch: 0.5, dist: 16, t: [0, 0.8, 0] },
+  P: { lead: 10, b: 0.05, A: 2, F: 200 },
+  controls: [{ k: 'b', t: 'backlash', min: 0, max: 0.2, step: 0.005, fmt: v => lf(v * 1000, 0) + ' µm' }, { k: 'A', t: 'משרעת התנועה', min: 0.2, max: 5, step: 0.1, u: 'mm' }, { k: 'F', t: 'כוח על השולחן', min: 0, max: 1000, step: 10, u: 'N' }],
+  toggles: [{ k: 'lead', t: 'פסיעה', opts: [[5, '5 mm'], [10, '10 mm'], [20, '20 mm']] }],
+  init: S => Object.assign(S.x, { xm: 0, xt: 0, lost: 0, dir: 0 }),
+  step(S, h) { const x = S.x, b = S.P.b, xm = S.P.A * Math.sin(2 * Math.PI * TRN3.f * S.t), d = Math.sign(xm - x.xm); if (d && d !== x.dir) { x.dir = d; x.rev = S.t; } x.xm = xm; if (xm - x.xt > b / 2) x.xt = xm - b / 2; else if (xm - x.xt < -b / 2) x.xt = xm + b / 2; },
+  calc: (P, S) => { const x = S.x; return { xm: x.xm, xt: x.xt, e: (x.xt - x.xm) * 1000, lost: P.b * 1000, T: P.F * P.lead / 1000 / (2 * Math.PI * TRN3.eta), rev: 2 * Math.PI * x.xm / P.lead, still: S.t - (x.rev || 0) < P.b / (2 * Math.PI * TRN3.f * P.A) }; },
+  stats: [['x', 'השולחן', R => lf(R.xt, 3) + ' mm'], ['m', 'לפי המנוע', R => lf(R.xm, 3) + ' mm'], ['e', 'שגיאה', R => lf(R.e, 1) + ' µm'], ['t', 'מומנט נדרש', R => lf(R.T, 3) + ' N·m']],
+  trace: { keys: [['xm', 'motor side (mm)', LABC.blue, S => -S.P.A * 1.1, S => S.P.A * 1.1], ['xt', 'table (mm)', LABC.navy, S => -S.P.A * 1.1, S => S.P.A * 1.1], ['e', 'table − motor (µm)', LABC.brown, -110, 110]], lanes: [0, 0, 1], names: ['position: motor (encoder) and table (linear scale)', 'error'], span: 8, h: 190 },
+  build(G, L, S) {
+    const { mat, K, add, THREE: T } = G; L.block(12, 0.5, 3.2, [0, -0.25, 0], mat.char); [-1.1, 1.1].forEach(z => L.block(10.5, 0.25, 0.35, [0.3, 0.12, z], mat.alu));
+    const sm = K.keep(new T.MeshPhysicalMaterial({ color: G.C.cream, metalness: 1, roughness: 0.35, bumpMap: K.knurl, bumpScale: 2.2 })), screw = add(K.can(0.3, -4.8, 5.0, 0.03, 'x'), sm, [0, 0.75, 0]);
+    add(K.can(0.75, -6.4, -5.2, 0.06, 'x'), mat.navy, [0, 0.75, 0]); add(K.can(0.42, -5.2, -4.7, 0.04, 'x'), mat.alu, [0, 0.75, 0]); L.tag('מנוע + אנקודר', [-5.8, 2.0, 0], 0.3); L.block(0.4, 1.0, 1.0, [5.2, 0.5, 0], mat.navy);
+    const nut = L.group([0, 0.75, 0]); add(K.can(0.62, -0.5, 0.5, 0.05, 'x'), mat.brown, [0, 0, 0], nut); add(G.box(0.36, 0.9, 0.5, 0.04), mat.brown, [0, 0.8, 0], nut);
+    const tab = L.group([0, 0, 0]); add(G.box(3.2, 0.3, 3.0, 0.06), mat.navy, [0, 2.0, 0], tab); const jaws = [-1, 1].map(s => add(G.box(0.3, 0.7, 0.8, 0.04), mat.alu, [0, 1.45, 0], tab)); L.tag('שולחן', [0, 2.6, 1.0], 0.3);
+    const ruler = K.paint(1024, 64, (g, w, h) => { g.fillStyle = '#EEE9E0'; g.fillRect(0, 0, w, h); g.strokeStyle = '#1B2F5A'; for (let i = 0; i <= 100; i++) { g.lineWidth = i % 10 ? 1 : 3; g.beginPath(); g.moveTo(i * w / 100, 0); g.lineTo(i * w / 100, i % 10 ? 20 : 40); g.stroke(); } }); ruler.colorSpace = T.SRGBColorSpace;
+    add(K.keep(new T.PlaneGeometry(8, 0.4)), K.keep(new T.MeshBasicMaterial({ map: ruler })), [0, 0.05, 1.6]).rotation.x = -Math.PI / 2; const ptr = add(G.box(0.08, 0.3, 0.5, 0.01), mat.blue, [0, 0.2, 1.6]);
+    return (dt, R, S) => { const xm = R.xm * TRN3.k, xt = R.xt * TRN3.k, off = (R.xm - R.xt) * TRN3.k * TRN3.mag, gap = S.P.b * TRN3.k * TRN3.mag / 2; screw.rotation.x = R.rev; nut.position.x = xt + off; tab.position.x = xt; ptr.position.x = xt;
+      jaws[0].position.x = -0.18 - 0.15 - gap; jaws[1].position.x = 0.18 + 0.15 + gap; }; },
+  msg: (R, S) => S.P.b <= 0.001 ? `<b>בלי מרווח השולחן עוקב בדיוק אחרי המנוע.</b> הגדילו את ה-backlash וצפו בהיפוך. המומנט: ${LB('T = F·p/(2πη) = ' + lf(R.T, 3) + ' N·m')}: פסיעה קטנה דורשת פחות מומנט, אבל יותר סיבובים לאותה תנועה.`
+    : `<b>בכל היפוך המנוע מסתובב ${LB(lf(R.lost, 0) + ' µm')} לפני שהשולחן זז.</b> האנקודר מדווח שהציר הגיע, והשולחן מאחר: שגיאה של ${LB('±' + lf(R.lost / 2, 0) + ' µm')} שתלויה בכיוון הגישה. תיקון: אום עם preload, פיצוי backlash בבקר, או סרגל לינארי שסוגר את הלולאה על השולחן.` });
+
+/* ---- fits: a hole and a shaft, their tolerance zones, and what happens when they meet ---- */
+const FIT3 = { nom: 25, H7: [0, 21], g6: [-20, -7], k6: [2, 15], p6: [22, 35], vis: 0.008 };   /* ISO 286 deviations in µm for 18–30 mm; on screen 1 µm of clearance = 0.008 units */
+const fitClass = sh => { const s = FIT3[sh], mn = FIT3.H7[0] - s[1], mx = FIT3.H7[1] - s[0]; return { mn, mx, kind: mn >= 0 ? 'clear' : mx <= 0 ? 'inter' : 'trans' }; };
+lab3d({ id: 'fit', node: 'fits', title: 'התאמות וטולרנסים: חור H7 מול g6, k6, p6',
+  note: 'אי אפשר לייצר מידה מדויקת; מגדירים תחום. חור Ø25 H7 יכול להיות בין 25.000 ל-25.021 מ"מ. את הציר בוחרים לפי מה שרוצים: g6 תמיד קטן מהחור (מרווח, חלקים שזזים), p6 תמיד גדול ממנו (הידוק, לחיצה או חימום), ו-k6 באמצע (מעבר). כל לחיצה מייצרת זוג חלקים אקראי בתוך הטולרנס ומרכיבה אותם. המרווח מוגדל מאוד בתמונה.',
+  cam: { yaw: 0.6, pitch: 0.35, dist: 15, t: [-1.5, 1.6, 0] },
+  P: { sh: 'g6' },
+  toggles: [{ k: 'sh', t: 'ציר', opts: [['g6', 'g6 (מרווח)'], ['k6', 'k6 (מעבר)'], ['p6', 'p6 (הידוק)']] }],
+  actions: [['🎲 ייצר והרכב', 'sample']],
+  init: S => Object.assign(S.x, { hole: 10.5, shaft: -13.5, ph: 1, n: 0, nc: 0, ni: 0, seed: 11 }),
+  onSet: (S, k) => { if (k === 'sh') { const s = FIT3[S.P.sh]; Object.assign(S.x, { hole: 10.5, shaft: (s[0] + s[1]) / 2, ph: 1, n: 0, nc: 0, ni: 0 }); } },
+  act: { sample: S => { const x = S.x, r = () => { x.seed = (x.seed * 16807) % 2147483647; return x.seed / 2147483647; }, s = FIT3[S.P.sh]; x.hole = +(FIT3.H7[0] + r() * (FIT3.H7[1] - FIT3.H7[0])).toFixed(1); x.shaft = +(s[0] + r() * (s[1] - s[0])).toFixed(1); x.ph = 0; x.n++; if (x.hole - x.shaft >= 0) x.nc++; else x.ni++; } },
+  step(S, h) { const x = S.x, stop = x.hole - x.shaft < 0 ? 0.72 : 1; x.ph = Math.min(stop, x.ph + h / 1.6); },
+  calc: (P, S) => { const x = S.x, c = fitClass(P.sh); return Object.assign(c, { hole: x.hole, shaft: x.shaft, clr: x.hole - x.shaft, Dh: FIT3.nom + x.hole / 1000, Ds: FIT3.nom + x.shaft / 1000, ph: x.ph }); },
+  stats: [['h', 'קוטר החור', R => R.Dh.toFixed(4) + ' mm'], ['s', 'קוטר הציר', R => R.Ds.toFixed(4) + ' mm'], ['c', 'מרווח (+) / הידוק (−)', R => (R.clr >= 0 ? '+' : '') + lf(R.clr, 1) + ' µm'], ['k', 'סוג ההתאמה', R => ({ clear: 'מרווח', trans: 'מעבר', inter: 'הידוק' })[R.kind]]],
+  plot: { h: 240, leg: [['hole H7', LABC.navy], ['shaft', LABC.brown], ['this pair', LABC.char]], draw(U, R, S) { const s = FIT3[S.P.sh]; U.frame({ x: [0, 6], y: [-30, 45], xl: '', yl: 'deviation from 25.000 mm (µm)', noXT: 1 }).hl(0, LABC.char, 'nominal Ø25.000');
+    U.rect(1, 2.4, FIT3.H7[0], FIT3.H7[1], 'rgba(27,47,90,.35)').rect(3.6, 5, s[0], s[1], 'rgba(123,90,60,.45)').text('H7', 1.7, FIT3.H7[1] + 4, LABC.navy, 'center').text(S.P.sh, 4.3, s[1] + 4, LABC.brown, 'center').dot(1.7, R.hole, LABC.navy).dot(4.3, R.shaft, LABC.brown); } },
+  build(G, L, S) {
+    const { mat, K, add } = G; const ring = add(K.tube(1.9, -0.8, 0.8, 0.8, 'x'), mat.navy, [0, 1.6, 0]); L.block(1.6, 0.8, 4.2, [0, 0.4, 0], mat.char);
+    const shaft = add(K.can(1.0, -4.5, 0, 0.06, 'x'), mat.alu, [0, 1.6, 0]); const tg = L.tag('', [0, 3.9, 0], 0.4), sp = L.spark([-0.85, 1.6, 0], 1.0); let key = '';
+    return (dt, R, S) => { const k = R.hole + '|' + R.shaft; if (k !== key) { key = k; const rh = Math.max(0.55, 1.0 + R.clr * FIT3.vis); ring.geometry = K.tube(1.9, -0.8, 0.8, 1.9 - rh, 'x'); }
+      shaft.position.x = -5.0 + R.ph * 5.8; sp.set(R.clr < 0 && R.ph >= 0.72 ? 0.8 : 0); tg.set(R.clr >= 0 ? `מרווח ${lf(R.clr, 1)} µm` : `הידוק ${lf(-R.clr, 1)} µm: דרוש כוח`); }; },
+  msg: (R, S) => { const x = S.x, base = R.kind === 'clear' ? `<b>${LB('H7/' + S.P.sh)}: התאמה חופשית.</b> תמיד מרווח, בין ${LB(R.mn + '')} ל-${LB(R.mx + ' µm')}. לחלקים שזזים או שמפרקים: גלגלת על ציר, פין מיקום שנשלף.`
+    : R.kind === 'inter' ? `<b>${LB('H7/' + S.P.sh)}: התאמת הידוק.</b> הציר תמיד גדול מהחור, בין ${LB(-R.mx + '')} ל-${LB(-R.mn + ' µm')}. מרכיבים בלחיצה או מחממים את החלק החיצוני; אחרי ההרכבה הוא לא זז ולא מסתובב (מסב בבית, גלגל שיניים על ציר).`
+    : `<b>${LB('H7/' + S.P.sh)}: התאמת מעבר.</b> בין מרווח של ${LB(R.mx + ' µm')} להידוק של ${LB(-R.mn + ' µm')}: תלוי בזוג. מיקום מדויק, הרכבה בפטיש גומי.`;
+    return base + (x.n ? ` מתוך ${x.n} זוגות: ${x.nc} עם מרווח, ${x.ni} עם הידוק.` : ' לחצו "ייצר והרכב" כמה פעמים.'); } });
+
+/* ---- a servo axis in 3D: the command, the carriage, the following error ---- */
+lab3d({ id: 'axis', node: 'servo', title: 'ציר סרבו בתלת-ממד: פקודה, עגלה ושגיאת עקיבה',
+  note: 'הבקר שולח לציר מיקום רצוי (העגלה השקופה) לפי פרופיל טרפז: תאוצה, מהירות קבועה, האטה. הדרייבר מודד את המיקום (אנקודר) והופך את השגיאה לכוח עם PID. בתאוצה צריך כוח, וה-P נותן כוח רק משגיאה, ולכן העגלה האמיתית מפגרת. אותו מודל ואותם מספרים כמו בסימולציה של לולאת הבקרה; הזמן מואט פי 4.',
+  cam: { yaw: 0.35, pitch: 0.5, dist: 17, t: [0, 0.8, 0] }, rate: 0.25, dt: 1e-4,
+  P: { kp: 1, kd: 1, ki: 'on', fd: 'on' },
+  controls: [{ k: 'kp', t: 'Kp (פי)', min: 0.1, max: 4, log: 1, fmt: v => '×' + lf(v, 2) }, { k: 'kd', t: 'Kd (פי)', min: 0.1, max: 4, log: 1, fmt: v => '×' + lf(v, 2) }],
+  toggles: [{ k: 'ki', t: 'אינטגרל', opts: [['on', 'פעיל'], ['off', 'כבוי']] }, { k: 'fd', t: 'כבל נגרר (10 N)', opts: [['on', 'יש'], ['off', 'אין']] }],
+  actions: [['▶ תנועה', 'move']],
+  init: S => Object.assign(S.x, { tm: null, x: 0, v: 0, I: 0, eP: 0, e: 0, emax: 0, F: 0, sat: false, fault: false, tl: 0 }),
+  act: { move: S => Object.assign(S.x, { tm: 0, x: 0, v: 0, I: 0, eP: 0, e: 0, emax: 0, F: 0, sat: false, fault: false, tl: 0 }) },
+  step(S, h) { const x = S.x; if (x.tm == null || x.fault) return; const p = svAxisP(S.P), t = x.tm, xc = svProfile(t, p)[0], e = xc - x.x; x.I += e * h; const de = (e - x.eP) / h; x.eP = e;
+    let F = p.Kp * e + p.Ki * x.I + p.Kd * de; x.sat = Math.abs(F) > p.Fmax; if (x.sat) { F = Math.sign(F) * p.Fmax; x.I -= e * h; } const acc = (F - p.b * x.v - (t >= p.tFd ? p.Fd : 0)) / p.m; x.v += acc * h; x.x += x.v * h;
+    Object.assign(x, { e, F, xc }); if (t <= p.T) x.emax = Math.max(x.emax, Math.abs(e)); if (Math.abs(e) >= p.win) x.tl = t; if (Math.abs(e) > p.FE) x.fault = true; x.tm = t + h; },
+  calc: (P, S) => { const x = S.x, p = svAxisP(P), T0 = 2 * p.v / p.a + (p.L - p.v * p.v / p.a) / p.v; return { e: x.e * 1e6, emax: x.emax * 1e6, F: x.F, x: x.x, xc: x.xc == null ? 0 : x.xc, sat: x.sat, fault: x.fault, T0, ts: x.tm != null && x.tm > T0 && x.tm - x.tl > 0.05 ? Math.max(0, x.tl - T0) : null, idle: x.tm == null, eAcc: p.m * p.a / p.Kp * 1e6 }; },
+  stats: [['e', 'שגיאת עקיבה', R => lf(R.e, 1) + ' µm'], ['m', 'שגיאה מרבית', R => lf(R.emax, 1) + ' µm'], ['f', 'כוח', R => lf(R.F, 1) + ' N'], ['s', 'מצב', R => R.fault ? 'FE: עצירה' : R.idle ? 'ממתין' : R.ts != null ? 'In-position' : 'בתנועה']],
+  trace: { keys: [['e', 'following error (µm)', LABC.navy, -600, 600], ['F', 'force (N)', LABC.brown, -210, 210]], names: ['following error (µm), limit ±500', 'motor force (N)'], lanes: 1, span: 1.4, marks: [[SV.FE * 1e6, 0, LABC.char], [-SV.FE * 1e6, 0, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add, THREE: T } = G, U = 80, x0 = -4; L.block(11.5, 0.5, 2.8, [0, -0.25, 0], mat.char); [-0.9, 0.9].forEach(z => L.block(11, 0.25, 0.3, [0, 0.12, z], mat.alu));
+    const sm = K.keep(new T.MeshPhysicalMaterial({ color: G.C.cream, metalness: 1, roughness: 0.35, bumpMap: K.knurl, bumpScale: 2.2 })), screw = add(K.can(0.22, -5.2, 5.3, 0.03, 'x'), sm, [0, 0.5, 0]);
+    add(K.can(0.7, -6.6, -5.4, 0.06, 'x'), mat.navy, [0, 0.6, 0]); L.tag('מנוע', [-6.0, 1.7, 0], 0.3);
+    const car = L.group([x0, 0, 0]); L.block(1.6, 0.6, 2.4, [0, 0.6, 0], mat.alu, car); L.block(1.2, 0.5, 1.2, [0, 1.15, 0], mat.navy, car); const bar = add(G.box(0.12, 1, 0.12, 0.01), L.glowMat(mat.blue, G.C.blue), [0, 1.9, 1.0], car);
+    const ghost = L.group([x0, 0, 0]); add(G.box(1.62, 0.62, 2.42, 0.08), mat.glass, [0, 0.6, 0], ghost); L.tag('פקודה', [x0, 2.2, -1.4], 0.28); const gt = L.tag('', [0, 3.0, 0], 0.38);
+    [x0, x0 + SV.L * U].forEach(x => add(G.box(0.05, 0.02, 2.6, 0.01), mat.light, [x, 0.27, 0]));
+    return (dt, R, S) => { car.position.x = x0 + R.x * U; ghost.position.x = x0 + R.xc * U; ghost.visible = !R.idle; screw.rotation.x = R.x / 0.01 * 2 * Math.PI; const k = Math.min(1.6, Math.abs(R.e) / 300); bar.scale.y = Math.max(0.02, k); bar.position.y = 1.5 + k / 2; L.heat(bar.material, R.fault ? 1.2 : k);
+      gt.set(R.fault ? 'FOLLOWING ERROR' : `e = ${lf(R.e, 0)} µm`); }; },
+  msg: (R, S) => R.idle ? `<b>לחצו "תנועה":</b> ${LB('100 mm')} ב-${LB('0.25 m/s')} ותאוצה ${LB('2 m/s²')}. השקוף הוא הפקודה. בתאוצה הכוח הנדרש ${LB('m·a = 10 N')}, ושגיאה של כ-${LB(lf(R.eAcc, 0) + ' µm')} מספיקה ל-P כדי לתת אותו.`
+    : R.fault ? `<b>שגיאת עקיבה מעל הסף (${LB('500 µm')}): הדרייבר עוצר.</b> הגבר קטן מדי לא נותן מספיק כוח בתאוצה, או שהציר תקוע. בשטח: בדקו עומס, חיכוך ופרמטרים לפני שמגדילים את הסף.`
+    : R.ts != null ? `<b>In-position:</b> העגלה בתוך ${LB('±10 µm')} אחרי ${LB(lf(R.ts * 1000, 0) + ' ms')} מסוף הפרופיל. השגיאה המרבית בתנועה: ${LB(lf(R.emax, 0) + ' µm')}. ${S.P.ki === 'off' && S.P.fd === 'on' ? 'בלי I, הכבל משאיר שגיאה קבועה F/Kp.' : 'נסו Kp × 0.25, או כבו את ה-I.'}`
+    : `<b>בתנועה: ${LB('e = ' + lf(R.e, 0) + ' µm')}.</b> ${R.sat ? 'הכוח ברוויה (200 N): הלולאה לא יכולה לתת יותר. ' : ''}השגיאה גדלה בתאוצה, קטנה במהירות קבועה ומתהפכת בהאטה.`,
+  alarm: R => R.fault });
+function svAxisP(P) { return Object.assign({}, SV, { Kp: SV.Kp * P.kp, Kd: SV.Kd * P.kd, Ki: P.ki === 'on' ? SV.Ki : 0, Fd: P.fd === 'on' ? SV.Fd : 0 }); }
+
+/* ---- a solenoid valve from the controller to the air: the chain and where it breaks ---- */
+const VAL3 = { V: 24, R: 120, L: 0.5, pin: 0.12, drop: 0.05, Vd: 0.7, ts: 0.006, tp: 0.015, vmax: 85, popt: 4.5 };   /* a 4.8 W valve coil; pull-in, drop-out, spool travel and port filling illustrative; a venturi gives about −85 kPa from about 4.5 bar (typical) */
+lab3d({ id: 'valve', node: 'valve', title: 'שסתום סולנואיד: מהיציאה של הבקר ועד הוואקום',
+  note: 'הבקר מדליק יציאה של 24 V. הזרם בסליל עולה בהדרגה (τ = L/R), ובזרם המשיכה הוא מושך את הבוכנה (spool) נגד הקפיץ. הבוכנה פותחת דרך מהכניסה P ליציאה A, האוויר ממלא את הקו, והוונטורי יוצר ואקום. כל שלב נראה בשטח: נורית ביציאה, נורית במחבר, קליק, מד לחץ. בחרו תקלה וחפשו אותה כמו טכנאי; כפתור ה-override מזיז את הבוכנה ביד. הזמן מואט פי 10.',
+  cam: { yaw: 0.35, pitch: 0.5, dist: 16, t: [0.3, 1.0, 0] }, rate: 0.1, hmax: 1e-4,
+  P: { out: 'off', fault: 'none', p: 6 },
+  controls: [{ k: 'p', t: 'לחץ אספקה', min: 0, max: 8, step: 0.5, u: 'bar' }],
+  toggles: [{ k: 'out', t: 'יציאת הבקר', opts: [['off', 'כבויה'], ['on', 'דולקת']] }, { k: 'fault', t: 'תקלה', opts: [['none', 'אין'], ['coil', 'סליל קטוע'], ['air', 'אין אוויר'], ['stuck', 'בוכנה תקועה']] }],
+  actions: [['👆 override ידני', 'mo']],
+  init: S => Object.assign(S.x, { i: 0, pull: 0, s: 0, pa: 0, mo: false, t0: null, tr: null }),
+  act: { mo: S => { S.x.mo = !S.x.mo; } },
+  onSet: (S, k) => { if (k === 'out' && S.P.out === 'on') Object.assign(S.x, { t0: S.t, tr: null }); },
+  step(S, h) { const x = S.x, P = S.P, on = P.out === 'on'; if (P.fault === 'coil') x.i = 0; else { const iss = on ? VAL3.V / VAL3.R : -VAL3.Vd / VAL3.R; x.i = iss + (x.i - iss) * Math.exp(-h * VAL3.R / VAL3.L); if (!on && x.i < 0) x.i = 0; }
+    if (x.i >= VAL3.pin) x.pull = 1; else if (x.i <= VAL3.drop) x.pull = 0; if (P.fault !== 'stuck') { const tg = x.pull || x.mo ? 1 : 0; x.s += Math.sign(tg - x.s) * Math.min(Math.abs(tg - x.s), h / VAL3.ts); }
+    const sup = P.fault === 'air' ? 0 : P.p, tgP = x.s >= 0.5 ? sup : 0; x.pa += (tgP - x.pa) * (1 - Math.exp(-h / VAL3.tp)); if (x.t0 != null && x.tr == null && sup > 0 && x.pa >= 0.9 * sup) x.tr = S.t - x.t0; },
+  calc: (P, S) => { const x = S.x, on = P.out === 'on'; return { out: on ? 1 : 0, conn: on ? 1 : 0, i: x.i, s: x.s, pa: x.pa, vac: -VAL3.vmax * Math.min(1, x.pa / VAL3.popt), sup: P.fault === 'air' ? 0 : P.p, tr: x.tr, tau: VAL3.L / VAL3.R, mo: x.mo }; },
+  stats: [['i', 'זרם בסליל', R => lf(R.i * 1000, 0) + ' mA'], ['s', 'הבוכנה', R => Math.round(R.s * 100) + '%'], ['p', 'לחץ ביציאה A', R => lf(R.pa, 2) + ' bar'], ['v', 'ואקום', R => lf(R.vac, 0) + ' kPa']],
+  trace: { keys: [['out', 'PLC output', LABC.char, -0.2, 1.2], ['i', 'coil current (A)', LABC.navy, 0, 0.22], ['s', 'spool', LABC.blue, -0.1, 1.1], ['pa', 'port A (bar)', LABC.brown, 0, 8.5]], names: ['PLC output', 'coil current (pull-in 0.12 A)', 'spool position', 'pressure at A'], lanes: 1, span: 0.1, disp: 1000, unit: 'ms', h: 210, marks: [[VAL3.pin, 1, LABC.char]] },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.board(13, 6, [0.4, -1.12, 0]); L.block(1.6, 1.2, 1.0, [-5.0, -0.4, 0], mat.cream); const lo = L.led([-4.5, -0.1, 0.52], G.C.light, 0.1); L.tag('יציאת בקר', [-5.0, 0.5, 0], 0.3);
+    G.pipe([-4.2, -0.4, 0], [-2.6, 1.9, 0], 0.07, mat.hose); L.block(0.6, 0.5, 0.6, [-2.4, 2.1, 0], mat.char); const lc = L.led([-2.4, 2.4, 0.32], G.C.light, 0.09);
+    add(K.can(0.55, -3.3, -1.5, 0.05, 'x'), mat.navy, [0, 1.3, 0]); const cm = L.glowMat(mat.brown); add(K.can(0.42, -3.1, -1.7, 0.03, 'x'), cm, [0, 1.3, 0.12]); L.tag('סליל', [-2.4, 2.9, 0], 0.3);
+    add(G.box(3.6, 1.4, 1.6, 0.08), mat.alu, [0.3, 1.3, 0]); add(G.box(3.2, 0.06, 1.2, 0.02), mat.glass, [0.3, 2.03, 0]); const spool = add(K.can(0.3, -1.3, 1.3, 0.04, 'x'), mat.cream, [0.0, 2.15, 0]); for (let i = -1; i <= 1; i++) add(K.can(0.33, -0.12, 0.12, 0.02, 'x'), mat.char, [i * 0.8, 0, 0], spool);
+    const spr = L.coil([2.6, 1.3, 0], 'x', 0.3, 0.8, 7, mat.alu); const btn = add(K.can(0.18, 0, 0.3, 0.03), mat.blue, [1.2, 2.0, 0.6]); L.tag('override', [1.4, 2.9, 0.8], 0.26);
+    G.pipe([0.3, 0.6, 0], [0.3, -0.3, 0], 0.13, mat.alu); G.pipe([0.3, -0.3, 0], [-1.5, -0.6, 1.8], 0.13, mat.hose); L.block(1.0, 0.8, 0.8, [-2.2, -0.6, 1.8], mat.navy); const sg = L.screen([-2.2, -0.55, 2.21], 0.85, 0.5); L.tag('P', [0.6, 0.2, 0.3], 0.3);
+    G.pipe([-0.4, 2.0, -0.5], [-0.4, 2.6, -2.0], 0.11, mat.hose); G.pipe([-0.4, 2.6, -2.0], [3.6, 2.6, -2.0], 0.11, mat.hose); add(K.can(0.3, -0.8, 0.8, 0.04, 'x'), mat.alu, [4.4, 2.6, -2.0]); G.pipe([4.4, 2.6, -2.0], [4.4, 0.0, -2.0], 0.09, mat.hose); add(K.can(0.6, -0.9, -0.6, 0.06), mat.char, [4.4, 0, -2.0]); L.tag('A → ונטורי', [3.6, 3.3, -2.0], 0.28);
+    add(K.can(0.28, -0.6, 0.0, 0.04, 'x'), mat.char, [5.5, 2.6, -2.0]); const vg = L.screen([4.4, 1.3, -1.6], 1.1, 0.6); add(K.can(0.32, -0.5, 0.0, 0.03), mat.char, [1.0, 0.6, -0.9]); L.tag('R', [1.0, 0.0, -0.9], 0.28);
+    const air = labFlow(G, 70, 0.3), cur = labFlow(G, 30, 0.22);
+    return (dt, R, S) => { lo.set(!!R.out); lc.set(!!R.conn); L.heat(cm, R.i / 0.2); spool.position.x = -0.35 + 0.7 * R.s; spr.scale.y = 1 - 0.35 * R.s; btn.position.y = R.mo ? 1.92 : 2.0; sg.set(lf(R.sup, 1) + ' bar'); vg.set(lf(R.vac, 0) + ' kPa');
+      air.set(R.s > 0.5 && R.sup > 0 ? [{ pts: [[-1.5, -0.6, 1.8], [0.3, -0.3, 0], [0.3, 1.3, 0], [-0.4, 2.0, -0.5], [-0.4, 2.6, -2.0], [3.6, 2.6, -2.0], [5.8, 2.6, -2.0]], v: 2 + R.sup }] : R.pa > 0.2 ? [{ pts: [[-0.4, 2.6, -2.0], [-0.4, 2.0, -0.5], [1.0, 1.3, -0.5], [1.0, 0.0, -0.9]], v: 1 + R.pa }] : []); air.step(dt);
+      cur.set(R.i > 0.005 ? [{ pts: [[-4.2, -0.4, 0], [-2.6, 1.9, 0], [-2.4, 1.3, 0]], v: vI(R.i, 0.2) }] : []); cur.step(dt); }; },
+  msg: (R, S) => { const f = S.P.fault, on = R.out;
+    if (!on && !R.mo) return `<b>היציאה כבויה.</b> הדליקו את יציאת הבקר וצפו בשרשרת: נורית ביציאה, נורית במחבר, זרם (${LB('τ = L/R = ' + lf(R.tau * 1000, 1) + ' ms')}), משיכה ב-${LB('0.12 A')}, בוכנה, לחץ ב-A, ואקום. אחר כך בחרו תקלה.`;
+    if (f === 'coil' && on) return `<b>שתי הנוריות דולקות, אבל אין זרם בסליל ואין קליק.</b> המתח מגיע עד המחבר, והסליל לא סוגר מעגל: סליל קטוע. ${R.mo ? 'ה-override הזיז את הבוכנה ויש לחץ: המכני והאוויר תקינים.' : 'לחצו override: אם הבוכנה זזה ויש לחץ, החליפו רק את הסליל.'} מדידה: התנגדות הסליל (צריכה להיות כ-${LB('120 Ω')}).`;
+    if (f === 'air' && R.s > 0.5) return `<b>יש זרם, יש קליק, הבוכנה זזה, אבל ב-A אין לחץ.</b> החשמל והשסתום תקינים; אין אוויר בכניסה P (מד הלחץ על ${LB('0 bar')}). בדקו ברז ראשי, וסת ומסנן. override לא יעזור כאן.`;
+    if (f === 'stuck' && on) return `<b>יש זרם בסליל, אבל הבוכנה לא זזה${R.mo ? ', וגם ה-override לא מזיז אותה' : ''}.</b> תקיעה מכנית: לכלוך, שמן שהתייבש, טבעת נפוחה. ${R.mo ? 'מנקים או מחליפים את השסתום.' : 'נסו override: אם גם הוא לא מזיז, הבעיה מכנית.'}`;
+    if (R.mo && !on) return '<b>override ידני: הבוכנה זזה בלי חשמל.</b> כך מפרידים בין בעיה חשמלית למכנית/פנאומטית. שחררו את ה-override לפני שממשיכים.';
+    return `<b>השרשרת תקינה.</b> מהדלקת היציאה עד ${LB('90%')} מהלחץ ב-A: ${LB(R.tr == null ? '…' : lf(R.tr * 1000, 1) + ' ms')}. ${R.sup < VAL3.popt ? `בלחץ ${LB(R.sup + ' bar')} הוונטורי נותן רק ${LB(lf(R.vac, 0) + ' kPa')}.` : 'כבו את היציאה: הקפיץ מחזיר את הבוכנה, והאוויר ב-A יוצא דרך R.'}`; },
+  alarm: (R, S) => R.out === 1 && S.P.fault !== 'none' });
+
+/* ---- a door interlock: stop before the hand arrives, or lock the door ---- */
+const ILK3 = { K: 2000, K2: 1600, hand: 2.0, swing: 0.15, k: 0.006 };   /* ISO 13855 approach speeds (mm/s): 2000, and 1600 when S > 500 mm (then S ≥ 500); the hand moves at 2 m/s */
+const ilkCalc = (v, a, D) => { const sc = stopCalc({ v, a }), T = sc.tr + v / a; let S = ILK3.K * T; if (S > 500) S = Math.max(500, ILK3.K2 * T); return { tr: sc.tr, s: sc.s, T, S, th: D / 1000 / ILK3.hand }; };
+lab3d({ id: 'interlock', node: 'interlock', title: 'interlock של דלת: לעצור לפני שהיד מגיעה, או לנעול',
+  note: 'מתג הדלת פותח את שרשרת הבטיחות ברגע שהדלת זזה. אבל הציר לא עוצר מיד: זמן תגובה של המתג, הממסר וה-STO, ואחריו בלימה. אם היד מגיעה לאזור הסכנה לפני שהציר עצר, ה-interlock לא הגן. התקן (ISO 13855) נותן מרחק מינימלי S = K·T, עם K = 2000 mm/s לתנועת יד. כשאי אפשר להרחיק, נועלים את הדלת עד עצירה (guard locking). בלי תוספות קירוב (C) של התקן; הזמן מואט פי 4.',
+  cam: { yaw: 0.65, pitch: 0.45, dist: 17, t: [0, 1.2, 0.8] }, rate: 0.25,
+  P: { v: 0.5, a: 5, D: 300, lock: 'no' },
+  controls: [{ k: 'v', t: 'מהירות הציר', min: 0.1, max: 1, step: 0.05, u: 'm/s' }, { k: 'a', t: 'תאוטה בעצירה', min: 1, max: 20, step: 0.5, u: 'm/s²' }, { k: 'D', t: 'מרחק דלת–סכנה', min: 50, max: 800, step: 10, u: 'mm' }],
+  toggles: [{ k: 'lock', t: 'נעילת דלת', opts: [['no', 'אין (interlock בלבד)'], ['yes', 'יש (guard locking)']] }],
+  actions: [['🚪 פתח את הדלת', 'open'], ['⟲ סגור והפעל', 'reset']],
+  init: S => Object.assign(S.x, { ph: 'run', pos: 0, dir: 1, vel: S.P.v, treq: null, tdoor: null, door: 0, hand: 0, hit: false, tstop: null }),
+  act: { open: S => { const x = S.x; if (x.treq != null) return; x.treq = S.t; if (S.P.lock === 'no') x.tdoor = S.t; }, reset: S => Object.assign(S.x, { ph: 'run', vel: S.P.v, treq: null, tdoor: null, door: 0, hand: 0, hit: false, tstop: null }) },
+  step(S, h) { const x = S.x, P = S.P, sc = stopCalc({ v: P.v, a: P.a });
+    if (x.treq != null && x.vel > 0 && S.t - x.treq >= sc.tr) x.vel = Math.max(0, x.vel - P.a * h); else if (x.treq == null) x.vel = P.v;
+    if (x.vel === 0 && x.tstop == null && x.treq != null) x.tstop = S.t - x.treq; x.pos += x.dir * x.vel * h; if (Math.abs(x.pos) > ILK3.swing) { x.pos = Math.sign(x.pos) * ILK3.swing; x.dir *= -1; }
+    if (x.tdoor == null && x.treq != null && P.lock === 'yes' && x.vel === 0) x.tdoor = S.t; if (x.tdoor != null) { x.door = Math.min(1, (S.t - x.tdoor) / 0.08); x.hand = Math.min(P.D, (S.t - x.tdoor) * ILK3.hand * 1000); if (x.hand >= P.D && x.vel > 0) x.hit = true; } },
+  calc: (P, S) => { const c = ilkCalc(P.v, P.a, P.D), x = S.x; return Object.assign(c, { vel: x.vel, hand: x.hand, door: x.door, hit: x.hit, safe: P.lock === 'yes' || P.D >= c.S, locked: P.lock === 'yes' && x.tdoor == null, tstop: x.tstop }); },
+  stats: [['t', 'זמן עצירה T', R => lf(R.T * 1000, 0) + ' ms'], ['s', 'S נדרש', R => lf(R.S, 0) + ' mm'], ['h', 'היד מגיעה אחרי', R => lf(R.th * 1000, 0) + ' ms'], ['r', 'תוצאה', (R, S) => S.P.lock === 'yes' ? 'נעול עד עצירה' : R.safe ? 'בטוח' : 'לא בטוח']],
+  trace: { keys: [['vel', 'axis speed (m/s)', LABC.navy, 0, 1.05], ['hand', 'hand (mm)', LABC.brown, 0, S => S.P.D]], names: ['axis speed', 'hand from the door (top = hazard)'], lanes: 1, span: 0.5 },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.block(9, 0.4, 5, [0, -0.2, 0], mat.char); [[-4.4, -2.4], [4.4, -2.4], [-4.4, 2.4], [4.4, 2.4]].forEach(([x, z]) => L.block(0.2, 3.6, 0.2, [x, 1.8, z], mat.alu)); add(G.box(9, 0.1, 5, 0.02), mat.glass, [0, 3.6, 0]);
+    L.block(7.5, 0.3, 0.6, [0, 0.15, -0.8], mat.alu); const car = L.group([0, 0, -0.8]); L.block(1.2, 1.2, 1.0, [0, 0.9, 0], mat.navy, car); add(K.can(0.12, 0.1, 0.9, 0.03), mat.cream, [0, 0.0, 0], car).position.y = 0.0;
+    const zone = add(G.box(7.5, 0.02, 0.3, 0.01), L.glowMat(mat.brown), [0, 0.04, 0]); L.tag('אזור סכנה', [3.0, 1.0, 0], 0.28);
+    const door = L.group([0, 0, 0]); add(G.box(3.8, 3.0, 0.08, 0.03), mat.glass, [0, 1.8, 0], door); add(G.box(3.8, 0.12, 0.12, 0.02), mat.alu, [0, 3.25, 0], door); const tongue = add(G.box(0.4, 0.15, 0.12, 0.02), mat.alu, [2.0, 2.4, 0], door);
+    const sw = L.block(0.5, 0.6, 0.4, [2.4, 2.4, 0], mat.navy); const lockLed = L.led([2.4, 2.8, 0.25], G.C.light, 0.09); void sw; void tongue;
+    const hand = L.group([0, 1.2, 0]); add(K.can(0.22, -0.6, 0.6, 0.12, 'z'), mat.cream, [0, 0, 0], hand); add(G.box(0.5, 0.18, 0.4, 0.08), mat.cream, [0, 0, -0.75], hand); const tg = L.tag('', [-2.0, 4.3, 1.0], 0.36);
+    return (dt, R, S) => { const z = 0.3 + S.P.D * ILK3.k; door.position.z = z; door.position.x = -R.door * 3.6; [sw, lockLed.o].forEach(o => { o.position.z = z + (o === lockLed.o ? 0.25 : 0); }); lockLed.set(R.locked); car.position.x = S.x.pos * 20;
+      hand.visible = R.door > 0.5; hand.position.z = z + 0.9 - R.hand * ILK3.k; L.heat(zone.material, R.hit ? 1.4 : 0); tg.set(`S ≥ ${lf(R.S, 0)} mm · D = ${S.P.D} mm`); }; },
+  msg: (R, S) => { const x = S.x;
+    if (x.hit) return `<b>היד הגיעה לאזור הסכנה כשהציר עוד זז.</b> היד צריכה ${LB(lf(R.th * 1000, 0) + ' ms')}, והציר עוצר רק אחרי ${LB('T = ' + lf(R.T * 1000, 0) + ' ms')} (${LB(lf(R.tr * 1000, 0) + ' ms')} תגובה + ${LB(lf(S.P.v / S.P.a * 1000, 0) + ' ms')} בלימה). הרחיקו את הדלת ל-${LB('S ≥ ' + lf(R.S, 0) + ' mm')}, הקטינו את המהירות, או נעלו את הדלת.`;
+    if (S.P.lock === 'yes' && x.treq != null) return x.tdoor == null ? '<b>בקשת פתיחה: הדלת נעולה.</b> הבקשה עוצרת את הציר, והנעילה משתחררת רק כשהוא עומד.' : `<b>הדלת נפתחה רק אחרי עצירה מלאה (${LB(lf((R.tstop || 0) * 1000, 0) + ' ms')}).</b> עם נעילה המרחק לא קובע. המחיר: המפעיל מחכה, ומתג הנעילה עצמו חייב להיות בדרגת בטיחות מתאימה.`;
+    if (x.treq != null && R.tstop == null) return `<b>הדלת נפתחה: המתג פתח את השרשרת, והציר בעצירה.</b> ${LB(lf(R.tr * 1000, 0) + ' ms')} תגובה, אחר כך בלימה ב-${LB(S.P.a + ' m/s²')}. היד בדרך: היא תגיע אחרי ${LB(lf(R.th * 1000, 0) + ' ms')}.`;
+    if (x.treq != null) return `<b>הציר עצר אחרי ${LB(lf((R.tstop || R.T) * 1000, 0) + ' ms')}, לפני שהיד הגיעה (${LB(lf(R.th * 1000, 0) + ' ms')}).</b> המרחק ${LB(S.P.D + ' mm')} מספיק: ${LB('S = K·T = ' + lf(R.S, 0) + ' mm')}.`;
+    return `<b>זמן העצירה ${LB('T = ' + lf(R.T * 1000, 0) + ' ms')}, ולכן ${LB('S = K·T = ' + lf(R.S, 0) + ' mm')}.</b> ${R.safe ? 'המרחק מספיק.' : 'הדלת קרובה מדי!'} לחצו "פתח את הדלת"; אחר כך העלו את המהירות ל-${LB('1 m/s')}.`; },
+  alarm: (R, S) => S.x.hit || (S.P.lock === 'no' && !R.safe) });
+
+/* ---- registration: two fiducials give offset, rotation and scale ---- */
+const REG3 = { Q: [150, 120], k: 0.02, mag: 25 };   /* a test pad off the fiducial line; 50 mm = 1 unit; the panel's offset and rotation drawn 25× larger */
+function regSolve(D, M1, M2, Q) { const vx = M2[0] - M1[0], vy = M2[1] - M1[1], th = Math.atan2(vy, vx), s = Math.hypot(vx, vy) / D, c = Math.cos(th), sn = Math.sin(th), d = [(M1[0] + M2[0]) / 2, (M1[1] + M2[1]) / 2];
+  return { th, s, d, map: p => [s * (c * p[0] - sn * p[1]) + d[0], s * (sn * p[0] + c * p[1]) + d[1]] }; }
+const regPose = (o, p) => { const c = Math.cos(o.th), s = Math.sin(o.th); return [o.s * (c * p[0] - s * p[1]) + o.dx, o.s * (s * p[0] + c * p[1]) + o.dy]; };
+lab3d({ id: 'fiducials', node: 'reg', title: 'רישום בשני סימני ייחוס: היסט, סיבוב וקנה מידה',
+  note: 'הפאנל אף פעם לא מונח בדיוק במקום: הוא זז, מסתובב מעט, ומתארך בחום. המצלמה מודדת שני סימני ייחוס (fiducials) במקומות ידועים מהתכנון. מהשניים מחשבים היסט, זווית וקנה מידה, ומתקנים כל נקודה בפאנל לפני הסריקה או התיקון. רעש המדידה של כל סימן עובר לזווית, ומוגדל במרחק. ההיסט והסיבוב מוגדלים פי 25 בתמונה.',
+  cam: { yaw: 0.2, pitch: 0.8, dist: 25, t: [0, 0.6, 0] },
+  P: { D: 400, sig: 5 },
+  controls: [{ k: 'sig', t: 'רעש מדידה σ', min: 0, max: 20, step: 1, u: 'µm' }],
+  toggles: [{ k: 'D', t: 'מרחק בין הסימנים', opts: [[100, '100 mm'], [200, '200 mm'], [400, '400 mm']] }],
+  actions: [['📥 פאנל חדש', 'load']],
+  init: S => Object.assign(S.x, { pose: { dx: 0, dy: 0, th: 0, s: 1 }, M: [], sol: null, ph: 'idle', tp: 0, seed: 7, cam: [0, -4.5] }),
+  act: { load: S => { const x = S.x, r = () => { x.seed = (x.seed * 16807) % 2147483647; return x.seed / 2147483647; }; x.rng = r; x.pose = { dx: (r() - 0.5) * 3, dy: (r() - 0.5) * 3, th: (r() - 0.5) * 0.6 * Math.PI / 180, s: 1 + (r() - 0.5) * 400e-6 }; Object.assign(x, { M: [], sol: null, ph: 'f1', tp: 0 }); } },
+  onSet: (S, k) => { if (k === 'D' && S.x.sol) { S.x.M = []; S.x.sol = null; S.x.ph = 'f1'; S.x.tp = 0; } },
+  step(S, h) { const x = S.x, P = S.P; if (x.ph === 'idle' || x.ph === 'done') return; x.tp += h; const dur = 0.9;
+    const gauss = () => { const r = x.rng || Math.random, u = Math.max(1e-12, r()), v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    const meas = i => { const p = regPose(x.pose, [(i ? 1 : -1) * P.D / 2, 0]); x.M[i] = [p[0] + gauss() * P.sig / 1000, p[1] + gauss() * P.sig / 1000]; };
+    if (x.tp < dur) return; x.tp = 0; if (x.ph === 'f1') { meas(0); x.ph = 'f2'; } else if (x.ph === 'f2') { meas(1); x.sol = regSolve(P.D, x.M[0], x.M[1]); x.ph = 'q'; } else if (x.ph === 'q') x.ph = 'done'; },
+  calc: (P, S) => { const x = S.x, o = x.pose, Qa = regPose(o, REG3.Q), sol = x.sol, Qp = sol ? sol.map(REG3.Q) : null;
+    return { pose: o, sol, eNone: Math.hypot(Qa[0] - REG3.Q[0], Qa[1] - REG3.Q[1]) * 1000, eCorr: Qp ? Math.hypot(Qa[0] - Qp[0], Qa[1] - Qp[1]) * 1000 : null, dth: Math.SQRT2 * P.sig / 1000 / P.D, ph: x.ph, Qa, Qp }; },
+  stats: [['a', 'זווית שנמדדה', R => R.sol ? (R.sol.th * 180 / Math.PI).toFixed(4) + '°' : '—'], ['d', 'היסט', R => R.sol ? lf(Math.hypot(R.sol.d[0], R.sol.d[1]) * 1000, 0) + ' µm' : '—'], ['s', 'קנה מידה', R => R.sol ? ((R.sol.s - 1) * 1e6 >= 0 ? '+' : '') + lf((R.sol.s - 1) * 1e6, 0) + ' ppm' : '—'], ['e', 'שגיאה בפד אחרי תיקון', R => R.eCorr == null ? '—' : lf(R.eCorr, 1) + ' µm']],
+  build(G, L, S) {
+    const { mat, K, add, THREE: T } = G, k = REG3.k; L.block(14, 0.5, 11, [0, -0.25, 0], mat.char);
+    const ptex = K.paint(512, 384, (g, w, h) => { g.fillStyle = '#1B2F5A'; g.fillRect(0, 0, w, h); g.strokeStyle = '#7B5A3C'; g.lineWidth = 4; for (let i = 0; i < 16; i++) { g.beginPath(); g.moveTo(20, 20 + i * 22); g.lineTo(w * 0.45, 20 + i * 22); g.lineTo(w * 0.6, 34 + i * 22); g.lineTo(w - 20, 34 + i * 22); g.stroke(); } }); ptex.colorSpace = T.SRGBColorSpace;
+    const pan = L.group([0, 0.06, 0]); add(G.box(600 * k, 0.08, 450 * k, 0.02), K.keep(new T.MeshPhysicalMaterial({ map: ptex, roughness: 0.5, clearcoat: 0.6 })), [0, 0, 0], pan);
+    const fid = [0, 1].map(() => { const g = L.group([0, 0.06, 0], pan); L.torus([0, 0, 0], 0.32, 0.05, mat.alu, 'y', g); add(K.can(0.12, 0, 0.03, 0.01), mat.alu, [0, 0, 0], g); return g; }); const pad = add(G.box(0.3, 0.04, 0.3, 0.01), mat.light, [REG3.Q[0] * k, 0.07, -REG3.Q[1] * k], pan);
+    const ghost = add(G.box(600 * k, 0.02, 450 * k, 0.02), mat.glass, [0, 0.02, 0]); void ghost;
+    const br = L.group([0, 0, 0]); L.block(0.5, 0.5, 11, [0, 3.2, 0], mat.navy, br); [-5.3, 5.3].forEach(z => L.block(0.5, 3.2, 0.5, [0, 1.6, z], mat.navy, br)); const head = L.group([0, 0, 0], br); L.block(0.9, 1.0, 0.9, [0, 2.5, 0], mat.char, head); add(K.can(0.3, 1.4, 2.0, 0.03), mat.alu, [0, 0, 0], head);
+    const lm = L.glowMat(mat.light, G.C.light), ringL = L.torus([0, 1.3, 0], 0.42, 0.05, lm, 'y', head); void ringL; const cross = L.torus([0, 0.2, 0], 0.18, 0.025, L.glowMat(mat.blue, G.C.blue), 'y', head); L.heat(cross.material, 1);
+    const hit = L.spark([0, 0.3, 0], 1.0), pred = add(G.box(0.36, 0.02, 0.36, 0.01), L.glowMat(mat.blue, G.C.blue), [0, 0.13, 0]); pred.visible = false; const tg = L.tag('', [0, 4.4, -3.5], 0.38);
+    const world = (p, o) => { const m = REG3.mag, q = [p[0] * Math.cos(o.th * m) - p[1] * Math.sin(o.th * m), p[0] * Math.sin(o.th * m) + p[1] * Math.cos(o.th * m)]; return [(q[0] + o.dx * m) * k, -(q[1] + o.dy * m) * k]; };
+    let cp = [0, -4.5];
+    return (dt, R, S) => { const o = R.pose, m = REG3.mag; pan.rotation.y = o.th * m; pan.position.x = o.dx * m * k; pan.position.z = -o.dy * m * k; fid[0].position.set(-S.P.D / 2 * k, 0.06, 0); fid[1].position.set(S.P.D / 2 * k, 0.06, 0);
+      const ph = R.ph, tgt = ph === 'f1' ? world([-S.P.D / 2, 0], o) : ph === 'f2' ? world([S.P.D / 2, 0], o) : ph === 'q' || ph === 'done' ? world(REG3.Q, o) : [0, -4.5]; cp = [cp[0] + (tgt[0] - cp[0]) * Math.min(1, dt * 5), cp[1] + (tgt[1] - cp[1]) * Math.min(1, dt * 5)]; br.position.x = cp[0]; head.position.z = cp[1];
+      const near = Math.hypot(tgt[0] - cp[0], tgt[1] - cp[1]) < 0.05; L.heat(lm, near && ph !== 'idle' ? 1.2 : 0.2); hit.set(near && (ph === 'f1' || ph === 'f2') ? 0.6 : 0); void pad;
+      pred.visible = !!R.Qp; if (R.Qp) { const ww = world(REG3.Q, o); pred.position.set(ww[0], 0.13, ww[1]); }   /* the corrected pad lands on the real one: the difference is micrometres */
+      tg.set(ph === 'idle' ? 'פאנל על השולחן' : ph === 'f1' ? 'מודד סימן 1' : ph === 'f2' ? 'מודד סימן 2' : `פד: ${lf(R.eCorr, 1)} µm (בלי תיקון ${lf(R.eNone / 1000, 2)} mm)`); }; },
+  msg: (R, S) => R.ph === 'idle' ? '<b>לחצו "פאנל חדש".</b> הפאנל יונח בהיסט ובסיבוב אקראיים (עד ±1.5 mm ו-±0.3°), והמצלמה תמדוד את שני הסימנים.'
+    : !R.sol ? '<b>המצלמה נוסעת לסימנים ומודדת את מרכזם בתמונה.</b>'
+    : `<b>מהווקטור בין שני הסימנים: ${LB('θ = atan2(Δy, Δx)')}, ${LB('s = |Δ|/D')}, וההיסט מהאמצע.</b> בלי תיקון, הפד ב-${LB('(150, 120) mm')} היה מוחטא ב-${LB(lf(R.eNone / 1000, 2) + ' mm')}; עם התיקון ${LB(lf(R.eCorr, 1) + ' µm')}. רעש של ${LB(S.P.sig + ' µm')} בכל סימן נותן שגיאת זווית של כ-${LB('√2·σ/D = ' + lf(R.dth * 1e6, 1) + ' µrad')}: סימנים רחוקים זה מזה מדייקים יותר. שני סימנים לא רואים עיוות (skew); לשם כך מוסיפים שלישי.` });
+
+/* ---- bring-up: power the machine in order, check each step, and see what a skipped check costs ---- */
+const BRING3 = [
+  ['בדיקה ויזואלית ורציפות הארקה', 'PE: 0.05 Ω מכל גוף מתכת לפס ההארקה', 'בלי בדיקת PE, תקלת בידוד תשאיר מתח על גוף המכונה ולא תפיל את ההגנה.'],
+  ['מתח רשת ומפסק ראשי', '400 V בין פאזות, רצף פאזות תקין', 'רצף פאזות שלא נבדק: מנוע שלוש-פאזי (משאבה, מאוורר) יסתובב הפוך.'],
+  ['ספק 24 V', '24.1 V (בתחום ±5%: 22.8–25.2 V)', '24 V נמוך לא נבדק: כניסות בתחום הלא מוגדר, ממסרים שלא נמשכים.'],
+  ['בקר ותקשורת EtherCAT', 'כל ה-slaves במצב OP, בלי שגיאות CRC', 'תקשורת שלא נבדקה: מחבר רופף יתגלה רק כשציר לא יזוז, באמצע עבודה.'],
+  ['שרשרת בטיחות ו-Reset', 'שני ערוצים סגורים; עצירת חירום נבדקה ופותחת', 'עצירת חירום שלא נבדקה: לא ידוע אם היא עוצרת. זו הבדיקה שאסור לדלג עליה.'],
+  ['Enable ו-Homing לצירים', 'כל הצירים מצאו בית; גבולות תוכנה פעילים', 'בלי homing אין גבולות תוכנה: ציר עלול לנסוע עד העצירה המכנית.'],
+  ['אוויר וואקום', 'אספקה 6 bar; ואקום −80 kPa מתחת לפאנל בדיקה', 'ואקום שלא נבדק: פאנל לא יוחזק שטוח, והפוקוס ייפול בקצוות.']];
+lab3d({ id: 'bringup', node: 'bringup', title: 'הפעלה ראשונה: שבעה שלבים, כל אחד עם בדיקה',
+  note: 'מכנסים מכונה לחיים מלמטה למעלה: קודם בטיחות חשמלית, אחר כך מתחים, שליטה, בטיחות, תנועה, ורק בסוף התהליך. כל שלב נשען על הקודם, ולכל שלב בדיקה עם ערך מדוד שנרשם. "דלג" מראה מה מחיר בדיקה שלא נעשתה: זה נראה חוסך זמן, וזה מה שגורם לתקלות שאף אחד לא מבין אחר כך.',
+  cam: { yaw: 0.35, pitch: 0.4, dist: 18, t: [0.6, 1.6, 0] },
+  P: {},
+  actions: [['✔ בצע ובדוק', 'next'], ['⏭ דלג על הבדיקה', 'skip'], ['⟲ מההתחלה', 'restart']],
+  init: S => Object.assign(S.x, { k: 0, st: [], ta: -9 }),
+  act: { next: S => { const x = S.x; if (x.k >= BRING3.length) return; x.st[x.k] = 'ok'; x.k++; x.ta = S.t; }, skip: S => { const x = S.x; if (x.k >= BRING3.length) return; x.st[x.k] = 'skip'; x.k++; x.ta = S.t; }, restart: S => Object.assign(S.x, { k: 0, st: [], ta: -9 }) },
+  calc: (P, S) => { const x = S.x; return { k: x.k, st: x.st.slice(), ok: x.st.filter(s => s === 'ok').length, skip: x.st.filter(s => s === 'skip').length, done: x.k >= BRING3.length, anim: Math.min(1, (S.t - x.ta) / 1.2) }; },
+  stats: [['k', 'שלב', R => Math.min(R.k + 1, 7) + ' / 7'], ['o', 'נבדקו', R => String(R.ok)], ['s', 'דולגו', R => String(R.skip)], ['m', 'מצב', R => R.done ? (R.skip ? 'מוכנה, עם סיכונים' : 'מוכנה') : 'בהפעלה']],
+  build(G, L, S) {
+    const { mat, K, add } = G; L.block(7.4, 5.4, 1.6, [-1.8, 2.3, -1.2], mat.char); add(G.box(7.0, 5.0, 0.05, 0.02), mat.cream, [-1.8, 2.3, -0.38]); [0.9, 2.3, 3.7].forEach(y => L.block(6.6, 0.12, 0.2, [-1.8, y, -0.2], mat.alu));
+    const devs = [], led = (x, y) => L.led([x, y, 0.35], G.C.light, 0.09);
+    devs.push({ leds: [led(-4.8, 0.6)], obj: L.block(0.9, 0.5, 0.4, [-4.8, 0.3, 0], mat.light) });                                                        /* PE bar */
+    const h = L.group([-3.3, 1.0, 0.2]); L.block(0.9, 1.2, 0.6, [-3.3, 0.6, 0], mat.char); add(G.box(0.6, 0.15, 0.15, 0.03), mat.brown, [0, 0, 0.25], h); devs.push({ leds: [led(-3.3, 1.4)], obj: h });   /* main switch */
+    L.block(1.4, 1.0, 0.6, [-1.6, 1.6, 0], mat.alu); devs.push({ leds: [led(-1.2, 1.9)] }); const v24 = L.screen([-1.75, 1.55, 0.31], 0.9, 0.45);                     /* 24 V supply */
+    L.block(1.6, 1.0, 0.6, [0.4, 1.6, 0], mat.navy); devs.push({ leds: [0, 1, 2, 3].map(i => led(-0.2 + i * 0.3, 1.9)) });                                        /* controller */
+    L.block(0.8, 1.0, 0.6, [-4.4, 3.0, 0], mat.cream); devs.push({ leds: [led(-4.6, 3.3), led(-4.2, 3.3)] });                                                     /* safety relay */
+    [-2.6, -1.4].forEach(x => L.block(1.0, 1.6, 0.7, [x, 3.0, 0], mat.navy)); devs.push({ leds: [led(-2.6, 3.6), led(-1.4, 3.6)] });                               /* drives */
+    L.block(0.9, 0.9, 0.6, [0.4, 3.1, 0], mat.alu); devs.push({ leds: [led(0.4, 3.4)] }); const vg = L.screen([0.4, 2.95, 0.31], 0.75, 0.4);                        /* air */
+    L.block(5.0, 0.3, 1.0, [4.4, 0.15, 1.6], mat.alu); const car = L.block(0.9, 0.6, 0.9, [5.8, 0.6, 1.6], mat.navy); const home = L.led([2.2, 0.5, 2.2], G.C.light, 0.1); L.tag('ציר + חיישן בית', [4.4, 1.3, 1.6], 0.28);
+    const tg = L.tag('', [-1.8, 5.6, -1.0], 0.38), warn = devs.map(() => null);
+    return (dt, R, S) => { devs.forEach((d, i) => { const on = i < R.k, sk = R.st[i] === 'skip'; d.leds.forEach((l, j) => l.set(on && (!sk || Math.floor(S.t * 3 + j) % 2 === 0))); }); h.rotation.z = R.k >= 2 ? -Math.PI / 2 : 0;
+      v24.set(R.k >= 3 ? '24.1 V' : '0.0 V'); vg.set(R.k >= 7 ? '6.0 bar' : '0.0'); const homed = R.k >= 6; car.position.x = homed ? 5.8 - Math.min(1, R.k === 6 ? R.anim : 1) * 3.3 : 5.8; home.set(homed && (R.k > 6 || R.anim >= 1));
+      tg.set(R.done ? (R.skip ? `מוכנה · ${R.skip} בדיקות חסרות` : 'מוכנה לעבודה') : `שלב ${R.k + 1}: ${BRING3[R.k][0]}`); void warn; }; },
+  msg: (R, S) => { if (R.done) { const sk = R.st.map((s, i) => s === 'skip' ? i : -1).filter(i => i >= 0); return sk.length ? `<b>המכונה "עובדת", אבל ${sk.length} בדיקות חסרות:</b> ${sk.map(i => `${BRING3[i][2]}`).join(' ')} כך נוצרות תקלות "מסתוריות" בשטח. לחצו "מההתחלה".` : '<b>מוכנה לעבודה: שבע בדיקות עם ערכים מדודים.</b> אלה הערכים שנכנסים לדוח הקבלה (ATP). בשטח, תקלה מושווית אליהם: "מה השתנה מאז הקבלה?"'; }
+    const st = BRING3[R.k], prev = R.k ? R.st[R.k - 1] : null; return `${prev === 'skip' ? `<b>דילגת:</b> ${BRING3[R.k - 1][2]} ` : prev === 'ok' ? `<b>✔ ${BRING3[R.k - 1][0]}:</b> ${BRING3[R.k - 1][1]}. ` : ''}<b>שלב ${R.k + 1}: ${st[0]}.</b> הבדיקה: ${st[1]}.`; },
+  alarm: R => R.done && R.skip > 0 });
+
+/* ---- the line: AOI, a buffer and a verification station; false calls are throughput ---- */
+const LINE3 = { cap: 8 };
+lab3d({ id: 'line', node: 'ind', title: 'קו הייצור: AOI, חוצץ ועמדת אימות, וקריאות שווא שעולות זמן',
+  note: 'מכונת ה-AOI מוציאה פאנל כל זמן מחזור. כל "פגם" שהיא מסמנת נבדק בעמדת אימות על ידי מפעיל; רוב הסימונים הם קריאות שווא (false calls). אם זמן האימות של פאנל ארוך מזמן המחזור, התור בחוצץ גדל, החוצץ מתמלא, והקו כולו מאט לקצב של עמדת האימות. מספר הקריאות לכל פאנל אקראי (פואסון) סביב הממוצע. הזמן מואץ פי 20.',
+  cam: { yaw: 0.25, pitch: 0.55, dist: 18, t: [0.4, 0.8, 0] }, rate: 20, hmax: 0.5,
+  P: { tc: 40, fc: 3, tv: 6 },
+  controls: [{ k: 'tc', t: 'זמן מחזור AOI', min: 20, max: 120, step: 5, u: 's' }, { k: 'fc', t: 'קריאות שווא לפאנל', min: 0, max: 20, step: 0.5 }, { k: 'tv', t: 'זמן אימות לקריאה', min: 2, max: 20, step: 1, u: 's' }],
+  actions: [['⟲ התחל משמרת', 'reset']],
+  init: S => Object.assign(S.x, { q: [], next: 0, busy: null, done: [], seed: 5, blocked: 0, made: 0 }),
+  act: { reset: S => Object.assign(S.x, { q: [], next: S.t, busy: null, done: [], blocked: 0, made: 0, t0: S.t }) },
+  step(S, h) { const x = S.x, P = S.P, r = () => { x.seed = (x.seed * 16807) % 2147483647; return x.seed / 2147483647; }, pois = m => { let L = Math.exp(-m), k = 0, p = 1; do { k++; p *= r(); } while (p > L); return k - 1; };
+    if (S.t >= x.next) { if (x.q.length < LINE3.cap) { x.q.push(pois(P.fc)); x.made++; x.next += P.tc; if (x.next < S.t) x.next = S.t; } else x.blocked += h; }
+    for (let g = 0; g < 4; g++) { if (x.busy && S.t >= x.busy[1]) { x.done.push(S.t); x.busy = null; } if (!x.busy && x.q.length) { const c = x.q.shift(); x.busy = [c, S.t + c * P.tv]; } else break; } while (x.done.length && x.done[0] < S.t - 3600) x.done.shift(); },
+  calc: (P, S) => { const x = S.x, el = Math.min(3600, Math.max(1, S.t - (x.t0 || 0))), aoi = 3600 / P.tc, ver = P.fc * P.tv > 0 ? 3600 / (P.fc * P.tv) : Infinity; return { aoi, ver, rho: P.fc * P.tv / P.tc, line: Math.min(aoi, ver), meas: x.done.length / el * 3600, q: x.q.length, busy: x.busy ? 1 : 0, calls: x.busy ? x.busy[0] : 0, full: x.q.length >= LINE3.cap, el }; },
+  stats: [['a', 'קצב AOI', R => lf(R.aoi, 1) + ' /h'], ['r', 'עומס האימות ρ', R => Math.round(R.rho * 100) + '%'], ['q', 'תור בחוצץ', R => R.q + ' / ' + LINE3.cap], ['m', 'יוצא בפועל', R => R.el < 1200 ? '…' : lf(R.meas, 1) + ' /h']],
+  trace: { keys: [['q', 'queue', LABC.navy, 0, LINE3.cap + 0.5], ['busy', 'operator busy', LABC.brown, -0.1, 1.1]], names: ['panels waiting in the buffer', 'verification operator busy'], lanes: 1, span: 2400, disp: 1 / 60, unit: 'min' },
+  build(G, L, S) {
+    const { mat, K, add } = G; L.block(14, 0.3, 1.6, [0, 0.6, 0], mat.char); for (let i = 0; i < 14; i++) add(K.can(0.12, -0.75, 0.75, 0.02, 'z'), mat.alu, [-6.5 + i, 0.8, 0]);
+    L.block(3.2, 2.6, 2.6, [-4.6, 2.1, 0], mat.navy); L.tag('AOI', [-4.6, 3.8, 0], 0.36); const scanM = L.glowMat(mat.light, G.C.light), scan = add(G.box(0.08, 0.06, 1.4, 0.01), scanM, [-4.6, 0.95, 0]);
+    L.block(2.0, 3.6, 1.8, [0, 2.5, -1.8], mat.alu); const stack = Array.from({ length: LINE3.cap }, (_, i) => add(G.box(1.6, 0.08, 1.2, 0.02), mat.blue, [0, 0.9 + i * 0.4, -1.8])); L.tag('חוצץ', [0, 4.7, -1.8], 0.32);
+    L.block(2.0, 1.2, 1.4, [4.2, 0.6, 1.6], mat.cream); L.block(1.2, 0.8, 0.1, [4.2, 1.7, 1.2], mat.char); const sc = L.screen([4.2, 1.7, 1.26], 1.0, 0.6); const op = add(K.can(0.3, 0, 1.4, 0.15), mat.brown, [4.2, 0, 2.7]); const head = add(G.K.keep(new G.THREE.SphereGeometry(0.28, 16, 12)), mat.brown, [4.2, 1.7, 2.7]); L.tag('אימות', [4.2, 2.7, 1.6], 0.32);
+    const onSt = add(G.box(1.6, 0.08, 1.2, 0.02), mat.blue, [4.2, 0.9, 0]); const tg = L.tag('', [0, 5.6, 0], 0.4); void op; void head;
+    return (dt, R, S) => { stack.forEach((p, i) => { p.visible = i < R.q; }); onSt.visible = !!R.busy; scan.position.x = -4.6 + Math.sin(S.t * 0.3) * 1.3; L.heat(scanM, R.full ? 0.2 : 1.2); sc.set(R.busy ? R.calls + ' calls' : '—'); tg.set(`ρ = ${lf(R.rho, 2)} · line ${lf(R.line, 1)} panels/h`); }; },
+  msg: (R, S) => R.rho > 1 ? `<b>עמדת האימות היא צוואר הבקבוק: ${LB('ρ = fc·tv/tc = ' + S.P.fc + '·' + S.P.tv + '/' + S.P.tc + ' = ' + lf(R.rho, 2))}.</b> המפעיל צריך ${LB(lf(S.P.fc * S.P.tv, 0) + ' s')} לפאנל, וה-AOI מוציאה פאנל כל ${LB(S.P.tc + ' s')}. התור גדל עד שהחוצץ מלא, ואז הקו כולו יורד ל-${LB(lf(R.ver, 1) + ' panels/h')}. כל קריאת שווא שנחסכת (תכנות, ספים, ניקיון) היא תפוקה.`
+    : R.rho > 0.8 ? `<b>${LB('ρ = ' + lf(R.rho, 2))}: עובד, אבל בלי מרווח.</b> בגלל האקראיות יש פאנלים עם הרבה קריאות, והתור מתנפח לרגעים. בקו אמיתי מתכננים ${LB('ρ')} של 70–80% לכל היותר.`
+    : `<b>הקו מוגבל על ידי ה-AOI: ${LB(lf(R.aoi, 1) + ' panels/h')}.</b> המפעיל עסוק ${Math.round(R.rho * 100)}% מהזמן. העלו את קריאות השווא, ראו מתי הקו נשבר.`,
+  alarm: R => R.rho > 1 });
+
+labRegister();
 /* ============ The book: one course from chapter 0 to certification (v2.50) ============
    Everything else in the site is a place; the book is an order. Eight parts and twenty-eight chapters after chapter 0 take every
    topic of the zoom tree exactly once, from a resistor to the line, and then the subjects that cross them. A chapter says why it
@@ -12803,7 +13755,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.54.0';
+const APP_VERSION = '2.55.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

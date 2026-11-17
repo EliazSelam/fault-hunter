@@ -92,6 +92,10 @@ All 51 fault scenarios are checked for structure (unique id, at least 3 tests wi
 
 What no script checks: the hints and mechanism chains were written against each scenario's test results and reviewed by hand so that hints never name the answer and explanations use only facts the tests reveal. Not yet reviewed systematically: that every wrong option is contradicted by at least one test result.
 
+## 6b. The 3D labs (`tests/labs_audit.mjs`)
+
+Each of the 25 labs (v2.55) takes every number it shows from one pure `calc`. The suite mounts every lab, runs its actions, checks that no card or message shows NaN, round-trips its state and checks that WebGL contexts are freed. Then it sets known inputs and recomputes the result here, from the textbook formula, without calling the lab's code: Ohm's law and the power rating, maximum power transfer, bounce counts with and without RC and Schmitt, a fuse's blow time −τ·ln(1 − θm/k²), contact heat, τ = RC and τ = L/R, the Shockley working point on the load line, the MOSFET triode equation, the transformer ratio and DC saturation, the sensor's measured speed, instrument loading, the ripple counter's intermediate states, buck CCM and DCM (average inductor current equals the load current), the input card's threshold and chatter, the DC motor's steady speed and stall current, the brake's closing time and ½gt² fall, backlash, ISO 286 fits, the servo axis against `svSim`, the valve chain and its faults, ISO 13855 distance S = K·T, two-fiducial registration, and line utilization ρ = fc·tv/tc. Illustrative constants (heating time constants, bounce pattern, arc resistance, pull-in currents, armature travel, the normalized fuse model) are named in each lab's note and are assumptions, not data.
+
 ## 7. One command (`tests/run_all.sh`)
 
-Builds, then runs all five suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.
+Builds, then runs all fourteen suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.

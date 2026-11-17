@@ -25,7 +25,11 @@ function chainLogic(S0, ev) {
 }
 
 /* ---- a small stage shared by both: renderer, studio, light, orbit, HUD, a frame that runs only while needed ---- */
+/* every live stage, so one that left the page frees its WebGL context before a new one is made (a browser keeps only a few) */
+const FH3D_LIVE = new Set(), fh3dSweep = () => FH3D_LIVE.forEach(a => { if (!a.root.isConnected) a.destroy(); });
+GO_BEFORE.push(() => setTimeout(fh3dSweep, 0));
 function fh3dStage(THREE, container, label, cam0) {
+  fh3dSweep();
   const K = fh3dKit(THREE), C = K.C, keep = K.keep, V = (x, y, z) => new THREE.Vector3(x, y, z);
   container.innerHTML = ''; const root = document.createElement('div'); root.className = 'fh3d-root nogl'; root.tabIndex = 0; root.setAttribute('role', 'group'); root.setAttribute('aria-label', label + '. גרירה מסובבת, חצים מסובבים, פלוס ומינוס מקרבים.');
   const style = document.createElement('style'); style.textContent = FH3D_CSS + '.fh3d-msg{position:absolute;top:12px;right:12px;width:min(300px,46%);padding:9px 13px;font-size:13px;line-height:1.5}.fh3d-msg b{color:#1B2F5A}.fh3d-msg.alarm{background:rgba(123,90,60,.95);color:#EEE9E0}.fh3d-msg.alarm b{color:#EEE9E0}'; root.appendChild(style); container.appendChild(root);
@@ -75,9 +79,9 @@ function fh3dStage(THREE, container, label, cam0) {
   const ro = new ResizeObserver(fit); ro.observe(root); const io = new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) touch(); }); io.observe(root);
   Object.assign(api, { pause() { paused = true; if (raf) { cancelAnimationFrame(raf); raf = 0; } }, resume() { paused = false; last = 0; touch(); }, orbit: () => ({ yaw: O.yaw, pitch: O.pitch, dist: O.dist }), setOrbit(o) { if (o) { Object.assign(O, o); touch(); } },
     renderNow() { step(0); place(); renderer.render(scene, cam); api.frames++; },
-    destroy() { if (dead) return; dead = true; if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
+    destroy() { if (dead) return; dead = true; FH3D_LIVE.delete(api); if (raf) cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); root.removeEventListener('wheel', onWheel); root.removeEventListener('keydown', onKey);
       K.trash.forEach(o => o.dispose && o.dispose()); renderer.dispose(); if (renderer.forceContextLoss) renderer.forceContextLoss(); if (container.contains(root)) container.removeChild(root); } });
-  fit();
+  fit(); FH3D_LIVE.add(api);
   return { THREE, K, C, V, scene, mat, led, add, box, pipe, flow, stat, statEl, msg, btn, bar, el, touch, api, setLoop(s, b) { step = s; busy = b; } };
 }
 

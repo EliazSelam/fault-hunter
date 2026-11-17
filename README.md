@@ -28,7 +28,7 @@ The UI is in Hebrew, with technical terms in English.
 | 3D simulations | A rotating three-phase field in an induction motor (disconnect a phase, swap two phases, change load and poles), ballscrew backlash with a dial indicator, an AOI scan head over a panel (swaths, overlap, soft edges, a defect in the seam), the laser crater as a Gaussian fluence surface cut by the threshold, and a stepper motor that loses steps under load; drawn in 3D on a canvas, no library, orbit by dragging |
 | Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
 
-Every term is explained on first appearance, and links to the page that explains it in depth; a Terms tab lists all 615 terms with search and 12 categories. The terms suite fails the build if any English term on any page is left undefined. Every term is defined and every value is tagged as an example, a model assumption, or equipment-dependent.
+Every term is explained on first appearance, and links to the page that explains it in depth; a Terms tab lists all 626 terms with search and 12 categories. The terms suite fails the build if any English term on any page is left undefined. Every term is defined and every value is tagged as an example, a model assumption, or equipment-dependent.
 
 ## Finding things
 
@@ -36,7 +36,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs eight suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs fourteen suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|
@@ -47,6 +47,9 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | figures | The three live figures, the DC motor simulation and the converter simulation, driven by keyboard or sliders: 19422 readouts checked against an independent implementation of their physics (including the 3D field and backlash models) |
 | topics | Every process simulator: steps, quiz answers, every fault tree reachable and acyclic, a click-through to every leaf and back to the normal step, MathML rendered |
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |
+| map, zoom, sims | Every asset has a place in the master map and one home in the zoom tree; every window renders; nothing an old page used is unreachable |
+| path, book | The learning path and the course book: every topic in one track and one chapter, cards and calculations, certification |
+| labs | The 25 3D labs: each mounts, runs and frees its WebGL context, and its numbers are recomputed from the textbook formula (241 checks); every topic has an animated or 3D window |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 

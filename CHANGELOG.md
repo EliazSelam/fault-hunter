@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.55.0] — 2026-11-17
+
+Something that moves on every topic: 25 new 3D labs, so that every topic of the machine now has an animated or real-time 3D window.
+
+- **25 labs, one per topic that had none,** each a small 3D scene with sliders, switches and actions, live readouts, a message that explains what is happening, and a scope or a curve under the picture:
+  - components: resistor (power, heat and the colour code), real source (internal resistance, maximum power), push button (contact bounce, RC and Schmitt trigger), fuse (heat as I², fast against slow, inrush), terminal (contact resistance, heat, intermittent contact when shaken), capacitor (τ = RC), coil (the spike without a flyback diode), diode, LED and zener (I-V curve, load line, depletion layer), MOSFET (on, off, and the half-on state that burns it), transformer (turns ratio, and saturation on DC);
+  - circuits and drives: inductive proximity sensor on a toothed wheel (range, material, switching frequency), the instrument that loads the circuit, a ripple counter, a buck converter (CCM and DCM), a 24 V input card (optocoupler, IEC zones, filter, broken wire), DC motor, holding brake (why a diode makes it late and how far the axis falls);
+  - mechanisms and systems: ball screw backlash, ISO fits H7/g6, k6, p6, the servo axis in 3D (same model as the loop), a solenoid valve from the controller output to vacuum with four faults to diagnose, a door interlock against ISO 13855 safety distance and guard locking, registration from two fiducials, a seven-step bring-up, and the line (AOI, buffer and verification: false calls are throughput).
+- **Every number is computed** from the formula the topic teaches, or from the existing models (`stopCalc`, `svSim`/`SV`); illustrative constants are named as such in each lab's note. Fast transients are shown in slow motion and say so.
+- **WebGL contexts are freed:** a stage that leaves the page is destroyed before a new one is made (`FH3D_LIVE`).
+- Tests: a new `labs` suite (241 checks) mounts every lab, runs its actions, round-trips its state, and recomputes every lab's numbers from the textbook formula, independently of the lab's code; it also fails if any topic has no moving window, or if a lab's text uses an English term that is not defined.
+- Nine new terms (rating, PN, Vgs, bleeder, CCM, DCM, override, guard locking, skew). Formulas in the labs are never glossed ("Ns" is not nanoseconds).
+- The model-check output files have neutral names.
+
 ## [2.54.0] — 2026-11-16
 
 One spine: the book says where you are and what is next, from everywhere.
