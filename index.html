@@ -535,6 +535,14 @@ ol.tsteps .ts{color:var(--live-text)}
 .bk-dir{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.bk-dir button{font:inherit;font-size:.9em;border:1px solid #3078B0;background:#fff;color:#1B2F5A;border-radius:999px;padding:4px 12px;cursor:pointer}.bk-dir button[aria-pressed=true]{background:#1B2F5A;color:#EEE9E0}
 .bk-dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.bk-dircard{font:inherit;text-align:right;display:flex;flex-direction:column;gap:6px;border:2px solid #D6E8F7;background:#fff;color:#4A4540;border-radius:12px;padding:10px 14px;cursor:pointer}.bk-dircard b{color:#1B2F5A;font-size:1.05em}.bk-dircard[aria-pressed=true]{border-color:#1B2F5A;background:#D6E8F7}
 .bk-dash{display:grid;grid-template-columns:minmax(220px,1.2fr) 2fr;gap:10px;background:#1B2F5A;color:#EEE9E0;border-radius:14px;padding:12px 16px;margin:8px 0}.bk-dash .kb{background:#3078B0;color:#EEE9E0;border-color:#3078B0}.bk-dnext{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.bk-dnext b{font-size:1.08em}.bk-dnext .pth-go{background:#EEE9E0;color:#1B2F5A;margin-top:4px}.bk-dstat{display:flex;flex-direction:column;gap:6px;justify-content:center}.bk-dstat .linkbtn{color:#D6E8F7}@media (max-width:640px){.bk-dash{grid-template-columns:1fr}}
+/* v2.57: the backup page */
+.bk-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:10px 0}.bk-cols .block{margin:0;min-width:0}
+.bk-sum{border-collapse:collapse;width:100%;margin:6px 0}.bk-sum th,.bk-sum td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}.bk-sum th{font-size:.85em;color:var(--muted);font-weight:600}.bk-sum td b{color:var(--ink)}
+.bk-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}.bk-btns .pth-go[disabled]{opacity:.5;cursor:default}
+.bk-code{width:100%;box-sizing:border-box;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace;direction:ltr;text-align:left;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--sheet);color:var(--text);word-break:break-all;resize:vertical}
+.bk-filebtn{position:relative;display:inline-block;overflow:hidden}.bk-filebtn input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.bk-ok{background:#D6E8F7;color:#1B2F5A;border-radius:10px;padding:8px 12px;font-weight:700}.bk-err{border:1px solid var(--fault);background:var(--faulttint);border-radius:10px;padding:8px 12px}
+.bk-warn{border-inline-start:4px solid #7B5A3C;padding:4px 10px;margin:8px 0}.bk-in h4{margin:12px 0 4px;color:var(--ink)}
 .bk-mside{border:1px solid #3078B0;border-radius:10px;padding:6px 10px;margin:6px 0;background:#EEE9E0;color:#1B2F5A}
 </style>
 </head>
@@ -10908,8 +10916,9 @@ function pathProgress(P, host) {
     <h3>לפי מסלול</h3><table class="pth-plan"><tbody>${pathTracks().map(tr => { const ids = pathTrackStages(tr), v = wsum(ids); return `<tr><td>${tr.icon} ${tr.t}</td><td style="width:55%"><i class="pth-mb big"><i style="width:${Math.round(v * 100)}%"></i></i></td><td>${Math.round(v * 100)}%</td></tr>`; }).join('')}</tbody></table>
     <h3>הכי חלשים מבין מה שהתחלת</h3>${weak.length ? `<ul class="pth-weak">${weak.map(id => `<li><b>${pathEsc(pathStages()[id].t)}</b> · ${Math.round(Mi[id].m * 100)}%${Mi[id].due ? ` · ${Mi[id].due} לחזרה` : ''} <button type="button" class="pth-go" data-wp="${id}">▶ תרגל</button></li>`).join('')}</ul>` : '<p class="note">עוד לא התחלת אף שלב.</p>'}
     <h3>מה חוזר בשבוע הקרוב</h3><div class="pth-fc" role="img" aria-label="${fc.map((n, i) => `${i ? 'בעוד ' + i + ' ימים' : 'היום'}: ${n}`).join(', ')}">${fc.map((n, i) => `<div><i style="height:${Math.round(n / fmax * 100)}%"></i><b>${n}</b><small>${i ? '+' + i : 'היום'}</small></div>`).join('')}</div>
-    <p class="note">המדד אומר עד כמה נזכרת בשאלות של הספר הזה, לאורך זמן. הוא לא בוחן כל מה שיש לדעת על הנושא.</p>`;
-  host.querySelectorAll('[data-wp]').forEach(b => b.addEventListener('click', () => pathStart('stage', b.dataset.wp)));
+    <p class="note">המדד אומר עד כמה נזכרת בשאלות של הספר הזה, לאורך זמן. הוא לא בוחן כל מה שיש לדעת על הנושא.</p>
+    <p class="note">💾 הכרטיסים והמדד נשמרים רק בדפדפן הזה. <button type="button" class="linkbtn" id="pthBk">גיבוי והעברה למכשיר אחר</button></p>`;
+  host.querySelectorAll('[data-wp]').forEach(b => b.addEventListener('click', () => pathStart('stage', b.dataset.wp))); host.querySelector('#pthBk').addEventListener('click', () => go('zoom', 'backup'));
 }
 /* on every topic page: what of it stays in memory, and a way to practise it */
 nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section class="pth-node" aria-label="מה נשאר בזיכרון">${pathMasteryHtml(id)}<p><button type="button" class="pth-go" data-npr="${id}">▶ תרגל את הנושא (${Math.min(PCARDS, pathCards(id).length)} כרטיסים)</button> <button type="button" class="linkbtn" data-npath="1">הנושא בנתיב הלמידה</button>${typeof bookStageCh === 'function' && bookStageCh(id) ? ` · <button type="button" class="linkbtn" data-nbook="${bookStageCh(id)}">📘 פרק ${bookCh()[bookStageCh(id)].n} בספר</button>` : ''}</p></section>` : '',
@@ -12836,14 +12845,96 @@ function bookDashHtml(B) { const N = bookNext(B), c = bookCh()[N.id], order = bo
   const due = Object.values(d).filter(e => e.due <= now).length, st = Object.keys(pathStages()), n = st.reduce((a, id) => a + pathMastery(id, now, d).n, 0), mem = n ? st.reduce((a, id) => { const M = pathMastery(id, now, d); return a + M.m * M.n; }, 0) / n : 0;
   return `<div class="bk-dash" role="region" aria-label="לוח הקורס"><div class="bk-dnext"><span class="kb">הצעד הבא</span><b>פרק ${c.n}: ${c.t}</b><span>${BSTEP[N.step]}${N.step === 'faults' ? `: ${N.left.join(', ')}` : ''}</span>
       <button type="button" class="pth-go" data-dash="next">המשך ←</button></div>
-    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span></div></div>`; }
+    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span><span>💾 <button type="button" class="linkbtn" data-dash="backup">גיבוי והעברה למכשיר אחר</button></span></div></div>`; }
 function bookDashWire(root) { root.querySelectorAll('[data-dash]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.dash, B = bookLoad(), N = bookNext(B);
   if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } else if (N.step === 'faults' && N.left.length) { bookOpen('scn:' + N.left[0], N.id); return; } zBookView(); window.scrollTo(0, 0); }
   else if (k === 'daily') { PV.sess = pathSession('daily'); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); }
-  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); } })); }
+  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); }
+  else if (k === 'backup') go('zoom', 'backup'); })); }
 /* in the machine, before anything else: where the course stands */
 msideSection('course', 15, ['whole'], { html: () => { const B = bookLoad(), N = bookNext(B), c = bookCh()[N.id]; return `<div class="bk-mside"><p><b>📖 הקורס</b> · פרק ${c.n}: ${c.t}</p><p class="note">${BSTEP[N.step]}</p><p><button type="button" class="pth-go" id="mBook">המשך בספר ←</button></p></div>`; },
   wire: () => { const b = document.getElementById('mBook'); if (b) b.addEventListener('click', () => { BV.ch = bookNext(bookLoad()).id; BV.exam = null; go('zoom', 'book'); }); } });
+/* ============ v2.57: backing up the progress and moving it to another device ============
+   Everything the course remembers lives in this browser's localStorage, under the keys that start with fh- or faulthunter- (and the theme).
+   A backup is one JSON object holding those keys as text. It leaves as a file or as a text code (compressed when the browser can), and comes
+   back only after a check, a summary of what it holds, and a confirmation. The state it replaces is kept for one undo. */
+const BK_APP = 'fault-hunter', BK_UNDO = 'fh-undo', BK_DONE = 'fh-restored', BK_PREFS = new Set(['theme', 'fh-mode']);
+/* progress worth carrying: not a preference, and not the list of pages visited, which every page load adds to */
+const bkReal = k => !BK_PREFS.has(k) && k !== 'fh-visits';
+const bkOwn = k => typeof k === 'string' && k !== BK_UNDO && (/^(fh-|faulthunter-)[a-z0-9-]+$/.test(k) || k === 'theme');
+const bkKeys = () => { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (bkOwn(k)) out.push(k); } } catch (e) { } return out.sort(); };
+function bkSnapshot() { const data = {}; bkKeys().forEach(k => { try { const v = localStorage.getItem(k); if (v != null) data[k] = v; } catch (e) { } });
+  return { app: BK_APP, kind: 'progress', v: 1, version: APP_VERSION, at: new Date().toISOString(), n: Object.keys(data).length, data }; }
+/* a backup is accepted only whole: the right app, every key one of ours, every value the kind of text that key holds */
+function bkCheck(o, undo) {
+  if (!o || typeof o !== 'object' || o.app !== BK_APP || o.kind !== 'progress' || o.v !== 1 || !o.data || typeof o.data !== 'object' || Array.isArray(o.data)) return { err: 'זה לא גיבוי של המערכת הזו.' };
+  const keys = Object.keys(o.data); if (typeof o.n !== 'number' || o.n !== keys.length) return { err: 'הגיבוי לא שלם: חסרים בו חלקים. העתיקו אותו שוב, עד הסוף.' };
+  for (const k of keys) { const v = o.data[k]; if (!bkOwn(k) || typeof v !== 'string' || v.length > 2e6) return { err: 'בגיבוי יש חלק שלא שייך למערכת הזו, ולכן הוא לא נטען.' };
+    if (BK_PREFS.has(k)) { if (!/^[a-z-]{1,20}$/.test(v)) return { err: 'בגיבוי יש הגדרה פגומה, ולכן הוא לא נטען.' }; continue; }
+    try { const j = JSON.parse(v); if (!j || typeof j !== 'object') throw 0; } catch (e) { return { err: 'חלק מהגיבוי פגום, ולכן הוא לא נטען.' }; } }
+  if (!undo && !keys.some(bkReal)) return { err: 'אין בגיבוי הזה התקדמות לטעון.' };   /* the undo may bring back a device that had nothing */
+  return { ok: true, data: o.data, at: o.at, version: o.version }; }
+/* what a backup holds, counted from its own data (nothing is read from this device) */
+function bkCount(data) { const J = k => { try { return JSON.parse(data[k] || 'null'); } catch (e) { return null; } }, n = o => o && typeof o === 'object' ? (Array.isArray(o) ? o.length : Object.keys(o).length) : 0, p = J('faulthunter-v1') || {}, B = J('fh-book') || {};
+  return [['🧩', 'תקלות שנפתרו', Object.values(p).filter(r => r && typeof r === 'object' && r.score !== undefined).length], ['📖', 'פרקים שסומנו כנקראו', n(B.read)], ['📝', 'מבחני פרק', n(B.exam)],
+    ['🔁', 'כרטיסים בחזרה המרווחת', n(J('fh-review'))], ['❓', 'שאלות שדורגו במאגר', n(J('fh-qbank'))], ['🗺️', 'חלונות שנפתחו', n(J('fh-explored'))], ['👣', 'דפים שבוקרו', n(J('fh-visits'))]]; }
+/* the text code: FH1. + base64url of the deflated JSON, or FH0. + base64url of the JSON itself where the browser cannot compress */
+const bkB64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const bkUnB64 = t => { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; const s = atob(t), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
+const bkPipe = async (u8, tr) => new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(tr)).arrayBuffer());
+async function bkEncode(o) { const raw = new TextEncoder().encode(JSON.stringify(o));
+  if (typeof CompressionStream === 'function') { try { return 'FH1.' + bkB64(await bkPipe(raw, new CompressionStream('deflate-raw'))); } catch (e) { } } return 'FH0.' + bkB64(raw); }
+/* reads a code (spaces and line breaks a messenger added are ignored, so is text around it) or the JSON of a backup file */
+async function bkDecode(text) { const t = String(text || '').trim(); let o = null;
+  if (t[0] === '{') { try { o = JSON.parse(t); } catch (e) { return { err: 'הקובץ לא נקרא: הוא לא שלם או שאינו קובץ גיבוי.' }; } return bkCheck(o); }
+  const m = /FH([01])\.([A-Za-z0-9_-]+)/.exec(t.replace(/\s+/g, '')); if (!m) return { err: 'לא נמצא כאן קוד העברה. קוד מתחיל ב-FH1. או ב-FH0.' };
+  try { let u = bkUnB64(m[2]); if (m[1] === '1') { if (typeof DecompressionStream !== 'function') return { err: 'הדפדפן הזה לא פותח קוד מכווץ. העבירו את הגיבוי כקובץ.' }; u = await bkPipe(u, new DecompressionStream('deflate-raw')); }
+    o = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(u)); } catch (e) { return { err: 'הקוד לא שלם או שגוי. העתיקו אותו שוב, מ-FH ועד הסוף.' }; }
+  return bkCheck(o); }
+/* replacing: the progress of this device becomes the backup's; a preference the backup does not hold stays as it is. The state replaced is kept for one undo. */
+function bkApply(data, keepUndo = true) { const cur = bkSnapshot();
+  try { if (keepUndo) localStorage.setItem(BK_UNDO, JSON.stringify(cur)); else localStorage.removeItem(BK_UNDO);
+    bkKeys().forEach(k => { if (!(k in data) && !BK_PREFS.has(k)) localStorage.removeItem(k); }); Object.entries(data).forEach(([k, v]) => localStorage.setItem(k, v));
+    try { sessionStorage.setItem(BK_DONE, keepUndo ? 'load' : 'undo'); } catch (e) { } return true; }
+  catch (e) { try { Object.keys(data).forEach(k => { if (!(k in cur.data)) localStorage.removeItem(k); }); Object.entries(cur.data).forEach(([k, v]) => localStorage.setItem(k, v)); } catch (e2) { } return false; } }
+const bkUndoSnap = () => { try { const o = JSON.parse(localStorage.getItem(BK_UNDO) || 'null'), c = bkCheck(o, true); return c.ok ? Object.assign(c, { snap: o }) : null; } catch (e) { return null; } };
+const bkDate = iso => { const d = new Date(iso); return isNaN(d) ? '?' : d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }); };
+const bkTable = (a, b) => `<table class="bk-sum"><thead><tr><th></th>${b ? '<th>בגיבוי</th><th>במכשיר הזה עכשיו</th>' : '<th>במכשיר הזה</th>'}</tr></thead><tbody>${a.map((r, i) => `<tr><td>${r[0]} ${r[1]}</td><td><b>${r[2]}</b></td>${b ? `<td>${b[i][2]}</td>` : ''}</tr>`).join('')}</tbody></table>`;
+
+function zBackupView() {
+  const cur = bkSnapshot(), has = Object.keys(cur.data).some(bkReal), undo = bkUndoSnap(); let done = null; try { done = sessionStorage.getItem(BK_DONE); sessionStorage.removeItem(BK_DONE); } catch (e) { }
+  content.innerHTML = zSubnav('backup') + `<h2>💾 גיבוי והעברת התקדמות</h2>
+    ${done ? `<p class="bk-ok" role="status">✅ ${done === 'undo' ? 'המצב הקודם הוחזר.' : 'ההתקדמות נטענה. מכאן ממשיכים מאותה נקודה.'}</p>` : ''}
+    <p class="lead">ההתקדמות נשמרת רק בדפדפן הזה, במכשיר הזה. כדי לעבור לטלפון או למחשב אחר, או רק לשמור עותק, מוציאים אותה כאן בקובץ או בקוד, וטוענים אותה במכשיר השני.</p>
+    <div class="bk-cols"><section class="block bk-out"><h3>1. להוציא מהמכשיר הזה</h3>${has ? bkTable(bkCount(cur.data)) : '<p class="note">עוד אין במכשיר הזה התקדמות לגבות.</p>'}
+      <p class="bk-btns"><button type="button" class="pth-go" id="bkFile"${has ? '' : ' disabled'}>⬇ הורדת קובץ גיבוי</button><button type="button" class="pth-go" id="bkCopy"${has ? '' : ' disabled'}>📋 העתקת קוד העברה</button>${navigator.share ? `<button type="button" class="pth-go" id="bkShare"${has ? '' : ' disabled'}>📤 שליחה</button>` : ''}</p>
+      <textarea id="bkCode" class="bk-code" rows="3" readonly hidden aria-label="קוד ההעברה"></textarea><p class="note" id="bkOutMsg" aria-live="polite"></p></section>
+    <section class="block bk-in"><h3>2. לטעון אל המכשיר הזה</h3><p class="note">קובץ גיבוי, או קוד שהעתקתם במכשיר אחר (גם אם נשלח בהודעה).</p>
+      <p class="bk-btns"><label class="pth-go bk-filebtn">📂 טעינה מקובץ<input type="file" id="bkIn" accept=".json,application/json,text/plain"></label></p>
+      <textarea id="bkPaste" class="bk-code" rows="3" placeholder="הדביקו כאן קוד שמתחיל ב-FH1." aria-label="קוד העברה להדבקה"></textarea><p class="bk-btns"><button type="button" class="pth-go" id="bkRead">בדיקת הקוד</button></p>
+      <div id="bkPrev" aria-live="polite"></div>
+      ${undo ? `<p class="bk-undo"><button type="button" class="linkbtn" id="bkUndo">↩ החזרת המצב שהיה לפני הטעינה האחרונה (${bkDate(undo.snap.at)})</button></p>` : ''}</section></div>
+    <p class="note">נשמרים: התקדמות בספר ובמבחני הפרקים, תקלות שנפתרו, החזרה המרווחת והסשן היומי, הנתיב, מאגר השאלות, החלונות שנפתחו וההגדרות (מצב תצוגה ושפה פשוטה). לא נשמר: מצב של חלון פתוח, שנזכר רק עד סגירת הלשונית. הגיבוי לא יוצא מהמכשיר אלא אם שלחתם אותו בעצמכם.</p>`;
+  zWireSub(); const $$ = s => content.querySelector(s), outMsg = $$('#bkOutMsg'), code = $$('#bkCode'), prev = $$('#bkPrev');
+  const fresh = () => bkSnapshot(), getCode = async () => { const c = await bkEncode(fresh()); code.value = c; code.hidden = false; return c; };
+  if ($$('#bkFile')) $$('#bkFile').addEventListener('click', () => { const o = fresh(), a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(o, null, 1)], { type: 'application/json' })); a.download = `fault-hunter-progress-${o.at.slice(0, 10)}.json`; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000); outMsg.textContent = 'הקובץ ירד. פתחו את הדף הזה במכשיר השני ובחרו "טעינה מקובץ".'; });
+  if ($$('#bkCopy')) $$('#bkCopy').addEventListener('click', async () => { const c = await getCode(); const ok = await (navigator.clipboard ? navigator.clipboard.writeText(c).then(() => true, () => false) : Promise.resolve(false)); if (!ok) { code.focus(); code.select(); try { document.execCommand('copy'); } catch (e) { } }
+    outMsg.textContent = (ok ? 'הקוד הועתק' : 'הקוד מסומן: העתיקו אותו') + ` (${c.length.toLocaleString('he-IL')} תווים). הדביקו אותו בדף הזה במכשיר השני.`; });
+  if ($$('#bkShare')) $$('#bkShare').addEventListener('click', async () => { const c = await getCode(); try { await navigator.share({ title: 'גיבוי ההתקדמות', text: c }); outMsg.textContent = 'נשלח. הדביקו את הקוד בדף הזה במכשיר השני.'; } catch (e) { outMsg.textContent = 'השליחה בוטלה. אפשר להעתיק את הקוד מהתיבה.'; } });
+  /* reading a backup: a summary beside this device's state, then a confirmation */
+  const show = r => { if (!r.ok) { prev.innerHTML = `<p class="bk-err" role="alert">${r.err}</p>`; return; }
+    prev.innerHTML = `<h4>מה יש בגיבוי${r.at ? ` מ-${bkDate(r.at)}` : ''}${r.version ? ` (גרסה ${pathEsc(String(r.version))})` : ''}</h4>${bkTable(bkCount(r.data), bkCount(fresh().data))}
+      <p class="bk-warn">הטעינה מחליפה את ההתקדמות שבמכשיר הזה בזו שבגיבוי. המצב הנוכחי נשמר לביטול אחד.</p><p class="bk-btns"><button type="button" class="pth-go" id="bkGo">✅ להחליף ולטעון</button><button type="button" class="linkbtn" id="bkNo">ביטול</button></p>`;
+    $$('#bkGo').addEventListener('click', () => { if (bkApply(r.data)) location.reload(); else prev.innerHTML = '<p class="bk-err" role="alert">הדפדפן לא שמר את הגיבוי (אין מקום או שהשמירה חסומה). שום דבר לא השתנה.</p>'; });
+    $$('#bkNo').addEventListener('click', () => { prev.innerHTML = ''; }); };
+  $$('#bkRead').addEventListener('click', async () => show(await bkDecode($$('#bkPaste').value)));
+  $$('#bkIn').addEventListener('change', async e => { const f = e.target.files && e.target.files[0]; if (!f) return; if (f.size > 8e6) { show({ err: 'הקובץ גדול מדי לגיבוי של המערכת הזו.' }); return; } show(await bkDecode(await f.text())); e.target.value = ''; });
+  if ($$('#bkUndo')) $$('#bkUndo').addEventListener('click', () => { const u = bkUndoSnap(); if (u && confirm('להחזיר את המצב שהיה לפני הטעינה האחרונה?') && bkApply(u.data, false)) location.reload(); });
+  setTitle('זום', 'גיבוי והעברה', 'ההתקדמות, מכשיר למכשיר');
+}
+/* not in the views bar: reached from the course board, the memory tab, and the footer of every page */
+ZVIEW.add('backup', { render: () => zBackupView() });
+(f => { if (f) f.insertAdjacentHTML('beforeend', ' · <a href="#/zoom/backup">💾 גיבוי והעברת התקדמות</a>'); })(document.querySelector('footer'));
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -13838,7 +13929,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.56.0';
+const APP_VERSION = '2.57.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

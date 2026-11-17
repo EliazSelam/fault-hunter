@@ -24,6 +24,7 @@ The UI is in Hebrew, with technical terms in English.
 | Integration | From sub-systems to a machine: first power-up, bring-up, calibration, ATP, field faults |
 | Boards | How electronic boards inside a machine are built and fail, with a library of 7 board types |
 | Technical test | 112 interview-style questions in 10 topics, with hints, step-by-step mode and 45 solution schematics |
+| Progress backup | Everything the course remembers in this browser leaves as a file or a short text code and loads on another device, after a check, a summary and a confirmation, with one undo |
 | Fault challenge | 51 faults in 4 levels and 11 failure principles, with a hint ladder for each |
 | 3D simulations | A rotating three-phase field in an induction motor (disconnect a phase, swap two phases, change load and poles), ballscrew backlash with a dial indicator, an AOI scan head over a panel (swaths, overlap, soft edges, a defect in the seam), the laser crater as a Gaussian fluence surface cut by the threshold, and a stepper motor that loses steps under load; drawn in 3D on a canvas, no library, orbit by dragging |
 | Live figures | Interactive isometric benches built with the Anatomy skill: a relay driven by a MOSFET, a line-scan camera triggered by encoder or clock, and an AOS laser removing a copper short |
@@ -49,6 +50,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | terms | Every English term on 309 pages, questions and faults is defined; 230+ "explained in" links open a real page; the glossary lists every term |
 | map, zoom, sims | Every asset has a place in the master map and one home in the zoom tree; every window renders; nothing an old page used is unreachable |
 | path, book | The learning path and the course book: every topic in one track and one chapter, cards and calculations, certification |
+| backup | The progress backup: carried between three separate browsers by code and by file, it arrives exactly; nothing else leaves; a broken or foreign backup changes nothing; the undo restores exactly (23 checks) |
 | labs | The 25 3D labs: each mounts, runs and frees its WebGL context, and its numbers are recomputed from the textbook formula; every lab, the vacuum table, the safety chain and the scan head are checked on the rendered pixels at desktop and phone size (250 checks); every topic has an animated or 3D window |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).

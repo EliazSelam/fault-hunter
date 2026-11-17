@@ -98,6 +98,10 @@ Each of the 25 labs (v2.55) takes every number it shows from one pure `calc`. Th
 
 The framing is checked on rendered pixels, not on the framing code's own numbers: every lab, and since v2.56 the vacuum table, the safety chain (closed and with the door open) and the scan head (every camera preset, assembled and exploded), is rendered without its shadow floor at desktop width and on a phone (390 × 844, pixel ratio 2). Nothing may be cut at the stage's edge or hidden under a card or the button bar; on a phone the scan head must be centered and alone on the picture, and a window must keep at least 330 px of the 390 px screen.
 
+## 6c. The progress backup (`tests/backup_audit.mjs`)
+
+Everything the course remembers lives in the browser's localStorage, under keys that start with `fh-` or `faulthunter-` (and the theme). The suite seeds a learner's progress in one browser, takes it out as a code and as a file, and loads it in two other browsers with their own state; after loading, every key holds exactly the source's text. It also checks what must not happen: another site's key or the undo slot leaving with the backup, a code cut short or garbled, a backup of another app, a wrong count, a foreign key, a broken value, or a backup without progress changing anything; a display setting the backup does not hold being overwritten. The undo must bring back exactly the replaced state. A new kind of progress needs a key that starts with `fh-`, or the backup will not carry it.
+
 ## 7. One command (`tests/run_all.sh`)
 
-Builds, then runs all fourteen suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.
+Builds, then runs all fifteen suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.

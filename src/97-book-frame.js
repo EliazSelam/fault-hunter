@@ -98,11 +98,12 @@ function bookDashHtml(B) { const N = bookNext(B), c = bookCh()[N.id], order = bo
   const due = Object.values(d).filter(e => e.due <= now).length, st = Object.keys(pathStages()), n = st.reduce((a, id) => a + pathMastery(id, now, d).n, 0), mem = n ? st.reduce((a, id) => { const M = pathMastery(id, now, d); return a + M.m * M.n; }, 0) / n : 0;
   return `<div class="bk-dash" role="region" aria-label="לוח הקורס"><div class="bk-dnext"><span class="kb">הצעד הבא</span><b>פרק ${c.n}: ${c.t}</b><span>${BSTEP[N.step]}${N.step === 'faults' ? `: ${N.left.join(', ')}` : ''}</span>
       <button type="button" class="pth-go" data-dash="next">המשך ←</button></div>
-    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span></div></div>`; }
+    <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span><span>💾 <button type="button" class="linkbtn" data-dash="backup">גיבוי והעברה למכשיר אחר</button></span></div></div>`; }
 function bookDashWire(root) { root.querySelectorAll('[data-dash]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.dash, B = bookLoad(), N = bookNext(B);
   if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } else if (N.step === 'faults' && N.left.length) { bookOpen('scn:' + N.left[0], N.id); return; } zBookView(); window.scrollTo(0, 0); }
   else if (k === 'daily') { PV.sess = pathSession('daily'); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); }
-  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); } })); }
+  else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); }
+  else if (k === 'backup') go('zoom', 'backup'); })); }
 /* in the machine, before anything else: where the course stands */
 msideSection('course', 15, ['whole'], { html: () => { const B = bookLoad(), N = bookNext(B), c = bookCh()[N.id]; return `<div class="bk-mside"><p><b>📖 הקורס</b> · פרק ${c.n}: ${c.t}</p><p class="note">${BSTEP[N.step]}</p><p><button type="button" class="pth-go" id="mBook">המשך בספר ←</button></p></div>`; },
   wire: () => { const b = document.getElementById('mBook'); if (b) b.addEventListener('click', () => { BV.ch = bookNext(bookLoad()).id; BV.exam = null; go('zoom', 'book'); }); } });

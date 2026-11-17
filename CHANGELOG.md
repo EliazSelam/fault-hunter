@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.57.0] — 2026-11-17
+
+Progress that moves with you: a backup, and the way to another device.
+
+- **A backup page** (`#/zoom/backup`, reached from the course board, the memory tab and the footer of every page): everything the course remembers in this browser (the book and its chapter exams, the solved faults, the spaced repetition and the daily session, the path, the question bank, the windows opened, and the two display settings) leaves as a file or as a text code, and loads on another device.
+- **The text code** is compressed where the browser can (a full course, every card reviewed and every fault solved: about 4,200 characters), so it fits in a message to yourself; it is read even when a messenger adds line breaks or words around it.
+- **Nothing loads blind:** a backup is checked whole (this app's, only the course's own keys, every value well formed, nothing missing), then summarized beside this device's own state, and replaces it only after a confirmation. The state it replaced is kept for one undo. A display setting the backup does not hold stays as it is. The backup leaves the device only if you send it.
+- Tests: a new `backup` suite (23 checks) carries a learner's progress between three separate browsers, by code and by file, and checks that it arrives exactly; that another site's key and the undo slot never leave; that a code cut short, a garbled code and a file of another kind change nothing; that the undo brings back exactly what was there; and that the page fits a phone. The `zoom` suite checks that a page outside the views bar, like this one, still shows the bar.
+
 ## [2.56.0] — 2026-11-17
 
 The older 3D windows and the page itself, on a phone.
