@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.58.0] — 2026-11-18
+
+Every item of a chapter opens its own place, once.
+
+- **No more items that lead to the same screen.** "All the material of the chapter" listed 417 items; 61 of them opened what another item of the same chapter opened, and 7 opened nothing. Now each item opens exactly the place it names, and two references to one place are one item: 400 items, none repeated.
+- **A system's stages open at the stage:** "from zero", introduction, normal operation, failure principles, worked case, guided and solo practice are seven stations of the system page (they all opened its first stage). The boards hub's steps and bench pages are the card system's stages, and the optics pages that repeat a component page are that page, so each is listed once.
+- **The card library opens at the card:** the seven library cards (supply, inputs, outputs, analog, drive, communication, LED) threw an error and opened nothing.
+- **Simulations and circuits open at themselves:** the rotating field, the stepper and the converters open on their own page, scrolled to the simulation; each of the eight CircuitJS circuits opens at its circuit, marked for a moment (they all opened the top of the gallery).
+- A hub's first page and the hub itself are one item; component pages are named by the component (several were all called "components").
+- Tests: the `book` suite (132 checks) opens every item of every chapter and fails on an error, on an item that lands somewhere other than the stage, card or element it names, on two items of a chapter that show the same thing, and on two items with the same name. The `labs` suite now waits until a window's opening animation has ended before it measures the window (a phone window could be read mid-animation, 318 px instead of 342).
+
 ## [2.57.0] — 2026-11-17
 
 Progress that moves with you: a backup, and the way to another device.

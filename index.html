@@ -534,7 +534,7 @@ ol.tsteps .ts{color:var(--live-text)}
 @media print{body.bk-printing *{visibility:hidden}body.bk-printing #bkCert,body.bk-printing #bkCert *{visibility:visible}body.bk-printing #bkCert{position:absolute;inset:0;margin:0;max-width:none;border:0}}
 .bk-dir{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0}.bk-dir button{font:inherit;font-size:.9em;border:1px solid #3078B0;background:#fff;color:#1B2F5A;border-radius:999px;padding:4px 12px;cursor:pointer}.bk-dir button[aria-pressed=true]{background:#1B2F5A;color:#EEE9E0}
 .bk-dirs{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}.bk-dircard{font:inherit;text-align:right;display:flex;flex-direction:column;gap:6px;border:2px solid #D6E8F7;background:#fff;color:#4A4540;border-radius:12px;padding:10px 14px;cursor:pointer}.bk-dircard b{color:#1B2F5A;font-size:1.05em}.bk-dircard[aria-pressed=true]{border-color:#1B2F5A;background:#D6E8F7}
-.bk-dash{display:grid;grid-template-columns:minmax(220px,1.2fr) 2fr;gap:10px;background:#1B2F5A;color:#EEE9E0;border-radius:14px;padding:12px 16px;margin:8px 0}.bk-dash .kb{background:#3078B0;color:#EEE9E0;border-color:#3078B0}.bk-dnext{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.bk-dnext b{font-size:1.08em}.bk-dnext .pth-go{background:#EEE9E0;color:#1B2F5A;margin-top:4px}.bk-dstat{display:flex;flex-direction:column;gap:6px;justify-content:center}.bk-dstat .linkbtn{color:#D6E8F7}@media (max-width:640px){.bk-dash{grid-template-columns:1fr}}
+.bk-dash{display:grid;grid-template-columns:minmax(220px,1.2fr) 2fr;gap:10px;background:#1B2F5A;color:#EEE9E0;border-radius:14px;padding:12px 16px;margin:8px 0}.bk-dash .kb{background:#3078B0;color:#EEE9E0;border-color:#3078B0}.bk-dnext{display:flex;flex-direction:column;gap:4px;align-items:flex-start}.bk-dnext b{font-size:1.08em}.bk-dnext .pth-go{background:#EEE9E0;color:#1B2F5A;margin-top:4px}.bk-dstat{display:flex;flex-direction:column;gap:6px;justify-content:center}.bk-dstat .linkbtn{color:#D6E8F7}.bk-here{outline:3px solid #3078B0;outline-offset:4px;border-radius:6px;transition:outline-color .6s}@media (max-width:640px){.bk-dash{grid-template-columns:1fr}}
 /* v2.57: the backup page */
 .bk-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px;margin:10px 0}.bk-cols .block{margin:0;min-width:0}
 .bk-sum{border-collapse:collapse;width:100%;margin:6px 0}.bk-sum th,.bk-sum td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}.bk-sum th{font-size:.85em;color:var(--muted);font-weight:600}.bk-sum td b{color:var(--ink)}
@@ -6033,9 +6033,9 @@ function showMot(sub) {
   } else if (sub === 'sims') {
     const C = 'https://www.falstad.com/circuit/circuitjs.html';
     const dc = '$ 1 0.00001 10.2 50 5 50 5e-11\n172 96 176 64 176 0 6 24 24 0 0 0.5 Supply_V\nw 96 176 160 176 0\nr 160 176 256 176 0 0.1\n415 256 176 256 320 0 0.002 2 0.1 0.1 0.0001 0.0001 1 0\nw 256 320 96 320 0\ng 96 320 96 352 0 0\n';
-    const sims = [...MOT_SIMS_PRE, ['מנוע DC', 'הזנה במתח משתנה, נגד מדידה ומנוע DC עם R = 2Ω ו-K = 0.1. שנה את המתח בסליידר, וראה את זרם ההתנעה ואת הזרם במצב יציב.', C + '?cct=' + encodeURIComponent(dc)], ['מנוע תלת-פאזי', 'שלוש פאזות בהפרש של 120°, שמזינות מנוע תלת-פאזי. רואים איך הזרמים מתחלפים ויוצרים שדה מסתובב.', C + '?startCircuit=3motor.txt'], ['מפסק הגנה למנוע', 'מנוע תלת-פאזי עם מפסק הגנה (MPCB): מה קורה בעומס יתר.', C + '?startCircuit=motorprotect.txt'], ...MOT_SIMS_POST];
+    const sims = [...MOT_SIMS_PRE, ['מנוע DC', 'הזנה במתח משתנה, נגד מדידה ומנוע DC עם R = 2Ω ו-K = 0.1. שנה את המתח בסליידר, וראה את זרם ההתנעה ואת הזרם במצב יציב.', C + '?cct=' + encodeURIComponent(dc), 'dcmotor'], ['מנוע תלת-פאזי', 'שלוש פאזות בהפרש של 120°, שמזינות מנוע תלת-פאזי. רואים איך הזרמים מתחלפים ויוצרים שדה מסתובב.', C + '?startCircuit=3motor.txt', '3motor'], ['מפסק הגנה למנוע', 'מנוע תלת-פאזי עם מפסק הגנה (MPCB): מה קורה בעומס יתר.', C + '?startCircuit=motorprotect.txt', 'motorprotect'], ...MOT_SIMS_POST];
     B.innerHTML = H('סימולציות מוכנות') + `<p>סימולציות מעגל אמיתיות של CircuitJS (Paul Falstad ו-Iain Sharp, GPL-2.0), שנטענות מהאתר שלהם. אפשר לשנות בהן ערכים ולראות מתחים וזרמים. כולן נבדקו: נטענות ורצות בלי שגיאות.</p>` +
-      sims.map(([t, d, u]) => `<div class="anat"><p class="anatcap"><b>${t}.</b> ${d} <a href="${u}" target="_blank" rel="noopener">פתח בכרטיסייה חדשה</a></p><div class="anatframe"><iframe title="${t}" loading="lazy" src="${u}" style="min-height:460px"></iframe></div></div>`).join('') +
+      sims.map(([t, d, u, id]) => `<div class="anat"${id ? ` id="cj-${id}"` : ''}><p class="anatcap"><b>${t}.</b> ${d} <a href="${u}" target="_blank" rel="noopener">פתח בכרטיסייה חדשה</a></p><div class="anatframe"><iframe title="${t}" loading="lazy" src="${u}" style="min-height:460px"></iframe></div></div>`).join('') +
       `<p class="note">אם הסימולציה לא מופיעה בתוך העמוד (חלק מהתצוגות חוסמות תוכן מאתרים חיצוניים), הקישור "פתח בכרטיסייה חדשה" תמיד עובד.</p>`;
   } else if (sub === 'q') qList(B, 'mot', () => showMot('q'));
   setTitle('מכונות', MOT_NAV.find(n => n[0] === sub)[1], 'IEC 60034');
@@ -6251,7 +6251,7 @@ showMot = function (sub) {
 };
 
 const FC = 'https://www.falstad.com/circuit/circuitjs.html?startCircuit=';
-MOT_SIMS_POST.push(['ממיר buck', 'מוריד מתח: טרנזיסטור, דיודה, סליל וקבל. רואים איך duty קובע את מתח היציאה.', FC + 'conv-buck.txt'], ['ממיר boost', 'מעלה מתח: אותם רכיבים בסידור אחר.', FC + 'conv-boost.txt'], ['שנאי מוריד מתח', 'שנאי עם יחס ליפופים: מתח וזרם בשני הצדדים.', FC + 'transformerdown.txt'], ['מיישר גל מלא עם קבל', 'מ-AC ל-DC, והריפל על הקבל.', FC + 'fullrectf.txt'], ['תלת-פאזי בכוכב', 'מקור ועומס מאוזנים בחיבור כוכב-כוכב.', FC + '3phasewye.txt']);
+MOT_SIMS_POST.push(['ממיר buck', 'מוריד מתח: טרנזיסטור, דיודה, סליל וקבל. רואים איך duty קובע את מתח היציאה.', FC + 'conv-buck.txt', 'buck'], ['ממיר boost', 'מעלה מתח: אותם רכיבים בסידור אחר.', FC + 'conv-boost.txt', 'boost'], ['שנאי מוריד מתח', 'שנאי עם יחס ליפופים: מתח וזרם בשני הצדדים.', FC + 'transformerdown.txt', 'xfmr'], ['מיישר גל מלא עם קבל', 'מ-AC ל-DC, והריפל על הקבל.', FC + 'fullrectf.txt', 'rect'], ['תלת-פאזי בכוכב', 'מקור ועומס מאוזנים בחיבור כוכב-כוכב.', FC + '3phasewye.txt', '3phase']);
 
 QB.push(
 { id: 'M09', t: 'mot', l: 1, title: 'רוטור וסטטור', fig: null, q: 'במנוע סרבו AC (PMSM), מה נמצא ברוטור, מה בסטטור, ולמה למנוע כזה אין מברשות?', h: ['איפה נמצאים המגנטים?', 'לאיזה חלק מגיע הזרם מהדרייבר?'], a: 'ברוטור מגנטים קבועים, ובסטטור ליפופים תלת-פאזיים שמקבלים זרם מהדרייבר. הזרם מגיע רק לחלק העומד, ולכן אין צורך להעביר זרם לחלק המסתובב, ואין מברשות. את תפקיד הקומוטטור עושה הדרייבר, לפי האנקודר.', why: 'מברשות נחוצות רק כשצריך להעביר זרם לחלק שמסתובב.', steps: ['מגנטים ברוטור.', 'ליפופים בסטטור.', 'הדרייבר מחליף את הזרם בין הליפופים לפי מיקום הרוטור.', 'אין זרם ברוטור → אין מברשות.'], trap: 'לחשוב שבסרבו, כמו במנוע DC, הליפוף על הרוטור.' },
@@ -12771,36 +12771,61 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
   if (k === 'scn') return SCN.filter(s => s.sys === v).map(s => 'scn:' + s.id);
   if (k === 't' && v.startsWith('*/')) return TOPICS.map(T => 't:' + T.id + v.slice(1));
   if (k === 'p') return ['p:' + v.split('#')[0] + (v.includes('#') ? '#' + v.split('#')[1] : '')];
-  if (k === 's2') return [ref, 'p:s2/' + v.split('#')[0]];
+  if (k === 's2') return [ref, 's2:' + v.split('#')[0] + '#zero'];
   return k === 'x' ? [] : [ref]; }
+/* the place an asset opens, and so what it is (v2.58): a hub's root is its first page, a system's page is its first stage ("from zero"),
+   the card library's page is its first card, and a page's long reading or formulas are the page. Two refs with one place are one item. */
+const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
+function bookTarget(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
+  if (k === 's2') { const [id, st] = v.split('#'); return 's2:' + id + '#' + (st || 'zero'); }
+  if (k !== 'p') return a;
+  let r = v.split('#')[0]; const [h, sub] = r.split('/'), H = BOOK_HUBS()[h];
+  if (!sub && H) r = h + '/' + H[0][0];
+  /* pages that show another page: the boards hub's steps and bench are the card system's stages, its library the first card,
+     and the optics pages that repeat a component page (ROUTE_ALIAS, 72) are that page */
+  const A = { 'brd/steps': 's2:card#intro', 'brd/bench': 's2:card#guided', 'brd/lib': 'p:lib/' + BOARDS[0].id, 's2/lib': 'p:lib/' + BOARDS[0].id, s2: 's2:interlock#zero' }[r];
+  if (A) return A;
+  if (ROUTE_ALIAS[r]) r = ROUTE_ALIAS[r];
+  const [h2, sub2] = r.split('/');
+  if (h2 === 's2' && sub2) return 's2:' + sub2 + '#zero';
+  return 'p:' + r; }
+/* a simulation that lives on a page of its own, and the circuits of the simulations page, open at the element itself */
+const BOOK_SIMPAGE = { im3d: ['mot/ind', '#im3d'], st3d: ['mot/types', '#st3d'], clab: ['mot/conv', '#clab'] };
+const BOOK_CJ = { dcmotor: 'מנוע DC', '3motor': 'מנוע תלת-פאזי', motorprotect: 'מפסק הגנה למנוע', buck: 'ממיר buck', boost: 'ממיר boost', xfmr: 'שנאי מוריד מתח', rect: 'מיישר גל מלא עם קבל', '3phase': 'תלת-פאזי בכוכב' };
 /* asset → { ch, level, subj }: one home each */
 const bookHome = (() => { let M = null; return () => { if (M) return M; M = {};
   MASTER.forEach(S => S.L.forEach((refs, lv) => refs.forEach(r => bookExpand(r).forEach(a => {
-    const key = a.replace(/#(full|math)$/, ''), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
-    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
+    const key = bookTarget(a), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
+    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: key }; })))); return M; }; })();
 const bookAssets = chId => Object.entries(bookHome()).filter(([, p]) => p.ch === chId).map(([k, p]) => Object.assign({ key: k }, p));
 /* a name for an asset */
 function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
-  if (k === 'p') { const [r, sec] = v.split('#'); return (typeof zRouteTitle === 'function' ? zRouteTitle(r) : r) + (sec === 'full' ? ' · קריאה מלאה' : sec === 'math' ? ' · נוסחאות' : ''); }
-  if (k === 's2') { const [id, st] = v.split('#'); return `${SYSX[id] ? SYSX[id].title : id} · ${({ intro: 'היכרות', normal: 'פעולה תקינה', prin: 'עקרונות כשל', worked: 'דוגמה פתורה', guided: 'תרגול מודרך', solo: 'תרגול עצמאי' })[st] || st}`; }
+  if (k === 'p') { const [r, sec] = v.split('#'), [h, sub] = r.split('/'), C = h === 's1' && COMPONENTS.find(c => c.id === sub);
+    return (C ? C.name : typeof zRouteTitle === 'function' ? zRouteTitle(r) : r) + (sec === 'full' ? ' · קריאה מלאה' : sec === 'math' ? ' · נוסחאות' : ''); }
+  if (k === 's2') { const [id, st] = v.split('#'); return `${SYSX[id] ? SYSX[id].title : id} · ${({ zero: 'מאפס', intro: 'היכרות', normal: 'פעולה תקינה', prin: 'עקרונות כשל', worked: 'דוגמה פתורה', guided: 'תרגול מודרך', solo: 'תרגול עצמאי' })[st] || st}`; }
   if (k === 't') { const [id, l] = v.split('/'), T = TOPICS.find(x => x.id === id), L = (typeof LEVELS !== 'undefined' ? LEVELS : []).find(x => x[0] === l); return `${T ? T.t : id} · ${L ? L[1] : l}`; }
   if (k === 'q') { const q = QB.find(x => x.id === v); return q ? `שאלה ${v}: ${q.title}` : v; }
   if (k === 'scn') { const s = SCN.find(x => x.id === v); return s ? `תקלה ${v}: ${s.title}` : v; }
   if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); return n ? zInfo(a).t : ({ im3d: 'שדה מסתובב בתלת-ממד', st3d: 'מנוע צעד בתלת-ממד', clab: 'סימולציית ממירים' })[v] || a; }
-  if (k === 'cj') return 'מעגל CircuitJS: ' + v;
+  if (k === 'cj') return 'מעגל CircuitJS: ' + (BOOK_CJ[v] || v);
   return a; }
 const BOOK_KIND = { p: 'עמוד', s2: 'מערכת', t: 'סימולטור', q: 'שאלה', scn: 'תקלה', sim: 'סימולציה', fig: 'איור חי', cj: 'מעגל' };
 /* open an asset, with a bar back to the chapter */
 let BKRET = null;
-function bookOpen(a, chId) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId;
-  if (k === 'p') routeGo(v.split('#')[0]);
-  else if (k === 's2') routeGo('s2/' + v.split('#')[0]);
+function bookOpen(a, chId) { a = bookTarget(a); const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId; let at = null;
+  /* a system's stage and a library card: the system page takes them as its second argument, which a route cannot carry */
+  const stage = (id, st) => { go('s2', id); if (st && st !== 'zero') showSys(id, st); };
+  if (k === 'p' && v.startsWith('lib/')) stage('lib', v.slice(4));
+  else if (k === 'p') routeGo(v);
+  else if (k === 's2') { const [id, st] = v.split('#'); stage(id, st); }
   else if (k === 't') { const [id, l] = v.split('/'); TSTATE.lvl = l; go('topic', id); }
   else if (k === 'q') routeGo('q/' + v);
   else if (k === 'scn') routeGo('scn/' + v);
-  else if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); if (n) zOpenWindow(n.id, a); else routeGo('mot/sims'); }
-  else if (k === 'cj') routeGo('mot/sims');
-  setTimeout(bookRetBar, 0); }
+  else if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)), P = BOOK_SIMPAGE[v]; if (n) zOpenWindow(n.id, a); else if (P) { routeGo(P[0]); at = P[1]; } else routeGo('mot/sims'); }
+  else if (k === 'cj') { routeGo('mot/sims'); at = '#cj-' + v; }
+  setTimeout(() => { bookRetBar(); if (at) bookFocus(at); }, 0); }
+/* bring the element an item means into view, and mark it for a moment */
+function bookFocus(sel) { const e = document.querySelector(sel); if (!e) return; e.scrollIntoView({ block: 'center' }); e.classList.add('bk-here'); setTimeout(() => e.classList.remove('bk-here'), 2400); }
 function bookRetBar() { const c = document.getElementById('content'); if (!BKRET || !c || document.getElementById('bkRet') || document.getElementById('bkCh') || BV.exam) return;
   c.insertAdjacentHTML('afterbegin', `<nav class="zback" id="bkRetNav"><button type="button" id="bkRet">← חזרה לספר: פרק ${bookCh()[BKRET].n}, ${bookCh()[BKRET].t}</button></nav>`);
   document.getElementById('bkRet').addEventListener('click', () => { const ch = BKRET; BKRET = null; BV.ch = ch; go('zoom', 'book'); }); }
@@ -13929,7 +13954,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.57.0';
+const APP_VERSION = '2.58.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

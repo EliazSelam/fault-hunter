@@ -24,36 +24,61 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
   if (k === 'scn') return SCN.filter(s => s.sys === v).map(s => 'scn:' + s.id);
   if (k === 't' && v.startsWith('*/')) return TOPICS.map(T => 't:' + T.id + v.slice(1));
   if (k === 'p') return ['p:' + v.split('#')[0] + (v.includes('#') ? '#' + v.split('#')[1] : '')];
-  if (k === 's2') return [ref, 'p:s2/' + v.split('#')[0]];
+  if (k === 's2') return [ref, 's2:' + v.split('#')[0] + '#zero'];
   return k === 'x' ? [] : [ref]; }
+/* the place an asset opens, and so what it is (v2.58): a hub's root is its first page, a system's page is its first stage ("from zero"),
+   the card library's page is its first card, and a page's long reading or formulas are the page. Two refs with one place are one item. */
+const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
+function bookTarget(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
+  if (k === 's2') { const [id, st] = v.split('#'); return 's2:' + id + '#' + (st || 'zero'); }
+  if (k !== 'p') return a;
+  let r = v.split('#')[0]; const [h, sub] = r.split('/'), H = BOOK_HUBS()[h];
+  if (!sub && H) r = h + '/' + H[0][0];
+  /* pages that show another page: the boards hub's steps and bench are the card system's stages, its library the first card,
+     and the optics pages that repeat a component page (ROUTE_ALIAS, 72) are that page */
+  const A = { 'brd/steps': 's2:card#intro', 'brd/bench': 's2:card#guided', 'brd/lib': 'p:lib/' + BOARDS[0].id, 's2/lib': 'p:lib/' + BOARDS[0].id, s2: 's2:interlock#zero' }[r];
+  if (A) return A;
+  if (ROUTE_ALIAS[r]) r = ROUTE_ALIAS[r];
+  const [h2, sub2] = r.split('/');
+  if (h2 === 's2' && sub2) return 's2:' + sub2 + '#zero';
+  return 'p:' + r; }
+/* a simulation that lives on a page of its own, and the circuits of the simulations page, open at the element itself */
+const BOOK_SIMPAGE = { im3d: ['mot/ind', '#im3d'], st3d: ['mot/types', '#st3d'], clab: ['mot/conv', '#clab'] };
+const BOOK_CJ = { dcmotor: 'מנוע DC', '3motor': 'מנוע תלת-פאזי', motorprotect: 'מפסק הגנה למנוע', buck: 'ממיר buck', boost: 'ממיר boost', xfmr: 'שנאי מוריד מתח', rect: 'מיישר גל מלא עם קבל', '3phase': 'תלת-פאזי בכוכב' };
 /* asset → { ch, level, subj }: one home each */
 const bookHome = (() => { let M = null; return () => { if (M) return M; M = {};
   MASTER.forEach(S => S.L.forEach((refs, lv) => refs.forEach(r => bookExpand(r).forEach(a => {
-    const key = a.replace(/#(full|math)$/, ''), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
-    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: a }; })))); return M; }; })();
+    const key = bookTarget(a), node = bookRefNode(a), ch = (bookNodeCh(node) || {}).id || BOOK_SUBJ[S.id] || 'b28', cur = M[key];
+    if (!cur || bookCh()[ch].n0 < bookCh()[cur.ch].n0) M[key] = { ch, level: lv, subj: S.id, ref: key }; })))); return M; }; })();
 const bookAssets = chId => Object.entries(bookHome()).filter(([, p]) => p.ch === chId).map(([k, p]) => Object.assign({ key: k }, p));
 /* a name for an asset */
 function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
-  if (k === 'p') { const [r, sec] = v.split('#'); return (typeof zRouteTitle === 'function' ? zRouteTitle(r) : r) + (sec === 'full' ? ' · קריאה מלאה' : sec === 'math' ? ' · נוסחאות' : ''); }
-  if (k === 's2') { const [id, st] = v.split('#'); return `${SYSX[id] ? SYSX[id].title : id} · ${({ intro: 'היכרות', normal: 'פעולה תקינה', prin: 'עקרונות כשל', worked: 'דוגמה פתורה', guided: 'תרגול מודרך', solo: 'תרגול עצמאי' })[st] || st}`; }
+  if (k === 'p') { const [r, sec] = v.split('#'), [h, sub] = r.split('/'), C = h === 's1' && COMPONENTS.find(c => c.id === sub);
+    return (C ? C.name : typeof zRouteTitle === 'function' ? zRouteTitle(r) : r) + (sec === 'full' ? ' · קריאה מלאה' : sec === 'math' ? ' · נוסחאות' : ''); }
+  if (k === 's2') { const [id, st] = v.split('#'); return `${SYSX[id] ? SYSX[id].title : id} · ${({ zero: 'מאפס', intro: 'היכרות', normal: 'פעולה תקינה', prin: 'עקרונות כשל', worked: 'דוגמה פתורה', guided: 'תרגול מודרך', solo: 'תרגול עצמאי' })[st] || st}`; }
   if (k === 't') { const [id, l] = v.split('/'), T = TOPICS.find(x => x.id === id), L = (typeof LEVELS !== 'undefined' ? LEVELS : []).find(x => x[0] === l); return `${T ? T.t : id} · ${L ? L[1] : l}`; }
   if (k === 'q') { const q = QB.find(x => x.id === v); return q ? `שאלה ${v}: ${q.title}` : v; }
   if (k === 'scn') { const s = SCN.find(x => x.id === v); return s ? `תקלה ${v}: ${s.title}` : v; }
   if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); return n ? zInfo(a).t : ({ im3d: 'שדה מסתובב בתלת-ממד', st3d: 'מנוע צעד בתלת-ממד', clab: 'סימולציית ממירים' })[v] || a; }
-  if (k === 'cj') return 'מעגל CircuitJS: ' + v;
+  if (k === 'cj') return 'מעגל CircuitJS: ' + (BOOK_CJ[v] || v);
   return a; }
 const BOOK_KIND = { p: 'עמוד', s2: 'מערכת', t: 'סימולטור', q: 'שאלה', scn: 'תקלה', sim: 'סימולציה', fig: 'איור חי', cj: 'מעגל' };
 /* open an asset, with a bar back to the chapter */
 let BKRET = null;
-function bookOpen(a, chId) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId;
-  if (k === 'p') routeGo(v.split('#')[0]);
-  else if (k === 's2') routeGo('s2/' + v.split('#')[0]);
+function bookOpen(a, chId) { a = bookTarget(a); const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId; let at = null;
+  /* a system's stage and a library card: the system page takes them as its second argument, which a route cannot carry */
+  const stage = (id, st) => { go('s2', id); if (st && st !== 'zero') showSys(id, st); };
+  if (k === 'p' && v.startsWith('lib/')) stage('lib', v.slice(4));
+  else if (k === 'p') routeGo(v);
+  else if (k === 's2') { const [id, st] = v.split('#'); stage(id, st); }
   else if (k === 't') { const [id, l] = v.split('/'); TSTATE.lvl = l; go('topic', id); }
   else if (k === 'q') routeGo('q/' + v);
   else if (k === 'scn') routeGo('scn/' + v);
-  else if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)); if (n) zOpenWindow(n.id, a); else routeGo('mot/sims'); }
-  else if (k === 'cj') routeGo('mot/sims');
-  setTimeout(bookRetBar, 0); }
+  else if (k === 'sim' || k === 'fig') { const n = ZOOM.find(x => zWindows(x).includes(a)), P = BOOK_SIMPAGE[v]; if (n) zOpenWindow(n.id, a); else if (P) { routeGo(P[0]); at = P[1]; } else routeGo('mot/sims'); }
+  else if (k === 'cj') { routeGo('mot/sims'); at = '#cj-' + v; }
+  setTimeout(() => { bookRetBar(); if (at) bookFocus(at); }, 0); }
+/* bring the element an item means into view, and mark it for a moment */
+function bookFocus(sel) { const e = document.querySelector(sel); if (!e) return; e.scrollIntoView({ block: 'center' }); e.classList.add('bk-here'); setTimeout(() => e.classList.remove('bk-here'), 2400); }
 function bookRetBar() { const c = document.getElementById('content'); if (!BKRET || !c || document.getElementById('bkRet') || document.getElementById('bkCh') || BV.exam) return;
   c.insertAdjacentHTML('afterbegin', `<nav class="zback" id="bkRetNav"><button type="button" id="bkRet">← חזרה לספר: פרק ${bookCh()[BKRET].n}, ${bookCh()[BKRET].t}</button></nav>`);
   document.getElementById('bkRet').addEventListener('click', () => { const ch = BKRET; BKRET = null; BV.ch = ch; go('zoom', 'book'); }); }

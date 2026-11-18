@@ -70,7 +70,12 @@ const OLD3 = async (page, tag) => { const out = [];
   for (const [node, w] of [['vac', '3d:vacuum'], ['safety', '3d:chain'], ['laserunit', '3d:scanhead']]) {
     await page.evaluate(([n, w]) => zOpenWindow(n, w), [node, w]);
     /* the window of this topic, mounted, and the zoom's opening animation over (no scale left on the way up) */
-    await page.waitForFunction(w => { const s = document.querySelector(`#hubpanel .zwin[data-w="${w}"]`), b = s && s.querySelector('.zbody'), r = b && b.fh3d && b.querySelector('.fh3d-root'); return r && Math.abs(b.getBoundingClientRect().width - b.offsetWidth) < 0.5 && Math.abs(r.getBoundingClientRect().width - r.clientWidth) < 0.5; }, w, { timeout: 5000 }).catch(() => {}); await page.waitForTimeout(150);
+    /* the opening animation starts a frame after the window appears: wait until no animation runs on the window or above it, and its width holds */
+    await page.evaluate(async w => { const wait = ms => new Promise(r => setTimeout(r, ms)); let last = -1, same = 0;
+      for (let i = 0; i < 80; i++) { const s = document.querySelector(`#hubpanel .zwin[data-w="${w}"]`), b = s && s.querySelector('.zbody'), r = b && b.fh3d && b.querySelector('.fh3d-root');
+        const busy = !!b && document.getAnimations().some(a => a.playState === 'running' && a.effect && a.effect.target && a.effect.target.contains && a.effect.target.contains(b)), W = b ? b.getBoundingClientRect().width : -1;
+        if (r && !busy && Math.abs(W - b.offsetWidth) < 0.5 && Math.abs(r.getBoundingClientRect().width - r.clientWidth) < 0.5 && Math.abs(W - last) < 0.5) { if (++same >= 2) return; } else same = 0;
+        last = W; await wait(80); } }, w); await page.waitForTimeout(80);
     const f = await page.evaluate(async w => { const wait = ms => new Promise(r => setTimeout(r, ms)), s = document.querySelector(`#hubpanel .zwin[data-w="${w}"]`), b = s && s.querySelector('.zbody'), h = b && b.fh3d; if (!h || !h.frameCheck) return null;
       const root = b.querySelector('.fh3d-root'), ctl = b.querySelector('.lab-ctl'), o = { W: Math.round(b.getBoundingClientRect().width), vw: innerWidth, rootW: root.clientWidth, inRoot: [...root.children].filter(e => !/^(STYLE|CANVAS)$/.test(e.tagName)).map(e => e.className.replace('fh3d-card ', '')),
         under: [...ctl.children].map(e => e.className.replace('fh3d-card ', '')), fc: [h.frameCheck()] };

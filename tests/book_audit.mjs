@@ -70,10 +70,11 @@ ok(CK.ok && CK.steps >= 2 && CK.mc >= 2 && CK.rec, 'chapter 1: intuition questio
 const U = await ev(() => { const pages = {}; document.querySelectorAll('nav.sheets button').forEach(x => pages[x.dataset.sheet] = 1);
   const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }; Object.entries(hubs).forEach(([h, n]) => n.forEach(x => pages[h + '/' + x[0]] = 1));
   ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => pages['b/' + t] = 1); COMPONENTS.forEach(c => pages['s1/' + c.id] = 1); Object.keys(SYSX).forEach(k => pages['s2/' + k] = 1); BOARDS.forEach(x => pages['lib/' + x.id] = 1);
-  const STG = ['intro', 'normal', 'prin', 'worked', 'guided', 'solo'], lv = (typeof LEVELS !== 'undefined' ? LEVELS : []).map(l => l[0]);
+  const STG = ['zero', 'intro', 'normal', 'prin', 'worked', 'guided', 'solo'], lv = (typeof LEVELS !== 'undefined' ? LEVELS : []).map(l => l[0]);
   const all = [...Object.keys(pages).map(r => 'p:' + r), ...Object.keys(SYSX).flatMap(s => STG.map(st => `s2:${s}#${st}`)), ...TOPICS.flatMap(t => lv.map(l => `t:${t.id}/${l}`)), ...QB.map(q => 'q:' + q.id), ...SCN.map(s => 'scn:' + s.id)];
-  const H = bookHome(), hubRoot = r => /^p:(mot|dig|pcb|lab|int|brd|opt|b|s1|s2)$/.test(r), keys = Object.keys(H);
-  const missing = all.filter(k => !H[k] && !(hubRoot(k) && keys.some(c => c.startsWith(k + '/'))));
+  /* since v2.58 an asset is placed by the place it opens (bookTarget): a hub's root, a system's page or a page that shows another page is that place */
+  const H = bookHome(), hubRoot = r => /^p:(s1|s2)$/.test(r), keys = Object.keys(H);
+  const missing = all.filter(k => !H[bookTarget(k)] && !(hubRoot(k) && keys.some(c => c.startsWith(k + '/'))));
   const bad = keys.filter(k => !bookCh()[H[k].ch]);
   return { all: all.length, placed: keys.length, missing, bad, scn: SCN.every(s => H['scn:' + s.id]), q: QB.every(q => H['q:' + q.id]), b1: bookAssets('b1').map(x => x.key).join() }; });
 ok(U.missing.length === 0 && U.bad.length === 0, `every asset of the site has a home chapter in the book (${U.placed} placed; missing: ${U.missing.slice(0, 8)})`);
@@ -83,6 +84,24 @@ const OP = await ev(async () => { const kinds = {}, out = []; for (const id of b
   for (const [k, [id, ref]] of Object.entries(kinds)) { BV.ch = id; zBookView(); document.querySelector(`[data-asset="${ref}"]`).click(); await new Promise(r => setTimeout(r, 60)); const back = document.getElementById('bkRet'), moved = !document.getElementById('bkCh');
     if (back) back.click(); await new Promise(r => setTimeout(r, 30)); out.push([k, moved && !!back, !!document.getElementById('bkCh') && BV.ch === id]); } return out; });
 OP.forEach(([k, a, b2]) => ok(a && b2, `an asset of kind ${k} opens in its place and the bar returns to its chapter`));
+/* v2.58: every item of every chapter opens without an error, at the place it names (a system's stage, a library card, a simulation or a
+   circuit on its page), and no two items of one chapter show the same thing or carry the same name */
+const ALL = await ev(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), out = { items: 0, err: [], dup: [], name: [], place: [] };
+  for (const ch of bookOrder().filter(id => id !== 'b0')) { const seen = {}, names = {};
+    for (const x of bookAssets(ch)) { out.items++; const nm = (BOOK_KIND[x.key.split(':')[0]] || '') + ' ' + bookAssetName(x.ref); if (names[nm]) out.name.push(`${bookCh()[ch].n}: ${nm}`); names[nm] = 1;
+      try { go('zoom', 'book'); bookOpen(x.ref, ch); } catch (e) { out.err.push(`${x.ref}: ${e.message.slice(0, 60)}`); continue; } await wait(40);
+      const c = document.getElementById('content').cloneNode(true); c.querySelectorAll('#bkRetNav, .zback, .zsub').forEach(e => e.remove());
+      const t = c.textContent.replace(/\s+/g, ' ').trim(), w = document.querySelector('#hubpanel .zwin[data-w]'), here = document.querySelector('.bk-here'), fp = t.length + ':' + t.slice(0, 400) + t.slice(-200) + '|' + (w ? w.dataset.w : '') + '@' + (here ? here.id : '');
+      if (seen[fp]) out.dup.push(`${bookCh()[ch].n}: ${seen[fp]} = ${x.ref}`); seen[fp] = x.ref;
+      const [k, v] = [x.ref.slice(0, x.ref.indexOf(':')), x.ref.slice(x.ref.indexOf(':') + 1)];
+      if (k === 's2') { const st = v.split('#')[1], cur = document.querySelector('.stepper [aria-current="true"]'); if (!cur || cur.dataset.st !== st) out.place.push(`${x.ref} → ${cur ? cur.dataset.st : 'no stage'}`); }
+      if (k === 'p' && v.startsWith('lib/')) { const h = document.querySelector('#content section.block h2'), B = BOARDS.find(z => z.id === v.slice(4)); if (!h || !B || !h.textContent.includes(B.name)) out.place.push(`${x.ref} → ${h ? h.textContent.slice(0, 30) : 'no card'}`); }
+      if (k === 'cj' || (k === 'sim' && BOOK_SIMPAGE[v])) { const want = k === 'cj' ? 'cj-' + v : BOOK_SIMPAGE[v][1].slice(1); if (!here || here.id !== want) out.place.push(`${x.ref} → ${here ? here.id : 'nothing marked'}`); } } }
+  go('zoom', 'book'); return out; });
+ok(ALL.err.length === 0, `every item of the book opens without an error (${ALL.items} items; ${ALL.err.slice(0, 4).join(' | ')})`);
+ok(ALL.place.length === 0, `every stage, library card, simulation and circuit opens at the place it names (${ALL.place.slice(0, 4).join(' | ')})`);
+ok(ALL.dup.length === 0, `no two items of a chapter show the same thing (${ALL.dup.slice(0, 4).join(' | ')})`);
+ok(ALL.name.length === 0, `no two items of a chapter carry the same name (${ALL.name.slice(0, 4).join(' | ')})`);
 const CR = await ev(() => { localStorage.clear(); const id = bookOrder().find(x => bookFaults(x).length >= 2), B = bookLoad(); B.exam[id] = { ok: true, sc: 0.9 }; bookSave(B);
   const before = bookStatus(bookLoad(), id); const P = {}; bookFaults(id).forEach(f => P[f] = { score: 80 }); saveP(P); const after = bookStatus(bookLoad(), id);
   BV.ch = id; zBookView(); const req = document.querySelector('.bk-req').textContent; return { id, before, after, req: /✅ תקלות הפרק/.test(req) && /✅ מבחן הפרק/.test(req) }; });
