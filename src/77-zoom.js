@@ -183,7 +183,7 @@ function zRouteTitle(r) {
 }
 /* leaving the zoom for a whole page keeps the way back */
 const ZBACK = { node: null };
-function zOpenPage(r) { ZBACK.node = ZS.node; routeGo(r); setTimeout(zBackBar, 0); }
+function zOpenPage(r) { ZBACK.node = ZS.node; if (typeof BKRET !== 'undefined') BKRET = null; routeGo(r); setTimeout(zBackBar, 0); }   /* one way back: the latest */
 function zBackBar() {
   if (!ZBACK.node || (location.hash || '').startsWith('#/zoom')) return;
   const c = document.getElementById('content'); if (c.querySelector(':scope > .zback')) return;

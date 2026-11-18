@@ -23,6 +23,7 @@ It prints one PASS/FAIL line per suite, the size of index.html, and the failure 
 | models | `tests/validate_models.py` + `model_harness.js` | Every simulation readout matches a Python model written **from the physics**, over a grid |
 | teach | `tests/teach_audit.mjs` | Every from-zero lesson defines every lexicon term it uses, inside the same lesson; every step has what / why / what you see |
 | scenarios | `tests/scenario_audit.mjs` | Every fault scenario has a valid structure, a scoring path, a working learn link, and the teaching layer (`plain`, `hints`, `pi`) |
+| textbook | `tests/textbook_audit.mjs` | Every chapter is read whole without leaving it: items once, places in frames where they say, exercises answered, calculations with a tolerance, the tools in the page |
 | backup | `tests/backup_audit.mjs` | The progress backup carries everything the course remembers between browsers exactly, and nothing else; a broken or foreign backup changes nothing |
 | labs | `tests/labs_audit.mjs` | Every 3D lab mounts and runs; its numbers are recomputed from the textbook formula; every topic has a moving window |
 

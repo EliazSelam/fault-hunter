@@ -65,7 +65,7 @@ function bookAssetName(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.
 const BOOK_KIND = { p: 'עמוד', s2: 'מערכת', t: 'סימולטור', q: 'שאלה', scn: 'תקלה', sim: 'סימולציה', fig: 'איור חי', cj: 'מעגל' };
 /* open an asset, with a bar back to the chapter */
 let BKRET = null;
-function bookOpen(a, chId) { a = bookTarget(a); const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId; let at = null;
+function bookOpen(a, chId) { a = bookTarget(a); const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1); BKRET = chId; ZBACK.node = null; let at = null;   /* one way back: the latest */
   /* a system's stage and a library card: the system page takes them as its second argument, which a route cannot carry */
   const stage = (id, st) => { go('s2', id); if (st && st !== 'zero') showSys(id, st); };
   if (k === 'p' && v.startsWith('lib/')) stage('lib', v.slice(4));
@@ -89,15 +89,18 @@ const bookFaults = chId => bookAssets(chId).filter(x => x.key.startsWith('scn:')
 const bookSolved = id => !!loadP()[id];
 function bookReq(B, chId) { const c = bookCh()[chId], f = bookFaults(chId), ex = B.exam[chId];
   return { exam: !!(ex && ex.ok), sc: ex ? ex.sc : null, faults: f, solved: f.filter(bookSolved).length, needExam: chId !== 'b0', done: chId === 'b0' ? !!B.read.b0 : !!(ex && ex.ok) && f.every(bookSolved) }; }
-function bookFrameHtml(c, B) { if (c.id === 'b0') return '';
-  const A = bookAssets(c.id), by = MASTER_LEVELS.map((t, i) => [t, A.filter(x => x.level === i)]).filter(x => x[1].length), R = bookReq(B, c.id);
-  const item = x => { const k = x.key.slice(0, x.key.indexOf(':')), solved = k === 'scn' && bookSolved(x.key.slice(4)); return `<button type="button" class="bk-asset${solved ? ' ok' : ''}" data-asset="${x.ref}"><span class="kb">${BOOK_KIND[k] || k}</span> ${bookAssetName(x.ref)}${solved ? ' ✓' : ''}</button>`; };
-  return (A.length ? `<section class="bk-box bk-all"><h3>📚 כל החומר של הפרק</h3><p class="note">${A.length} פריטים מהאתר שהבית שלהם בפרק הזה, לפי עומק. כל פריט נפתח במקומו, עם כפתור חזרה לכאן.</p>
-    ${by.map(([t, list], i) => `<details class="bk-lv"${i === 0 ? ' open' : ''}><summary>${t} <small>(${list.length})</small></summary><div class="bk-assets">${list.map(item).join('')}</div></details>`).join('')}</section>` : '') + `
-    <section class="bk-box bk-req"><h3>🎓 דרישות ההסמכה של הפרק</h3><ul>
+/* v2.59: the chapter's assets are read inside it (95, bookLayout); what is left here is the certification, whose faults are jumps to the
+   faults as they are embedded at the end of the chapter */
+function bookFrameHtml(c, B) { if (c.id === 'b0') return ''; const R = bookReq(B, c.id);
+  return `<section class="bk-box bk-req" id="bk-req"><h3>🎓 דרישות ההסמכה של הפרק</h3><ul>
       <li>${R.exam ? '✅' : '⬜'} מבחן הפרק, 80% ומעלה${R.sc != null ? ` (הכי טוב: ${Math.round(R.sc * 100)}%)` : ''}</li>
-      ${R.faults.length ? `<li>${R.solved === R.faults.length ? '✅' : '⬜'} תקלות הפרק: ${R.solved} מתוך ${R.faults.length} נפתרו <span class="bk-faults">${R.faults.map(id => `<button type="button" class="linkbtn" data-asset="scn:${id}">${bookSolved(id) ? '✓ ' : ''}${id}</button>`).join(' ')}</span></li>` : '<li>אין תקלות שבית שלהן בפרק הזה.</li>'}
+      ${R.faults.length ? `<li>${R.solved === R.faults.length ? '✅' : '⬜'} תקלות הפרק: ${R.solved} מתוך ${R.faults.length} נפתרו <span class="bk-faults">${R.faults.map(id => `<button type="button" class="linkbtn" data-goto="${BKID('scn:' + id)}">${bookSolved(id) ? '✓ ' : ''}${id}</button>`).join(' ')}</span></li>` : '<li>אין תקלות שבית שלהן בפרק הזה.</li>'}
     </ul>${R.done ? '<p class="bk-ok">✅ הפרק מוסמך.</p>' : ''}</section>`; }
+/* a fault solved in a frame of the chapter shows at once: the requirements and the fault's mark */
+function bookReqRefresh() { const A = document.getElementById('bkCh'), c = BV.ch && bookCh()[BV.ch], box = A && A.querySelector('.bk-req'); if (!c || !box) return;
+  const t = document.createElement('div'); t.innerHTML = bookFrameHtml(c, bookLoad()); const nb = t.querySelector('.bk-req'); if (!nb) return; box.replaceWith(nb);
+  nb.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => bookGoto(b.dataset.goto)));
+  A.querySelectorAll('.bk-emb[data-emb^="scn:"]').forEach(e => { const ok = bookSolved(e.dataset.emb.slice(4)), b = e.querySelector('.bk-wh b'); e.classList.toggle('ok', ok); if (b) b.textContent = bookAssetName(e.dataset.emb).replace(/<[^>]+>/g, '') + (ok ? ' ✓' : ''); }); }
 function bookFrameWire(A, c) { A.querySelectorAll('[data-asset]').forEach(b => b.addEventListener('click', () => bookOpen(b.dataset.asset, c.id))); }
 
 /* ---- the certificate ---- */
@@ -125,7 +128,7 @@ function bookDashHtml(B) { const N = bookNext(B), c = bookCh()[N.id], order = bo
       <button type="button" class="pth-go" data-dash="next">המשך ←</button></div>
     <div class="bk-dstat"><span>🎓 <b>${done}</b>/${order.length} פרקים מוסמכים</span><span>🔁 <b>${due}</b> כרטיסים לחזרה היום${due ? ` <button type="button" class="linkbtn" data-dash="daily">לסשן היומי</button>` : ''}</span><span>🧠 <b>${Math.round(mem * 100)}%</b> נשאר בזיכרון <button type="button" class="linkbtn" data-dash="mem">פירוט</button></span><span>💾 <button type="button" class="linkbtn" data-dash="backup">גיבוי והעברה למכשיר אחר</button></span></div></div>`; }
 function bookDashWire(root) { root.querySelectorAll('[data-dash]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.dash, B = bookLoad(), N = bookNext(B);
-  if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } else if (N.step === 'faults' && N.left.length) { bookOpen('scn:' + N.left[0], N.id); return; } zBookView(); window.scrollTo(0, 0); }
+  if (k === 'next') { BV.ch = N.id; if (N.step === 'exam') { const c = bookCh()[N.id], sd = String(Date.now()); BV.exam = { ch: N.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; } zBookView(); window.scrollTo(0, 0); if (N.step === 'faults' && N.left.length) { const e = document.getElementById(BKID('scn:' + N.left[0])); if (e) { bookGoto(e.id); bookMount(e); } } }
   else if (k === 'daily') { PV.sess = pathSession('daily'); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); }
   else if (k === 'mem') { PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); }
   else if (k === 'backup') go('zoom', 'backup'); })); }

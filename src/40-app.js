@@ -230,7 +230,7 @@ function go(sheet, arg) {
   if (FH_RET && sheet !== 'ch') { const r = FH_RET; const bar = document.createElement('div'); bar.className = 'retbar'; bar.innerHTML = `<button type="button" class="btn primary">חזרה לתקלה ${r}</button>`; bar.querySelector('button').addEventListener('click', () => { FH_RET = null; playScn(r); }); content.prepend(bar); }
   window.scrollTo(0, 0);
 }
-document.querySelectorAll('nav.sheets button').forEach(b => b.addEventListener('click', () => { FH_RET = null; go(b.dataset.sheet); }));
+document.querySelectorAll('nav.sheets button').forEach(b => b.addEventListener('click', () => { FH_RET = null; ZBACK.node = null; BKRET = null; go(b.dataset.sheet); }));   /* a tab starts afresh: no way back to an earlier place */
 $('#themeBtn').addEventListener('click', () => {
   const r = document.documentElement; const cur = r.getAttribute('data-theme');
   const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;

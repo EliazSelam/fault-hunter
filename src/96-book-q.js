@@ -4,7 +4,7 @@
            a picture first, then the physics, so the right option makes sense rather than being remembered.
    - calc: a calculation that is not done in the head. gen(r) draws fresh, non-round givens from a seeded generator and returns
            the question, the unit, the answer computed in code (never typed by hand) and the derivation step by step with the
-           numbers filled in. A calculator is allowed; the answer is accepted within a relative tolerance (2% unless stated).
+           numbers filled in. The site's calculator (98b) is one press away; the answer is accepted within a relative tolerance (2% unless stated).
    Both become cards of their topic (pathCards), so they are in the book, in the path sessions, in the chapter tests and in the
    spaced repetition store. */
 const qRng = seed => { let a = pathHash(String(seed)) || 1; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
@@ -285,9 +285,17 @@ function bqInst(card, seed) { const g = card.gen(qRng(card.id + ':' + seed)); re
 const bqParse = s => { const t = String(s).trim().replace(/,/g, '.').replace(/[^\d.eE+\-]/g, ''); const x = parseFloat(t); return Number.isFinite(x) ? x : null; };
 const bqOk = (x, ans, tol) => x != null && Math.abs(x - ans) <= Math.max(tol * Math.abs(ans), 1e-9);
 /* draws a calculation in el; done(ok) is called once, after the answer is checked or the solution is asked for */
+/* a solved example (v2.59): the same calculation with fixed numbers, its steps one press at a time, then the answer */
+function bqExample(el, card, seed) {
+  const I = bqInst(card, seed); let k = 0;
+  const draw = () => { el.innerHTML = `<div class="bq-calc bq-ex"><p class="kb">📘 דוגמה פתורה · ${card.q}</p><p class="bq-q">${bidi(I.q)}</p><ol class="bq-steps">${I.steps.slice(0, k).map(s => `<li>${bidi(s)}</li>`).join('')}</ol>
+    ${k < I.steps.length ? `<p><button type="button" class="pth-go bq-next">${k ? 'הצעד הבא' : 'הצעד הראשון'} ▸</button> <small>${k} מתוך ${I.steps.length}</small></p>` : `<p class="bq-ok"><b>התשובה:</b> <bdi dir="ltr">${qn(I.ans, 4)} ${I.unit}</bdi></p>`}</div>`;
+    const b = el.querySelector('.bq-next'); if (b) b.addEventListener('click', () => { k++; draw(); }); };
+  draw(); return I;
+}
 function bqMount(el, card, seed, done) {
   const I = bqInst(card, seed); let used = false;
-  el.innerHTML = `<div class="bq-calc"><p class="kb">🧮 פיתוח מתמטי · ${card.q}</p><p class="bq-q">${bidi(I.q)}</p><p class="note">מחשבון מותר. מתקבלת תשובה בטווח ±${Math.round(I.tol * 1000) / 10}% מהערך.</p>
+  el.innerHTML = `<div class="bq-calc"><p class="kb">🧮 פיתוח מתמטי · ${card.q}</p><p class="bq-q">${bidi(I.q)}</p><p class="note">מתקבלת תשובה בטווח ±${Math.round(I.tol * 1000) / 10}% מהערך. <button type="button" class="linkbtn bq-calcbtn" data-tool="calc">🧮 המחשבון של האתר</button></p>
     <p><label>התשובה: <input type="text" inputmode="decimal" class="bq-in" dir="ltr" aria-label="התשובה"> <span dir="ltr">${I.unit}</span></label> <button type="button" class="pth-go bq-check">בדוק</button> <button type="button" class="bq-show">הראה את הפיתוח</button></p><div class="bq-out" aria-live="polite"></div></div>`;
   const inp = el.querySelector('.bq-in'), out = el.querySelector('.bq-out');
   const solve = ok => { out.innerHTML = `${ok == null ? '' : `<p class="${ok ? 'bq-ok' : 'bq-no'}"><b>${ok ? 'נכון.' : 'לא בטווח.'}</b> התשובה: <bdi dir="ltr">${qn(I.ans, 4)} ${I.unit}</bdi></p>`}<ol class="bq-steps">${I.steps.map(s => `<li>${bidi(s)}</li>`).join('')}</ol>`; if (!used) { used = true; if (done) done(!!ok); } };

@@ -216,14 +216,14 @@ glossify = function (root) { if (root && root.querySelector && root.querySelecto
 const _symLine = symLine;
 symLine = function (l) { const h = _symLine(l); return /[\u0590-\u05FF]/.test(l) ? h : h.replace(/^<p>/, '<p lang="en" dir="ltr">'); };
 
-/* 4. Popover: a link to the full explanation and to the glossary */
+/* 4. Popover: the full explanation and the full definition, both at the side in the drawer (v2.59), so the page stays where it is */
 const _showTip = showTip;
 showTip = function (a) {
   _showTip(a); const k = a.dataset.g, r = termRoute(k);
   const here = (location.hash || '').replace(/^#\//, '');
   const row = document.createElement('p'); row.className = 'gllinks';
-  if (r && r !== here) { const b = document.createElement('button'); b.type = 'button'; b.className = 'linkbtn'; b.textContent = 'להסבר המלא: ' + routeTitle(r) + ' ←'; b.addEventListener('click', () => { tip.hidden = true; routeGo(r); }); row.appendChild(b); }
-  const g = document.createElement('button'); g.type = 'button'; g.className = 'linkbtn'; g.textContent = 'בכל המושגים'; g.addEventListener('click', () => { tip.hidden = true; go('gl', k); }); row.appendChild(g);
+  if (r && r !== here) { const b = document.createElement('button'); b.type = 'button'; b.className = 'linkbtn'; b.textContent = 'להסבר המלא, בצד: ' + routeTitle(r); b.addEventListener('click', () => { tip.hidden = true; drawerRoute(routeTitle(r), 'route:' + r); }); row.appendChild(b); }
+  const g = document.createElement('button'); g.type = 'button'; g.className = 'linkbtn'; g.textContent = 'ההגדרה המלאה'; g.addEventListener('click', () => { tip.hidden = true; drawerTerm(k); }); row.appendChild(g);
   tip.appendChild(row);
 };
 

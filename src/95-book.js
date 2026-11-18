@@ -154,6 +154,7 @@ const bookStatus = (B, id) => (typeof bookReq === 'function' ? bookReq(B, id).do
 const BV = { ch: null, exam: null };
 function zBookView(arg) {
   if (typeof BKRET !== 'undefined') BKRET = null;
+  embClose('live'); drawerClose(); BKL.el = null;   /* a new drawing of the book closes what the last one opened */
   zCapture();   /* some windows are captured from other pages once; do it before this page is drawn, not in the middle of it */
   const B = bookLoad(); if (arg && bookCh()[arg]) BV.ch = arg; if (!BV.ch) BV.ch = B.last || 'b0'; if (BV.exam) return bookExam();
   const c = bookCh()[BV.ch], order = bookOrder(), i = order.indexOf(c.id), prev = order[i - 1], next = order[i + 1]; B.last = c.id; bookSave(B);
@@ -163,10 +164,11 @@ function zBookView(arg) {
     ${bookParts().map(P => `<li class="bk-part"><b>${P.t}</b><ol>${P.ch.map(x => `<li><button type="button" class="linkbtn${x.id === c.id ? ' on' : ''}" data-bc="${x.id}">${bookMark(B, x.id)} פרק ${bookCh()[x.id].n}: ${x.t}</button></li>`).join('')}</ol></li>`).join('')}</ol></details>`;
   const nav = `<nav class="bk-nav" aria-label="ניווט בין פרקים">${prev ? `<button type="button" data-bc="${prev}">→ פרק ${bookCh()[prev].n}</button>` : '<span></span>'}<span>פרק ${c.n} מתוך ${order.length - 1}</span>${next ? `<button type="button" data-bc="${next}">פרק ${bookCh()[next].n} ←</button>` : '<span></span>'}</nav>`;
   const dirBar = `<div class="bk-dir" role="group" aria-label="כיוון הלמידה"><span>כיוון:</span><button type="button" data-dir="up" aria-pressed="${bookDir() === 'up'}">⬆️ מהרכיב למכונה</button><button type="button" data-dir="down" aria-pressed="${bookDir() === 'down'}">⬇️ מהמכונה לרכיב</button></div>`;
-  content.innerHTML = zSubnav('book') + `<div class="bk">` + (typeof bookDashHtml === 'function' ? bookDashHtml(B) : '') + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + nav + `</div>`;
+  content.innerHTML = zSubnav('book') + `<div class="bk">` + (typeof bookDashHtml === 'function' ? bookDashHtml(B) : '') + dirBar + toc + nav + `<article class="bk-ch" id="bkCh"></article>` + bookToolsHtml(c) + nav + `</div>`;
   zWireSub(); content.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
   content.querySelectorAll('[data-dir]').forEach(b => b.addEventListener('click', () => bookSetDir(b.dataset.dir)));
   if (typeof bookDashWire === 'function') bookDashWire(content);
+  const tools = content.querySelector('.bk-tools'); if (tools) bookToolsWire(tools, c);
   const A = $('#bkCh'); if (c.id === 'b0') bookZero(A, B); else bookChapter(A, B, c);
   setTitle('זום', 'הספר', `פרק ${c.n}: ${c.t}`);
 }
@@ -177,53 +179,185 @@ function bookHead(c, B) {
   return `<p class="kb">${P ? P.t : 'פתיחה'}</p><h2>פרק ${c.n}: ${c.t}</h2>${P && c.id === P.ch[0].id ? `<p class="bk-partwhy">${P.why}</p>` : ''}
     ${st === 'done' && B.exam[c.id] ? `<p class="bk-ok">✅ הוסמכת בפרק הזה (${Math.round(B.exam[c.id].sc * 100)}%).</p>` : ''}`;
 }
-/* where a chapter stands: going up, what it needs; in both directions, what it is part of and what it is made of (from the zoom tree) */
+/* where a chapter stands: going up, what it needs; in both directions, what it is part of and what it is made of (from the zoom tree).
+   v2.59: a chapter named inside a chapter opens in the drawer, at the side, and the chapter stays */
 const bookChOf = node => Object.values(bookCh()).find(x => (x.nodes || []).includes(node));
-function bookLinksHtml(c) { const nodes = c.nodes || [], uniq = list => [...new Set(list.filter(x => x && x.id !== c.id).map(x => x.id))].sort((a, b) => bookCh()[a].n - bookCh()[b].n);
-  const up = uniq(nodes.flatMap(n => zParents(n).map(p => bookChOf(p.id || p)))), down = uniq(nodes.flatMap(n => zNode(n).parts.map(bookChOf))), link = id => `<button type="button" class="linkbtn" data-bc="${id}">פרק ${bookCh()[id].n}: ${bookCh()[id].t}</button>`;
-  const rows = []; if (bookDir() === 'up' && c.pre && c.pre.length) rows.push(`ידע קודם: ${c.pre.map(link).join(' · ')}`);
-  if (up.length) rows.push(`${bookDir() === 'down' ? 'בא מתוך' : 'חלק מ'}: ${up.map(link).join(' · ')}`); if (down.length) rows.push(`${bookDir() === 'down' ? 'יורד אל' : 'בנוי מ'}: ${down.map(link).join(' · ')}`);
+function bookRel(c) { const nodes = c.nodes || [], uniq = list => [...new Set(list.filter(x => x && x.id !== c.id).map(x => x.id))].sort((a, b) => bookCh()[a].n - bookCh()[b].n);
+  return { up: uniq(nodes.flatMap(n => zParents(n).map(p => bookChOf(p.id || p)))), down: uniq(nodes.flatMap(n => zNode(n).parts.map(bookChOf))) }; }
+function bookLinksHtml(c) { const { up, down } = bookRel(c), link = id => `<button type="button" class="linkbtn" data-sidech="${id}">פרק ${bookCh()[id].n}: ${bookCh()[id].t}</button>`;
+  const rows = []; if (up.length) rows.push(`${bookDir() === 'down' ? 'בא מתוך' : 'חלק מ'}: ${up.map(link).join(' · ')}`); if (down.length) rows.push(`${bookDir() === 'down' ? 'יורד אל' : 'בנוי מ'}: ${down.map(link).join(' · ')}`);
   return rows.length ? `<p class="note bk-links">${rows.join('<br>')}</p>` : ''; }
-function bookChapter(A, B, c) {
-  const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why;
-  let h = bookHead(c, B) + `<section class="bk-box"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
-    ${bookLinksHtml(c)}</section>`;
-  if (c.final) h += bookFinalBody(B);
-  else if (C) h += C.items.map((it, k) => `<section class="bk-topic"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-bn="${n}">${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
-  else h += c.nodes.map((node, k) => { const n = zNode(node), W = bookWins(node);
-    return `<section class="bk-topic"><h3>${c.n}.${k + 1} ${n.t}</h3>${W.main.map(([hb, w]) => bookWin(hb, w, node)).join('')}
-      ${W.more.length ? `<details class="bk-more"><summary>להעמקה: עוד ${W.more.length} חלונות בנושא</summary><p>${W.more.map(([hb, w]) => `<button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">${hb[1]}: ${zInfo(w).t}</button>`).join(' · ')}</p></details>` : ''}
-      ${bookChecks(node)}</section>`; }).join('');
-  if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
-  if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
-  if (!c.final) h += `<section class="bk-box bk-end"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
-    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
-  A.innerHTML = h; bookWire(A, B, c);
+/* a chapter opens with what it builds on: the chapters it needs (going up) or comes from (going down), each in three lines */
+function bookRecap(c) {
+  const ids = (bookDir() === 'up' ? (c.pre || []) : bookRel(c).up).filter(id => id !== 'b0' && bookCh()[id]); if (!ids.length) return '';
+  return `<section class="bk-box bk-recap" id="bk-pre"><h3>🔁 מה צריך לדעת קודם</h3>${ids.map(id => { const p = bookCh()[id], P = p.central ? PCENTRAL.find(x => x.id === p.central) : null, g = (p.goals || []).slice(0, 3);
+    return `<div class="bk-rc"><p><b>פרק ${p.n}: ${p.t}</b> <button type="button" class="linkbtn" data-sidech="${id}">📖 בצד</button></p>${g.length ? `<ul>${g.map(x => `<li>${x}</li>`).join('')}</ul>` : `<p>${P ? P.why : p.why || ''}</p>`}</div>`; }).join('')}</section>`;
 }
+/* v2.59: the chapter is the lesson. A topic reads in one order of depth, the eight levels of MASTER; a window's kind gives its level, and
+   an asset of the site keeps the level MASTER gave it. At each level the main windows are open (heavy ones one press away), and the
+   deeper windows and the places of the site that belong to the topic wait under them, each opening in place: a window mounts, a place
+   opens in a frame of the app (99-embed). Nothing in the chapter's body leaves it; related content opens in the drawer. One heavy item
+   is open at a time. Every item appears once: a page that is both a topic's window and an asset is shown once, at the asset's level. */
+const BK_LV = ['המהות', 'אינטואיציה', 'מבנה וזרימה', 'עומק הנדסי', 'מתמטיקה ופיזיקה', 'נושאים מתקדמים', 'תקלות ושאלות', 'אינטגרציה ועיון'];
+const BK_KLV = { scene: 0, sim: 0, figure: 0, card: 0, tryit: 0, story: 1, words: 1, flow: 2, schematic: 2, steps: 3, parts: 3, numbers: 3, eng: 3, anim: 4, derivation: 4, formulas: 4, rev: 5, fault: 6, wrong: 6, quiz: 6, drills: 6, integ: 7, page: 7, reading: 7, say: 7 };
+const bookWinLv = w => hubOf(w) === 'flow' ? 2 : BK_KLV[zInfo(w).kind] ?? 7;
+/* the place an item shows: a page window is the page it opens, anything else is itself */
+const bookWinTarget = w => w.startsWith('p:') ? bookTarget(w) : w;
+/* element ids for the chapter's items, stable for one drawing */
+const BKID = (() => { let M = {}, U = {}; const f = s => { if (M[s]) return M[s]; const b = 'bk' + (pathHash(String(s)) >>> 0).toString(36); let id = b, j = 1; while (U[id]) id = b + '-' + (++j); M[s] = id; U[id] = 1; return id; }; f.reset = () => { M = {}; U = {}; }; return f; })();
+const bkAttr = s => String(s || '').replace(/<[^>]+>/g, '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+/* where every asset of a chapter goes: a bank question to the exercises (the first of a topic that has a worked solution becomes that
+   topic's solved example), a fault to the chapter's faults, a simulation that is one of the topic's windows stays that window, a page that
+   is one of its windows takes the window's place at the asset's level, and the rest goes to its topic or to "more in this chapter" */
+function bookLayout(c) {
+  const nodes = c.nodes || [], L = { at: {}, rest: [], skip: new Set(), ex: [], worked: {}, faults: c.final ? [] : bookFaults(c.id), seen: new Set() }, winT = {}, qn = {};
+  nodes.forEach(n => [zNode(n).core, ...zNode(n).around].forEach(w => { const t = bookWinTarget(w); if (!winT[t]) winT[t] = { n, w }; }));
+  bookAssets(c.id).forEach(x => { const k = x.key.slice(0, x.key.indexOf(':')), r = bookRefNode(x.ref), node = r && nodes.includes(r.id) ? r.id : null;
+    if (k === 'q') { L.ex.push(x.key.slice(2)); qn[x.key.slice(2)] = node; return; } if (k === 'scn') return;
+    const hit = winT[x.key]; if (hit && !hit.w.startsWith('p:')) return; if (hit) L.skip.add(hit.w);
+    const n = node || (hit ? hit.n : null); (n ? (L.at[n] = L.at[n] || []) : L.rest).push(x); });
+  const Q = id => QB.find(q => q.id === id); L.ex = L.ex.filter(Q).sort((a, b) => Q(a).l - Q(b).l || a.localeCompare(b));
+  nodes.forEach(n => { const id = L.ex.find(q => qn[q] === n && (Q(q).steps || []).length > 1); if (id) { L.worked[n] = id; L.ex = L.ex.filter(q => q !== id); } });
+  return L;
+}
+const bookLevels = list => list.map((items, i) => items.length ? `<div class="bk-lv"><p class="bk-lvh">${BK_LV[i]}</p>${items.join('')}</div>` : '').join('');
+function bookTopicHtml(c, node, k, L) {
+  const n = zNode(node), W = bookWins(node), main = new Set(W.main.map(x => x[1])), lv = BK_LV.map(() => []);
+  [...W.main, ...W.more].forEach(([, w]) => { const t = bookWinTarget(w); if (L.skip.has(w) || L.seen.has(t)) return; L.seen.add(t); lv[bookWinLv(w)].push(bookWin(w, node, main.has(w))); });
+  (L.at[node] || []).forEach(x => { if (L.seen.has(x.key)) return; L.seen.add(x.key); lv[Math.min(7, x.level)].push(bookEmbItem(x.ref)); });
+  return `<section class="bk-topic" id="${BKID('t:' + node)}"><h3>${c.n}.${k + 1} ${n.t} <button type="button" class="linkbtn bk-side" data-side="route:zoom/${node}" data-st="${bkAttr(n.t)}">📖 עמוד הנושא בצד</button></h3>
+    ${bookLevels(lv)}${L.worked[node] ? bookWorkedHtml(L.worked[node]) : ''}${bookChecks(node)}</section>`;
+}
+/* a solved example: a bank question of the topic, its solution one step at a time, then the answer */
+function bookWorkedHtml(id) { const q = QB.find(x => x.id === id);
+  return `<div class="bk-sol" id="${BKID('q:' + id)}" data-q="${id}" data-t="${bkAttr(q.title)}"><p class="bk-solh"><span class="kb">📘 דוגמה פתורה</span> <b>${q.title}</b></p><div class="qbox"><p>${q.q}</p>${q.fig ? `<div class="scheme qfig">${FIG[q.fig]()}</div>` : ''}</div>
+    <ol class="chain bk-solst"></ol><p><button type="button" class="pth-go" data-step="1">הצעד הראשון ▸</button> <small class="bk-solk">0 מתוך ${q.steps.length}</small></p><div class="bk-solend" hidden></div></div>`; }
 function bookBridge(c) { if (bookDir() === 'up') return c.bridge ? `<p class="bk-bridge">${c.bridge}</p>` : ''; const o = bookOrder(), nx = o[o.indexOf(c.id) + 1]; if (!nx) return '';
   const N = bookCh()[nx]; return `<p class="bk-bridge">${N.part === c.part ? 'הפרק הבא' : 'החלק הבא'} בכיוון מלמעלה למטה: פרק ${N.n}, ${N.t}${(c.nodes || []).length && (N.nodes || []).some(n => (c.nodes || []).some(m => zNode(m).parts.includes(n))) ? ', אחד מהחלקים שהפרק הזה בנוי מהם.' : '.'}</p>`; }
-/* one window of a topic, in the book: text kinds open, heavy ones one press away */
-function bookWin(hb, w, node) { const i = zInfo(w), open = BOOK_OPEN.has(i.kind);
-  return `<div class="bk-win" data-w="${w}" data-n="${node}"><div class="bk-wh"><span class="kb" style="--c:${hb[4]}">${hb[1]}</span> <b>${(ZKIND[i.kind] || [''])[0]}${(ZKIND[i.kind] || [''])[0] ? ': ' : ''}${i.t}</b> <button type="button" class="linkbtn" data-ow="${w}" data-on="${node}">בעמוד הנושא ↗</button></div><div class="bk-wb">${open ? '' : `<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>`}</div></div>`; }
-function bookMount(el) { const b = el.querySelector('.bk-wb'); if (b.dataset.done) return; b.dataset.done = 1; b.innerHTML = ''; try { zMount(el.dataset.w, b); } catch (e) { b.innerHTML = '<p class="note">החלון לא נפתח כאן. אפשר לפתוח אותו בעמוד הנושא.</p>'; } }
-/* two questions after a topic, from the same cards as the path */
+/* one window of a topic: the main text windows open, everything else one press away; a page of the site opens in a frame */
+function bookWin(w, node, main) { const i = zInfo(w), page = i.kind === 'page', light = !page && BOOK_OPEN.has(i.kind), kl = (ZKIND[i.kind] || [''])[0], auto = main && light;
+  return `<div class="bk-win${main ? '' : ' bk-sub'}" id="${BKID(w)}" data-w="${w}" data-n="${node}"${light ? ' data-light="1"' : ''}${page ? ` data-emb="${w}"` : ''}${auto ? ' data-auto="1"' : ''} data-t="${bkAttr(kl + (kl ? ': ' : '') + i.t)}">
+    <div class="bk-wh"><b>${kl}${kl ? ': ' : ''}${i.t}</b></div><div class="bk-wb">${auto ? '' : `<button type="button" class="pth-go" data-mount="1">${light ? '▸ להציג כאן' : '▶ פתח כאן'}</button>`}</div></div>`; }
+/* a place of the site inside the chapter: its kind and name, and the place itself on a press */
+function bookEmbItem(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.slice(ref.indexOf(':') + 1), nat = (k === 'sim' || k === 'fig') && ZOOM.some(n => zWindows(n).includes(ref)), ok = k === 'scn' && bookSolved(v);
+  return `<div class="bk-win bk-sub bk-emb${ok ? ' ok' : ''}" id="${BKID(ref)}" ${nat ? `data-w="${ref}"` : `data-emb="${ref}"`} data-t="${bkAttr(bookAssetName(ref))}"><div class="bk-wh"><span class="kb">${BOOK_KIND[k] || k}</span> <b>${bookAssetName(ref)}${ok ? ' ✓' : ''}</b></div><div class="bk-wb"><button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button></div></div>`; }
+const BKL = { el: null };   /* the one heavy item open in the chapter */
+function bookMount(el) {
+  const b = el.querySelector('.bk-wb'); if (!b || b.dataset.done) return; const heavy = !el.dataset.light;
+  if (heavy) { if (BKL.el && BKL.el !== el) bookUnmount(BKL.el); BKL.el = el; }
+  b.dataset.done = 1; b.innerHTML = ''; el.classList.add('bk-open');
+  try { if (el.dataset.emb) { if (!embOpen(b, el.dataset.emb, el.dataset.t, 'live', () => bookShut(el))) b.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; } else zMount(el.dataset.w, b); }
+  catch (e) { b.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
+  if (heavy) { const h = el.querySelector('.bk-wh'); if (h && !h.querySelector('[data-close]')) { h.insertAdjacentHTML('beforeend', '<button type="button" class="linkbtn bk-close" data-close="1">✕ סגירה</button>'); h.querySelector('[data-close]').addEventListener('click', () => bookUnmount(el)); } }
+}
+/* closing a heavy item removes its frame or its window, and with it every loop it ran; the press to open it comes back */
+function bookUnmount(el) { const b = el.querySelector('.bk-wb'); if (el.dataset.emb && EMBX.live && EMBX.live.box === b) { embClose('live'); return; } try { if (b && b.act && b.act.destroy) b.act.destroy(); } catch (e) { } bookShut(el); }
+function bookShut(el) { const b = el.querySelector('.bk-wb'); if (BKL.el === el) BKL.el = null; if (!b) return; delete b.dataset.done; el.classList.remove('bk-open'); const x = el.querySelector('[data-close]'); if (x) x.remove();
+  b.innerHTML = '<button type="button" class="pth-go" data-mount="1">▶ פתח כאן</button>'; b.querySelector('[data-mount]').addEventListener('click', () => bookMount(el)); }
+/* jumping to an item of the chapter: it comes into view and is marked for a moment; a text window opens, a heavy one waits for a press */
+function bookGoto(id) { const e = id && document.getElementById(id); if (!e) return; if (e.tagName === 'DETAILS') e.open = true; if (e.classList.contains('bk-win') && e.dataset.light) bookMount(e);
+  e.scrollIntoView({ block: 'start' }); e.classList.add('bk-here'); setTimeout(() => e.classList.remove('bk-here'), 2400); }
+/* after a topic: intuition questions (a choice, or an answer written first and set beside the book's), then the calculation: a solved
+   example with fixed numbers, one step at a time, and the same calculation to try, with today's numbers */
 function bookChecks(stage) { const cards = pathCards(stage), cs = cards.filter(c => c.k === 'mc').slice(0, 2), rc = cs.length < 2 ? cards.filter(c => c.k === 'recall').slice(0, 2 - cs.length) : [], calc = cards.filter(c => c.k === 'calc').slice(0, 2);
   const all = [...cs, ...rc]; if (!all.length && !calc.length) return '';
-  return `<div class="bk-check">${all.length ? `<p><b>בדוק את עצמך</b></p>` : ''}${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
-    : `<details class="drill" data-cid="${c.id}"><summary>${c.q}</summary><p>${c.a}${c.why ? `<br><small>${c.why}</small>` : ''}</p></details>`).join('')}
-    ${calc.length ? `<p><b>פיתוח מתמטי</b> <small>(הנתונים מתחלפים כל יום)</small></p>${calc.map(c => `<div class="bk-calc" data-cid="${c.id}"></div>`).join('')}` : ''}</div>`; }
+  return `<div class="bk-check">${all.length ? `<p><b>✍️ נסה בעצמך</b></p>` : ''}${all.map(c => c.k === 'mc' ? `<div class="tq" data-cid="${c.id}"><p>${c.q}</p><div class="tp">${c.o.map((o, j) => `<button type="button" data-o="${j}">${o}</button>`).join('')}</div><p class="tqr" hidden></p></div>`
+    : `<div class="bk-nb" data-cid="${c.id}"><p>${c.q}</p><textarea class="bk-ans" data-nk="card:${c.id}" rows="2" aria-label="התשובה שלי" placeholder="מה אתה חושב? כותבים, ואז פותחים את התשובה."></textarea><p><button type="button" class="pth-go" data-reveal="1" disabled>הצג תשובה</button> <small class="bk-need">כותבים קודם, גם משפט אחד.</small></p><div class="bk-nbr" hidden></div></div>`).join('')}
+    ${calc.length ? `<p><b>פיתוח מתמטי</b> <small>(בדוגמה המספרים קבועים; בתרגול הם מתחלפים כל יום)</small></p><div class="bk-worked" data-cid="${calc[0].id}"></div>${calc.map(c => `<div class="bk-calc" data-cid="${c.id}"></div>`).join('')}` : ''}</div>`; }
+/* the end of a chapter: a summary, its formulas, the exercises from easy to hard with their answers last (each opens only once an
+   answer of one's own is written), the learner's own questions, and the chapter's faults */
+function bookEndHtml(c, L) {
+  const topics = (c.nodes || []).map((n, k) => `<button type="button" class="linkbtn" data-goto="${BKID('t:' + n)}">${c.n}.${k + 1} ${zNode(n).t}</button>`).join(' · ');
+  let h = `<section class="bk-box bk-sum" id="bk-sum"><h3>📝 סיכום הפרק</h3><p>מה צריך לצאת מהפרק:</p><ul>${(c.goals || []).map(g => `<li>${g}</li>`).join('')}</ul>${topics ? `<p class="note">הנושאים: ${topics}</p>` : ''}${bookHasFormulas(c) ? '<p><button type="button" class="pth-go" data-tool="form">📐 דף הנוסחאות של הפרק</button></p>' : ''}</section>`;
+  if (L.ex.length) { const qa = L.ex.map(id => QB.find(q => q.id === id));
+    h += `<section class="bk-box bk-exs" id="bk-ex"><h3>✏️ תרגילים</h3><p class="note">${qa.length} תרגילים, מהקל לקשה. התשובות בסוף הפרק, וכל אחת נפתחת אחרי שכתבת תשובה משלך.</p>
+      ${qa.map((q, i) => `<div class="bk-ex" id="${BKID('q:' + q.id)}" data-q="${q.id}" data-t="${bkAttr('תרגיל ' + c.n + '.' + (i + 1) + ': ' + q.title)}"><p class="bk-exh"><b>תרגיל ${c.n}.${i + 1}</b> · ${q.title} <small>· רמה ${q.l}</small></p><div class="qbox"><p>${q.q}</p>${q.fig ? `<div class="scheme qfig">${FIG[q.fig]()}</div>` : ''}</div>
+        ${(q.h || []).length ? `<details class="bk-hint"><summary>רמז</summary>${q.h.map(x => `<p>${x}</p>`).join('')}</details>` : ''}
+        <p class="bk-nbl">התשובה שלי <button type="button" class="linkbtn" data-tool="calc" aria-label="מחשבון">🧮</button></p><textarea class="bk-ans" data-nk="q:${q.id}" rows="3" aria-label="התשובה שלי לתרגיל ${c.n}.${i + 1}" placeholder="כותבים כאן, גם במשפט אחד. אחר כך התשובה נפתחת בסוף הפרק."></textarea></div>`).join('')}</section>
+      <section class="bk-box bk-keys" id="bk-keys"><h3>🔑 תשובות לתרגילים</h3>${qa.map((q, i) => `<details class="bk-key" data-q="${q.id}"><summary>תשובה ${c.n}.${i + 1} <span class="bk-lock">🔒 כותבים קודם תשובה בתרגיל</span></summary><div class="bk-keyb"></div></details>`).join('')}</section>`; }
+  h += '<section class="bk-box bk-myq" id="bk-myq" hidden></section>';
+  if (L.faults.length) h += `<section class="bk-box bk-flts" id="bk-flt"><h3>🔧 תקלות הפרק</h3><p class="note">נדרשות להסמכה. כל תקלה נפתחת כאן, בתוך הפרק, ונשמרת כמו בעמוד שלה.</p>${L.faults.map(id => bookEmbItem('scn:' + id)).join('')}</section>`;
+  return h;
+}
+/* the chapter's index, read from the chapter itself: every item once, each a jump to its place */
+function bookIndexHtml(A) {
+  const G = {}, add = (g, e) => (G[g] = G[g] || []).push(e);
+  A.querySelectorAll('.bk-win[id], .bk-sol[id], .bk-ex[id]').forEach(e => add(e.classList.contains('bk-ex') ? 'תרגילים' : e.classList.contains('bk-sol') ? 'דוגמאות פתורות' : e.dataset.emb ? (BOOK_KIND[e.dataset.emb.split(':')[0]] || 'עמוד') : 'חלונות', e));
+  const n = Object.values(G).reduce((s, l) => s + l.length, 0); if (!n) return '';
+  return `<section class="bk-box bk-idx" id="bk-idx"><details><summary>🗂️ מפתח הפרק · ${n} פריטים, כל אחד פעם אחת</summary>${Object.entries(G).map(([g, l]) => `<p class="bk-idxg"><b>${g} (${l.length}):</b> ${l.map(e => `<button type="button" class="linkbtn" data-goto="${e.id}">${e.dataset.t || ''}</button>`).join(' · ')}</p>`).join('')}</details></section>`;
+}
+function bookChapter(A, B, c) {
+  embClose('live'); BKL.el = null; BKID.reset();
+  const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why, L = bookLayout(c);
+  if (c.final) L.rest = bookAssets(c.id).filter(x => !/^(q|scn):/.test(x.key));
+  let h = bookHead(c, B) + bookRecap(c) + `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
+    ${bookLinksHtml(c)}</section>`;
+  if (c.final) h += bookFinalBody(B);
+  else if (C) h += C.items.map((it, k) => `<section class="bk-topic" id="${BKID('c:' + it.id)}"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-side="route:zoom/${n}" data-st="${bkAttr(zNode(n).t)}">📖 ${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
+  else h += c.nodes.map((node, k) => bookTopicHtml(c, node, k, L)).join('');
+  const rest = L.rest.filter(x => !L.seen.has(x.key));
+  if (rest.length) { const lv = BK_LV.map(() => []); rest.forEach(x => lv[Math.min(7, x.level)].push(bookEmbItem(x.ref)));
+    h += `<section class="bk-topic" id="bk-rest"><h3>${c.n}.${(c.nodes || []).length + (C ? C.items.length : 0) + 1} עוד בפרק</h3><p class="note">מקומות באתר שהבית שלהם בפרק הזה ולא בנושא אחד שלו. כל אחד נפתח כאן.</p>${bookLevels(lv)}</section>`; }
+  if (!c.final) h += bookEndHtml(c, L);
+  if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
+  if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
+  if (!c.final) h += `<section class="bk-box bk-end" id="bk-test"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
+    <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
+  A.innerHTML = h; A.insertAdjacentHTML('beforeend', bookIndexHtml(A)); bookWire(A, B, c);
+}
+const bookCard = id => Object.values(PCARD_CACHE).flat().find(x => x.id === id);
+/* an answer to an exercise: mine beside the book's, the solution step by step, the intuition and the trap, and how it went */
+function bookKeyFill(d) { const q = QB.find(x => x.id === d.dataset.q), b = d.querySelector('.bk-keyb'); b.innerHTML = '';
+  b.appendChild(nbCompare(nbGet('q:' + q.id).trim(), `<p>${q.a}</p>${ansFig(q)}`, q.a));
+  b.insertAdjacentHTML('beforeend', `${(q.steps || []).length ? `<p><b>הפתרון, צעד אחר צעד</b></p><ol class="chain">${q.steps.map(s => `<li>${s}</li>`).join('')}</ol>` : ''}<p><b>האינטואיציה:</b> ${q.why}</p>${q.trap ? `<p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}<div class="qrate"><span>איך הלך?</span><button type="button" data-r="y">ידעתי</button><button type="button" data-r="p">חלקית</button><button type="button" data-r="n">לא ידעתי</button></div>`);
+  const s0 = qState(); b.querySelectorAll('[data-r]').forEach(x => { x.setAttribute('aria-pressed', s0[q.id] === x.dataset.r); x.addEventListener('click', () => { const s = qState(); s[q.id] = x.dataset.r; qSave(s); b.querySelectorAll('[data-r]').forEach(y => y.setAttribute('aria-pressed', y === x)); }); }); }
+/* the learner's questions of this chapter, at its end: the question, where it was asked, what was thought then, what is known now */
+function bookMyqRender(A, chId) {
+  const box = A.querySelector('#bk-myq'); if (!box) return; const L = myqLoad().filter(x => x.ch === chId); box.hidden = !L.length; if (!L.length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<h3>❓ השאלות שלי בפרק</h3><p class="note">מה שאלת בזמן הקריאה, מה חשבת אז, ומה אתה יודע עכשיו.</p>' + L.map(x => `<div class="bk-q1${x.done ? ' done' : ''}" data-id="${x.id}"><p class="bk-qq nogl"></p><p class="note">נשאלה ב: <button type="button" class="linkbtn bk-qat"></button><span class="bk-qsug"></span></p>${x.guess ? '<p><span class="kb">מה חשבתי</span> <span class="bk-qg nogl"></span></p>' : ''}<label class="bk-nbl">מה אני יודע עכשיו<textarea class="bk-ans" rows="2" data-myq="${x.id}"></textarea></label><p><label><input type="checkbox" data-myqd="${x.id}"${x.done ? ' checked' : ''}> קיבלתי תשובה</label> · <button type="button" class="linkbtn" data-myqx="${x.id}">מחיקה</button></p></div>`).join('');
+  L.forEach(x => { const el = box.querySelector(`[data-id="${x.id}"]`); el.querySelector('.bk-qq').textContent = x.q; const at = el.querySelector('.bk-qat'); at.textContent = x.secT || 'בפרק'; if (x.sec) at.dataset.goto = x.sec; if (x.guess) el.querySelector('.bk-qg').textContent = x.guess;
+    const S = myqSuggest(x.q, A).filter(s => s.id !== x.sec), sp = el.querySelector('.bk-qsug'); if (S.length) { sp.append(' · אולי עונה: '); S.forEach((s, j) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'linkbtn'; b.dataset.goto = s.id; b.textContent = s.t; if (j) sp.append(' · '); sp.appendChild(b); }); }
+    const t = el.querySelector('[data-myq]'); t.value = x.now || ''; t.addEventListener('input', () => { const M = myqLoad(), y = M.find(z => z.id === x.id); if (y) { y.now = t.value.slice(0, 2000); myqSave(M); } });
+    el.querySelector('[data-myqd]').addEventListener('change', e => { const M = myqLoad(), y = M.find(z => z.id === x.id); if (y) { y.done = e.target.checked; myqSave(M); } el.classList.toggle('done', e.target.checked); });
+    el.querySelector('[data-myqx]').addEventListener('click', () => { myqSave(myqLoad().filter(z => z.id !== x.id)); bookMyqRender(A, chId); }); });
+  box.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => bookGoto(b.dataset.goto)));
+}
+/* a link to another page inside a window of the chapter (a topic's "to the depth" links) opens at the side, not in place of the chapter;
+   it is caught on the way down, before the window's own handler */
+function bookKeepIn(e) { const b = e.target.closest && e.target.closest('.bk-wb [data-r]'); if (!b || b.closest('.qrate')) return; const r = b.dataset.r, s = r.split('/')[0];
+  if (!(s === 'q' || s === 'scn' || document.querySelector(`nav.sheets [data-sheet="${s}"]`))) return; e.preventDefault(); e.stopPropagation(); drawerRoute(b.textContent.trim(), 'route:' + r); }
 function bookWire(A, B, c) {
+  A.addEventListener('click', bookKeepIn, true);
   if (typeof bookFrameWire === 'function') { bookFrameWire(A, c); bookCertWire(A); }
-  A.querySelectorAll('.bk-win').forEach(el => { const k = zInfo(el.dataset.w).kind; if (BOOK_OPEN.has(k)) bookMount(el); const m = el.querySelector('[data-mount]'); if (m) m.addEventListener('click', () => bookMount(el)); });
-  A.querySelectorAll('[data-ow]').forEach(b => b.addEventListener('click', () => zOpenWindow(b.dataset.on, b.dataset.ow)));
-  A.querySelectorAll('[data-bn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.bn)));
+  A.querySelectorAll('.bk-win').forEach(el => { if (el.dataset.auto) bookMount(el); const m = el.querySelector('[data-mount]'); if (m) m.addEventListener('click', () => bookMount(el)); });
+  A.querySelectorAll('[data-side]').forEach(b => b.addEventListener('click', () => drawerRoute(b.dataset.st || b.textContent, b.dataset.side)));
+  A.querySelectorAll('[data-sidech]').forEach(b => b.addEventListener('click', () => drawerChapter(b.dataset.sidech)));
+  A.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => bookGoto(b.dataset.goto)));
+  A.querySelectorAll('[data-tool="form"]').forEach(b => b.addEventListener('click', () => drawerFormulas(c)));
   A.querySelectorAll('[data-bc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.bc; zBookView(); window.scrollTo(0, 0); }));
-  A.querySelectorAll('.bk-calc').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); if (card) bqMount(el, card, pathDay(), ok => reviewRecord(card.id, ok)); });
-  A.querySelectorAll('.bk-check .tq').forEach(el => { const card = Object.values(PCARD_CACHE).flat().find(x => x.id === el.dataset.cid); el.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a, r = el.querySelector('.tqr');
+  A.querySelectorAll('.bk-worked').forEach(el => { const card = bookCard(el.dataset.cid); if (card) bqExample(el, card, 'ex:' + card.id); });
+  A.querySelectorAll('.bk-calc').forEach(el => { const card = bookCard(el.dataset.cid); if (card) bqMount(el, card, pathDay(), ok => reviewRecord(card.id, ok)); });
+  A.querySelectorAll('.bk-check .tq').forEach(el => { const card = bookCard(el.dataset.cid); el.querySelectorAll('[data-o]').forEach(b => b.addEventListener('click', () => { const ok = +b.dataset.o === card.a, r = el.querySelector('.tqr');
     el.querySelectorAll('[data-o]').forEach(x => { x.setAttribute('aria-pressed', x === b); x.classList.toggle('right', +x.dataset.o === card.a); x.classList.toggle('wrong', x === b && !ok); }); r.hidden = false; r.innerHTML = `<b>${ok ? 'נכון.' : 'לא בדיוק.'}</b> ${bidi(card.why || '')}`; reviewRecord(card.id, ok); })); });
+  /* an intuition answer is written first, then set beside the book's; the learner says how close it was */
+  A.querySelectorAll('.bk-nb').forEach(el => { const card = bookCard(el.dataset.cid), t = el.querySelector('textarea'), r = el.querySelector('[data-reveal]'), out = el.querySelector('.bk-nbr'); if (!card) return;
+    nbWire(el, () => { if (out.hidden) r.disabled = !t.value.trim(); });
+    r.addEventListener('click', () => { if (!t.value.trim()) return; out.hidden = false; out.innerHTML = ''; out.appendChild(nbCompare(t.value.trim(), `<p>${card.a}</p>${card.why ? `<p><small>${card.why}</small></p>` : ''}`, card.a));
+      out.insertAdjacentHTML('beforeend', '<div class="qrate"><span>כמה קרוב?</span><button type="button" data-sg="1">צדקתי</button><button type="button" data-sg="0">פספסתי</button></div>');
+      out.querySelectorAll('[data-sg]').forEach(x => x.addEventListener('click', () => { out.querySelectorAll('[data-sg]').forEach(y => y.setAttribute('aria-pressed', y === x)); reviewRecord(card.id, x.dataset.sg === '1'); })); r.disabled = true; r.textContent = 'התשובה פתוחה'; }); });
+  /* exercises: an answer of one's own unlocks the answer at the end */
+  const keyState = id => { const d = A.querySelector(`.bk-key[data-q="${id}"]`); if (d) d.classList.toggle('bk-unl', !!nbGet('q:' + id).trim()); };
+  A.querySelectorAll('.bk-ex').forEach(el => nbWire(el, () => keyState(el.dataset.q)));
+  A.querySelectorAll('.bk-key').forEach(d => { keyState(d.dataset.q); d.querySelector('summary').addEventListener('click', e => { if (d.open) return; if (!nbGet('q:' + d.dataset.q).trim()) { e.preventDefault(); d.classList.add('bk-need-on'); setTimeout(() => d.classList.remove('bk-need-on'), 2500); return; } bookKeyFill(d); }); });
+  /* a solved example: one step per press, then the answer */
+  A.querySelectorAll('.bk-sol').forEach(el => { const q = QB.find(x => x.id === el.dataset.q), ol = el.querySelector('.bk-solst'), btn = el.querySelector('[data-step]'), k = el.querySelector('.bk-solk'); let i = 0;
+    btn.addEventListener('click', () => { if (i < q.steps.length) { ol.insertAdjacentHTML('beforeend', `<li>${q.steps[i]}</li>`); i++; k.textContent = `${i} מתוך ${q.steps.length}`; btn.textContent = 'הצעד הבא ▸'; }
+      if (i >= q.steps.length) { btn.remove(); k.remove(); const end = el.querySelector('.bk-solend'); end.hidden = false; end.innerHTML = `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p>${q.trap ? `<p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}`; } }); });
   A.querySelectorAll('[data-bx]').forEach(b => b.addEventListener('click', () => { const N = bookLoad(); N.read[c.id] = 1; bookSave(N); (() => { const sd = String(Date.now()); BV.exam = { ch: c.id, cards: bookExamCards(c, sd), seed: sd, i: 0, right: 0, ans: [] }; })(); zBookView(); window.scrollTo(0, 0); }));
   A.querySelectorAll('[data-can]').forEach(b => b.addEventListener('change', () => { const N = bookLoad(); N.can[b.dataset.can] = b.checked; bookSave(N); bookPlace(A, N); }));
-  A.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const [s, a] = b.dataset.go.split('|'); go(s, a || undefined); }));
+  /* chapter 0 shows the site's places (the machine, the map, the path): at the side, so the course's first page stays */
+  A.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { const [s, a] = b.dataset.go.split('|'); drawerRoute(b.textContent.trim(), 'route:' + s + (a ? '/' + a : '')); }));
+  bookMyqRender(A, c.id);
 }
 
 /* ---- the chapter test: one card at a time, no lives, a score at the end ---- */

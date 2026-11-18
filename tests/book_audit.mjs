@@ -19,8 +19,9 @@ ok(S.central, 'the four central subjects are chapters');
 for (const id of await ev(() => bookOrder())) {
   const r = await pg.evaluate(id => { BV.ch = id; BV.exam = null; zBookView(); const art = document.getElementById('bkCh'), c = bookCh()[id];
     const wins = [...document.querySelectorAll('.bk-win')], bad = wins.filter(w => /לא נפתח כאן/.test(w.textContent)).length;
-    const textOpen = wins.filter(w => BOOK_OPEN.has(zInfo(w.dataset.w).kind)).every(w => w.querySelector('.bk-wb').dataset.done && w.querySelector('.bk-wb').textContent.trim().length > 10);
-    const heavyClosed = wins.filter(w => !BOOK_OPEN.has(zInfo(w.dataset.w).kind)).every(w => !!w.querySelector('[data-mount]'));
+    /* v2.59: a topic's main text windows open; heavy windows, deeper windows and the site's places wait for a press */
+    const textOpen = wins.filter(w => w.dataset.auto).every(w => w.querySelector('.bk-wb').dataset.done && w.querySelector('.bk-wb').textContent.trim().length > 10);
+    const heavyClosed = wins.filter(w => !w.dataset.auto).every(w => !!w.querySelector('[data-mount]'));
     const topics = (c.nodes || []).length + (c.central ? PCENTRAL.find(x => x.id === c.central).items.length : 0), checks = document.querySelectorAll('.bk-check').length;
     return { here: !!art && location.hash.includes('book') || !!art, title: document.querySelector('.bk-ch h2').textContent, wins: wins.length, bad, textOpen, heavyClosed, topics, checks, exam: !!document.querySelector('[data-bx]') || id === 'b0', cards: bookCards(c, 's').length }; }, id);
   ok(r.here && /פרק \d+/.test(r.title), `${id}: renders as its own page`);
@@ -81,9 +82,12 @@ ok(U.missing.length === 0 && U.bad.length === 0, `every asset of the site has a 
 ok(U.scn && U.q, 'every fault scenario and every bank question is in a chapter');
 ok(/p:b\/grammar/.test(U.b1), 'reading a schematic is in chapter 1');
 const OP = await ev(async () => { const kinds = {}, out = []; for (const id of bookOrder()) bookAssets(id).forEach(x => { const k = x.key.split(':')[0]; if (!kinds[k]) kinds[k] = [id, x.ref]; });
-  for (const [k, [id, ref]] of Object.entries(kinds)) { BV.ch = id; zBookView(); document.querySelector(`[data-asset="${ref}"]`).click(); await new Promise(r => setTimeout(r, 60)); const back = document.getElementById('bkRet'), moved = !document.getElementById('bkCh');
-    if (back) back.click(); await new Promise(r => setTimeout(r, 30)); out.push([k, moved && !!back, !!document.getElementById('bkCh') && BV.ch === id]); } return out; });
-OP.forEach(([k, a, b2]) => ok(a && b2, `an asset of kind ${k} opens in its place and the bar returns to its chapter`));
+  /* v2.59: an asset is read inside its chapter: a question as an exercise or a solved example, anything else as an item that opens there */
+  for (const [k, [id, ref]] of Object.entries(kinds)) { BV.ch = id; BV.exam = null; zBookView(); const A = document.getElementById('bkCh'), key = bookTarget(ref);
+    const el = k === 'q' ? A.querySelector(`[data-q="${key.slice(2)}"]`) : [...A.querySelectorAll('.bk-win')].find(e => (e.dataset.emb ? bookTarget(e.dataset.emb) : bookWinTarget(e.dataset.w)) === key); let open = !!el;
+    if (el && el.classList.contains('bk-win')) { bookMount(el); await new Promise(r => setTimeout(r, 80)); const wb = el.querySelector('.bk-wb'); open = !!wb.dataset.done && wb.children.length > 0; bookUnmount(el); }
+    out.push([k, !!el, open && !!document.getElementById('bkCh') && BV.ch === id]); } return out; });
+OP.forEach(([k, a, b2]) => ok(a && b2, `an asset of kind ${k} is read inside its chapter and opens there (${a}, ${b2})`));
 /* v2.58: every item of every chapter opens without an error, at the place it names (a system's stage, a library card, a simulation or a
    circuit on its page), and no two items of one chapter show the same thing or carry the same name */
 const ALL = await ev(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), out = { items: 0, err: [], dup: [], name: [], place: [] };
