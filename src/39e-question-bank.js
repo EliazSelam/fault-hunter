@@ -380,9 +380,10 @@ function showQ(id, seq) {
       <div id="qa"></div>`;
     const qa = $('#qa');
     if (mode === 'help') {
-      qa.innerHTML = `<p style="color:var(--muted);font-size:14px">נסה קודם לבד, על דף. אחר כך פתח רק מה שצריך.</p><div class="qbtns"><button type="button" class="btn" data-sh="1"${shown >= 1 ? ' disabled' : ''}>רמז קל</button><button type="button" class="btn" data-sh="2"${shown >= 2 ? ' disabled' : ''}>רמז בינוני</button><button type="button" class="btn primary" data-sh="3"${shown >= 3 ? ' disabled' : ''}>תשובה ואינטואיציה</button></div>
+      qa.innerHTML = `<p style="color:var(--muted);font-size:14px">נסה קודם לבד: כתוב כאן מה אתה חושב. אחר כך פתח רק מה שצריך, ותשובתך תופיע ליד התשובה.</p><textarea class="bk-ans qnb" data-nk="q:${q.id}" rows="3" aria-label="התשובה שלי" placeholder="התשובה שלי…"></textarea><div class="qbtns"><button type="button" class="btn" data-sh="1"${shown >= 1 ? ' disabled' : ''}>רמז קל</button><button type="button" class="btn" data-sh="2"${shown >= 2 ? ' disabled' : ''}>רמז בינוני</button><button type="button" class="btn primary" data-sh="3"${shown >= 3 ? ' disabled' : ''}>תשובה ואינטואיציה</button></div>
         ${shown >= 1 ? `<div class="note"><b>רמז קל:</b> ${q.h[0]}</div>` : ''}${shown >= 2 ? `<div class="note"><b>רמז בינוני:</b> ${q.h[1]}</div>` : ''}
-        ${shown >= 3 ? `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}`;
+        ${shown >= 3 ? `${nbGet('q:' + q.id).trim() ? '<div class="qcmp"></div>' : `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>`}${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}`;
+      nbWire(qa); const cm = qa.querySelector('.qcmp'); if (cm) cm.appendChild(nbCompare(nbGet('q:' + q.id).trim(), `<p>${q.a}</p>`, q.a));   /* v2.60: what I wrote, beside the answer */
       qa.querySelectorAll('[data-sh]').forEach(b => b.addEventListener('click', () => { shown = Math.max(shown, +b.dataset.sh); draw(); }));
     } else {
       qa.innerHTML = `<ol class="chain">${q.steps.slice(0, step + 1).map(s => `<li>${s}</li>`).join('')}</ol>${step < q.steps.length - 1 ? '<button type="button" class="btn primary" id="qnext">הצעד הבא</button>' : `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>`}`;

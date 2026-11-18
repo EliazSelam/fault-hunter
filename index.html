@@ -578,6 +578,9 @@ iframe.emb{display:block;width:100%;height:220px;border:0;background:var(--sheet
 .bk-solh .kb,.bq-ex .kb{background:#1B2F5A;color:#EEE9E0;border-color:#1B2F5A}
 .bk-q1{border:1px solid #D6E8F7;border-radius:10px;padding:6px 10px;margin:8px 0}.bk-q1.done{opacity:.75}.bk-qq{font-weight:600;white-space:pre-wrap;margin:2px 0}.bk-qg{white-space:pre-wrap}
 .bk-idx summary{cursor:pointer;font-weight:700;color:#1B2F5A}.bk-idxg{line-height:1.9}
+/* v2.60: help to learn a fault (98c), the question page's own answer */
+.scnh-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.scnh-chips .chip{font:inherit;border:1px solid #3078B0;background:var(--sheet);color:var(--ink);border-radius:999px;padding:4px 12px;cursor:pointer}.scnh-chips .chip[aria-pressed="true"]{background:#1B2F5A;color:#EEE9E0}
+.scnh-body h4{margin:10px 0 4px;color:var(--ink)}.scnh-see{margin:4px 0 8px}.qnb{margin:4px 0 8px}
 </style>
 </head>
 <body>
@@ -1931,10 +1934,10 @@ function playScn(id) {
   const par = s.tests.filter(t => t[3]).reduce((a, t) => a + t[1], 0);
   content.innerHTML = `<p style="margin:0"><button type="button" class="linkbtn" id="back">חזרה לרשימה</button></p>
     <h2 style="margin-top:6px">${s.title}</h2><p style="margin:0 0 10px;color:var(--muted)">${s.id} · ${s.area} · רמה ${s.lvl}</p>
-    ${s.exp ? `<div class="cols"><div class="note"><b>מה היה אמור לקרות</b><br>${bidi(s.exp)}</div><div class="note warn"><b>מה קורה בפועל</b><br>${bidi(s.ctx)}</div></div>` : `<p class="lead">${bidi(s.ctx)}</p>`}
-    ${s.plain ? `<details class="zplain" open><summary>מאפס: מה צריך לדעת כדי להבין את התקלה</summary><p>${bidi(s.plain)}</p>${PRINCIPLES[s.pi] ? `<p class="zpri">העיקרון שעוזר כאן: <button type="button" class="linkbtn" id="priB">${s.pi + 1}. ${PRINCIPLES[s.pi][0]}</button></p>` : ''}</details>` : ''}
+    ${s.exp ? `<div class="cols scn-top"><div class="note"><b>מה היה אמור לקרות</b><br>${bidi(s.exp)}</div><div class="note warn"><b>מה קורה בפועל</b><br>${bidi(s.ctx)}</div></div>` : `<p class="lead scn-top">${bidi(s.ctx)}</p>`}
+    ${s.plain ? `<details class="zplain scn-top" open><summary>מאפס: מה צריך לדעת כדי להבין את התקלה</summary><p>${bidi(s.plain)}</p>${PRINCIPLES[s.pi] ? `<p class="zpri">העיקרון שעוזר כאן: <button type="button" class="linkbtn" id="priB">${s.pi + 1}. ${PRINCIPLES[s.pi][0]}</button></p>` : ''}</details>` : ''}
     ${s.sys ? `<p class="bgline">לא בטוח מה תפקיד המערכת? <button type="button" class="linkbtn" id="bgB">רקע: ${scnSysName(s)}</button> · סוג התקלה: <b>${PRIN[s.pr][0]}</b></p>` : ''}
-    <div class="alarm">${s.sym.map(symLine).join('')}</div>
+    <div class="alarm scn-top">${s.sym.map(symLine).join('')}</div>
     <div class="clock">זמן השבתה עד עכשיו: <b id="down">0</b> דקות</div>
     <div class="cols"><div class="block"><h3>בדיקות אפשריות</h3><p style="margin:0 0 8px;font-size:14px;color:var(--muted)">לפני שלוחצים: איזו בדיקה תפריד בין שתי ההשערות הכי סבירות?</p>
       <div id="tests">${s.tests.map((t, i) => `<button type="button" class="test" data-i="${i}"><span>${t[0]}</span><small>${t[1]} דק׳</small></button>`).join('')}</div>
@@ -3742,9 +3745,10 @@ function showQ(id, seq) {
       <div id="qa"></div>`;
     const qa = $('#qa');
     if (mode === 'help') {
-      qa.innerHTML = `<p style="color:var(--muted);font-size:14px">נסה קודם לבד, על דף. אחר כך פתח רק מה שצריך.</p><div class="qbtns"><button type="button" class="btn" data-sh="1"${shown >= 1 ? ' disabled' : ''}>רמז קל</button><button type="button" class="btn" data-sh="2"${shown >= 2 ? ' disabled' : ''}>רמז בינוני</button><button type="button" class="btn primary" data-sh="3"${shown >= 3 ? ' disabled' : ''}>תשובה ואינטואיציה</button></div>
+      qa.innerHTML = `<p style="color:var(--muted);font-size:14px">נסה קודם לבד: כתוב כאן מה אתה חושב. אחר כך פתח רק מה שצריך, ותשובתך תופיע ליד התשובה.</p><textarea class="bk-ans qnb" data-nk="q:${q.id}" rows="3" aria-label="התשובה שלי" placeholder="התשובה שלי…"></textarea><div class="qbtns"><button type="button" class="btn" data-sh="1"${shown >= 1 ? ' disabled' : ''}>רמז קל</button><button type="button" class="btn" data-sh="2"${shown >= 2 ? ' disabled' : ''}>רמז בינוני</button><button type="button" class="btn primary" data-sh="3"${shown >= 3 ? ' disabled' : ''}>תשובה ואינטואיציה</button></div>
         ${shown >= 1 ? `<div class="note"><b>רמז קל:</b> ${q.h[0]}</div>` : ''}${shown >= 2 ? `<div class="note"><b>רמז בינוני:</b> ${q.h[1]}</div>` : ''}
-        ${shown >= 3 ? `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}`;
+        ${shown >= 3 ? `${nbGet('q:' + q.id).trim() ? '<div class="qcmp"></div>' : `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>`}${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>` : ''}`;
+      nbWire(qa); const cm = qa.querySelector('.qcmp'); if (cm) cm.appendChild(nbCompare(nbGet('q:' + q.id).trim(), `<p>${q.a}</p>`, q.a));   /* v2.60: what I wrote, beside the answer */
       qa.querySelectorAll('[data-sh]').forEach(b => b.addEventListener('click', () => { shown = Math.max(shown, +b.dataset.sh); draw(); }));
     } else {
       qa.innerHTML = `<ol class="chain">${q.steps.slice(0, step + 1).map(s => `<li>${s}</li>`).join('')}</ol>${step < q.steps.length - 1 ? '<button type="button" class="btn primary" id="qnext">הצעד הבא</button>' : `<div class="note" style="border-right-color:var(--ink)"><b>תשובה:</b> ${q.a}</div>${ansFig(q)}<p><b>האינטואיציה:</b> ${q.why}</p><p class="note warn"><b>המלכודת הנפוצה:</b> ${q.trap}</p>`}`;
@@ -13373,6 +13377,46 @@ function bookToolsWire(root, c) {
 }
 /* the drawer belongs to the page it was opened from */
 GO_BEFORE.push(() => drawerClose());
+/* ============ Help to learn a fault (v2.60) ============
+   A fault page names parts and behaviours a learner may not picture yet ("the pins rise in under a second", a coil, a transistor, a
+   diode). The page gathers what the site already has about them, next to the fault, without leaving it and without costing time:
+   - under "what should have happened", the fault's own topic working as it should (its live window, then its symbol, mounted in place);
+   - "help to learn the fault": every part the fault's text names that the site teaches (a term with an explaining page, resolved to its
+     zoom topic), each a hint that opens that topic's card and its live window in place. One hint is open at a time. */
+const SCNH_LIVE = ['sim', 'scene', 'anim', 'figure', 'tryit'];
+const scnhWins = n => [zNode(n).core, ...zNode(n).around];
+const scnhLive = n => { const W = scnhWins(n); return W.find(w => w.startsWith('3d:') || w.startsWith('scan:')) || W.find(w => SCNH_LIVE.includes(zInfo(w).kind)) || null; };
+const scnhCard = n => scnhWins(n).find(w => zInfo(w).kind === 'card') || scnhWins(n).find(w => ['story', 'words', 'parts'].includes(zInfo(w).kind)) || null;
+/* the component cards of the zoom, by the first word of their name (סליל, דיודה, טרנזיסטור, ממסר, …) */
+const scnhCards = () => ZOOM.flatMap(n => zWindows(n).filter(w => w.startsWith('a:')).map(w => ({ n: n.id, w, name: w.slice(2).split(/[ (/]/)[0] })));
+/* the fault's own topic, and the parts its text names, in the order they appear: a term is its component's card if it has one, else
+   the topic of the page that explains it */
+function scnHelpNodes(s, root) {
+  const r = bookRefNode('scn:' + s.id), main = r ? r.id : null, out = [];
+  try { glossify(root); } catch (e) { }
+  const C = scnhCards(), add = (n, k, card) => { if (n && !out.some(x => x.n === n && x.card === card) && (card || ((n !== main) && (scnhCard(n) || scnhLive(n))))) out.push({ n, k, card }); };
+  root.querySelectorAll('.scn-top abbr.gl').forEach(a => { const k = a.dataset.g, c = C.find(x => x.name === k || k.startsWith(x.name + ' ')); if (c) return add(c.n, k, c.w); const t = termRoute(k), n = t && zRouteNode(t); add(n && n.id, k, null); });
+  if (s.sys) { const [sh, k] = s.sys.split(':'), n = zRouteNode(sh + '/' + k); add(n && n.id, scnSysName(s), null); }
+  return { main: main && scnhLive(main) ? main : null, nodes: out.slice(0, 8) };
+}
+function scnhMount(box, w) { const old = box.querySelector('.scnh-w'); if (old && old.act && old.act.destroy) { try { old.act.destroy(); } catch (e) { } } box.innerHTML = '<div class="scnh-w"></div>'; const el = box.querySelector('.scnh-w'); try { zMount(w, el); } catch (e) { el.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; } return el; }
+function scnHelp(s) {
+  if (!s) return; const root = document.getElementById('content'); if (!root || root.querySelector('#scnHelp, #scnhSee')) return;
+  const H = scnHelpNodes(s, root), top = root.querySelector('.scn-top');
+  if (H.main && top) { top.insertAdjacentHTML('beforeend', `<p class="scnh-see"><button type="button" class="btn" id="scnhSee">▶ לראות איך זה אמור לעבוד: ${zNode(H.main).t}</button></p><div id="scnhMain"></div>`);
+    root.querySelector('#scnhSee').addEventListener('click', e => { const b = e.currentTarget, box = root.querySelector('#scnhMain'); if (box.children.length) { box.innerHTML = ''; b.setAttribute('aria-expanded', 'false'); return; } scnhMount(box, scnhLive(H.main)); b.setAttribute('aria-expanded', 'true');
+      const sc = scnhWins(H.main).find(w => zInfo(w).kind === 'schematic'); if (sc) { box.insertAdjacentHTML('beforeend', '<p><button type="button" class="btn" data-hs="1">▸ הסמל והשרטוט</button></p><div class="scnh-sch"></div>'); box.querySelector('[data-hs]').addEventListener('click', e => { e.currentTarget.remove(); scnhMount(box.querySelector('.scnh-sch'), sc); }); } }); }
+  if (!H.nodes.length) return;
+  const sec = `<section class="block scnh" id="scnHelp"><h3>🧭 עזרה ללמוד את התקלה</h3><p class="note">כל אחד מהחלקים שהתקלה מזכירה, כשהוא תקין: הכרטיס שלו והחלון החי שלו. נפתח כאן, בלי לעזוב את התקלה ובלי לעלות זמן.</p>
+    <div class="scnh-chips">${H.nodes.map((x, i) => `<button type="button" class="chip" data-hi="${i}">${x.card ? zInfo(x.card).t : zNode(x.n).t}</button>`).join('')}</div><div class="scnh-body" aria-live="polite"></div></section>`;
+  const alarm = root.querySelector('.alarm'); if (alarm) alarm.insertAdjacentHTML('beforebegin', sec); else root.insertAdjacentHTML('beforeend', sec);
+  const S = root.querySelector('#scnHelp'), body = S.querySelector('.scnh-body');
+  S.querySelectorAll('[data-hi]').forEach(b => b.addEventListener('click', () => { const X = H.nodes[+b.dataset.hi], n = X.n, on = b.getAttribute('aria-pressed') === 'true';
+    S.querySelectorAll('[data-hi]').forEach(x => x.setAttribute('aria-pressed', 'false')); body.innerHTML = ''; if (on) return; b.setAttribute('aria-pressed', 'true');
+    const c = X.card || scnhCard(n), l = scnhLive(n); body.innerHTML = `<h4>${X.card ? zInfo(X.card).t : zNode(n).t}</h4><div class="scnh-card"></div>${l ? `<p><button type="button" class="btn" data-hl="1">▶ החלון החי: ${zInfo(l).t}</button></p><div class="scnh-live"></div>` : ''}`;
+    if (c) scnhMount(body.querySelector('.scnh-card'), c);
+    const hl = body.querySelector('[data-hl]'); if (hl) hl.addEventListener('click', () => { hl.remove(); scnhMount(body.querySelector('.scnh-live'), l); }); }));
+}
 /* ============ Navigation: five groups instead of one long row, and a search over everything ============ */
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
@@ -14367,7 +14411,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.59.0';
+const APP_VERSION = '2.60.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
@@ -14375,7 +14419,7 @@ const APP_VERSION = '2.59.0';
   const setHash = h => { try { if (location.hash === h) return; if (base(location.hash || '') === base(h) || !location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch (e) { } };
   const _go = go; go = function (sheet, arg) { _go(sheet, arg); setHash('#/' + sheet + (typeof arg === 'string' && arg ? '/' + arg : '')); };
   const _q = showQ; showQ = function (id, seq) { _q(id, seq); setHash('#/q/' + id); };
-  const _p = playScn; playScn = function (id) { _p(id); setHash('#/scn/' + id); };
+  const _p = playScn; playScn = function (id) { zCapture(); _p(id); setHash('#/scn/' + id); scnHelp(SCN.find(x => x.id === id)); };   /* v2.60: the help to learn the fault (98c); captured windows are ready before the page is drawn */
   const route = () => {
     const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:-]+))?$/); if (!m) return;
     const [, a, b] = m;

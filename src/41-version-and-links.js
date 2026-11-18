@@ -1,5 +1,5 @@
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.59.0';
+const APP_VERSION = '2.60.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
@@ -7,7 +7,7 @@ const APP_VERSION = '2.59.0';
   const setHash = h => { try { if (location.hash === h) return; if (base(location.hash || '') === base(h) || !location.hash) history.replaceState(null, '', h); else history.pushState(null, '', h); } catch (e) { } };
   const _go = go; go = function (sheet, arg) { _go(sheet, arg); setHash('#/' + sheet + (typeof arg === 'string' && arg ? '/' + arg : '')); };
   const _q = showQ; showQ = function (id, seq) { _q(id, seq); setHash('#/q/' + id); };
-  const _p = playScn; playScn = function (id) { _p(id); setHash('#/scn/' + id); };
+  const _p = playScn; playScn = function (id) { zCapture(); _p(id); setHash('#/scn/' + id); scnHelp(SCN.find(x => x.id === id)); };   /* v2.60: the help to learn the fault (98c); captured windows are ready before the page is drawn */
   const route = () => {
     const m = (location.hash || '').match(/^#\/([\w-]+)(?:\/([\w:-]+))?$/); if (!m) return;
     const [, a, b] = m;

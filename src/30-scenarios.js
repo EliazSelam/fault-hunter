@@ -368,10 +368,10 @@ function playScn(id) {
   const par = s.tests.filter(t => t[3]).reduce((a, t) => a + t[1], 0);
   content.innerHTML = `<p style="margin:0"><button type="button" class="linkbtn" id="back">חזרה לרשימה</button></p>
     <h2 style="margin-top:6px">${s.title}</h2><p style="margin:0 0 10px;color:var(--muted)">${s.id} · ${s.area} · רמה ${s.lvl}</p>
-    ${s.exp ? `<div class="cols"><div class="note"><b>מה היה אמור לקרות</b><br>${bidi(s.exp)}</div><div class="note warn"><b>מה קורה בפועל</b><br>${bidi(s.ctx)}</div></div>` : `<p class="lead">${bidi(s.ctx)}</p>`}
-    ${s.plain ? `<details class="zplain" open><summary>מאפס: מה צריך לדעת כדי להבין את התקלה</summary><p>${bidi(s.plain)}</p>${PRINCIPLES[s.pi] ? `<p class="zpri">העיקרון שעוזר כאן: <button type="button" class="linkbtn" id="priB">${s.pi + 1}. ${PRINCIPLES[s.pi][0]}</button></p>` : ''}</details>` : ''}
+    ${s.exp ? `<div class="cols scn-top"><div class="note"><b>מה היה אמור לקרות</b><br>${bidi(s.exp)}</div><div class="note warn"><b>מה קורה בפועל</b><br>${bidi(s.ctx)}</div></div>` : `<p class="lead scn-top">${bidi(s.ctx)}</p>`}
+    ${s.plain ? `<details class="zplain scn-top" open><summary>מאפס: מה צריך לדעת כדי להבין את התקלה</summary><p>${bidi(s.plain)}</p>${PRINCIPLES[s.pi] ? `<p class="zpri">העיקרון שעוזר כאן: <button type="button" class="linkbtn" id="priB">${s.pi + 1}. ${PRINCIPLES[s.pi][0]}</button></p>` : ''}</details>` : ''}
     ${s.sys ? `<p class="bgline">לא בטוח מה תפקיד המערכת? <button type="button" class="linkbtn" id="bgB">רקע: ${scnSysName(s)}</button> · סוג התקלה: <b>${PRIN[s.pr][0]}</b></p>` : ''}
-    <div class="alarm">${s.sym.map(symLine).join('')}</div>
+    <div class="alarm scn-top">${s.sym.map(symLine).join('')}</div>
     <div class="clock">זמן השבתה עד עכשיו: <b id="down">0</b> דקות</div>
     <div class="cols"><div class="block"><h3>בדיקות אפשריות</h3><p style="margin:0 0 8px;font-size:14px;color:var(--muted)">לפני שלוחצים: איזו בדיקה תפריד בין שתי ההשערות הכי סבירות?</p>
       <div id="tests">${s.tests.map((t, i) => `<button type="button" class="test" data-i="${i}"><span>${t[0]}</span><small>${t[1]} דק׳</small></button>`).join('')}</div>

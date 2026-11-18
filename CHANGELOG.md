@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.60.0] — 2026-11-18
+
+A fault page gathers what helps to learn it.
+
+- **"How it should work", shown.** Under "what should have happened" a fault page opens its own topic working as it should (its live window, then its symbol), in place. A description like "the pins rise in under a second" no longer assumes the learner can picture the valve and the cylinder.
+- **Help to learn the fault.** Every part the fault's text names that the site teaches (a coil, a transistor, a diode, a relay, a valve…) is a hint: its component card and its live window open in place, one at a time, without leaving the fault and without costing time. Every one of the 51 faults has it.
+- **A question's own answer.** A bank question's page has a field to write one's answer before opening hints; the answer then shows beside it (the same notebook as the book's).
+- Tests: the `textbook` suite has 39 checks (every fault's help, a fault's parts opening in place, the topic working under "what should have happened", the question page's answer field).
+
 ## [2.59.0] — 2026-11-18
 
 The book is the lesson: a chapter is read whole, without leaving it, and the tools a learner needs are inside the page.

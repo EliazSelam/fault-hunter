@@ -182,6 +182,21 @@ ok(fok && SF.solved && SF.mark && SF.req, `a fault solved inside its frame count
 const BU = await ev(() => { nbSet('q:Q01', 'x'); myqSave([{ id: 'a', ch: 'b1', sec: '', secT: '', q: 'שאלה', guess: '', now: '', done: false, at: 1 }]); localStorage.setItem('fh-calc', '[{"x":"1+1","v":2}]'); const s = bkSnapshot(); return ['fh-notes', 'fh-myq', 'fh-calc'].every(k => typeof s.data[k] === 'string') && !s.data[EMB_PROBE]; });
 ok(BU, 'the progress backup carries the notebook, my questions and the calculator\'s history, and not the frames\' probe');
 
+/* 13b. a fault gathers what helps to learn it: its topic working as it should, and every part it names, opened in place (v2.60) */
+const SH = await ev(async () => { const w = ms => new Promise(r => setTimeout(r, ms)), none = [];
+  for (const s of SCN) { playScn(s.id); if (!document.getElementById('scnHelp') && !document.getElementById('scnhSee')) none.push(s.id); }
+  playScn('C-06'); const chips = [...document.querySelectorAll('#scnHelp [data-hi]')].map(x => x.textContent), dio = [...document.querySelectorAll('#scnHelp [data-hi]')].find(x => /דיודה/.test(x.textContent)); dio.click(); await w(30);
+  const card = document.querySelector('#scnHelp .scnh-card').textContent.trim().length, hl = document.querySelector('#scnHelp [data-hl]'); hl.click(); await w(200); const live = !!document.querySelector('#scnHelp .scnh-live').children.length;
+  const stays = location.hash === '#/scn/C-06' && !!document.getElementById('tests');
+  playScn('L1-05'); document.getElementById('scnhSee').click(); await w(200); const see = !!document.querySelector('#scnhMain .scnh-w').children.length, sch = !!document.querySelector('#scnhMain [data-hs]');
+  return { none, chips, card, live, stays, see, sch }; });
+ok(!SH.none.length, `every fault gathers help to learn it: its topic working, or the parts it names (${SH.none})`);
+ok(['סליל', 'טרנזיסטור', 'דיודה', 'ממסר'].every(k => SH.chips.some(c => c.includes(k))) && SH.card > 60 && SH.live && SH.stays, `a fault's parts are hints that open their card and live window in place, and the fault stays (${JSON.stringify(SH)})`);
+ok(SH.see && SH.sch, 'under "what should have happened", the fault\'s topic opens working, and its symbol after it');
+const QN = await ev(() => { localStorage.removeItem('fh-notes'); showQ('P16', ['P16']); const t = document.querySelector('#qa textarea.qnb'); if (!t) return { none: true }; t.value = 'כי הלייזר סגור בתוך המעטפת'; t.dispatchEvent(new Event('input', { bubbles: true }));
+  document.querySelector('#qa [data-sh="3"]').click(); const m = document.querySelector('#qa .bk-mine'); return { mine: m && m.textContent, ans: !!document.querySelector('#qa .bk-cmp'), kept: nbGet('q:P16') }; });
+ok(QN.mine === 'כי הלייזר סגור בתוך המעטפת' && QN.ans, `a bank question has a field for one's own answer, shown beside the answer (${JSON.stringify(QN)})`);
+
 /* 14. a phone: the chapter, an open frame, the drawer and the calculator fit the screen */
 await pg.setViewportSize({ width: 390, height: 844 });
 const PH = await ev(async () => { const w = ms => new Promise(r => setTimeout(r, ms)); BV.ch = 'b20'; BV.exam = null; zBookView(); await w(60); const e = document.querySelector('#bkCh .bk-win[data-emb]'); bookMount(e); await w(400);
