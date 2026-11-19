@@ -38,7 +38,7 @@ function nandLatch(Sb, Rb, Q, Qb) { for (let i = 0; i < 6; i++) { const nQ = +!(
 
 const DIG_NAV = [['why', 'למה צריך זיכרון', 'צירופי מול סדרתי'], ['sr', 'SR latch', 'הזיכרון הבסיסי'], ['dl', 'D latch', 'זיכרון עם שער'], ['dff', 'D flip-flop', 'עליית השעון'], ['jk', 'JK flip-flop', 'קביעה, איפוס, היפוך'], ['t', 'T flip-flop', 'מחלק ב-2'], ['tbl', 'טבלאות סיכום', 'אופייניות ועירור'], ['timing', 'שעון ותזמון', 'setup, hold, תדר מקסימלי'], ['reg', 'אוגרים', 'מקבילי והזזה'], ['cnt', 'מונים ומחלקי תדר', 'ripple, סינכרוני, mod-3, ג׳ונסון, טבעת'], ['lab', 'מעבדה', 'פליפ-פלופ ומונה חיים'], ['q', 'שאלות דיגיטלי', '']];
 const TT = (head, rows, hi) => `<div class="tablewrap"><table class="tt"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r, i) => `<tr${hi === i ? ' class="hi"' : ''}>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
-const FB = rows => `<div class="formulas"><b>נוסחאות</b>${tbl(['נוסחה', 'מה היא אומרת', 'דוגמה'], rows.map(r => [`<span class="mono" dir="ltr">${r[0]}</span>`, r[1], r[2] || '']))}</div>`;
+const FB = rows => `<div class="formulas"><b>נוסחאות</b>${tbl(['נוסחה', 'מה היא אומרת', 'דוגמה'], rows.map(r => [`<span class="mono" dir="ltr">${r[0]}</span>`, r[1], r[2] ? bidi(r[2]) : '']))}</div>`;
 const SB = (a, steps, rem) => `<div class="simple"><div class="sa"><b>בפשטות</b><p>${a}</p></div><div class="ss"><b>צעד אחר צעד</b><ol>${steps.map(s => `<li>${s}</li>`).join('')}</ol></div><p class="rem"><b>הדבר האחד לזכור:</b> ${rem}</p></div>`;
 
 function showDig(sub) {

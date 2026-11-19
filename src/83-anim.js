@@ -28,7 +28,7 @@ const ANIMS = {
       ctx.fillStyle = AC.text; ctx.fillText('b (µm) vs exposure t (µs) · dashed = one pixel', gx, gy - gh - 6);
     } },
   dof: { node: 'optics', t: 'עומק שדה וטשטוש פוקוס',
-    params: [['NA', 'NA', 0.05, 0.3, 0.005, 0.1, ''], ['dz', 'סטייה Δz', -60, 60, 1, 30, 'µm'], ['lam', 'אורך גל λ', 0.35, 0.65, 0.01, 0.45, 'µm'], ['p', 'פיקסל p', 2, 10, 0.02, 4.88, 'µm']],
+    params: [['NA', 'NA', 0.05, 0.3, 0.005, 0.2, ''], ['dz', 'סטייה Δz', -60, 60, 1, 30, 'µm'], ['lam', 'אורך גל λ', 0.35, 0.65, 0.01, 0.5, 'µm'], ['p', 'פיקסל p', 2, 10, 0.02, 4.88, 'µm']],
     calc: P => ({ b: 2 * P.NA * Math.abs(P.dz), dzg: P.p / (2 * P.NA), dof: P.lam / (2 * P.NA * P.NA), th: Math.asin(P.NA) * 180 / Math.PI }),
     steps: [(P, V) => `האור מתכנס לנקודה בקונוס בזווית θ = ${f1(V.th)}°, ו-NA = sin θ = <b>${P.NA}</b>.`,
       (P, V) => `מחוץ למוקד, במרחק Δz = ${P.dz} µm, הקונוס עדיין פתוח: b = 2 · Δz · tan θ.`,

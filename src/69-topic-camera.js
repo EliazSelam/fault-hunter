@@ -1,6 +1,6 @@
 /* ============ Topic: the line-scan camera and its lighting, from photon to image ============ */
-/* example values: 8k line sensor, 4.88 µm object pixel, 250 mm/s, strobe 2 µs, NA 0.1 at 450 nm; reflectance copper 0.6, laminate 0.15 */
-const CM = { v: 250, p: 4.88, ts: 2, I: 1, Rcu: 0.6, Rlam: 0.15, k: 200 / (0.6 * 2), NA: 0.1, lam: 0.45, dz: 0, vig: 0.35, ff: true, strobe: true };
+/* example values: 8k line sensor, 4.88 µm object pixel, 250 mm/s, strobe 2 µs, NA 0.2 at 500 nm (the same lens as the lens page and the strobe window); reflectance copper 0.6, laminate 0.15 */
+const CM = { v: 250, p: 4.88, ts: 2, I: 1, Rcu: 0.6, Rlam: 0.15, k: 200 / (0.6 * 2), NA: 0.2, lam: 0.5, dz: 0, vig: 0.35, ff: true, strobe: true };
 function camCalc(o = {}) {
   const c = Object.assign({}, CM, o), f = c.v / (c.p / 1000) / 1000, Tline = 1000 / f;               /* kHz, µs */
   const t = c.strobe ? c.ts : Tline;                                                                     /* light time per line, µs */
@@ -37,7 +37,7 @@ const CAM_FAULTS = [
       a: { q: 'הטשטוש רק בכיוון התנועה?', o: [['כן, רק לאורך הסריקה', 'L1'], ['בכל הכיוונים', 'b']] },
       b: { q: 'זה בכל הפאנל או באזור מסוים?', o: [['בכל הפאנל', 'L2'], ['באזור מסוים, בפינה', 'L3']] },
       L1: { leaf: 'מריחת תנועה: ההבזק ארוך מדי, או שאין הבזק והאור רציף.', fix: 'בודקים שהסטרוב פעיל ושזמן ההבזק לפי המתכון.', pr: 'הבזק קצר מקפיא תנועה.', sim: { strobe: false }, go: 's1/strobe' },
-      L2: { leaf: 'פוקוס: גובה הראש השתנה, או שהעדשה זזה.', fix: 'מכיילים פוקוס על מטרת כיול.', pr: 'עומק השדה צר: ±22 µm.', sim: { dz: 60 }, go: 's1/lens' },
+      L2: { leaf: 'פוקוס: גובה הראש השתנה, או שהעדשה זזה.', fix: 'מכיילים פוקוס על מטרת כיול.', pr: 'עומק השדה צר: ±6 µm.', sim: { dz: 60 }, go: 's1/lens' },
       L3: { leaf: 'הפאנל לא שטוח שם: ואקום חלש באזור.', fix: 'בודקים ואקום ושטיחות באזור.', pr: 'סימפטום אופטי, סיבה מכנית.', go: 'topic/vac' } } },
   { id: 'edge', step: 'ff', t: 'false calls בקצוות הרצועה', sym: 'הרבה false calls, כולם קרובים לשני הקצוות של כל רצועה.', start: 'a',
     nodes: {
@@ -56,10 +56,10 @@ const CAM_MATH = () => { const n = camCalc(), cont = camCalc({ strobe: false }),
   ['קצב שורות וזמן שורה', `${mM(mR(mI('f'), mO('='), mF(mI('v'), mI('p')), mO('='), mF(mR(mN('250'), mI('mm/s')), mR(mN('4.88'), mI('µm'))), mO('≈'), mN(n.f.toFixed(1)), mI('kHz'), mO(',&#8195;'), mS(mI('T'), mI('line')), mO('='), mF(mN('1'), mI('f')), mO('≈'), mN(n.Tline.toFixed(1)), mI('µs')), true)}`],
   ['מריחת תנועה', `${mM(mR(mS(mI('b'), mI('motion')), mO('='), mI('v'), mO('·'), mS(mI('t'), mI('light'))), true)}<p>עם הבזק של 2 µs: ${n.blurMot.toFixed(2)} µm (${(n.blurMot / CM.p).toFixed(2)} פיקסל). עם אור רציף לכל זמן השורה: ${cont.blurMot.toFixed(2)} µm, פיקסל שלם. לכן הבזק.</p>`],
   ['רמת אפור, ורוויה', `${mM(mR(mI('G'), mO('='), mI('k'), mO('·'), mI('R'), mO('·'), mI('I'), mO('·'), mI('t'), mO(',&#8195;'), mI('G'), mO('≤'), mN('255')), true)}<p>נחושת (R = 0.6): ${n.Gcu.toFixed(0)}, למינציה (R = 0.15): ${n.Glam.toFixed(0)}, פער ${n.margin.toFixed(0)}. אור כפול: הנחושת הייתה צריכה להגיע ל-400 ונקטעת ב-255, והלמינציה עולה ל-100. הפער גדל רק ל-${(Math.min(255, 2 * CM.k * 0.6 * 2) - 2 * CM.k * 0.15 * 2).toFixed(0)} במקום 300, וכל מה שבתוך הנחושת, כמו אזור של נחושת דקה, נראה אותו דבר: 255.</p>`],
-  ['פוקוס ועומק שדה', `${mM(mR(mI('DOF'), mO('≈'), mO('±'), mF(mI('λ'), mR(mN('2'), mSup(mI('NA'), mN('2')))), mO('='), mO('±'), mF(mN('0.45'), mR(mN('2'), mO('·'), mN('0.01'))), mO('='), mO('±'), mN(n.dof.toFixed(1)), mI('µm'), mO(',&#8195;'), mS(mI('b'), mI('defocus')), mO('≈'), mN('2'), mI('NA'), mO('·'), mI('Δz')), true)}<p>ב-Δz = 60 µm (מחוץ לעומק השדה): טשטוש של ${def.blurDef.toFixed(0)} µm, כ-${def.blurPx.toFixed(1)} פיקסלים.</p>`],
+  ['פוקוס ועומק שדה', `${mM(mR(mI('DOF'), mO('≈'), mO('±'), mF(mI('λ'), mR(mN('2'), mSup(mI('NA'), mN('2')))), mO('='), mO('±'), mF(mN('0.5'), mR(mN('2'), mO('·'), mN('0.04'))), mO('='), mO('±'), mN(n.dof.toFixed(1)), mI('µm'), mO(',&#8195;'), mS(mI('b'), mI('defocus')), mO('≈'), mN('2'), mI('NA'), mO('·'), mI('Δz')), true)}<p>ב-Δz = 60 µm (מחוץ לעומק השדה): טשטוש של ${def.blurDef.toFixed(0)} µm, כ-${def.blurPx.toFixed(1)} פיקסלים.</p>`],
   ['תיקון שדה', `${mM(mR(mS(mI('G'), mI('corr')), mO('('), mI('x'), mO(')'), mO('='), mS(mI('G'), mI('raw')), mO('('), mI('x'), mO(')'), mO('·'), mF(mI('W̄'), mR(mI('W'), mO('('), mI('x'), mO(')')))), true)}<p>W היא תמונת ייחוס לבנה. אם הקצוות מקבלים 65% מהאור, אותה נחושת נראית ${(n.Gcu * (1 - CM.vig)).toFixed(0)} בקצה במקום ${n.Gcu.toFixed(0)}, והתיקון מחזיר אותה.</p>`]
 ]; };
-{ const n = camCalc(); VERIFY.push(['CAM f', n.f, 250 / 0.00488 / 1000, 1e-9], ['CAM blur strobe', n.blurMot, 0.5, 1e-12], ['CAM Gcu', n.Gcu, 200, 1e-9], ['CAM Glam', n.Glam, 50, 1e-9], ['CAM dof', n.dof, 22.5, 1e-9]); }
+{ const n = camCalc(); VERIFY.push(['CAM f', n.f, 250 / 0.00488 / 1000, 1e-9], ['CAM blur strobe', n.blurMot, 0.5, 1e-12], ['CAM Gcu', n.Gcu, 200, 1e-9], ['CAM Glam', n.Glam, 50, 1e-9], ['CAM dof', n.dof, 6.25, 1e-9]); }
 function camScene(cv, sim) {
   const V = view3(cv, { yaw: -0.5, pitch: 0.5, dist: 13, fov: 450, ox: 150, oy: -40, onView: () => paint(V.last || [0, 0]) });
   const { ink, live, mech, line, tint, text, sheet } = cssPalette();

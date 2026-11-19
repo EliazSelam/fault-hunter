@@ -10,7 +10,7 @@ const ZOOM = [
   /* 5 · the process: scan, find, repair; and the work around it */
   ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ', 'p:s2/machine'], ['cam', 'servo', 'vac', 'safety', 'laser', 'pwr', 'ecat']),
   ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas']),
-  ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi'], []),
+  ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi', 'f:ind'], []),
   /* 4 · systems working in parallel */
   ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ', 'p:opt/ov', 'p:opt/q', 'p:opt/ch'], ['trig', 'optics', 'reg']),
   ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ', 'p:s2/servo'], ['loop', 'trans']),
@@ -37,20 +37,20 @@ const ZOOM = [
   ZN('pwm', 2, 'PWM וגשר H', 'c:pwm:story', ['c:pwm:steps', 'c:pwm:bench', 'c:pwm:formulas', 'c:pwm:wrong'], ['mosfet']),
   ZN('brake', 2, 'בלם החזקה', 'c:brake:story', ['c:brake:steps', 'c:brake:bench', 'c:brake:formulas', 'c:brake:wrong'], ['coil']),
   ZN('fits', 2, 'התאמות, טולרנסים ושרטוט מכני', 'c:fits:story', ['c:fits:steps', 'c:fits:bench', 'c:fits:formulas', 'c:fits:wrong', 'p:b/mech', 'p:b/mdrill']),
-  ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q']),
-  ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire'], ['sensors']),
-  ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall']),
+  ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q', 'f:logic']),
+  ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire', 'f:meas'], ['sensors']),
+  ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'f:sensors']),
   /* 1 · components */
-  ZN('resistor', 1, 'נגד', 'a:נגד', ['p:b/decode']),
-  ZN('capacitor', 1, 'קבל', 'a:קבל קרמי (לא מקוטב)', ['a:קבל אלקטרוליטי (מקוטב)']),
-  ZN('coil', 1, 'סליל', 'a:סליל (משרן)', []),
-  ZN('diode', 1, 'דיודה ו-LED', 'a:דיודה', ['a:זנר / TVS', 'a:נורית LED']),
-  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', []),
-  ZN('fuse', 1, 'פיוז', 'a:פיוז', []),
-  ZN('switch', 1, 'מתג ולחצן', 'a:מתג ולחצן', []),
-  ZN('source', 1, 'מקור מתח והארקה', 'a:ספק ומקור מתח', ['a:הארקות ו-0V']),
-  ZN('xfmr', 1, 'שנאי', 'a:שנאי', ['p:mot/xfmr']),
-  ZN('connector', 1, 'הדקים ומחברים', 'a:הדקים ומחברים', []),
+  ZN('resistor', 1, 'נגד', 'a:נגד', ['p:b/decode', 'f:resistor']),
+  ZN('capacitor', 1, 'קבל', 'a:קבל קרמי (לא מקוטב)', ['a:קבל אלקטרוליטי (מקוטב)', 'f:capacitor']),
+  ZN('coil', 1, 'סליל', 'a:סליל (משרן)', ['f:coil']),
+  ZN('diode', 1, 'דיודה ו-LED', 'a:דיודה', ['a:זנר / TVS', 'a:נורית LED', 'f:diode']),
+  ZN('mosfet', 1, 'טרנזיסטור', 'a:טרנזיסטור (BJT / MOSFET)', ['f:mosfet']),
+  ZN('fuse', 1, 'פיוז', 'a:פיוז', ['f:fuse']),
+  ZN('switch', 1, 'מתג ולחצן', 'a:מתג ולחצן', ['f:switch']),
+  ZN('source', 1, 'מקור מתח והארקה', 'a:ספק ומקור מתח', ['a:הארקות ו-0V', 'f:source']),
+  ZN('xfmr', 1, 'שנאי', 'a:שנאי', ['p:mot/xfmr', 'f:xfmr']),
+  ZN('connector', 1, 'הדקים ומחברים', 'a:הדקים ומחברים', ['f:connector']),
 ];
 /* the chain from the drawing is the core of each scale; the rest are expansions around it */
 const ZCORE = new Set(['proc', 'cam', 'vac', 'trig', 'valve', 'relay', 'resistor', 'coil', 'capacitor']);
@@ -159,7 +159,7 @@ function zMountBase(w, el) {
   if (k === 't') {
     if (b === 'scene') { _topicSee0(el, T); }
     else if (b === 'flow') topicArch(el, T); else if (b === 'rev') topicRev(el, T); else if (b === 'quiz') topicAsk(el, T); else if (b === 'integ') topicInteg(el, T);
-    else if (b === 'math') { const m = T.math()[+c]; el.innerHTML = m ? m[1] : ''; }
+    else if (b === 'math') { const m = T.math()[+c]; el.innerHTML = m ? `<div class="mathbox nogl">${m[1]}</div>${typeof symLegend === 'function' ? symLegend(T.id, m[0], m[1]) : ''}` : ''; }
     else if (b === 'fault') { TSTATE.fault = c; TSTATE.node = null; TSTATE.path = []; FGRADE = 'guided'; topicFault(el, T); }
   } else if (k === 'c') {
     const C = COMPONENTS.find(x => x.id === a);
@@ -169,7 +169,7 @@ function zMountBase(w, el) {
   else if (k === 'fig') { el.innerHTML = anatBlock(a); mountAnat(el); }
   else if (k === 'sim') ({ scan3d: scanSim, cr3d: craterSim, bs3d: bsSim, mlab: motorLab })[a](el);
   else if (k === 'p') { const r = w.slice(2); el.innerHTML = `<p>${zRouteTitle(r)}: חלון קיים בגודל עמוד. הוא נפתח במקומו, ויש דרך חזרה לכאן.</p><p><button type="button" class="zgo" data-route="${r}">פתח ←</button></p>`; el.querySelector('.zgo').addEventListener('click', () => zOpenPage(r)); }
-  else { zCapture(); el.innerHTML = ZCAP[w] || ''; }
+  else { zCapture(); el.innerHTML = ZCAP[w] || ''; if (/^m:why:(deriv|formulas)$/.test(w) && typeof symLegendText === 'function') el.insertAdjacentHTML('beforeend', symLegendText('motor', '', [el.textContent])); }
 }
 const WIN_BASE = WIN.add({ id: 'base', test: () => true, info: zInfoBase, mount: zMountBase });
 

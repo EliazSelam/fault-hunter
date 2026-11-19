@@ -130,7 +130,7 @@ await pg.evaluate(() => { ZG.q = ''; });
 const AV = await pg.evaluate(() => Object.fromEntries(Object.entries(ANIMS).map(([k, A]) => [k, A.calc(Object.fromEntries(A.params.map(p => [p[0], p[5]])))])));
 const near = (a, b, tol) => Math.abs(a - b) <= tol;
 ok(near(AV.scan.f, 51.2, 0.1) && near(AV.scan.b, 0.5, 1e-9) && near(AV.scan.bpx, 0.10, 0.005), 'animation scan: f = v/p = 51.2 kHz, blur 0.50 µm = 0.10 px, as in the camera model');
-ok(near(AV.dof.dof, 22.5, 0.05) && near(AV.dof.b, 6, 1e-9), 'animation dof: ±λ/(2NA²) = ±22.5 µm, b = 2·NA·Δz');
+ok(near(AV.dof.dof, 6.25, 0.05) && near(AV.dof.b, 12, 1e-9), 'animation dof: ±λ/(2NA²) = ±6.25 µm, b = 2·NA·Δz');
 ok(near(AV.crater.F0, 7.07, 0.01) && near(AV.crater.D, 10.6, 0.05) && near(AV.crater.h0, 6.2, 0.05) && near(AV.crater.Dc, 4.7, 0.06), 'animation crater: F₀ 7.07, D 10.6, depth 6.2, full cut 4.7 µm, as in the laser simulation');
 ok(await pg.evaluate(() => { const a = ANIMS.pump.calc({ S: VT.S, C: VT.C, V: VT.V }), b = vacCalc(); return Math.abs(a.pss - b.pss) < 1e-9 && Math.abs(a.tth - b.tth) < 1e-9; }), 'animation pump: the same p_ss and t_th as the vacuum model');
 ok(near(AV.servo.wn, 200, 1e-6) && near(AV.servo.z, 0.61, 1e-9) && near(AV.servo.Mp, 8.9, 0.05) && Math.abs(AV.servo.ts - AV.servo.ts4) / AV.servo.ts4 < 0.15, 'animation servo: ω_n 200, ζ 0.61, Mp 8.9%, simulated settling within 15% of 4/(ζω_n)');

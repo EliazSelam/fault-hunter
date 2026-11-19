@@ -179,7 +179,7 @@ const FORM = {
   'sys:card': [['P_LDO = (V_in − V_out) · I', 'החום במייצב ליניארי', '(5 − 3.3) × 0.2 A = 0.34 W'], ['I_in ≈ V_out · I_out / (η · V_in)', 'זרם הכניסה של ממיר ממותג', '5 V × 1 A / (0.9 × 24 V) ≈ 0.23 A'], ['R = (V − V_f) / I', 'נגד לנורית', '(24 − 2) / 0.01 = 2.2 kΩ']],
   'sys:machine': [['passes = ⌈W / FOV⌉', 'מספר מעברי הסריקה', '⌈500 / 57⌉ = 9'], ['t_scan ≈ passes · L / v', 'זמן הסריקה', '9 × 600 mm / 200 mm/s = 27 s']]
 };
-function formBox(key) { const r = FORM[key]; return r ? FB(r) : ''; }
+function formBox(key) { const r = FORM[key]; return r ? FB(r) + (typeof symLegendText === 'function' ? symLegendText('f:' + key, '', r.map(x => x[0])) : '') : ''; }
 
 /* ============ Built-in numeric self-check ============ */
 const VERIFY = [

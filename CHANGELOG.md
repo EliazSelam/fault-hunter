@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.62.0] — 2026-11-19
+
+A sweep across all content: math and concepts everywhere, one lens, no duplicates.
+
+- **Every node has a math level.** The 14 component nodes that lacked one (resistor, capacitor, coil, diode, MOSFET, fuse, switch, source, transformer, connector, logic, measurement, sensors, industrial indicators) gained a formula window (`f:<key>`, `src/71d-form-more.js`, `src/78b-form-win.js`) with formula, meaning and a computed worked example.
+- **Symbol legend in the zoom windows.** In 2.61.0 the legend appeared only on the topic pages; the zoom math windows and the formula boxes now carry it too (symbol, reading, unit, meaning).
+- **Engineer level and math level have separate roles.** The engineer level shows the steps and the final equation; the derivation and the numbers live in the math level (`ENGMAP`), so nothing is said twice.
+- **One lens.** Camera depth of field uses NA 0.2 and wavelength 0.5 µm everywhere (formula, simulation, tests): about ±6.25 µm.
+- **Duplicates.** A cross-bank scan of questions, scenarios, glossary and the 78 pages found one duplicated question (the 24 V measuring point, power vs bring-up); replaced by a different one (loaded vs unloaded supply). Remaining page overlaps are shared navigation text only.
+- Display fix: a worked example in a formula box no longer reverses its numbers.
+- Tests: new `math` suite (every node has a math level, every symbol explained, no run-on equation, no derivation in the engineer level, one lens). 17 suites.
+
 ## [2.61.0] — 2026-11-19
 
 The engineer level reads as a derivation.

@@ -152,3 +152,11 @@ Every new English term must be defined (in `TERM_NEW` in `src/58-terms.js`, or i
 ## Open items
 1. Review every fault's wrong options against its test results (no script can). VALIDATION.md §6.
 2. Hand re-derivation of the digital-logic questions (currently covered by the logic checks only).
+
+## Math, symbols and the engineer level
+
+- `ENGSTEPS` (`src/71b-eng-steps.js`): per topic, numbered steps `{t, eq:[lines], note}`; each equation on its own line, left to right. `ENGMAP` ties each step to the math blocks that hold its derivation and numbers; the engineer level shows steps and the final equation only, the math level shows derivation and numbers (never both).
+- `SYMD` (`src/71c-symbols.js`): per topic (and `f:<key>` for formula boxes) a dictionary `symbol -> E(english, hebrew, unit, meaning)`. `symLegend` prints the table under every derivation. A symbol without an entry fails `topics_audit` / `math_audit`.
+- `f:<key>` windows (`src/78b-form-win.js`): the formula box of a component node (`FORM`, `src/39i`, `src/71d-form-more.js`), so every zoom node has a math level.
+- One lens: camera DOF uses `CM` (NA 0.2, lambda 0.5 um); `ANIMS.dof` and the tests use the same values.
+- `tests/math_audit.mjs` checks all of this.
