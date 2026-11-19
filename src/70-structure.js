@@ -71,6 +71,7 @@ LEVELS.push(['show', 'תצוגת תכלית', 'מקצה לקצה'], ['arch', 'ז
 function f3Card(T, lvl) {
   const A = ARCH[T.id], i = { show: 0, arch: 1, eng: 2 }[lvl]; if (!A || i == null) return '';
   const who = ['רמת המנכ"ל', 'רמת הארכיטקט', 'רמת המהנדס'][i];
+  if (i === 2 && typeof engStepsHtml === 'function' && ENGSTEPS[T.id]) return `<div class="f3card"><span class="kb">פיינמן אנכי · ${who}</span> <b>המתמטיקה, צעד אחר צעד:</b> כל שלב נגזר מהקודם.</div>${engStepsHtml(T.id)}`;
   return `<div class="f3card"><span class="kb">פיינמן אנכי · ${who}</span> ${i === 0 ? `<b>למה זה חשוב:</b> ${A.why} ` : ''}${bidi(A.f3[i])}</div>`;
 }
 function topicShow(L, T) {

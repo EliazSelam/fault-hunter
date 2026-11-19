@@ -185,7 +185,7 @@ function topicFault(L, T) {
   const deep = $('#tfDeep'); if (deep) deep.addEventListener('click', () => routeGo(n.go));
 }
 function topicMath(L, T) {
-  L.innerHTML = `<p>כאן המספרים שמאחורי כל שלב, בגזירה מלאה. הערכים הם דוגמה, ונבדקים בבדיקה העצמית.</p>` + T.math().map(([t, h]) => `<details class="drill" open><summary>${t}</summary><div class="mathbox">${h}</div></details>`).join('') + `<p class="note">להתעמקות בסגנון הקיים: ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
+  L.innerHTML = `<p>כאן המספרים שמאחורי כל שלב, בגזירה מלאה. הערכים הם דוגמה, ונבדקים בבדיקה העצמית.</p>` + T.math().map(([t, h]) => `<details class="drill" open><summary>${t}</summary><div class="mathbox nogl">${h}</div>${typeof symLegend === 'function' ? symLegend(T.id, t, h) : ''}</details>`).join('') + `<p class="note">להתעמקות בסגנון הקיים: ${T.deep.map(([r, t]) => `<button type="button" class="linkbtn" data-r="${r}">${t}</button>`).join(' · ')}</p>`;
   L.querySelectorAll('[data-r]').forEach(b => b.addEventListener('click', () => routeGo(b.dataset.r)));
 }
 

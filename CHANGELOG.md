@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.61.0] — 2026-11-19
+
+The engineer level reads as a derivation.
+
+- **Step by step.** The "engineer level" box of each of the nine architecture topics (camera, AOI, servo, AOS, bring-up, vacuum, safety, power, EtherCAT) was one line of formulas joined by semicolons. It is now numbered steps (`ENGSTEPS`, `src/71b-eng-steps.js`): what is computed, each equation on a line of its own, left to right, then what it means. Each formula is derived from the one before it (for example the vacuum time to threshold from the pressure equation, the AOS crater from the Gaussian profile and the ablation depth law). The glossary does not run inside an equation.
+- - **What every symbol means.** Under every derivation (the math level and the engineer level) a table lists each symbol in it: how it is read in English and Hebrew, its unit, and what it stands for there (`SYMD`, `src/71c-symbols.js`). The same letter can mean two things in one topic (a pixel size or a mark position), and the table follows the block it is under.
+- Tests: `topics_audit` checks every topic has its steps, no empty equation, no run-on line, and no symbol in a derivation without its explanation.
+
 ## [2.60.0] — 2026-11-18
 
 A fault page gathers what helps to learn it.

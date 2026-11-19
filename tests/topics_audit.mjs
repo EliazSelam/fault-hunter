@@ -93,6 +93,12 @@ for (const T of topics) {
   const ST = await pg.evaluate(() => TOPICS.map(T => { const A = ARCH[T.id]; return { id: T.id, has: !!A, why: A && A.why, f3: A && A.f3, blocks: A ? A.blocks.map(b => [b.id, b.k]) : [], flows: A ? A.flows.map(f => [f.a, f.b, f.s, f.t, f.st]) : [], rev: A ? Object.entries(A.rev).map(([k, r]) => [k, r[0], r[1], !!r[2]]) : [], steps: T.steps.map(s => s.id) }; }));
   for (const S of ST) {
     ok(S.has && S.why && S.f3 && S.f3.length === 3 && S.f3.every(x => x && x.length > 40), `${S.id}: value statement and three Feynman levels (CEO, architect, engineer)`);
+    const EN = await pg.evaluate(id => ({ n: (ENGSTEPS[id] || []).length, bad: (ENGSTEPS[id] || []).filter(s => !s.t || !s.note || !s.eq.length || s.eq.some(l => !l.trim())).length, html: (() => { const T = TOPICS.find(x => x.id === id); return T ? f3Card(T, 'eng') : ''; })() }), S.id);
+    ok(EN.n >= 3 && EN.bad === 0 && (EN.html.match(/class="engstep"/g) || []).length === EN.n && !(EN.html.match(/<div class="engm">[^<]*<\/div>/g) || []).some(l => /;/.test(l.replace(/&[a-z]+;/g, ''))), `${S.id}: the engineer level is ${EN.n} numbered steps, each with its equations on lines of their own (no run-on line)`);
+    const SY = await pg.evaluate(id => { const T = TOPICS.find(x => x.id === id); if (!T || !T.math) return { n: 0, miss: [], empty: [] }; const miss = [], empty = []; let n = 0;
+      for (const [t, h] of T.math()) { n++; const d = document.createElement('div'); d.innerHTML = h; d.querySelectorAll('math').forEach(m => symTokens(m).forEach(k => { if (!SYM_IGNORE.has(k) && !symLookup(id, k, t)) miss.push(t + ': ' + k); })); if (!/<tr><td/.test(symLegend(id, t, h))) empty.push(t); }
+      return { n, miss, empty }; }, S.id);
+    ok(SY.miss.length === 0 && SY.empty.length === 0, `${S.id}: every symbol of its ${SY.n} derivations is explained (name, unit, meaning)${SY.miss.length ? ' - missing ' + SY.miss.join('; ') : ''}${SY.empty.length ? ' - no legend ' + SY.empty.join('; ') : ''}`);
     const ids = S.blocks.map(b => b[0]);
     S.flows.forEach(([a, b, s, l, st]) => { ok(ids.includes(a) && ids.includes(b) && 'edmop'.includes(s) && l && st.length && st.every(x => S.steps.includes(x)), `${S.id}: flow ${a}→${b} has real ends, a signal kind and real steps`); });
     S.steps.forEach(sid => ok(S.flows.some(f => f[4].includes(sid)), `${S.id}: step ${sid} has at least one active flow`));
