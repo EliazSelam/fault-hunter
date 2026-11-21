@@ -11,7 +11,7 @@ function showHubX(key, sub) {
   const q = h.nav.find(n => n[0] === 'q'); if (q) q[2] = QB.filter(x => x.t === h.qt).length + ' שאלות';
   const B = hubFrame(h.title, h.lead, h.nav, sub, k => showHubX(key, k));
   if (sub === 'q') qList(B, h.qt, () => showHubX(key, 'q'));
-  else { B.innerHTML = `<h2 style="font-size:24px">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); }
+  else { B.innerHTML = `<h2 style="font-size:24px">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); hxSimMount(B, key + '/' + sub); }
   setTitle(h.tab, h.nav.find(n => n[0] === sub)[1], h.std);
 }
 /* a hub's terms: defined here unless the glossary already has them (then the hub only links to them) */

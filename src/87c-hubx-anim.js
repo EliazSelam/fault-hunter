@@ -92,5 +92,5 @@ function hxHome(w, node, level) { ZOOM.forEach(z => { const i = z.around.indexOf
 WIN.add({ id: 'hxpage', test: w => { const m = /^p:([a-z]+)\/([a-z0-9]+)$/.exec(w); return !!(m && HUBX[m[1]] && HUBX[m[1]].pages[m[2]] && m[2] !== 'lab'); }, info: w => zInfoBase(w),
   mount: (w, el) => { const [h, s] = w.slice(2).split('/'), H = HUBX[h];
     el.innerHTML = `<div class="hxinline">${H.pages[s]()}</div><p class="hxfrom">${bidi('מתוך הנושא «' + H.tab + '».')} <button type="button" class="linkbtn" data-hxr="${h}/${s}">פתח כעמוד מלא ←</button></p>`;
-    if (H.mount && H.mount[s]) H.mount[s](el);
+    if (H.mount && H.mount[s]) H.mount[s](el); hxSimMount(el.querySelector('.hxinline'), h + '/' + s);
     el.querySelector('[data-hxr]').addEventListener('click', e => routeGo(e.target.dataset.hxr)); } });

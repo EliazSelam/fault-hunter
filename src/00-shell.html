@@ -307,6 +307,15 @@ header.top{align-items:center}
 .tt th,.tt td{border:1px solid var(--line);padding:5px 12px;text-align:center;font-variant-numeric:tabular-nums}
 .tt th{background:var(--tint);color:var(--ink)}
 .tt tr.hi td{background:var(--livetint);font-weight:700;color:var(--ink)}
+/* live figures of the algorithm pages (39s, 39t) */
+.hxs{border:1.5px solid var(--live);border-radius:10px;padding:10px 12px 0;margin:14px 0;background:var(--sheet)}
+.hxs-head{color:var(--ink);margin-bottom:6px;font-size:15px}
+.hxs-fig svg{display:block;width:100%;max-width:680px;height:auto;margin:0 auto 4px}
+.hxs-ctl{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 16px;margin:8px 0;font-size:13px}
+.hxs-c{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.hxs-c input,.hxs-c select{grid-column:1/-1;width:100%}
+.hxs-c b{font-variant-numeric:tabular-nums;unicode-bidi:isolate;direction:ltr}
+.hxs .readout{margin:0 -12px}
 /* the topic list (99c-toc.js) */
 #toc{display:none;background:var(--sheet);padding:14px 12px 40px;font-size:14px;line-height:1.35;box-sizing:border-box;overflow-y:auto}
 body.toc-dock .wrap{max-width:1500px}
@@ -345,6 +354,7 @@ body.toc-drawer #toc{box-shadow:-8px 0 24px rgba(27,47,90,.25)}
 .toc-cnt{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums;unicode-bidi:isolate}
 .toc-new{display:inline-block;font-size:11px;font-weight:700;color:var(--sheet);background:var(--mech);border-radius:9px;padding:0 6px;vertical-align:1px}
 .toc-dot{color:var(--mech);font-size:10px}
+.toc-live{display:inline-block;font-size:10.5px;color:var(--live);border:1px solid var(--live);border-radius:8px;padding:0 5px;vertical-align:1px}
 @media print{#toc{display:none!important}body.toc-dock .sheetrow{display:block}}
 .codebox{border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
 .codebox pre{overflow-x:auto;font-size:13px;line-height:1.45;margin:6px 0 0;text-align:left;white-space:pre}

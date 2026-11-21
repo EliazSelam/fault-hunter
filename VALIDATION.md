@@ -108,4 +108,4 @@ A chapter must be readable whole without leaving it. The suite reads every chapt
 
 ## 7. One command (`tests/run_all.sh`)
 
-Builds, then runs all eighteen suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.
+Builds, then runs all nineteen suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.

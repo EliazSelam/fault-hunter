@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.67.0] — 2026-11-22
+
+The algorithms can be seen and moved.
+
+- **27 live figures** in the algorithm pages (`src/39s-hxsim.js`, `src/39t-hxsim2.js`), each with sliders, a drawing in the palette and a readout that explains what changed. They open on the hub page and inside the machine topic that holds the page.
+  - Fitting: transformations from shift to homography on a grid; how error grows away from the fiducials; the error budget (RSS against a plain sum); barrel and pincushion distortion; a least-squares line pulled by one outlier; least squares against RANSAC.
+  - Image: histogram, threshold and Otsu; moving average (noise against edge width); NCC curve with a decoy; autofocus with parabola; connected components you can click (4 and 8 side by side); erosion of a neck; serpentine scan plan with time and throughput.
+  - Signals and control: quantization and SNR; spectrum with resolution, leakage and Hann; encoder speed steps and averaging; trapezoid against S profile (v and a); Bode and step response of a PD-tuned axis; second-order overshoot and settling; Kalman against position differencing; laser pulses over a defect with coverage.
+  - Statistics and reliability: the normal curve, accuracy against precision on a target, Gage R&R bars with the verdict, a control chart with a shift and the run rule, a fault tree with common-cause failure, R(t) and failures in a fleet.
+- `hxChart` draws line charts, bars, bands and markers in the palette (log axis for Bode).
+- The topic list marks windows that move ("חי").
+- Tests: new suite `live` (every figure draws, survives every slider at both ends without NaN, reacts, the clickable grid recounts, seven figures open inside their machine topics). 19 suites.
+
 ## [2.66.0] — 2026-11-22
 
 The algorithms are part of the machine, and the topic list is part of the sheet.
