@@ -167,4 +167,5 @@ Every new English term must be defined (in `TERM_NEW` in `src/58-terms.js`, or i
 - Hubs: `fit` (39m), `img` (39n), `stat` (39o), `sig` (39p), `rel` (39q). Their formula boxes and symbols are in `71f-hubx-math.js`, animations and 3D parts in `87c-hubx-anim.js`, term links and categories in `58c-hubx-terms.js`.
 - A hub term goes through `hxTerm(hub, key, [full, short])`: if the glossary already has the key it is only linked (listed in `HXDUP`), and if the lexicon has it the hub's copy is dropped.
 - The topic list (`src/99c-toc.js`): `tocTree()` (book chapters → zoom nodes, then nodes in no chapter), `tocLevels(n)` (lesson pages, then HUBS levels), state in `TS`, opened windows in localStorage `fh-toc`. Its DOM is outside `#content` and uses toc-* classes and data-tc/tn/tl/tw, so no other suite counts it. `TOC_NEW` lists the nodes marked new.
+- Applied algorithm pages have their home in a machine node (`hxHome(w, node, level)` in `87c-hubx-anim.js`, level via `HUBW`), and the window kind `hxpage` renders a hub page inline in the zoom. `bidiX` (39l) is the math-aware bidi for hub pages.
 

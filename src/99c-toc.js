@@ -4,7 +4,7 @@
    are is highlighted, what you opened is ticked, and what was added in 2.63 and 2.64 carries "חדש". Wide screens keep it docked at
    the side; narrower ones open it from the header button. Classes are toc-*, attributes data-tc / data-tn / data-tl / data-tw. */
 const TOC_NEW = new Set(['serial', 'fit', 'img', 'stat', 'sig', 'rel']);
-const TOC_KEY = 'fh-toc', TOC_DOCK = 1500;
+const TOC_KEY = 'fh-toc', TOC_DOCK = 1360;
 const TS = { open: {}, lvl: {}, node: null, q: '', drawer: false, hidden: false };
 const tocSeen = (() => { let S = null; const load = () => { if (!S) { try { S = new Set(JSON.parse(localStorage.getItem(TOC_KEY) || '[]')); } catch (e) { S = new Set(); } } return S; };
   return { has: k => load().has(k), add: k => { const s = load(); if (s.has(k)) return false; s.add(k); try { localStorage.setItem(TOC_KEY, JSON.stringify([...s])); } catch (e) { } return true; } }; })();
@@ -21,7 +21,7 @@ const tocShort = t => String(t).split(':')[0].trim();
 /* a topic's levels: its own lesson pages first, then the explanation levels of the zoom hub */
 const TOC_PAGES = ['pages', 'עמודי הלימוד', 0, [], '#3078B0'];
 function tocLevels(n) { const by = {}, pages = [];
-  zWindows(n).forEach(w => { if (zInfo(w).kind === 'page') pages.push(w); else (by[hubOf(w)] = by[hubOf(w)] || []).push(w); });
+  zWindows(n).forEach(w => { if (zInfo(w).kind === 'page' && !HUBW[w]) pages.push(w); else (by[hubOf(w)] = by[hubOf(w)] || []).push(w); });
   return [...(pages.length ? [[TOC_PAGES, pages]] : []), ...HUBS.filter(h => by[h[0]]).map(h => [h, by[h[0]]])]; }
 /* where the reader is now: a zoom topic, or the topic that holds the page on screen */
 function tocCurrent() {
@@ -80,7 +80,10 @@ function tocLayout() {
 }
 function tocInit() {
   if (document.getElementById('toc')) return;
-  const A = document.createElement('aside'); A.id = 'toc'; A.setAttribute('aria-label', 'רשימת הנושאים לפי הסדר'); document.body.appendChild(A);
+  /* the list is a column of the drawing sheet itself: sheet and list share one frame */
+  const A = document.createElement('aside'); A.id = 'toc'; A.setAttribute('aria-label', 'רשימת הנושאים לפי הסדר');
+  const sheet = document.getElementById('sheet'), row = document.createElement('div'); row.className = 'sheetrow';
+  sheet.parentNode.insertBefore(row, sheet); row.appendChild(A); row.appendChild(sheet);
   const ctl = document.querySelector('header .hdrctl'); if (ctl) { const b = document.createElement('button'); b.type = 'button'; b.id = 'tocBtn'; b.className = 'theme'; b.textContent = 'רשימת הנושאים'; b.setAttribute('aria-controls', 'toc'); ctl.prepend(b);
     b.addEventListener('click', () => { if (window.innerWidth >= TOC_DOCK) TS.hidden = !TS.hidden; else TS.drawer = !TS.drawer; TS.scrollCur = true; tocLayout(); tocRender(); }); }
   A.addEventListener('click', e => {
@@ -90,7 +93,7 @@ function tocInit() {
     if (t.dataset.tt) { TS.open[t.dataset.tt] = !TS.open[t.dataset.tt]; tocRender(); return; }
     if (t.dataset.tl) { const k = t.dataset.tl, [id, lv] = k.split('|'), lOpen = A.querySelector(`[data-tl="${k}"]`).getAttribute('aria-expanded') === 'true'; TS.lvl[k] = !lOpen; tocRender(); return; }
     if (t.dataset.tn) { TS.open[t.dataset.tn] = true; TS.drawer = false; go('zoom', t.dataset.tn); return; }
-    if (t.dataset.tw) { const i = t.dataset.tw.indexOf('|'), id = t.dataset.tw.slice(0, i), w = t.dataset.tw.slice(i + 1); tocSeen.add(w); TS.open[id] = true; TS.lvl[id + '|' + (zInfo(w).kind === 'page' ? 'pages' : hubOf(w))] = true; TS.drawer = false; zOpenWindow(id, w); }
+    if (t.dataset.tw) { const i = t.dataset.tw.indexOf('|'), id = t.dataset.tw.slice(0, i), w = t.dataset.tw.slice(i + 1); tocSeen.add(w); TS.open[id] = true; TS.lvl[id + '|' + (zInfo(w).kind === 'page' && !HUBW[w] ? 'pages' : hubOf(w))] = true; TS.drawer = false; zOpenWindow(id, w); }
   });
   A.addEventListener('input', e => { if (e.target.classList.contains('toc-q')) { TS.q = e.target.value; tocRender(); } });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && TS.drawer) { TS.drawer = false; tocLayout(); } });

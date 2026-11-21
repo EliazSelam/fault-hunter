@@ -22,16 +22,16 @@ const MASTER = [
     ['p:ser/why'], ['p:ser/uart'], ['p:ser/i2c', 'p:ser/spi'], ['p:ser/can', 'p:ser/cmp'], ['p:ser/dbg'], ['p:ser/lab'],
     ['qb:ser', 'p:ser/q'], ['x:ecat', 'x:boards']] },
   { id: 'fit', track: 'found', t: 'התאמה וטרנספורמציה', L: [
-    ['p:fit/why'], ['p:fit/ls'], ['p:fit/mat', 'p:fit/tf'], ['p:fit/aff', 'p:fit/robust', 'p:fit/geo'], ['p:fit/xfer'], ['p:fit/code', 'p:fit/lab'],
+    ['p:fit/why'], ['p:fit/ls'], ['p:fit/mat', 'p:fit/tf'], ['p:fit/aff', 'p:fit/svd', 'p:fit/dlt', 'p:fit/robust', 'p:fit/geo', 'p:fit/cal'], ['p:fit/xfer', 'p:fit/pipe'], ['p:fit/code', 'p:fit/lab'],
     ['qb:fit', 'p:fit/q'], ['x:aoi', 'x:aos']] },
   { id: 'img', track: 'found', t: 'עיבוד תמונה', L: [
-    ['p:img/why'], ['p:img/thr'], ['p:img/filt', 'p:img/edge'], ['p:img/cent', 'p:img/match', 'p:img/morph'], ['p:img/cmp'], ['p:img/lab'],
+    ['p:img/why'], ['p:img/thr'], ['p:img/filt', 'p:img/edge'], ['p:img/cent', 'p:img/match', 'p:img/morph', 'p:img/af'], ['p:img/cmp', 'p:img/cc', 'p:img/scan'], ['p:img/lab'],
     ['qb:img', 'p:img/q'], ['x:cam', 'x:aoi']] },
   { id: 'stat', track: 'found', t: 'סטטיסטיקה ואיכות', L: [
     ['p:stat/why'], ['p:stat/dist'], ['p:stat/acc', 'p:stat/unc'], ['p:stat/cap', 'p:stat/grr', 'p:stat/cls'], ['p:stat/spc'], ['p:stat/lab'],
     ['qb:stat', 'p:stat/q'], ['x:bringup', 'x:industry']] },
   { id: 'sig', track: 'found', t: 'אותות ובקרה', L: [
-    ['p:sig/why'], ['p:sig/samp'], ['p:sig/adc', 'p:sig/filt'], ['p:sig/fft', 'p:sig/loop', 'p:sig/enc'], ['p:sig/obs'], ['p:sig/lab'],
+    ['p:sig/why'], ['p:sig/samp'], ['p:sig/adc', 'p:sig/filt'], ['p:sig/fft', 'p:sig/loop', 'p:sig/pid', 'p:sig/prof', 'p:sig/enc', 'p:sig/rep'], ['p:sig/obs', 'p:sig/kal2'], ['p:sig/lab'],
     ['qb:sig', 'p:sig/q'], ['x:servo', 'x:meas']] },
   { id: 'rel', track: 'found', t: 'אמינות ובטיחות פונקציונלית', L: [
     ['p:rel/why'], ['p:rel/rate'], ['p:rel/sys', 'p:rel/avail'], ['p:rel/weib', 'p:rel/fmea', 'p:rel/fta'], ['p:rel/pl'], ['p:rel/lab'],

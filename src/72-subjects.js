@@ -2,13 +2,13 @@
    The same subject used to appear in several tabs (a component page, a system lesson, an optics page, a simulator topic), each written differently.
    Now each subject has one entry, the simulator topic, and every other page about it says which subject it belongs to, what this page adds, and where the rest is. */
 const SUBJECTS = {
-  aoi: { t: 'מחזור בדיקה במכונת AOI', pages: [['s2/machine', 'ראש הסריקה מאפס, עם תרגול'], ['pcb/ov', 'מה המכונות עושות בקו הייצור'], ['pcb/def', 'אילו פגמים מחפשים'], ['pcb/kpi', 'מה הלקוח מודד'], ['s1/fid', 'רישום ו-fiducials לעומק']] },
-  servo: { t: 'ציר סרבו', pages: [['s2/servo', 'הציר מאפס, עם תרגול פתור, מודרך ועצמאי'], ['s1/encoder', 'האנקודר לעומק'], ['s1/screw', 'בורג כדורי ו-backlash'], ['s1/brake', 'בלם החזקה'], ['mot/sync', 'מנוע סרבו כמכונה סנכרונית']] },
-  aos: { t: 'AOS: תיקון קצר', pages: [['s2/aos', 'מכונת AOS מאפס, עם תרגול'], ['s1/laser', 'לייזר התיקון לעומק: fluence, פוקוס, הספק'], ['pcb/def', 'סוגי פגמים']] },
-  bringup: { t: 'הפעלה ראשונה ו-ATP', pages: [['int/power', 'הפעלה ראשונה: הנוהל המלא'], ['int/atp', 'ATP: מה נבדק ואיך מחליטים'], ['s1/thermal', 'התפשטות תרמית']] },
+  aoi: { t: 'מחזור בדיקה במכונת AOI', pages: [['fit/pipe', 'המחזור כאלגוריתם: מטעינה ועד תיקון'], ['fit/aff', 'רישום: התאמה אפינית ל-fiducials'], ['fit/svd', 'סיבוב אופטימלי (Procrustes)'], ['img/cent', 'מרכז של fiducial'], ['img/cmp', 'השוואה לתכנון'], ['img/cc', 'רכיבים קשורים וסיווג פגמים'], ['fit/xfer', 'העברה ל-AOS ותקציב שגיאה'], ['s2/machine', 'ראש הסריקה מאפס, עם תרגול'], ['pcb/ov', 'מה המכונות עושות בקו הייצור'], ['pcb/def', 'אילו פגמים מחפשים'], ['pcb/kpi', 'מה הלקוח מודד'], ['s1/fid', 'רישום ו-fiducials לעומק']] },
+  servo: { t: 'ציר סרבו', pages: [['sig/prof', 'פרופיל תנועה: טרפז ו-S'], ['sig/pid', 'כיוונון הלולאה ו-Bode'], ['sig/enc', 'מהירות מאנקודר'], ['s2/servo', 'הציר מאפס, עם תרגול פתור, מודרך ועצמאי'], ['s1/encoder', 'האנקודר לעומק'], ['s1/screw', 'בורג כדורי ו-backlash'], ['s1/brake', 'בלם החזקה'], ['mot/sync', 'מנוע סרבו כמכונה סנכרונית']] },
+  aos: { t: 'AOS: תיקון קצר', pages: [['sig/rep', 'מסלול תיקון: חפיפת פולסים וקווים'], ['fit/xfer', 'מאיפה מגיע מיקום הפגם'], ['s2/aos', 'מכונת AOS מאפס, עם תרגול'], ['s1/laser', 'לייזר התיקון לעומק: fluence, פוקוס, הספק'], ['pcb/def', 'סוגי פגמים']] },
+  bringup: { t: 'הפעלה ראשונה ו-ATP', pages: [['stat/cap', 'יכולת תהליך: Cp ו-Cpk'], ['stat/grr', 'Gage R&R'], ['stat/spc', 'תרשים בקרה'], ['int/power', 'הפעלה ראשונה: הנוהל המלא'], ['int/atp', 'ATP: מה נבדק ואיך מחליטים'], ['s1/thermal', 'התפשטות תרמית']] },
   vac: { t: 'שולחן ואקום', pages: [['s2/vac', 'השולחן מאפס, עם תרגול'], ['s1/cyl', 'שסתומים ופניאומטיקה']] },
-  safety: { t: 'שרשרת הבטיחות', pages: [['s2/interlock', 'interlock של דלת מאפס, עם תרגול'], ['s1/limit', 'מתג גבול ומגעי בטיחות'], ['s1/relay', 'ממסר ומגען']] },
-  cam: { t: 'מצלמת line-scan ותאורה', pages: [['s1/linescan', 'line-scan וטריגר לעומק'], ['s1/strobe', 'תאורת סטרוב'], ['s1/lens', 'עדשה, NA ועומק שדה'], ['s1/tilt', 'יישור והטיה'], ['opt/ov', 'השרשרת האופטית']] },
+  safety: { t: 'שרשרת הבטיחות', pages: [['rel/pl', 'רמת ביצוע לפי ISO 13849-1'], ['rel/fta', 'עץ תקלות'], ['rel/fmea', 'FMEA'], ['s2/interlock', 'interlock של דלת מאפס, עם תרגול'], ['s1/limit', 'מתג גבול ומגעי בטיחות'], ['s1/relay', 'ממסר ומגען']] },
+  cam: { t: 'מצלמת line-scan ותאורה', pages: [['img/scan', 'תכנון סריקה: רצועות, זמן ותפוקה'], ['img/af', 'פוקוס אוטומטי'], ['img/thr', 'סף והיסטוגרמה'], ['img/edge', 'קצה בתת-פיקסל'], ['fit/cal', 'כיול מצלמה ועיוות עדשה'], ['s1/linescan', 'line-scan וטריגר לעומק'], ['s1/strobe', 'תאורת סטרוב'], ['s1/lens', 'עדשה, NA ועומק שדה'], ['s1/tilt', 'יישור והטיה'], ['opt/ov', 'השרשרת האופטית']] },
   pwr: { t: 'ספק 24V וחלוקה', pages: [['s1/psu', 'הספק לעומק: נפילת מתח והגנות'], ['mot/conv', 'איך ממיר ממותג עובד']] },
   ecat: { t: 'EtherCAT', pages: [['brd/lib', 'כרטיסי תקשורת וממשקים']] }
 };

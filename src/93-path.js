@@ -63,7 +63,7 @@ const PQMAP = {
   trig: 'Q34 Q38 Q59', optics: 'Q35 Q36 Q37 Q43 Q55 Q56 Q57 Q58 Q61 Q62', reg: 'P03 P09', loop: 'Q39 Q33 Q41 M07', trans: 'Q41 Q33', valve: 'Q42 Q24', interlock: 'Q40 Q44 Q02',
   laserunit: 'P04 P05 P06 P16', psu: 'Q17 Q18 Q54 P12 M15', iocards: 'Q27 Q28 Q29 Q30 Q31 Q32 Q45 Q46 Q47 Q48 Q49 Q50 Q51 Q52 Q53 Q54 Q68', relay: 'Q20 Q22 Q23 Q63 Q67 Q69', enc: 'Q33 Q39',
   motor: 'M01 M02 M03 M04 M05 M06 M07 M08 M09 M10 M11 M12', pwm: 'Q13 Q21 M15', brake: 'Q22 Q23', fits: 'P09', logic: 'Q04 Q05 Q06 Q07 Q08 Q09 Q10 Q70 Q71 Q72 Q73 Q74 Q75 Q76 Q77 Q78 Q79',
-  img: 'Q95 Q96 Q97 Q98 Q99', stat: 'Q100 Q101 Q102 Q103 Q104 P14', sig: 'Q105 Q106 Q107 Q108 Q109', rel: 'Q110 Q111 Q112 Q113 Q114', fit: 'Q90 Q91 Q92 Q93 Q94 P03 P09', serial: 'Q80 Q81 Q82 Q83 Q84 Q85 Q86 Q87 Q88 Q89', meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
+  img: 'Q95 Q96 Q97 Q98 Q99 Q117 Q118 Q119', stat: 'Q100 Q101 Q102 Q103 Q104 P14', sig: 'Q105 Q106 Q107 Q108 Q109 Q120 Q121 Q122 Q123', rel: 'Q110 Q111 Q112 Q113 Q114', fit: 'Q90 Q91 Q92 Q93 Q94 Q115 Q116 Q124 P03 P09', serial: 'Q80 Q81 Q82 Q83 Q84 Q85 Q86 Q87 Q88 Q89', meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
   fuse: 'Q47 M01 M13', switch: 'Q01 Q02 Q10 Q44', source: 'Q19 Q54 Q03', xfmr: 'M13 M14 Q17', connector: 'Q29 Q31 Q27'
 };
 /* every track including the central subjects, and every stage by id */

@@ -123,7 +123,7 @@ const SG = {
     return SVG(660, 130, `<path d="${dh}" class="ink"/><path d="${dl}" class="live"/>${T_(x0 - 8, 32, 'CANH 3.5 V', 'lblb', 'end')}${T_(x0 - 8, 60, '2.5 V', 'lblm', 'end')}${T_(x0 - 8, 88, 'CANL 1.5 V', 'lblb', 'end')}${lv.map((v, k) => T_(x0 + (k + .5) * w, 112, v ? '1' : '0', 'lblm', 'middle')).join('')}${T_(x0 + 8 * w + 8, 60, 'recessive = 1, dominant = 0', 'lblm')}`, 'CAN levels'); }
 };
 
-const olb = a => ol(a.map(bidi));
+const olb = a => ol(a.map(x => bidiX(x)));
 function showSer(sub) {
   active = null; sub = sub || 'why'; setTab('ser'); markVisit('ser:' + sub);
   SER_NAV[SER_NAV.length - 1][2] = QB.filter(q => q.t === 'ser').length + ' שאלות';

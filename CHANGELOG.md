@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.66.0] — 2026-11-22
+
+The algorithms are part of the machine, and the topic list is part of the sheet.
+
+- **The list is a column of the drawing sheet** (one frame, shared edge, sticky while scrolling), docked from 1360 px; narrower screens still open it from the header.
+- **Each applied algorithm lives in the machine topic that runs it**, at its level, and opens there whole (not as a link): camera (scan planning, autofocus, threshold, sub-pixel edge, calibration and lens distortion), registration (affine fit, Procrustes, RANSAC, fiducial centre, NCC), the inspection cycle (the cycle as one algorithm, comparison to design, connected components and classification, transfer to AOS), servo and loop (motion profile, encoder speed, PD tuning and Bode), laser (repair path), bring-up (Cpk, Gage R&R, control chart), safety (PL, fault tree, FMEA). The simulator topics list them too (`SUBJECTS`).
+- **New derivations and machine algorithms** (`src/39r-alg-machine.js`, 11 pages): Procrustes and SVD (closed form in the plane), homography by DLT with normalisation, pixel size and radial distortion k₁ by least squares, autofocus (sharpness metric, parabola peak, golden section), connected components (4 vs 8, two-pass union-find) and short/open by net count, scan planning (stripes, time, throughput), trapezoid and S motion profiles, PD tuning on an inertia (PM = atan(ω_c T_d)), a full two-state Kalman step, laser repair path (pulse overlap, hatch), and the whole cycle as an ordered chain of algorithms. 10 questions (`Q115` to `Q124`), 40 computed checks.
+- Formulas inside Hebrew sentences stay one left-to-right run (subscripts, ᵀ, ‖, brackets) in all the algorithm and serial pages (`bidiX`).
+
 ## [2.65.0] — 2026-11-21
 
 Everything in one ordered list, beside every page.

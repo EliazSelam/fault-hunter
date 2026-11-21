@@ -78,3 +78,19 @@ ANIMS.weibull = { node: 'rel', t: 'Weibull: ילדות, אקראי ובלאי',
 INNER.laser.push(IB('fit', 'מעבד הרישום וההתאמה', [-0.95, -0.65, -0.2, 0.2, -0.6, -0.4], [-1.0, 0, -0.5], 'text'));
 INNER.cam.push(IB('img', 'מעבד התמונה', [0.75, 1.0, -0.2, 0.2, -0.6, -0.4], [1.0, 0, -0.5], 'text'));
 INNER.servo.push(IB('sig', 'כרטיס הבקר: מסננים ולולאה', [0.9, 1.2, -0.25, 0.25, 0.3, 0.45], [1.2, 0, 0.4], 'text'));
+/* ---- v2.66: each applied algorithm lives inside the machine topic that runs it, at the level it belongs to ---- */
+function hxHome(w, node, level) { ZOOM.forEach(z => { const i = z.around.indexOf(w); if (i >= 0) z.around.splice(i, 1); }); const n = zNode(node); if (n && !n.around.includes(w)) n.around.push(w); HUBW[w] = level; }
+[['p:img/thr', 'cam', 'eng'], ['p:img/edge', 'cam', 'math'], ['p:img/af', 'cam', 'eng'], ['p:fit/cal', 'cam', 'math'], ['p:img/scan', 'cam', 'eng'],
+ ['p:fit/aff', 'reg', 'math'], ['p:fit/svd', 'reg', 'math'], ['p:fit/robust', 'reg', 'math'], ['p:fit/geo', 'reg', 'eng'], ['p:img/cent', 'reg', 'math'], ['p:img/match', 'reg', 'eng'],
+ ['p:fit/pipe', 'proc', 'flow'], ['p:fit/xfer', 'proc', 'flow'], ['p:img/cmp', 'proc', 'eng'], ['p:img/cc', 'proc', 'eng'],
+ ['p:sig/rep', 'laser', 'eng'], ['p:sig/prof', 'servo', 'eng'], ['p:sig/enc', 'servo', 'eng'], ['p:sig/loop', 'loop', 'math'], ['p:sig/pid', 'loop', 'math'],
+ ['p:stat/cap', 'bringup', 'eng'], ['p:stat/grr', 'bringup', 'eng'], ['p:stat/spc', 'bringup', 'eng'], ['p:stat/cls', 'ind', 'eng'],
+ ['p:rel/pl', 'safety', 'eng'], ['p:rel/fta', 'safety', 'math'], ['p:rel/fmea', 'safety', 'eng']].forEach(([w, n, l]) => hxHome(w, n, l));
+/* the foundations that stay in their own topic */
+[['fit', ['p:fit/dlt']], ['sig', ['p:sig/kal2']]].forEach(([n, ws]) => { const z = zNode(n); ws.forEach(w => { if (!z.around.includes(w)) z.around.splice(z.around.indexOf('p:' + n + '/lab'), 0, w); }); });
+/* the algorithm pages open inside the machine topic itself, whole, with a way to the full page and its hub */
+WIN.add({ id: 'hxpage', test: w => { const m = /^p:([a-z]+)\/([a-z0-9]+)$/.exec(w); return !!(m && HUBX[m[1]] && HUBX[m[1]].pages[m[2]] && m[2] !== 'lab'); }, info: w => zInfoBase(w),
+  mount: (w, el) => { const [h, s] = w.slice(2).split('/'), H = HUBX[h];
+    el.innerHTML = `<div class="hxinline">${H.pages[s]()}</div><p class="hxfrom">${bidi('מתוך הנושא «' + H.tab + '».')} <button type="button" class="linkbtn" data-hxr="${h}/${s}">פתח כעמוד מלא ←</button></p>`;
+    if (H.mount && H.mount[s]) H.mount[s](el);
+    el.querySelector('[data-hxr]').addEventListener('click', e => routeGo(e.target.dataset.hxr)); } });

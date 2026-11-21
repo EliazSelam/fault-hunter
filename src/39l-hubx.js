@@ -37,12 +37,16 @@ Object.entries({
   'Hann': ['חלון Hann: עקומת קוסינוס שיורדת לאפס בקצוות, להכפלת הדגימות לפני FFT.', 'חלון נפוץ ל-FFT'],
   'Kv': ['הגבר המהירות של לולאת מיקום, ביחידות 1/s.', 'הגבר מהירות']
 }).forEach(([k, v]) => hxTerm('_', k, v));
+/* math-aware bidi: keeps a whole formula (subscripts, ᵀ, ‖, brackets, ≤) as one left-to-right run inside Hebrew text */
+const BIDI_S = 'A-Za-z0-9µΩΑ-ωθ(\\[‖⌈−√½Σ|', BIDI_M = BIDI_S + '°±×=.,:;+\\-_\\/~²³⁴⁵⁶⁷⁸⁹⁰¹⁻⁺ⁿ≈·\'"()\\] ₀-ₜᵢ-ᵪᵀ‖⌉≤≥<>∞∂∫′|!*^&%{}', BIDI_E = 'A-Za-z0-9µΩΑ-ωθ)\\]‖⌉%²³⁶ᵀ⁻¹ₓᵢ₀-₉|′';
+const BIDI_RE = new RegExp('[' + BIDI_S + '][' + BIDI_M + ']*[' + BIDI_E + ']|[A-Za-z0-9µΩΑ-ω]', 'g');
+function bidiX(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(BIDI_RE, m => `<bdi>${m}</bdi>`)).join(''); }
 /* shared bits for the hub pages */
-const olx = a => ol(a.map(bidi));
-const px = t => `<p>${bidi(t)}</p>`;
+const olx = a => ol(a.map(bidiX));
+const px = t => `<p>${bidiX(t)}</p>`;
 const codeBox = (t, c) => `<div class="codebox"><b>${t}</b><pre dir="ltr" lang="en">${c.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre></div>`;
-const trap = t => `<p class="note warn"><b>מלכודת:</b> ${bidi(t)}</p>`;
-const where = t => `<p class="note"><b>איפה זה במכונה:</b> ${bidi(t)}</p>`;
+const trap = t => `<p class="note warn"><b>מלכודת:</b> ${bidiX(t)}</p>`;
+const where = t => `<p class="note"><b>איפה זה במכונה:</b> ${bidiX(t)}</p>`;
 /* a number input and a select, for the live labs */
 const hxNum = (id, label, v, min, max, step) => `<div class="ctl"><label for="${id}">${label}</label><input id="${id}" type="number" value="${v}" min="${min}" max="${max}" step="${step || 1}" dir="ltr"></div>`;
 const hxRead = (el, ids, st, draw) => ids.forEach(([id, k]) => { const e = el.querySelector('#' + id); if (e) e.addEventListener('change', ev => { const v = +ev.target.value; if (!isNaN(v)) st[k] = v; draw(); }); });
