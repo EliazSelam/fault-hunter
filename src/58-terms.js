@@ -173,13 +173,13 @@ const catFromText = t => { const h = CAT_WORDS.find(([, re]) => re.test(t)); ret
 /* category per term: given for new terms, derived from the page that explains it for the others */
 const TERM_CAT = {};
 TERM_NEW.forEach(([k, , , c]) => TERM_CAT[k] = c);
-const ROUTE_CAT = r => /^mot\//.test(r) ? 'מכונות והספק' : /^dig\//.test(r) ? 'דיגיטלי' : /^(opt\/|s1\/(linescan|strobe|lens|tilt|laser|fid|thermal))/.test(r) ? 'אופטיקה ולייזר' : /^pcb\/|^s2\/aos/.test(r) ? 'PCB, AOI ו-AOS' : /^lab\//.test(r) ? 'מדידה וחיישנים' : /^(int\/|brd\/)/.test(r) ? 'אינטגרציה ובדיקות' : /^(b\/mech|s1\/(fits|screw))/.test(r) ? 'מכניקה ושרטוט' : /^s2\/|^s1\/(cyl|brake)/.test(r) ? 'בקרה ותנועה' : /^s4/.test(r) ? 'בטיחות ותקנים' : /^(s1\/|b\/|q\/)/.test(r) ? 'חשמל ורכיבים' : 'כללי';
+const ROUTE_CAT = r => /^mot\//.test(r) ? 'מכונות והספק' : /^dig\//.test(r) ? 'דיגיטלי' : /^ser\//.test(r) ? 'תקשורת' : /^(opt\/|s1\/(linescan|strobe|lens|tilt|laser|fid|thermal))/.test(r) ? 'אופטיקה ולייזר' : /^pcb\/|^s2\/aos/.test(r) ? 'PCB, AOI ו-AOS' : /^lab\//.test(r) ? 'מדידה וחיישנים' : /^(int\/|brd\/)/.test(r) ? 'אינטגרציה ובדיקות' : /^(b\/mech|s1\/(fits|screw))/.test(r) ? 'מכניקה ושרטוט' : /^s2\/|^s1\/(cyl|brake)/.test(r) ? 'בקרה ותנועה' : /^s4/.test(r) ? 'בטיחות ותקנים' : /^(s1\/|b\/|q\/)/.test(r) ? 'חשמל ורכיבים' : 'כללי';
 function termCat(k) { if (TERM_CAT[k]) return TERM_CAT[k]; const r = termRoute(k); return r ? ROUTE_CAT(r) : 'כללי'; }
 function termRoute(k) { if (TERM_LINK[k]) return TERM_LINK[k]; const lk = Object.keys(TERM_LINK).find(x => x.toLowerCase() === String(k).toLowerCase()); return lk ? TERM_LINK[lk] : null; }
 function routeGo(r) { const [a, b] = r.split('/'); if (a === 'q') showQ(b, [b]); else if (a === 'scn') playScn(b); else go(a, b); window.scrollTo(0, 0); }
 function routeTitle(r) {
   const [a, b] = r.split('/');
-  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   if (a === 's1') { const c = COMPONENTS.find(x => x.id === b); return c ? 'רכיבים · ' + c.name.replace(/<[^>]+>/g, '') : r; }
   if (a === 's2') { const x = SYSX[b]; return x ? 'מערכות · ' + x.title : r; }
   if (a === 'q') { const q = QB.find(x => x.id === b); return q ? 'שאלה ' + b + ' · ' + q.title : r; }

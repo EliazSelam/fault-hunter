@@ -18,6 +18,9 @@ const MASTER = [
   { id: 'dig', track: 'found', t: 'לוגיקה ספרתית', L: [
     ['p:dig/why'], ['p:dig/tbl'], ['p:dig/sr', 'p:dig/dl'], ['p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/lab'], ['p:dig/timing'], ['p:dig/timing#full'],
     ['qb:dig', 'p:dig/q'], ['x:boards']] },
+  { id: 'serial', track: 'found', t: 'תקשורת טורית', L: [
+    ['p:ser/why'], ['p:ser/uart'], ['p:ser/i2c', 'p:ser/spi'], ['p:ser/can', 'p:ser/cmp'], ['p:ser/dbg'], ['p:ser/lab'],
+    ['qb:ser', 'p:ser/q'], ['x:ecat', 'x:boards']] },
   { id: 'meas', track: 'found', t: 'מדידה, מכשירים וחיישנים', L: [
     ['p:lab'], ['p:lab/dmm'], ['p:lab/s-wire', 'p:s1/loop'], ['p:lab/scope', 'p:lab/s-prox', 'p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'p:lib/ai'],
     ['p:s1/loop#math'], ['p:s1/loop#full'], ['qb:lin', 'scn:s1:loop'], ['x:bringup', 'x:boards']] },

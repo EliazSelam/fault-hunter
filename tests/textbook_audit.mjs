@@ -30,7 +30,7 @@ ok(!ST.dup.length, `no item appears twice in a chapter (${ST.dup.slice(0, 4).joi
 ok(!ST.names.length, `no two items of one kind in a chapter carry the same name (${ST.names.slice(0, 4).join(' | ')})`);
 ok(!ST.noSrc.length, `every place of the site in a chapter has an address in the app (${ST.noSrc.slice(0, 4)})`);
 ok(ST.ex >= 60 && !ST.exBad.length && ST.keys === ST.ex, `every exercise has its answer at the end of its chapter (${ST.ex} exercises, ${ST.keys} answers; ${ST.exBad.slice(0, 4)})`);
-ok(ST.worked >= 8 && !ST.workedBad.length && ST.ex + ST.worked === 112, `every bank question is an exercise or a solved example with steps, once (${ST.ex} + ${ST.worked}; ${ST.workedBad})`);
+ok(ST.worked >= 8 && !ST.workedBad.length && ST.ex + ST.worked === 122, `every bank question is an exercise or a solved example with steps, once (${ST.ex} + ${ST.worked}; ${ST.workedBad})`);
 ok(ST.calcs >= 30 && !ST.tolBad.length, `every calculation in the book has a unit and is accepted within a tolerance (${ST.calcs}; ${ST.tolBad.slice(0, 4)})`);
 ok(!ST.nav.length, `a chapter's own text has no link that leaves it (${ST.nav.slice(0, 3).join(' | ')})`);
 

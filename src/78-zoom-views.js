@@ -22,7 +22,7 @@ function zWireSub() {
 function zCoverage() {
   const placed = new Set(ZOOM.flatMap(zWindows));
   const routes = []; document.querySelectorAll('nav.sheets button').forEach(b => routes.push(b.dataset.sheet));
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   Object.entries(hubs).forEach(([h, n]) => n.forEach(x => routes.push(h + '/' + x[0])));
   ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => routes.push('b/' + t));
   COMPONENTS.forEach(c => routes.push('s1/' + c.id)); Object.keys(SYSX).forEach(k => routes.push('s2/' + k)); BOARDS.forEach(x => routes.push('lib/' + x.id));
@@ -34,7 +34,7 @@ function zCoverage() {
     if (r === 'mot/why') return has('m:why:') ? 'שלושת חלונות המנוע' : null;
     if (r === 'mot/lab') return placed.has('sim:mlab') ? 'סימולציית המנוע' : null;
     if (r === 'b/atlas') return has('a:') ? 'כרטיסי הרכיבים' : null;
-    if (['mot', 'dig', 'pcb', 'int', 'brd', 'opt', 'b', 's1', 's2', 'lab'].includes(r)) return 'אינדקס של עמודים שכולם בעץ';
+    if (['mot', 'dig', 'ser', 'pcb', 'int', 'brd', 'opt', 'b', 's1', 's2', 'lab'].includes(r)) return 'אינדקס של עמודים שכולם בעץ';
     return null;
   };
   const rows = [...new Set(routes)].map(r => ({ r, how: placed.has('p:' + r) ? 'tree' : res.has(r) ? 'res' : alias(r) ? 'alias' : 'missing', note: alias(r) }));

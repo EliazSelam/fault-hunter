@@ -14,7 +14,7 @@ pg.on('pageerror', e => problems.push('js error: ' + e.message));
 await pg.goto(INDEX); await pg.waitForTimeout(400);
 const routes = await pg.evaluate(() => {
   const r = [...document.querySelectorAll('nav.sheets button')].map(b => [b.dataset.sheet]);
-  const hubs = { dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, mot: MOT_NAV };
+  const hubs = { dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, mot: MOT_NAV };
   Object.entries(hubs).forEach(([h, n]) => n.forEach(x => r.push([h, x[0]])));
   ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => r.push(['b', t]));
   COMPONENTS.forEach(c => r.push(['s1', c.id])); Object.keys(SYSX).forEach(s => ['intro', 'normal', 'prin', 'worked', 'guided', 'solo'].forEach(st => r.push(['sys', s, st])));

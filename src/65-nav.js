@@ -37,7 +37,7 @@ function buildSearch() {
   const tabName = s => { const b = document.querySelector(`nav.sheets [data-sheet="${s}"]`); return b ? b.firstChild.textContent.trim() : s; };
   const I = [];
   document.querySelectorAll('nav.sheets button').forEach(b => I.push({ t: b.firstChild.textContent.trim(), k: b.textContent, type: 'לשונית', r: b.dataset.sheet }));
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   Object.entries(hubs).forEach(([h, nav]) => nav.forEach(n => I.push({ t: n[1], k: n[1] + ' ' + (n[2] || ''), type: tabName(h), r: h + '/' + n[0] })));
   COMPONENTS.forEach(c => I.push({ t: plain(c.name), k: plain(c.name) + ' ' + (c.en || ''), type: 'רכיב', r: 's1/' + c.id }));
   Object.entries(SYSX).forEach(([id, x]) => I.push({ t: x.title, k: x.title + ' ' + (x.sub || ''), type: 'מערכת', r: 's2/' + id }));

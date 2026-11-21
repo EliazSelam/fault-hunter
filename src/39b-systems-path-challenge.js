@@ -203,6 +203,7 @@ function showPath() {
     ['1', 'AOI ו-AOS בייצור PCB', 'מי הלקוח, איך נראה קו ייצור PCB, אילו פגמים מחפשים, ומה AOI ו-AOS עושות. ההקשר לכל השאר.', 'pcb', null, PCB_NAV.filter(n => v['pcb:' + n[0]]).length + '/' + PCB_NAV.length],
     ['2', 'יסודות: קריאת שרטוט מאפס', 'סמלים, דקדוק של סכמה, סט שרטוטים תעשייתי עם הפניות, ושרטוט מכני.', 'b', null, ['atlas', 'grammar', 'board', 'set', 'mech'].filter(t => v['b:' + t]).length + '/5'],
     ['2.2', 'לוגיקה ספרתית', 'latch, flip-flop מכל הסוגים, אוגרים, מונים ומחלקי תדר: סכמות בשערים, טבלאות אמת, נוסחאות ומעבדה חיה.', 'dig', null, DIG_NAV.filter(n => v['dig:' + n[0]]).length + '/' + DIG_NAV.length],
+    ['2.3', 'תקשורת טורית', 'UART, I2C, SPI ו-CAN: מסגרת, קצב, כתובת וסיום, נוסחאות מחושבות, מעבדה חיה ואבחון.', 'ser', null, SER_NAV.filter(n => v['ser:' + n[0]]).length + '/' + SER_NAV.length],
     ['2.5', 'מעבדה: מכשירים וחיישנים', 'מולטימטר, מחולל, אוסילוסקופ וחיישנים, כסימולציות שאפשר לטעות בהן בלי לשרוף כלום.', 'lab', null, LAB_NAV.filter(n => v['lab:' + n[0]]).length + '/' + LAB_NAV.length],
     ['3', 'רכיבים', 'ממסר, אנקודר, 4–20mA, פניאומטיקה, ballscrew, ספק ובלם: כל רכיב עם סימולציה והזרקת תקלות.', 's1', 'relay', COMPONENTS.filter(c => c.kind !== 'opt' && v['s1:' + c.id]).length + '/' + COMPONENTS.filter(c => c.kind !== 'opt').length],
     ['3.5', 'מכונות והספק', 'רוטור וסטטור, מכונת DC (נפרד, מקבילי, טורי, מעורב), השראה וסנכרונית, תלת-פאזי, שנאים, ממירים, וחיבור כל סוג מנוע לספק או לרשת. עם סימולציות וגזירות.', 'mot', null, MOT_NAV.filter(n => v['mot:' + n[0]]).length + '/' + MOT_NAV.length],

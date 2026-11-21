@@ -8,7 +8,7 @@ await pg.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href); await pg.w
 const D = await pg.evaluate(() => {
   const tab = s => { const x = document.querySelector(`nav.sheets [data-sheet="${s}"]`); return x ? x.firstChild.textContent.trim() : s; };
   const pages = {}; document.querySelectorAll('nav.sheets button').forEach(x => pages[x.dataset.sheet] = tab(x.dataset.sheet));
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   Object.entries(hubs).forEach(([h, n]) => n.forEach(x => pages[h + '/' + x[0]] = tab(h) + ' · ' + x[1]));
   ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => pages['b/' + t] = 'יסודות · ' + t);
   COMPONENTS.forEach(c => pages['s1/' + c.id] = 'רכיבים · ' + c.name.replace(/<[^>]+>/g, ''));
@@ -48,7 +48,7 @@ for (const S of D.master) S.L.forEach((refs, li) => refs.forEach(ref => {
 /* everything that must be placed */
 const all = [...Object.keys(D.pages).map(r => 'p:' + r), ...D.sys.flatMap(s => STAGES.map(st => `s2:${s}#${st}`)), ...D.topics.flatMap(t => D.levels.map(l => `t:${t[0]}/${l[0]}`)),
   ...Object.keys(SIMS).map(k => 'sim:' + k), ...Object.keys(FIGS).map(k => 'fig:' + k), ...Object.keys(CJ).map(k => 'cj:' + k), ...D.qb.map(q => 'q:' + q[0]), ...D.scn.map(s => 'scn:' + s[0])];
-const hubRoot = r => /^p:(mot|dig|pcb|lab|int|brd|opt|b|s1|s2)$/.test(r);   /* a hub tab is covered when its pages are */
+const hubRoot = r => /^p:(mot|dig|ser|pcb|lab|int|brd|opt|b|s1|s2)$/.test(r);   /* a hub tab is covered when its pages are */
 const missing = all.filter(k => !covered.has(k) && !(hubRoot(k) && [...covered].some(c => c.startsWith(k + '/'))));
 missing.forEach(k => problems.push(`not placed: ${k} (${name(k.replace(/^q:/, 'q:'))})`));
 /* the review document */

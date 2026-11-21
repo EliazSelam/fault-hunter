@@ -68,7 +68,7 @@ ok(Y.first.length === 2 && Y.first[0] === 'resistor' && Y.first[1] === 'motor', 
 /* the screens */
 await ev(() => { localStorage.clear(); go('zoom', 'path'); }); await pg.waitForTimeout(200);
 const M = await ev(() => ({ st: document.querySelectorAll('.pth-st').length, locked: document.querySelectorAll('.pth-locked').length, tracks: document.querySelectorAll('.pth-track').length, bar: !!document.querySelector('.zsub [data-zv="path"]'), cb: !!document.querySelector('.zsub [data-zv="central"]') }));
-ok(M.st === 58 && M.tracks === 10 && M.locked === 58 - 10, 'the map shows 58 stages in ten tracks; only the first of each track is open (' + JSON.stringify(M) + ')'); ok(M.bar && M.cb, 'the views bar offers the path and the central subjects');
+ok(M.st === 59 && M.tracks === 10 && M.locked === 59 - 10, 'the map shows 59 stages in ten tracks; only the first of each track is open (' + JSON.stringify(M) + ')'); ok(M.bar && M.cb, 'the views bar offers the path and the central subjects');
 const noH = await pg.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1); ok(noH, 'no horizontal scroll at phone width');
 await pg.click('[data-st="resistor"]'); await pg.waitForTimeout(100);
 ok(await ev(() => !!document.querySelector('.pth-panel [data-play="resistor"]') && !!document.querySelector('.pth-panel [data-open]')), 'an open stage offers reading and practice');
@@ -166,7 +166,7 @@ ok(MS2.fc.join() === '1,1,0,1,0,0,0', 'the forecast counts cards due today and o
 await ev(() => { localStorage.clear(); const now = Date.now(); pathCards('relay').forEach((c, i) => reviewRecord(c.id, i % 2 === 0, now)); PV.sess = null; PV.tab = 'prog'; go('zoom', 'path'); }); await pg.waitForTimeout(200);
 const PG = await ev(() => ({ rows: document.querySelectorAll('#pthBody .pth-plan tr').length, fc: document.querySelectorAll('.pth-fc > div').length, weak: [...document.querySelectorAll('[data-wp]')].map(b => b.dataset.wp).join(), bars: document.querySelectorAll('.pth-st .pth-mb').length }));
 ok(PG.rows === 10 && PG.fc === 7 && PG.weak.split(',').includes('relay') && PG.weak.split(',').length <= 5, 'the memory tab: a bar per track, seven days of reviews, the weakest started topics (a question-bank card counts in every topic it belongs to) (' + JSON.stringify(PG) + ')');
-await ev(() => { PV.tab = 'map'; zPathView(); }); ok(await ev(() => document.querySelectorAll('.pth-st .pth-mb').length === 58), 'every stage on the map shows its retrieval bar');
+await ev(() => { PV.tab = 'map'; zPathView(); }); ok(await ev(() => document.querySelectorAll('.pth-st .pth-mb').length === 59), 'every stage on the map shows its retrieval bar');
 await ev(() => { PV.tab = 'map'; go('zoom', 'relay'); }); await pg.waitForTimeout(200);
 const NP = await ev(() => { const s = document.querySelector('.pth-node'); if (!s) return {}; const t = s.textContent; document.querySelector('[data-npr]').click(); return { t: /נשאר בזיכרון: \d+%/.test(t), play: !!document.querySelector('.pth-play .pth-q') && location.hash.includes('path') }; });
 ok(NP.t && NP.play, 'a topic page shows what of it stays in memory, and practising it opens a session');

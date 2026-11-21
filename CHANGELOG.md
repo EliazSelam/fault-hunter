@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.63.0] — 2026-11-21
+
+Serial communication: UART, I2C, SPI and CAN.
+
+- **A new hub, "תקשורת טורית"** (tab `ser`, `src/39k-serial.js`): why serial, one page per protocol (frame, timing diagram, schematic, formulas with a worked example, the trap), a comparison and how to choose, how to diagnose a silent line, a live lab and ten questions (`Q80` to `Q89`). Written from the behaviour of the protocols, not copied from any course or infographic.
+- **Math, derived.** The tolerance of UART to a baud mismatch (about 5.3%, from 9.5 bit times to the STOP sample), the baud divisor of a 16 MHz controller, the I2C rise time (0.8473 · R_p · C_b from the 30% and 70% points of an RC charge) and the pull-up window (R_min to R_max), the SPI transfer time, the CAN frame length (47 + 8n bits), bus load, and the 60 Ω termination check. All computed in `VERIFY`; the formula box is `f:serial` with a symbol table.
+- **Live lab and animation.** UART frame builder with baud error, I2C address and ACK, SPI shift register one clock at a time, CAN arbitration between three nodes with an acceptance filter; the animation `baud` shows where the receiver samples.
+- **Zoom, map, path and book.** New zoom node `serial` (between logic and EtherCAT), a master-map subject, a stage in the "control, communication and process" track, and a place in book chapter 20; the 3D machine has its service port and CAN chip.
+- **Terms.** 40 new terms (UART, SDA, CPOL, dominant, bit stuffing, DLC …) in a new glossary category "תקשורת"; "master" and "slave" now also say what they mean on a bus, and "Start" and "Stop" what they mean in a frame.
+- Tests: the hub is in every audit (verify, terms, zoom, map, path, book, labs, textbook, math); counts updated (122 questions, 59 stages, 40 nodes).
+
 ## [2.62.0] — 2026-11-19
 
 A sweep across all content: math and concepts everywhere, one lens, no duplicates.

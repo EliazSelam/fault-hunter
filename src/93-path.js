@@ -1,6 +1,6 @@
 /* ============ The learning path and the practice (v2.45) ============
    The tree and the machine show everything there is; this file says where to start and what to do next.
-   - Seven parallel tracks cover the 39 topics once each (a track is a line of stages, a stage is one topic). Four central subjects
+   - Seven parallel tracks cover the 40 topics once each (a track is a line of stages, a stage is one topic). Four central subjects
      (calibration, noise and grounding, heat, failure analysis) gather what used to be scattered across pages, and are tracks too.
    - A stage is practised in short sessions: six cards, three lives, a wrong card comes back once at the end, every card goes
      into the one spaced-repetition store the review tab already uses (`fh-review`, boxes of 1, 3, 7 and 21 days).
@@ -17,7 +17,7 @@ const PTRACKS = [
   { id: 'mo', icon: '⚙️', t: 'תנועה ובקרה', why: 'מנוע, אנקודר, בלם, תמסורת ולולאת הבקרה, עד ציר סרבו שלם.', stages: ['motor', 'enc', 'brake', 'fits', 'trans', 'loop', 'servo'] },
   { id: 'op', icon: '👁️', t: 'ראייה ולייזר', why: 'עדשה, טריגר, רישום, מצלמה, ומקור הלייזר שמתקן.', stages: ['optics', 'trig', 'reg', 'cam', 'laserunit', 'laser'] },
   { id: 'sa', icon: '🛡️', t: 'אוויר ובטיחות', why: 'שסתום, שולחן ואקום, interlock ושרשרת הבטיחות.', stages: ['valve', 'vac', 'interlock', 'safety'] },
-  { id: 'sy', icon: '🧠', t: 'בקרה, תקשורת ותהליך', why: 'כרטיסי קלט/פלט, EtherCAT, מחזור הבדיקה, הפעלה ראשונה והקו כולו.', stages: ['iocards', 'ecat', 'proc', 'bringup', 'ind'] }
+  { id: 'sy', icon: '🧠', t: 'בקרה, תקשורת ותהליך', why: 'כרטיסי קלט/פלט, EtherCAT, מחזור הבדיקה, הפעלה ראשונה והקו כולו.', stages: ['iocards', 'serial', 'ecat', 'proc', 'bringup', 'ind'] }
 ];
 /* the four central subjects: what they gather, in a typical order; every item points at topics that already exist and at question-bank cards */
 const PCENTRAL = [
@@ -63,7 +63,7 @@ const PQMAP = {
   trig: 'Q34 Q38 Q59', optics: 'Q35 Q36 Q37 Q43 Q55 Q56 Q57 Q58 Q61 Q62', reg: 'P03 P09', loop: 'Q39 Q33 Q41 M07', trans: 'Q41 Q33', valve: 'Q42 Q24', interlock: 'Q40 Q44 Q02',
   laserunit: 'P04 P05 P06 P16', psu: 'Q17 Q18 Q54 P12 M15', iocards: 'Q27 Q28 Q29 Q30 Q31 Q32 Q45 Q46 Q47 Q48 Q49 Q50 Q51 Q52 Q53 Q54 Q68', relay: 'Q20 Q22 Q23 Q63 Q67 Q69', enc: 'Q33 Q39',
   motor: 'M01 M02 M03 M04 M05 M06 M07 M08 M09 M10 M11 M12', pwm: 'Q13 Q21 M15', brake: 'Q22 Q23', fits: 'P09', logic: 'Q04 Q05 Q06 Q07 Q08 Q09 Q10 Q70 Q71 Q72 Q73 Q74 Q75 Q76 Q77 Q78 Q79',
-  meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
+  serial: 'Q80 Q81 Q82 Q83 Q84 Q85 Q86 Q87 Q88 Q89', meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
   fuse: 'Q47 M01 M13', switch: 'Q01 Q02 Q10 Q44', source: 'Q19 Q54 Q03', xfmr: 'M13 M14 Q17', connector: 'Q29 Q31 Q27'
 };
 /* every track including the central subjects, and every stage by id */
