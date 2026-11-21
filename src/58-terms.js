@@ -179,7 +179,7 @@ function termRoute(k) { if (TERM_LINK[k]) return TERM_LINK[k]; const lk = Object
 function routeGo(r) { const [a, b] = r.split('/'); if (a === 'q') showQ(b, [b]); else if (a === 'scn') playScn(b); else go(a, b); window.scrollTo(0, 0); }
 function routeTitle(r) {
   const [a, b] = r.split('/');
-  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   if (a === 's1') { const c = COMPONENTS.find(x => x.id === b); return c ? 'רכיבים · ' + c.name.replace(/<[^>]+>/g, '') : r; }
   if (a === 's2') { const x = SYSX[b]; return x ? 'מערכות · ' + x.title : r; }
   if (a === 'q') { const q = QB.find(x => x.id === b); return q ? 'שאלה ' + b + ' · ' + q.title : r; }

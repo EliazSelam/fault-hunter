@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.64.0] — 2026-11-21
+
+Five hubs for the algorithms and the engineering around the machine.
+
+- **One engine for hubs** (`src/39l-hubx.js`): a hub registers with `hubX(key, cfg)` (tab, nav, pages, live mounts, question topic); every list of hubs reads `hubxNavs()` and `hubxRoutes()`. Shared helpers: `lsq` (normal equations), `hxRand`, `codeBox`, `hxTerm`.
+- **Fitting and transformations** (`fit`): least squares derived from S(a, b), the matrix form AᵀA·x = Aᵀb and its geometry, 2D transformations from shift to homography in homogeneous coordinates, affine fit to fiducials with residuals and σ̂, weights, outliers and RANSAC (N = ln(1 − p)/ln(1 − wˢ)), how the fiducial layout sets the error (σ√2·R/d), the AOI to AOS chain with an RSS error budget, paste-ready MATLAB, and a live lab of five fiducials with noise, an outlier and a choice of model.
+- **Image processing** (`img`): gray levels, threshold and Otsu, convolution and why averaging divides noise by √N, Sobel and the sub-pixel edge (with σ_x = σ_I/s), centroid of a fiducial, NCC template matching, morphology for line-width and spacing checks, comparison to the design.
+- **Statistics and quality** (`stat`): sample σ, the normal distribution, accuracy against precision, measurement uncertainty (RSS, k = 2), Cp and Cpk with ppm, Gage R&R and ndc, false calls and escapes (precision, recall), control charts.
+- **Signals and control** (`sig`): sampling and aliasing derived, the ADC (LSB/√12, SNR = 6.02n + 1.76 dB), RC and its digital form, moving average against 50 Hz, FFT resolution, following error and overshoot, speed from an encoder, a Kalman step.
+- **Reliability and functional safety** (`rel`): R = e^(−λt) derived, series and parallel, availability, Weibull and the bathtub, FMEA and RPN, fault trees with common-cause failure, ISO 13849-1 PL bands and MTTF_D from B10D.
+- Each hub: a zoom node with an animation and a formula window with its symbol table, a master-map subject, a path stage, a place in the book (chapters 13, 16, 19, 22), 5 questions (`Q90` to `Q114`), computed checks in `VERIFY`, and its terms in the glossary. Terms the glossary or lexicon already had (repeatability, following error, overshoot, false call, escape, ppm, burn-in, DC) are linked, not defined twice. Statistics and reliability are appendices of the zoom tree; image processing, fitting and signals have parts in the 3D machine.
+- Lab pages carry distinct names in every hub, including serial communication.
+- Tests: counts follow the data (questions read from the page); 64 stages, 45 nodes.
+
 ## [2.63.0] — 2026-11-21
 
 Serial communication: UART, I2C, SPI and CAN.

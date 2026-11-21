@@ -14,7 +14,7 @@ const P = []; let n = 0; const ok = (c, m) => { n++; if (!c) P.push(m); }; const
 await ev(() => localStorage.clear());
 
 /* 1. every chapter, read whole: one of each item, an address for every place, an answer for every exercise, a tolerance for every calculation */
-const ST = await ev(() => { const o = { ch: 0, items: 0, dup: [], names: [], noSrc: [], ex: 0, keys: 0, exBad: [], worked: 0, workedBad: [], calcs: 0, tolBad: [], nav: [], lv: 0 };
+const ST = await ev(() => { const o = { ch: 0, items: 0, dup: [], names: [], noSrc: [], ex: 0, keys: 0, exBad: [], worked: 0, workedBad: [], calcs: 0, tolBad: [], nav: [], lv: 0, qb: QB.length };
   for (const id of bookOrder()) { BV.ch = id; BV.exam = null; zBookView(); const A = document.getElementById('bkCh'), seen = {}, nm = {}; o.ch++;
     const one = (t, where) => { if (seen[t]) o.dup.push(`${bookCh()[id].n}: ${t}`); seen[t] = 1; };
     A.querySelectorAll('.bk-win').forEach(e => { o.items++; one(e.dataset.emb ? bookTarget(e.dataset.emb) : bookWinTarget(e.dataset.w)); const k = (e.dataset.emb || 'w:').split(':')[0] + ':' + e.dataset.t; if (nm[k]) o.names.push(`${bookCh()[id].n}: ${k}`); nm[k] = 1;
@@ -30,7 +30,7 @@ ok(!ST.dup.length, `no item appears twice in a chapter (${ST.dup.slice(0, 4).joi
 ok(!ST.names.length, `no two items of one kind in a chapter carry the same name (${ST.names.slice(0, 4).join(' | ')})`);
 ok(!ST.noSrc.length, `every place of the site in a chapter has an address in the app (${ST.noSrc.slice(0, 4)})`);
 ok(ST.ex >= 60 && !ST.exBad.length && ST.keys === ST.ex, `every exercise has its answer at the end of its chapter (${ST.ex} exercises, ${ST.keys} answers; ${ST.exBad.slice(0, 4)})`);
-ok(ST.worked >= 8 && !ST.workedBad.length && ST.ex + ST.worked === 122, `every bank question is an exercise or a solved example with steps, once (${ST.ex} + ${ST.worked}; ${ST.workedBad})`);
+ok(ST.worked >= 8 && !ST.workedBad.length && ST.ex + ST.worked === ST.qb, `every bank question is an exercise or a solved example with steps, once (${ST.ex} + ${ST.worked}; ${ST.workedBad})`);
 ok(ST.calcs >= 30 && !ST.tolBad.length, `every calculation in the book has a unit and is accepted within a tolerance (${ST.calcs}; ${ST.tolBad.slice(0, 4)})`);
 ok(!ST.nav.length, `a chapter's own text has no link that leaves it (${ST.nav.slice(0, 3).join(' | ')})`);
 

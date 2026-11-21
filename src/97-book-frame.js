@@ -7,7 +7,7 @@
      to come back to the chapter;
    - certification of a chapter is its test (80%) and every fault scenario that lives in it, solved; the course certificate is
      every chapter and the final exam, printable. */
-const BOOK_SUBJ = { draw: 'b1', mechdraw: 'b12', dig: 'b8', meas: 'b7', elec: 'b10', servo: 'b13', vac: 'b18', cam: 'b16', aos: 'b17', pwr: 'b9', ecat: 'b20', serial: 'b20', safety: 'b19', aoi: 'b21', boards: 'b27', bringup: 'b22', industry: 'b23', res: 'b28' };
+const BOOK_SUBJ = { draw: 'b1', mechdraw: 'b12', dig: 'b8', meas: 'b7', elec: 'b10', servo: 'b13', vac: 'b18', cam: 'b16', aos: 'b17', pwr: 'b9', ecat: 'b20', serial: 'b20', fit: 'b16', img: 'b16', stat: 'b22', sig: 'b13', rel: 'b19', safety: 'b19', aoi: 'b21', boards: 'b27', bringup: 'b22', industry: 'b23', res: 'b28' };
 const bookNodeCh = n => n ? Object.values(bookCh()).find(c => (c.nodes || []).includes(n.id || n)) : null;
 /* the topic an asset belongs to, if it belongs to one */
 function bookRefNode(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.slice(ref.indexOf(':') + 1), win = w => ZOOM.find(n => zWindows(n).includes(w)) || null;
@@ -28,7 +28,7 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
   return k === 'x' ? [] : [ref]; }
 /* the place an asset opens, and so what it is (v2.58): a hub's root is its first page, a system's page is its first stage ("from zero"),
    the card library's page is its first card, and a page's long reading or formulas are the page. Two refs with one place are one item. */
-const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
+const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
 function bookTarget(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
   if (k === 's2') { const [id, st] = v.split('#'); return 's2:' + id + '#' + (st || 'zero'); }
   if (k !== 'p') return a;

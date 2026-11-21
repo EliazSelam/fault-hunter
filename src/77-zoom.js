@@ -9,21 +9,23 @@ const ZN = (id, level, t, core, around, parts = []) => ({ id, level, t, core, ar
 const ZOOM = [
   /* 5 · the process: scan, find, repair; and the work around it */
   ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ', 'p:s2/machine'], ['cam', 'servo', 'vac', 'safety', 'laser', 'pwr', 'ecat']),
-  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas']),
+  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas', 'stat']),
   ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi', 'f:ind'], []),
   /* 4 · systems working in parallel */
   ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ', 'p:opt/ov', 'p:opt/q', 'p:opt/ch'], ['trig', 'optics', 'reg']),
   ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ', 'p:s2/servo'], ['loop', 'trans']),
   ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ', 'p:s2/vac'], ['valve']),
-  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock']),
+  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock', 'rel']),
   ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ', 'p:s2/aos'], ['laserunit', 'reg']),
   ZN('pwr', 4, 'ספק 24V וחלוקת מתח', 't:pwr:scene', ['t:pwr:flow', 't:pwr:rev', 't:pwr:quiz', 't:pwr:math:*', 't:pwr:fault:*', 't:pwr:integ', 'p:mot/wire', 'p:mot/tri', 'p:mot/energy', 'p:mot/sims'], ['psu']),
   ZN('ecat', 4, 'בקרה ותקשורת EtherCAT', 't:ecat:scene', ['t:ecat:flow', 't:ecat:rev', 't:ecat:quiz', 't:ecat:math:*', 't:ecat:fault:*', 't:ecat:integ', 'p:mot/iface'], ['iocards', 'serial']),
   /* 3 · mechanisms and principles */
   ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'logic', 'mosfet']),
   ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:steps', 'c:thermal:bench', 'c:thermal:formulas', 'c:thermal:wrong']),
-  ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong']),
-  ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake']),
+  ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong'], ['fit', 'img']),
+  ZN('img', 2, 'עיבוד תמונה: מפיקסל להחלטה על פגם', 'p:img/why', ['p:img/thr', 'p:img/filt', 'p:img/edge', 'p:img/cent', 'p:img/match', 'p:img/morph', 'p:img/cmp', 'p:img/lab', 'p:img/q', 'f:img']),
+  ZN('fit', 2, 'התאמה וטרנספורמציה: ריבועים פחותים והעברה בין מכונות', 'p:fit/why', ['p:fit/ls', 'p:fit/mat', 'p:fit/tf', 'p:fit/aff', 'p:fit/robust', 'p:fit/geo', 'p:fit/xfer', 'p:fit/code', 'p:fit/lab', 'p:fit/q', 'f:fit']),
+  ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake', 'sig']),
   ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong'], ['fits']),
   ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay', 'sensors']),
   ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong', 'p:s2/interlock'], ['relay', 'switch']),
@@ -39,6 +41,9 @@ const ZOOM = [
   ZN('fits', 2, 'התאמות, טולרנסים ושרטוט מכני', 'c:fits:story', ['c:fits:steps', 'c:fits:bench', 'c:fits:formulas', 'c:fits:wrong', 'p:b/mech', 'p:b/mdrill']),
   ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q', 'f:logic']),
   ZN('serial', 3, 'תקשורת טורית: UART, I2C, SPI ו-CAN', 'p:ser/why', ['p:ser/uart', 'p:ser/i2c', 'p:ser/spi', 'p:ser/can', 'p:ser/cmp', 'p:ser/dbg', 'p:ser/lab', 'p:ser/q', 'f:serial'], ['logic']),
+  ZN('stat', 3, 'סטטיסטיקה ואיכות: Cpk, Gage R&R וקריאות שגויות', 'p:stat/why', ['p:stat/dist', 'p:stat/acc', 'p:stat/unc', 'p:stat/cap', 'p:stat/grr', 'p:stat/cls', 'p:stat/spc', 'p:stat/lab', 'p:stat/q', 'f:stat'], ['meas']),
+  ZN('sig', 2, 'אותות ובקרה: דגימה, מסננים, FFT ומשערכים', 'p:sig/why', ['p:sig/samp', 'p:sig/adc', 'p:sig/filt', 'p:sig/fft', 'p:sig/loop', 'p:sig/enc', 'p:sig/obs', 'p:sig/lab', 'p:sig/q', 'f:sig'], ['sensors']),
+  ZN('rel', 3, 'אמינות ובטיחות פונקציונלית: MTBF, FMEA ו-PL', 'p:rel/why', ['p:rel/rate', 'p:rel/sys', 'p:rel/avail', 'p:rel/weib', 'p:rel/fmea', 'p:rel/fta', 'p:rel/pl', 'p:rel/lab', 'p:rel/q', 'f:rel'], ['relay']),
   ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire', 'f:meas'], ['sensors']),
   ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'f:sensors']),
   /* 1 · components */
@@ -59,7 +64,7 @@ const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 
 /* windows that are a whole existing page, and resources that serve every scale */
 const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
 /* topics that are not parts of the machine are appendices; the appendices view shows only the shared resources that are not old indexes */
-const ZAPPX = new Set(['ind', 'logic', 'meas']);
+const ZAPPX = new Set(['ind', 'logic', 'meas', 'stat', 'rel']);
 const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
@@ -175,7 +180,7 @@ function zMountBase(w, el) {
 const WIN_BASE = WIN.add({ id: 'base', test: () => true, info: zInfoBase, mount: zMountBase });
 
 function zRouteTitle(r) {
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
   if (hubs[h]) { const x = sub ? hubs[h].find(n => n[0] === sub) : hubs[h][0]; if (x) return x[1]; }
   if (h === 's2' && SYSX[sub]) return SYSX[sub].title; if (h === 'lib') { const B = BOARDS.find(x => x.id === sub); return B ? (B.name || B.t || sub).replace(/<[^>]+>/g, '') : sub; }
   const bt = { board: 'קריאת כרטיס אמיתי', set: 'סט שרטוטים מלא', mech: 'שרטוט מכני מאפס', mdrill: 'קריאת שרטוט ייצור', decode: 'מפענחי ערכים', grammar: 'דקדוק של סכמה', quiz: 'חידון סמלים' };

@@ -35,7 +35,7 @@ await pg.evaluate(() => document.querySelector('.zdown[data-zn="vac"]').click())
 ok(await pg.evaluate(() => ZS.node === 'vac' && !!document.querySelector('.zmain.zin')), 'zoom in goes down one scale, with the zoom-in motion');
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="valve"]').click()); await pg.waitForTimeout(150);
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="relay"]').click()); await pg.waitForTimeout(150);
-ok(await pg.evaluate(() => [...document.querySelectorAll('.zup')].map(b => b.dataset.zn).sort().join() === 'interlock,iocards,valve'), 'the relay shows every mechanism it is part of');
+ok(await pg.evaluate(() => [...document.querySelectorAll('.zup')].map(b => b.dataset.zn).sort().join() === 'interlock,iocards,rel,valve'), 'the relay shows every mechanism it is part of');
 await pg.evaluate(() => document.querySelector('.zdown[data-zn="coil"]').click()); await pg.waitForTimeout(150);
 ok(await pg.evaluate(() => ZS.node === 'coil' && /סליל/.test(document.querySelector('#hubpanel').textContent)), 'down to the component: the coil card');
 await pg.evaluate(() => document.querySelector('.zup').click()); await pg.waitForTimeout(150);

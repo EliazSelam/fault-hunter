@@ -21,6 +21,21 @@ const MASTER = [
   { id: 'serial', track: 'found', t: 'תקשורת טורית', L: [
     ['p:ser/why'], ['p:ser/uart'], ['p:ser/i2c', 'p:ser/spi'], ['p:ser/can', 'p:ser/cmp'], ['p:ser/dbg'], ['p:ser/lab'],
     ['qb:ser', 'p:ser/q'], ['x:ecat', 'x:boards']] },
+  { id: 'fit', track: 'found', t: 'התאמה וטרנספורמציה', L: [
+    ['p:fit/why'], ['p:fit/ls'], ['p:fit/mat', 'p:fit/tf'], ['p:fit/aff', 'p:fit/robust', 'p:fit/geo'], ['p:fit/xfer'], ['p:fit/code', 'p:fit/lab'],
+    ['qb:fit', 'p:fit/q'], ['x:aoi', 'x:aos']] },
+  { id: 'img', track: 'found', t: 'עיבוד תמונה', L: [
+    ['p:img/why'], ['p:img/thr'], ['p:img/filt', 'p:img/edge'], ['p:img/cent', 'p:img/match', 'p:img/morph'], ['p:img/cmp'], ['p:img/lab'],
+    ['qb:img', 'p:img/q'], ['x:cam', 'x:aoi']] },
+  { id: 'stat', track: 'found', t: 'סטטיסטיקה ואיכות', L: [
+    ['p:stat/why'], ['p:stat/dist'], ['p:stat/acc', 'p:stat/unc'], ['p:stat/cap', 'p:stat/grr', 'p:stat/cls'], ['p:stat/spc'], ['p:stat/lab'],
+    ['qb:stat', 'p:stat/q'], ['x:bringup', 'x:industry']] },
+  { id: 'sig', track: 'found', t: 'אותות ובקרה', L: [
+    ['p:sig/why'], ['p:sig/samp'], ['p:sig/adc', 'p:sig/filt'], ['p:sig/fft', 'p:sig/loop', 'p:sig/enc'], ['p:sig/obs'], ['p:sig/lab'],
+    ['qb:sig', 'p:sig/q'], ['x:servo', 'x:meas']] },
+  { id: 'rel', track: 'found', t: 'אמינות ובטיחות פונקציונלית', L: [
+    ['p:rel/why'], ['p:rel/rate'], ['p:rel/sys', 'p:rel/avail'], ['p:rel/weib', 'p:rel/fmea', 'p:rel/fta'], ['p:rel/pl'], ['p:rel/lab'],
+    ['qb:rel', 'p:rel/q'], ['x:safety', 'x:bringup']] },
   { id: 'meas', track: 'found', t: 'מדידה, מכשירים וחיישנים', L: [
     ['p:lab'], ['p:lab/dmm'], ['p:lab/s-wire', 'p:s1/loop'], ['p:lab/scope', 'p:lab/s-prox', 'p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'p:lib/ai'],
     ['p:s1/loop#math'], ['p:s1/loop#full'], ['qb:lin', 'scn:s1:loop'], ['x:bringup', 'x:boards']] },

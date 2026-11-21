@@ -307,6 +307,8 @@ header.top{align-items:center}
 .tt th,.tt td{border:1px solid var(--line);padding:5px 12px;text-align:center;font-variant-numeric:tabular-nums}
 .tt th{background:var(--tint);color:var(--ink)}
 .tt tr.hi td{background:var(--livetint);font-weight:700;color:var(--ink)}
+.codebox{border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
+.codebox pre{overflow-x:auto;font-size:13px;line-height:1.45;margin:6px 0 0;text-align:left;white-space:pre}
 .formulas{border:1.5px solid var(--ink);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
 .formulas>b{color:var(--ink)}.formulas table{margin:4px 0 0}
 /* Refinement pass (Impeccable audit + Emil Kowalski motion review) */
@@ -607,6 +609,11 @@ iframe.emb{display:block;width:100%;height:220px;border:0;background:var(--sheet
   <button role="tab" data-sheet="b" aria-selected="false">יסודות<small>קריאת סכמה מאפס</small></button>
   <button role="tab" data-sheet="dig" aria-selected="false">לוגיקה ספרתית<small>פליפ-פלופים ומונים</small></button>
   <button role="tab" data-sheet="ser" aria-selected="false">תקשורת טורית<small>UART, I2C, SPI, CAN</small></button>
+  <button role="tab" data-sheet="fit" aria-selected="false">התאמה וטרנספורמציה<small>ריבועים פחותים, רישום</small></button>
+  <button role="tab" data-sheet="img" aria-selected="false">עיבוד תמונה<small>סף, קצוות, תת-פיקסל</small></button>
+  <button role="tab" data-sheet="stat" aria-selected="false">סטטיסטיקה ואיכות<small>Cpk, Gage R&amp;R, false call</small></button>
+  <button role="tab" data-sheet="sig" aria-selected="false">אותות ובקרה<small>דגימה, מסננים, FFT, לולאה</small></button>
+  <button role="tab" data-sheet="rel" aria-selected="false">אמינות ובטיחות<small>MTBF, FMEA, PL</small></button>
   <button role="tab" data-sheet="s1" aria-selected="false">רכיבים<small>חשמל, פניאומטיקה, מכניקה</small></button>
   <button role="tab" data-sheet="mot" aria-selected="false">מכונות והספק<small>מנועים, שנאים, ממירים</small></button>
   <button role="tab" data-sheet="opt" aria-selected="false">אופטיקה ולייזר<small>מהאור לתמונה ולתיקון</small></button>

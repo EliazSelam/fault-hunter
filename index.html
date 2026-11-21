@@ -307,6 +307,8 @@ header.top{align-items:center}
 .tt th,.tt td{border:1px solid var(--line);padding:5px 12px;text-align:center;font-variant-numeric:tabular-nums}
 .tt th{background:var(--tint);color:var(--ink)}
 .tt tr.hi td{background:var(--livetint);font-weight:700;color:var(--ink)}
+.codebox{border:1.5px solid var(--line);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
+.codebox pre{overflow-x:auto;font-size:13px;line-height:1.45;margin:6px 0 0;text-align:left;white-space:pre}
 .formulas{border:1.5px solid var(--ink);border-radius:8px;padding:8px 14px;margin:12px 0;background:var(--sheet)}
 .formulas>b{color:var(--ink)}.formulas table{margin:4px 0 0}
 /* Refinement pass (Impeccable audit + Emil Kowalski motion review) */
@@ -607,6 +609,11 @@ iframe.emb{display:block;width:100%;height:220px;border:0;background:var(--sheet
   <button role="tab" data-sheet="b" aria-selected="false">יסודות<small>קריאת סכמה מאפס</small></button>
   <button role="tab" data-sheet="dig" aria-selected="false">לוגיקה ספרתית<small>פליפ-פלופים ומונים</small></button>
   <button role="tab" data-sheet="ser" aria-selected="false">תקשורת טורית<small>UART, I2C, SPI, CAN</small></button>
+  <button role="tab" data-sheet="fit" aria-selected="false">התאמה וטרנספורמציה<small>ריבועים פחותים, רישום</small></button>
+  <button role="tab" data-sheet="img" aria-selected="false">עיבוד תמונה<small>סף, קצוות, תת-פיקסל</small></button>
+  <button role="tab" data-sheet="stat" aria-selected="false">סטטיסטיקה ואיכות<small>Cpk, Gage R&amp;R, false call</small></button>
+  <button role="tab" data-sheet="sig" aria-selected="false">אותות ובקרה<small>דגימה, מסננים, FFT, לולאה</small></button>
+  <button role="tab" data-sheet="rel" aria-selected="false">אמינות ובטיחות<small>MTBF, FMEA, PL</small></button>
   <button role="tab" data-sheet="s1" aria-selected="false">רכיבים<small>חשמל, פניאומטיקה, מכניקה</small></button>
   <button role="tab" data-sheet="mot" aria-selected="false">מכונות והספק<small>מנועים, שנאים, ממירים</small></button>
   <button role="tab" data-sheet="opt" aria-selected="false">אופטיקה ולייזר<small>מהאור לתמונה ולתיקון</small></button>
@@ -4688,7 +4695,7 @@ function uartFrame(byte, nd, par, ns) {
   return { bits, lab, n: 1 + nd + (par ? 1 : 0) + ns };
 }
 
-const SER_NAV = [['why', 'למה תקשורת טורית', 'חוטים, שעון ומסגרת'], ['uart', 'UART', 'אסינכרוני, שני חוטים'], ['i2c', 'I2C', 'שני חוטים, כתובות, ACK'], ['spi', 'SPI', 'מהיר, שעון וחוט בחירה'], ['can', 'CAN', 'דיפרנציאלי, בורר לפי מזהה'], ['cmp', 'השוואה ובחירה', 'איזה פרוטוקול לאיזה צורך'], ['dbg', 'אבחון תקשורת', 'תסמין, סיבה, בדיקה'], ['lab', 'מעבדה חיה', 'ארבע סימולציות'], ['q', 'שאלות: תקשורת טורית', '']];
+const SER_NAV = [['why', 'למה תקשורת טורית', 'חוטים, שעון ומסגרת'], ['uart', 'UART', 'אסינכרוני, שני חוטים'], ['i2c', 'I2C', 'שני חוטים, כתובות, ACK'], ['spi', 'SPI', 'מהיר, שעון וחוט בחירה'], ['can', 'CAN', 'דיפרנציאלי, בורר לפי מזהה'], ['cmp', 'השוואה ובחירה', 'איזה פרוטוקול לאיזה צורך'], ['dbg', 'אבחון תקשורת', 'תסמין, סיבה, בדיקה'], ['lab', 'מעבדה: ארבעה פרוטוקולים', 'ארבע סימולציות'], ['q', 'שאלות: תקשורת טורית', '']];
 
 /* ---- schematics ---- */
 const SG = {
@@ -4917,6 +4924,841 @@ QB.push(
   why: 'תפוסה גבוהה (בדרך כלל מעל כ-50% עד 70%) מעכבת הודעות בעדיפות נמוכה.',
   steps: ['47 + 64 = 111 ביטים.', 'T = 111 · 2 µs = 222 µs.', 'load = 100 · 222·10⁻⁶ = 0.0222.'],
   trap: 'לשכוח את ה-47 ביטים של המסגרת, ולחשב רק 64 ביטי נתונים.' }
+);
+/* ============ Extra hubs (v2.64): one engine for the five algorithm and engineering hubs ============
+   Each hub registers itself with hubX(key, cfg): tab, title, lead, standard, nav [[id, title, sub]], pages {id: () => html},
+   optional mount {id: el => ...} for live parts. Every place that lists hubs reads hubxNavs() and hubxRoutes(). */
+const HUBX = {};
+function hubxNavs() { return Object.fromEntries(Object.entries(HUBX).map(([k, h]) => [k, h.nav])); }
+function hubxRoutes() { return Object.fromEntries(Object.keys(HUBX).map(k => [k, a => showHubX(k, a)])); }
+function hubX(key, cfg) { cfg.key = key; HUBX[key] = cfg; if (cfg.qt) QT[cfg.qt] = cfg.qtName; return cfg; }
+function showHubX(key, sub) {
+  const h = HUBX[key]; active = null; sub = sub || h.nav[0][0]; if (!h.nav.some(n => n[0] === sub)) sub = h.nav[0][0];
+  setTab(key); markVisit(key + ':' + sub);
+  const q = h.nav.find(n => n[0] === 'q'); if (q) q[2] = QB.filter(x => x.t === h.qt).length + ' שאלות';
+  const B = hubFrame(h.title, h.lead, h.nav, sub, k => showHubX(key, k));
+  if (sub === 'q') qList(B, h.qt, () => showHubX(key, 'q'));
+  else { B.innerHTML = `<h2 style="font-size:24px">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); }
+  setTitle(h.tab, h.nav.find(n => n[0] === sub)[1], h.std);
+}
+/* a hub's terms: defined here unless the glossary already has them (then the hub only links to them) */
+const HXTERMS = {}, HXDUP = [];
+function hxTerm(hub, k, v) { if (GLOSS[k]) HXDUP.push(k); else { GLOSS[k] = v[0]; GSHORT[k] = v[1]; } HXTERMS[k] = hub; }
+Object.entries({
+  'QR': ['פירוק QR: כתיבת מטריצה כמכפלה של מטריצה אורתוגונלית ומשולשית. דרך יציבה לפתור ריבועים פחותים.', 'פירוק יציב לפתרון משוואות'],
+  'MATLAB': ['סביבת חישוב נומרי. האופרטור \\ בה פותר מערכות משוואות, גם בריבועים פחותים.', 'סביבת חישוב נומרי'],
+  'CAD': ['Computer Aided Design: קובץ התכנון של הלוח, עם המיקום הנומינלי של כל מוליך ו-fiducial.', 'קובץ התכנון'],
+  'shear': ['עיוות (shear): הטיה שבה צירי x ו-y לא בדיוק ניצבים.', 'אי-ניצבות של הצירים'],
+  'FR-4': ['חומר הבסיס הנפוץ ללוחות: סיבי זכוכית באפוקסי. מתרחב בערך 14 עד 17 ppm לכל מעלה בכיוון הסיבים.', 'חומר הבסיס של רוב הלוחות'],
+  'flat field': ['כיול אחידות: מצלמים משטח אחיד ומתקנים כל פיקסל, כדי שאותה בהירות תיתן אותו מספר לאורך כל השורה.', 'תיקון אי-אחידות של תאורה וחיישן'],
+  'SSD': ['Sum of Squared Differences: סכום ריבועי ההפרשים בין תבנית לתמונה. רגיש לשינוי בהירות.', 'סכום הפרשים בריבוע'],
+  'pad': ['משטח נחושת שעליו מלחימים רגל של רכיב.', 'משטח הלחמה'],
+  'px': ['פיקסל, כיחידת מידה בתמונה.', 'פיקסל'],
+  'Gage': ['מכשיר מדידה. Gage R&R בודק את מערכת המדידה.', 'מכשיר מדידה'],
+  'GRR': ['קיצור של Gage R&R: החלק של מערכת המדידה בפיזור, לרוב באחוזים מהטולרנס.', 'Gage R&R באחוזים'],
+  'EV': ['Equipment Variation: הפיזור של אותו מכשיר במדידות חוזרות, כלומר החזרתיות.', 'פיזור המכשיר'],
+  'AV': ['Appraiser Variation: הפיזור בין מפעילים (או מכונות), כלומר השחזוריות.', 'פיזור בין מפעילים'],
+  'TP': ['True Positive: פגם אמיתי שהמכונה סימנה.', 'פגם שנתפס'], 'FP': ['False Positive: סימון בלי פגם, כלומר קריאה שגויה.', 'קריאה שגויה'],
+  'FN': ['False Negative: פגם שהמכונה לא סימנה, כלומר בריחה.', 'פגם שהוחמץ'], 'TN': ['True Negative: מקום תקין שהמכונה לא סימנה.', 'תקין שעבר'],
+  'tampering': ['כוונון יתר: תיקון התהליך אחרי כל סטייה אקראית. מגדיל את הפיזור במקום להקטין אותו.', 'תיקון יתר שמוסיף פיזור'],
+  'Hann': ['חלון Hann: עקומת קוסינוס שיורדת לאפס בקצוות, להכפלת הדגימות לפני FFT.', 'חלון נפוץ ל-FFT'],
+  'Kv': ['הגבר המהירות של לולאת מיקום, ביחידות 1/s.', 'הגבר מהירות']
+}).forEach(([k, v]) => hxTerm('_', k, v));
+/* shared bits for the hub pages */
+const olx = a => ol(a.map(bidi));
+const px = t => `<p>${bidi(t)}</p>`;
+const codeBox = (t, c) => `<div class="codebox"><b>${t}</b><pre dir="ltr" lang="en">${c.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</pre></div>`;
+const trap = t => `<p class="note warn"><b>מלכודת:</b> ${bidi(t)}</p>`;
+const where = t => `<p class="note"><b>איפה זה במכונה:</b> ${bidi(t)}</p>`;
+/* a number input and a select, for the live labs */
+const hxNum = (id, label, v, min, max, step) => `<div class="ctl"><label for="${id}">${label}</label><input id="${id}" type="number" value="${v}" min="${min}" max="${max}" step="${step || 1}" dir="ltr"></div>`;
+const hxRead = (el, ids, st, draw) => ids.forEach(([id, k]) => { const e = el.querySelector('#' + id); if (e) e.addEventListener('change', ev => { const v = +ev.target.value; if (!isNaN(v)) st[k] = v; draw(); }); });
+/* deterministic noise for labs and checks */
+function hxRand(seed) { const r = rng(seed); return () => { let u = 0; for (let i = 0; i < 6; i++) u += r(); return (u - 3) / Math.sqrt(.5); }; }
+/* least squares by normal equations, small dense: solve (AᵀA) x = Aᵀb with Gaussian elimination */
+function lsq(A, b, w) {
+  const n = A[0].length, M = Array.from({ length: n }, () => Array(n + 1).fill(0));
+  A.forEach((row, i) => { const wi = w ? w[i] : 1; for (let r = 0; r < n; r++) { for (let c = 0; c < n; c++) M[r][c] += wi * row[r] * row[c]; M[r][n] += wi * row[r] * b[i]; } });
+  for (let c = 0; c < n; c++) { let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r; [M[c], M[p]] = [M[p], M[c]]; if (Math.abs(M[c][c]) < 1e-15) return null;
+    for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+  return M.map((r, i) => r[n] / r[i]);
+}
+/* ============ Hub: fitting and transformations (v2.64) ============
+   Least squares from first principles, the 2D transformations a machine uses, fitting them to fiducials,
+   outliers and RANSAC, how the fiducial layout sets the accuracy, and the AOI to AOS hand-off with its error budget. */
+Object.entries({
+  'least squares': ['ריבועים פחותים: שיטה למצוא את הפרמטרים של מודל כשיש יותר מדידות מנעלמים. בוחרים את הפרמטרים שמקטינים את סכום ריבועי השאריות.', 'התאמה שמקטינה את סכום ריבועי השגיאות'],
+  'residual': ['שארית: ההפרש בין מה שנמדד לבין מה שהמודל המותאם מנבא באותה נקודה.', 'מדידה פחות ניבוי'],
+  'normal equations': ['המשוואות הנורמליות: AᵀA·x = Aᵀb. פתרון שלהן נותן את פתרון הריבועים הפחותים.', 'המשוואות שפותרים בריבועים פחותים'],
+  'RMS': ['Root Mean Square: שורש ממוצע הריבועים. מדד לגודל טיפוסי של שגיאה.', 'שורש ממוצע הריבועים'],
+  'rigid': ['טרנספורמציה קשיחה: סיבוב והזזה בלבד, בלי שינוי גודל וצורה. 3 פרמטרים במישור.', 'סיבוב והזזה'],
+  'similarity': ['טרנספורמציית דמיון: סיבוב, הזזה וקנה מידה אחיד. 4 פרמטרים.', 'סיבוב, הזזה וקנה מידה'],
+  'homography': ['הומוגרפיה: טרנספורמציה פרספקטיבית במישור, 8 פרמטרים. מתארת מצלמה שמסתכלת על מישור בזווית.', 'טרנספורמציה פרספקטיבית'],
+  'homogeneous coordinates': ['קואורדינטות הומוגניות: מוסיפים לנקודה (x, y) רכיב שלישי 1. כך גם הזזה נכתבת ככפל מטריצה 3×3, והרכבת טרנספורמציות היא כפל מטריצות.', 'נקודה עם 1 נוסף'],
+  'RANSAC': ['RANdom SAmple Consensus: בוחרים שוב ושוב קבוצה מינימלית של נקודות, מתאימים מודל, וסופרים כמה נקודות מסכימות איתו. המודל עם הכי הרבה מסכימות מנצח, והחריגים נזרקים.', 'התאמה שעמידה לחריגים'],
+  'outlier': ['חריג: מדידה שגויה בהרבה מהשאר, למשל fiducial מלוכלך. בריבועים פחותים רגילים חריג אחד מזיז את כל הפתרון.', 'מדידה שגויה בהרבה'],
+  'inlier': ['נקודה שמסכימה עם המודל, כלומר השארית שלה קטנה מסף.', 'נקודה שמסכימה עם המודל'],
+  'weighted least squares': ['ריבועים פחותים ממושקלים: לכל מדידה משקל, בדרך כלל 1/σ². מדידה אמינה משפיעה יותר.', 'ריבועים פחותים עם משקלים'],
+  'degrees of freedom': ['דרגות חופש: מספר המדידות פחות מספר הפרמטרים. רק מהן אפשר להעריך את הרעש.', 'מדידות פחות פרמטרים'],
+  'condition number': ['מספר המצב של מטריצה: פי כמה שגיאה בנתונים יכולה לגדול בפתרון. מספר גדול פירושו בעיה רגישה.', 'רגישות הפתרון לשגיאות'],
+  'error budget': ['תקציב שגיאה: רשימת כל מקורות השגיאה במערכת וגודל כל אחד, וחיבור שלהם לשגיאה כוללת.', 'פירוק השגיאה לפי מקורות'],
+  'RSS': ['Root Sum of Squares: חיבור שגיאות בלתי תלויות בשורש סכום הריבועים.', 'שורש סכום הריבועים'],
+  'pseudo-inverse': ['פסאודו-הופכית: (AᵀA)⁻¹Aᵀ. ההופכית של מטריצה מלבנית לצורך ריבועים פחותים.', 'הופכית של מטריצה לא ריבועית'],
+  'lever arm': ['זרוע: מרחק מנקודת הייחוס. שגיאת זווית קטנה הופכת לשגיאת מיקום שגדלה עם הזרוע.', 'מרחק שמגדיל שגיאת זווית']
+}).forEach(([k, v]) => hxTerm('fit', k, v));
+
+/* the five fiducials of the lab, in mm on a 300 × 200 panel */
+const FIT_FIDS = [[0, 0], [300, 0], [300, 200], [0, 200], [150, 60]];
+/* truth: displacement in µm at a point in mm (scale in ppm, rotation in mrad, shift in µm) */
+const fitTrue = (P, x, y) => [P.ppm * 1e-3 * x - P.rot * y + P.dx, P.rot * x + P.ppm * 1e-3 * y + P.dy];
+/* fit a model to the measured displacements; returns the predictor and the residuals */
+function fitModel(mode, pts, meas, use) {
+  const I = pts.map((_, i) => i).filter(i => !use || use[i]);
+  let f;
+  if (mode === 'shift') { const cx = I.reduce((a, i) => a + meas[i][0], 0) / I.length, cy = I.reduce((a, i) => a + meas[i][1], 0) / I.length; f = () => [cx, cy]; }
+  else if (mode === 'rigid') { const A = [], b = []; I.forEach(i => { const [x, y] = pts[i]; A.push([-y, 1, 0]); b.push(meas[i][0]); A.push([x, 0, 1]); b.push(meas[i][1]); }); const s = lsq(A, b); f = (x, y) => [-s[0] * y + s[1], s[0] * x + s[2]]; }
+  else { const M = I.map(i => [pts[i][0], pts[i][1], 1]), a = lsq(M, I.map(i => meas[i][0])), d = lsq(M, I.map(i => meas[i][1])); f = (x, y) => [a[0] * x + a[1] * y + a[2], d[0] * x + d[1] * y + d[2]]; }
+  const res = pts.map((p, i) => { const q = f(p[0], p[1]); return [meas[i][0] - q[0], meas[i][1] - q[1]]; });
+  const k = { shift: 2, rigid: 3, affine: 6 }[mode], dof = 2 * I.length - k, ss = I.reduce((a, i) => a + res[i][0] ** 2 + res[i][1] ** 2, 0);
+  return { f, res, rms: Math.sqrt(ss / I.length), sigma: dof > 0 ? Math.sqrt(ss / dof) : NaN, dof };
+}
+/* a straight line by least squares, closed form */
+function lineFit(xs, ys) { const n = xs.length, Sx = xs.reduce((a, b) => a + b, 0), Sy = ys.reduce((a, b) => a + b, 0), Sxx = xs.reduce((a, b) => a + b * b, 0), Sxy = xs.reduce((a, x, i) => a + x * ys[i], 0); const a = (n * Sxy - Sx * Sy) / (n * Sxx - Sx * Sx), b = (Sy - a * Sx) / n; const r = ys.map((y, i) => y - a * xs[i] - b); return { a, b, r, rms: Math.sqrt(r.reduce((s, v) => s + v * v, 0) / n) }; }
+const ransacN = (p, w, s) => Math.log(1 - p) / Math.log(1 - Math.pow(w, s));
+
+hubX('fit', {
+  tab: 'התאמה וטרנספורמציה', title: 'התאמה וטרנספורמציה: מריבועים פחותים ועד העברה בין מכונות', std: 'ISO 9283', qt: 'fit', qtName: 'התאמה וטרנספורמציה',
+  lead: 'איך מכונה יודעת איפה הפאנל באמת נמצא: מודדים כמה סימנים, מתאימים מודל בריבועים פחותים, ומעבירים כל נקודה מהתכנון, ממכונת ה-AOI ולמכונת ה-AOS. כל עמוד: גזירה מלאה, דוגמה מחושבת, ומלכודת.',
+  nav: [['why', 'למה צריך התאמה', 'יותר משוואות מנעלמים'], ['ls', 'ריבועים פחותים מאפס', 'גזירה, קו ישר'], ['mat', 'הצורה המטריציונית', 'AᵀA x = Aᵀb'], ['tf', 'טרנספורמציות במישור', 'מהזזה עד הומוגרפיה'], ['aff', 'התאמה אפינית ל-fiducials', '6 פרמטרים, שאריות'], ['robust', 'חריגים ו-RANSAC', 'משקלים, סף, איטרציות'], ['geo', 'איפה לשים fiducials', 'זרוע ורגישות'], ['xfer', 'העברה בין מכונות', 'הרכבה ותקציב שגיאה'], ['code', 'קוד MATLAB', 'מוכן להדבקה'], ['lab', 'מעבדה: fiducials עם רעש', 'בחירת מודל וחריג'], ['q', 'שאלות: התאמה', '']],
+  pages: {
+    why: () => SB('כמו לתלות תמונה עם ארבעה מסמרים כשהקיר לא ישר לגמרי: כל מסמר מספר משהו קצת אחר, ומחפשים את המיקום שמסכים הכי טוב עם כולם.', ['הפאנל אף פעם לא בדיוק במקום שבתכנון: הוא זז, מסובב, ומתכווץ או מתרחב עם הטמפרטורה.', 'מודדים כמה סימנים ידועים (fiducials) ומקבלים את מיקומם האמיתי.', 'בוחרים מודל: למשל הזזה, סיבוב וקנה מידה. למודל יש מספר קבוע של פרמטרים.', 'יש יותר מדידות מפרמטרים, והמדידות רועשות, ולכן אין פרמטרים שמסכימים עם כולן בדיוק.', 'בוחרים את הפרמטרים שמקטינים את סכום ריבועי השאריות: זה ריבועים פחותים.', 'עם הפרמטרים מעבירים כל נקודה מהתכנון אל המכונה.'], 'ההתאמה לא מבטלת רעש. היא ממצעת אותו, והשאריות אומרות כמה הוא גדול.') +
+      TT(['מודל', 'פרמטרים', 'מינימום fiducials', 'מתקן'], [['הזזה', '2', '1', 'הזזה בלבד'], ['קשיח (rigid)', '3', '2', 'הזזה וסיבוב'], ['דמיון (similarity)', '4', '2', 'ועוד קנה מידה אחיד'], ['אפיני', '6', '3 שלא על קו אחד', 'ועוד קנה מידה שונה בכל ציר ועיוות'], ['הומוגרפיה', '8', '4', 'ועוד פרספקטיבה']]) +
+      FB([['Δ = ε · L', 'שגיאה מקנה מידה במרחק L', 'ε = 100 ppm, L = 300 mm: 30 µm'], ['Δ = θ · L', 'שגיאה מסיבוב קטן במרחק L', 'θ = 0.5 mrad, L = 300 mm: 150 µm'], ['dof = m − k', 'דרגות חופש: מדידות פחות פרמטרים', '4 fiducials (8 מדידות), אפיני: 8 − 6 = 2']]) +
+      where('לפני כל סריקה במכונת AOI, ושוב לפני כל תיקון במכונת AOS. ההתאמה היא ההבדל בין 150 µm שגיאה לבין כמה מיקרונים.'),
+    ls: () => px('מתחילים מהמקרה הפשוט: מודדים נקודות (xᵢ, yᵢ) ומחפשים קו y = a·x + b. מטרה: a ו-b שמקטינים את סכום ריבועי השאריות.') +
+      olx(['השארית בנקודה i: rᵢ = yᵢ − a·xᵢ − b.', 'הפונקציה שמקטינים: S(a, b) = Σ rᵢ² = Σ (yᵢ − a·xᵢ − b)².', 'במינימום הנגזרות מתאפסות. לפי b: ∂S/∂b = −2 Σ (yᵢ − a·xᵢ − b) = 0, ולכן Σ yᵢ = a·Σ xᵢ + n·b.', 'לפי a: ∂S/∂a = −2 Σ xᵢ (yᵢ − a·xᵢ − b) = 0, ולכן Σ xᵢyᵢ = a·Σ xᵢ² + b·Σ xᵢ.', 'שתי משוואות לינאריות בשני נעלמים (המשוואות הנורמליות). פותרים:', 'a = (n·Σxy − Σx·Σy) / (n·Σx² − (Σx)²) ,  b = (Σy − a·Σx) / n.', 'משמעות התנאים: Σ rᵢ = 0 (השאריות מאוזנות) ו-Σ xᵢ·rᵢ = 0 (אין בהן מגמה שנשארה).']) +
+      `<h3>דוגמה מחושבת</h3>` + TT(['i', 'x', 'y', 'x²', 'x·y', 'ŷ = 1.6x + 1.1', 'r'], [['1', '0', '1', '0', '0', '1.1', '−0.1'], ['2', '1', '3', '1', '3', '2.7', '0.3'], ['3', '2', '4', '4', '8', '4.3', '−0.3'], ['4', '3', '6', '9', '18', '5.9', '0.1'], ['Σ', '6', '14', '14', '29', '', '0']]) +
+      px('a = (4·29 − 6·14) / (4·14 − 6²) = 32 / 20 = 1.6. b = (14 − 1.6·6) / 4 = 1.1. בדיקה: Σ r = 0 ו-Σ x·r = 0 − 0 + 0.3 − 0.6 + 0.3 = 0. RMS = √((0.01 + 0.09 + 0.09 + 0.01) / 4) ≈ 0.224.') +
+      FB([['S = Σ (yᵢ − a·xᵢ − b)²', 'הפונקציה שמקטינים', ''], ['a = (n·Σxy − Σx·Σy) / (n·Σx² − (Σx)²)', 'השיפוע', '32 / 20 = 1.6'], ['b = (Σy − a·Σx) / n', 'החיתוך', '(14 − 9.6) / 4 = 1.1'], ['RMS = √(Σ rᵢ² / n)', 'גודל טיפוסי של שארית', '√0.05 ≈ 0.224']]) +
+      trap('למה ריבוע ולא ערך מוחלט? ריבוע נותן פונקציה גזירה ופתרון סגור. המחיר: נקודה רחוקה אחת שוקלת הרבה, ולכן חריג אחד מזיז הכול (ראו "חריגים").'),
+    mat: () => px('אותו דבר לכל מודל לינארי בפרמטרים: כותבים את כל המשוואות כ-A·x ≈ b. ל-A יש שורה לכל מדידה ועמודה לכל פרמטר. יש יותר שורות מעמודות.') +
+      olx(['השאריות: r = b − A·x. מקטינים ‖r‖² = (b − A·x)ᵀ(b − A·x).', 'פותחים: bᵀb − 2xᵀAᵀb + xᵀAᵀA x.', 'גוזרים לפי x ומשווים לאפס: −2Aᵀb + 2AᵀA x = 0.', 'המשוואות הנורמליות: AᵀA·x = Aᵀb.', 'אם ל-A עמודות בלתי תלויות, AᵀA הפיכה: x = (AᵀA)⁻¹ Aᵀ b. (AᵀA)⁻¹Aᵀ נקראת pseudo-inverse.', 'המשמעות הגאומטרית: Aᵀr = 0. השארית ניצבת לכל עמודה של A, כלומר A·x הוא ההיטל של b על המרחב ש-A פורשת.']) +
+      `<h3>הקו ישר בצורה הזאת</h3>` + px('A = [[x₁, 1], [x₂, 1], …], x = [a, b]ᵀ. אז AᵀA = [[Σx², Σx], [Σx, n]] ו-Aᵀb = [Σxy, Σy]. אלה בדיוק שתי המשוואות מהעמוד הקודם.') +
+      `<h3>הערכת הרעש מהשאריות</h3>` + px('עם m מדידות ו-k פרמטרים, הערכת סטיית התקן של מדידה בודדת היא σ̂ = √(Σ r² / (m − k)). מחלקים ב-m − k ולא ב-m, כי k פרמטרים כבר "התאימו" חלק מהרעש.') +
+      FB([['AᵀA · x = Aᵀb', 'המשוואות הנורמליות', ''], ['x = (AᵀA)⁻¹ Aᵀ b', 'הפתרון', ''], ['Aᵀ r = 0', 'השארית ניצבת לעמודות', 'בקו ישר: Σ r = 0 ו-Σ x·r = 0'], ['σ̂ = √(Σ r² / (m − k))', 'הערכת רעש המדידה', 'דוגמת הקו: √(0.2 / 2) ≈ 0.316'], ['Cov(x) = σ² (AᵀA)⁻¹', 'אי-הוודאות של הפרמטרים', 'האלכסון: שונות כל פרמטר']]) +
+      trap('לא מחשבים (AᵀA)⁻¹ במספרים כשהבעיה רגישה: עדיף פירוק QR (ב-MATLAB: x = A\\b). AᵀA מעלה בריבוע את מספר המצב, ושגיאות עיגול גדלות.'),
+    tf: () => px('כל טרנספורמציה במישור לוקחת נקודה (x, y) ונותנת (x′, y′). בקואורדינטות הומוגניות כותבים (x, y, 1), וכל הטרנספורמציות הן מטריצה 3×3. כך הרכבה היא כפל, והיפוך הוא הופכית.') +
+      TT(['סוג', 'מטריצה', 'פרמטרים', 'שומר על'], [['הזזה', '[[1, 0, tx], [0, 1, ty], [0, 0, 1]]', '2', 'הכול חוץ ממיקום'], ['קשיח', '[[cos θ, −sin θ, tx], [sin θ, cos θ, ty], [0, 0, 1]]', '3', 'מרחקים וזוויות'], ['דמיון', '[[s·cos θ, −s·sin θ, tx], [s·sin θ, s·cos θ, ty], [0, 0, 1]]', '4', 'זוויות ויחסי אורכים'], ['אפיני', '[[a, b, c], [d, e, f], [0, 0, 1]]', '6', 'קווים מקבילים'], ['הומוגרפיה', '[[h₁, h₂, h₃], [h₄, h₅, h₆], [h₇, h₈, 1]]', '8', 'קווים ישרים']]) +
+      `<h3>זוויות קטנות</h3>` + px('במכונה הסיבוב קטן מאוד (מיליראדיאנים). אז cos θ ≈ 1 ו-sin θ ≈ θ, והמטריצה הקשיחה הופכת לינארית בפרמטרים: x′ = x − θ·y + tx, y′ = θ·x + y + ty. זה מה שמאפשר לפתור בריבועים פחותים לינאריים.') +
+      `<h3>הרכבה והיפוך</h3>` + olx(['הפעלת T₁ ואחריה T₂ על p: p″ = T₂ · T₁ · p. הסדר חשוב: מכפילים מימין לשמאל.', 'כדי לחזור: p = T⁻¹ · p′. לסיבוב: R(θ)⁻¹ = R(−θ). להזזה: מחסירים.', 'אפיני הפיך כשהדטרמיננטה a·e − b·d שונה מאפס.']) +
+      `<h3>דוגמה: נקודה מהתכנון אל מכונת ה-AOS</h3>` + px('ההתאמה במכונה נתנה θ = 0.5 mrad, t = (2.000, −1.000) mm, קנה מידה 1. הפגם בתכנון ב-(120, 80) mm.') + olx(['x′ = 120 − 0.0005 · 80 + 2.000 = 121.960 mm.', 'y′ = 0.0005 · 120 + 80 − 1.000 = 79.060 mm.', 'בלי הסיבוב היינו שולחים את הלייזר ל-(122.000, 79.000): טעות של 40 µm ב-x ו-60 µm ב-y.']) +
+      FB([['x′ = x − θ·y + tx', 'סיבוב קטן והזזה, ציר x', '120 − 0.04 + 2 = 121.96 mm'], ['y′ = θ·x + y + ty', 'אותו דבר, ציר y', '0.06 + 80 − 1 = 79.06 mm'], ['p″ = T₂ · T₁ · p', 'הרכבה: קודם T₁ ואז T₂', ''], ['det = a·e − b·d', 'אפיני הפיך כשהיא לא אפס', '']]) +
+      trap('מערכת צירים ימנית מול שמאלית: אם ציר y של המצלמה הפוך לזה של השולחן, הסיבוב יוצא בסימן הפוך. בודקים על נקודה ידועה לפני שסומכים על המספרים.'),
+    aff: () => px('אפיני: x′ = a·x + b·y + c, y′ = d·x + e·y + f. 6 נעלמים. כל fiducial נותן שתי משוואות. השתי משוואות מתפרקות לשתי בעיות נפרדות של 3 נעלמים, עם אותה מטריצה.') +
+      olx(['לכל fiducial i: נקודת תכנון (xᵢ, yᵢ) ונקודה נמדדת (xᵢ′, yᵢ′).', 'בונים M עם שורה [xᵢ, yᵢ, 1] לכל fiducial (n × 3).', 'עבור x′: M · [a, b, c]ᵀ ≈ x′. עבור y′: M · [d, e, f]ᵀ ≈ y′.', 'פותרים כל אחת: [a, b, c]ᵀ = (MᵀM)⁻¹ Mᵀ x′, ובאותה מטריצה [d, e, f]ᵀ.', 'עם 3 fiducials יש פתרון מדויק ואין שאריות, ולכן אין שום בדיקה. עם 4 ומעלה יש שאריות, והן מגלות fiducial רע.', 'הערכת הרעש: σ̂ = √(Σ (rₓ² + r_y²) / (2n − 6)).']) +
+      `<h3>מה המספרים אומרים</h3>` + TT(['פרמטר', 'משמעות פיזיקלית', 'סדר גודל טיפוסי'], [['a − 1, e − 1', 'קנה מידה בכל ציר (התכווצות או התרחבות של הלוח)', 'עשרות עד מאות ppm'], ['(d − b) / 2', 'סיבוב', 'עד כמה mrad'], ['(b + d) / 2', 'עיוות (shear), אי-ניצבות של הצירים', 'קטן'], ['c, f', 'הזזה', 'עד כמה mm']]) +
+      `<h3>למה קנה מידה בכל ציר</h3>` + px('לוח FR-4 מתרחב כ-14 עד 17 ppm/°C בכיוון הסיבים, ובציר השני מעט אחרת. 5 °C מעל הטמפרטורה של התכנון על 300 mm: כ-0.3 mm × 0.016 × 5 ≈ 24 µm. המודל האפיני תופס את זה, והקשיח לא.') +
+      FB([['x′ = a·x + b·y + c', 'אפיני, ציר x', ''], ['y′ = d·x + e·y + f', 'אפיני, ציר y', ''], ['m = 2n ≥ 6', 'צריך לפחות 3 fiducials', '4 fiducials: 8 משוואות'], ['σ̂ = √(Σ r² / (2n − 6))', 'רעש המדידה מהשאריות', 'n = 4: מחלקים ב-2'], ['Δ = α · ΔT · L', 'התפשטות תרמית שהמודל צריך לתפוס', '16 ppm/°C · 5 °C · 300 mm = 24 µm']]) +
+      trap('שלושה fiducials כמעט על קו אחד: MᵀM כמעט סינגולרית, והפרמטר בכיוון הניצב "מתפוצץ". השאריות אפילו יוצאות קטנות, כי אין מה שיבדוק.'),
+    robust: () => px('ריבועים פחותים מניחים שכל השגיאות קטנות ומאותו סוג. fiducial אחד מלוכלך שנמדד בטעות של 50 µm מזיז את כל ההתאמה, ומפזר את הטעות על כל הפאנל.') +
+      `<h3>1. משקלים</h3>` + px('אם ידוע שמדידה פחות אמינה (fiducial חלקי, ניגודיות נמוכה), נותנים לה משקל w = 1/σ². הפתרון: x = (AᵀWA)⁻¹ AᵀW b, כש-W אלכסונית עם המשקלים.') +
+      `<h3>2. סף על שאריות</h3>` + olx(['מתאימים עם כל הנקודות.', 'מחשבים σ̂ ושארית לכל נקודה.', 'נקודה עם שארית מעל 3σ̂ (או מעל סף קבוע) מוצאת.', 'מתאימים מחדש בלעדיה. אם נשארו מעט מדי נקודות, עוצרים ומדווחים: זה עדיף על תיקון במקום הלא נכון.']) +
+      `<h3>3. RANSAC</h3>` + olx(['בוחרים באקראי s נקודות, המינימום למודל (3 לאפיני).', 'מתאימים מהן מודל מדויק.', 'סופרים כמה מכל הנקודות קרובות למודל עד סף (inliers).', 'חוזרים N פעמים, ושומרים את המודל עם הכי הרבה inliers.', 'בסוף מתאימים בריבועים פחותים רק על ה-inliers שלו.', 'כמה פעמים? אם w הוא החלק של הנקודות הטובות, הסיכוי שבחירה אחת כולה טובה הוא wˢ. רוצים סיכוי p שלפחות אחת תצליח: 1 − (1 − wˢ)ᴺ ≥ p, ולכן N = ln(1 − p) / ln(1 − wˢ).']) +
+      px('דוגמה: w = 0.7, s = 3, p = 0.99: wˢ = 0.343, N = ln(0.01) / ln(0.657) = 10.96, כלומר 11 בחירות.') +
+      FB([['x = (AᵀWA)⁻¹ AᵀW b', 'ריבועים פחותים ממושקלים', ''], ['wᵢ = 1 / σᵢ²', 'משקל לפי אמינות המדידה', 'σ = 2 µm: w = 0.25'], ['|rᵢ| > 3σ̂', 'סף לזריקת חריג', ''], ['N = ln(1 − p) / ln(1 − wˢ)', 'מספר בחירות ב-RANSAC', 'p = 0.99, w = 0.7, s = 3: 11']]) +
+      trap('עם 4 fiducials ואפיני יש רק 2 דרגות חופש. חריג אחד "נמרח" על כל הנקודות, ולכן השארית הגדולה לא בהכרח אצלו. RANSAC או מדידה של fiducial חמישי פותרים את זה.'),
+    geo: () => px('הדיוק של ההתאמה לא תלוי רק ברעש של כל fiducial, אלא גם בגאומטריה: כמה רחוקים ה-fiducials זה מזה, ועד כמה רחוקה הנקודה שרוצים לתקן.') +
+      olx(['שני fiducials במרחק d. הסיבוב נקבע מהווקטור ביניהם.', 'לכל אחד שגיאה σ בכל ציר. ההפרש ביניהם בכיוון הניצב: σ·√2.', 'שגיאת הזווית: δθ = σ·√2 / d.', 'נקודה במרחק R מהמרכז מקבלת שגיאה δθ · R = σ·√2·R / d.', 'כלומר: fiducials קרובים זה לזה ונקודה רחוקה מהם מגדילים את השגיאה פי R/d.']) +
+      px('דוגמה: σ = 2 µm, d = 200 mm, R = 300 mm: δθ = 2·1.414 / 200 = 0.0141 µm/mm = 14.1 µrad. בנקודה: 14.1 · 300 / 1000 ≈ 4.24 µm. אם ה-fiducials במרחק 50 mm בלבד, אותה נקודה מקבלת 17 µm.') +
+      TT(['כלל', 'למה'], [['fiducials רחוקים ככל האפשר, בפינות', 'זרוע גדולה נותנת δθ קטן'], ['לא על קו אחד', 'אחרת כיוון אחד לא נמדד בכלל'], ['לפחות 4', 'שאריות שבודקות את עצמן'], ['לתקן בתוך המצולע שלהם', 'מחוצה לו השגיאה גדלה מהר (אקסטרפולציה)']]) +
+      FB([['δθ = σ·√2 / d', 'שגיאת הזווית משני fiducials', '2·1.414 / 200 = 14.1 µrad'], ['δ = δθ · R', 'השגיאה בנקודה במרחק R', '14.1 µrad · 300 mm = 4.24 µm'], ['κ(MᵀM)', 'מספר המצב: גדול כשה-fiducials קרובים או על קו', '']]) +
+      trap('לבחור fiducials קרובים כי הם "מהירים למדידה". החיסכון בזמן נאכל בשגיאה שגדלה עם R/d.'),
+    xfer: () => px('פגם נמצא במכונת AOI ומתוקן במכונת AOS. כל מכונה מודדת את הפאנל במערכת הצירים שלה. הקשר ביניהן עובר דרך התכנון (CAD), שהוא המערכת היחידה ששתיהן מכירות.') +
+      olx(['ב-AOI: פיקסל בתמונה הופך לקואורדינטת שולחן דרך כיול המצלמה (גודל פיקסל, סיבוב המצלמה): p_stage = K · p_pix.', 'התאמת ה-fiducials של AOI נותנת T_AOI: תכנון ← שולחן AOI. כדי לקבל את מיקום הפגם בתכנון: p_CAD = T_AOI⁻¹ · p_stage.', 'הפגם נשלח לקובץ בקואורדינטות תכנון. כך הוא לא תלוי באיך הפאנל ישב במכונה הראשונה.', 'ב-AOS: מודדים מחדש את ה-fiducials ומקבלים T_AOS. היעד: p_AOS = T_AOS · p_CAD.', 'בסך הכל: p_AOS = T_AOS · T_AOI⁻¹ · K · p_pix.']) +
+      `<h3>תקציב שגיאה</h3>` + px('השגיאות של השלבים בלתי תלויות, ולכן מתחברות בשורש סכום הריבועים (RSS), לא בסכום.') +
+      TT(['מקור', 'σ (µm)', 'σ²'], [['התאמה ב-AOI', '3', '9'], ['כיול המצלמה ומרכז הפגם בתמונה', '2', '4'], ['התאמה ב-AOS', '3', '9'], ['מיקום שולחן ה-AOS ומיקוד הלייזר', '4', '16'], ['<b>סך הכול</b>', '<b>√38 ≈ 6.16</b>', '<b>38</b>']]) +
+      px('בשלוש סטיות תקן: כ-18.5 µm. אם כתם הלייזר והשוליים שמותר לפגוע בהם קטנים מזה, צריך לשפר את המקור הגדול ביותר: כאן השולחן.') +
+      FB([['p_AOS = T_AOS · T_AOI⁻¹ · K · p_pix', 'שרשרת ההעברה מתמונה בניקוי ליעד הלייזר', ''], ['σ_tot = √(Σ σᵢ²)', 'חיבור שגיאות בלתי תלויות', '√(9 + 4 + 9 + 16) ≈ 6.16 µm'], ['3σ_tot', 'מרחב בטוח לתכנון', '≈ 18.5 µm']]) +
+      trap('לחבר את השגיאות בסכום רגיל (12 µm) ולהסיק שהמערכת לא עומדת בדרישה. או ההפך: לחבר ב-RSS שגיאות שאינן בלתי תלויות, למשל שתיהן מאותה טמפרטורה, ולקבל מספר אופטימי מדי.') +
+      where('האנימציה "מסירת פגם מ-AOI ל-AOS" בנושא מחזור הבדיקה מראה את מסלול הפאנל והמידע. כאן החישוב שמאחוריה.'),
+    code: () => px('קוד MATLAB מלא: מייצר fiducials עם טרנספורמציה ידועה ורעש, מתאים אפיני בריבועים פחותים, מחשב שאריות ו-σ, ומעביר פגם מהתכנון למכונה. אפשר להדביק כמו שהוא.') +
+      codeBox('affine_fit_demo.m', `% Affine fit of fiducials by least squares, and transfer of a defect
+rng(1);
+P   = [0 0; 300 0; 300 200; 0 200; 150 60];      % design fiducials, mm
+ppm = 120; th = 0.5e-3; t = [2.000 -1.000];        % truth: scale, rotation (rad), shift (mm)
+S   = (1 + ppm*1e-6) * [cos(th) -sin(th); sin(th) cos(th)];
+Q   = (S * P')' + t;                               % true positions in the machine
+Q   = Q + 0.002 * randn(size(Q));                  % 2 um measurement noise
+
+M  = [P ones(size(P,1),1)];                        % n x 3
+ax = M \\ Q(:,1);                                  % [a b c]  (QR, not inv)
+ay = M \\ Q(:,2);                                  % [d e f]
+T  = [ax'; ay'; 0 0 1];                            % homogeneous 3 x 3
+
+r     = Q - (M * [ax ay]);                         % residuals, mm
+sigma = sqrt(sum(r(:).^2) / (2*size(P,1) - 6));    % noise estimate
+fprintf('residuals (um):\\n'); disp(1000*r);
+fprintf('sigma = %.2f um\\n', 1000*sigma);
+
+scale_x = norm(T(1:2,1)); rot = atan2(T(2,1), T(1,1));
+fprintf('scale %.1f ppm, rotation %.3f mrad\\n', (scale_x-1)*1e6, rot*1e3);
+
+d_cad = [120 80 1]';                               % defect in design coordinates
+d_m   = T * d_cad;                                 % where the laser must go
+fprintf('defect in machine: (%.4f, %.4f) mm\\n', d_m(1), d_m(2));`) +
+      codeBox('ransac_affine.m', `function [T, inl] = ransac_affine(P, Q, thr, p, w)
+% P, Q: n x 2 design and measured points. thr: inlier threshold (mm)
+n = size(P,1); N = ceil(log(1-p) / log(1-w^3)); best = 0;
+for k = 1:N
+  s = randperm(n, 3);
+  M = [P(s,:) ones(3,1)];
+  if rcond(M) < 1e-9, continue; end
+  A = M \\ Q(s,:);                                 % exact fit, 3 x 2
+  e = vecnorm([P ones(n,1)] * A - Q, 2, 2);
+  in = e < thr;
+  if nnz(in) > best, best = nnz(in); inl = in; end
+end
+A = [P(inl,:) ones(nnz(inl),1)] \\ Q(inl,:);       % final least squares on inliers
+T = [A'; 0 0 1];
+end`) +
+      `<p class="note warn"><b>מלכודת:</b> <code dir="ltr">inv(M'*M)*M'*b</code> עובד בדוגמה, אבל מאבד ספרות כשהבעיה רגישה. האופרטור <code dir="ltr">\\</code> פותר בפירוק QR ויציב יותר.</p>`,
+    lab: () => `<p>${bidi('חמישה fiducials על פאנל 300 × 200 mm. קבע את הטרנספורמציה האמיתית, הרעש, וחריג אפשרי ב-fiducial 3. בחר מודל, וראה את השאריות (חץ באורך 6 פיקסלים לכל µm) ואת השגיאה בפגם שב-(250, 180) mm.')}</p><div id="fitlab"></div><h3>אנימציה: קו בריבועים פחותים</h3><div id="fitanim"></div>`
+  },
+  mount: {
+    lab: B => { fitLab(B.querySelector('#fitlab')); animMount('lsq', B.querySelector('#fitanim')); }
+  }
+});
+
+function fitLab(el) {
+  const st = { ppm: 120, rot: 0.5, dx: 40, dy: -25, sig: 2, out: 0, mode: 'affine', drop: 0, seed: 3 };
+  const draw = () => {
+    const g = hxRand(st.seed), meas = FIT_FIDS.map(([x, y], i) => { const [u, v] = fitTrue(st, x, y); return [u + st.sig * g() + (i === 2 ? st.out : 0), v + st.sig * g()]; });
+    let F = fitModel(st.mode, FIT_FIDS, meas), use = null, dropped = -1;
+    if (st.drop && st.mode !== 'shift') { const e = F.res.map(r => Math.hypot(r[0], r[1])); dropped = e.indexOf(Math.max(...e)); use = FIT_FIDS.map((_, i) => i !== dropped); F = fitModel(st.mode, FIT_FIDS, meas, use); }
+    const D = [250, 180], tr = fitTrue(st, D[0], D[1]), pr = F.f(D[0], D[1]), err = Math.hypot(tr[0] - pr[0], tr[1] - pr[1]), none = Math.hypot(tr[0], tr[1]);
+    const sx = v => 40 + v * 1.6, sy = v => 360 - v * 1.6, k = 6;
+    let svg = `<rect x="${sx(0)}" y="${sy(200)}" width="${300 * 1.6}" height="${200 * 1.6}" class="thin"/>`;
+    FIT_FIDS.forEach(([x, y], i) => { const r = F.res[i], X = sx(x), Y = sy(y), ex = X + r[0] * k, ey = Y - r[1] * k; svg += `<circle cx="${X}" cy="${Y}" r="6" class="${i === dropped ? 'faults' : 'ink'}"/><path d="M${X} ${Y}L${ex} ${ey}" class="live"/>` + T_(X + 8, Y - 8, 'F' + (i + 1), 'lblm'); });
+    svg += `<path d="M${sx(D[0]) - 6} ${sy(D[1])}h12M${sx(D[0])} ${sy(D[1]) - 6}v12" class="ink"/>` + T_(sx(D[0]) + 8, sy(D[1]) - 6, 'defect', 'lblm');
+    el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">${hxNum('fppm', 'קנה מידה (ppm)', st.ppm, -500, 500, 10)}${hxNum('frot', 'סיבוב (mrad)', st.rot, -5, 5, .1)}${hxNum('fdx', 'הזזה x (µm)', st.dx, -500, 500, 5)}${hxNum('fdy', 'הזזה y (µm)', st.dy, -500, 500, 5)}${hxNum('fsig', 'רעש σ (µm)', st.sig, 0, 20, .5)}${hxNum('fout', 'חריג ב-F3 (µm)', st.out, -200, 200, 5)}
+      <div class="ctl"><label for="fmode">מודל</label><select id="fmode">${[['shift', 'הזזה (2)'], ['rigid', 'קשיח (3)'], ['affine', 'אפיני (6)']].map(([v, t]) => `<option value="${v}"${v === st.mode ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+      <div class="ctl"><label for="fdrop">חריג</label><select id="fdrop"><option value="0"${st.drop ? '' : ' selected'}>להשתמש בכל הנקודות</option><option value="1"${st.drop ? ' selected' : ''}>להוציא את השארית הגדולה ולהתאים שוב</option></select></div>
+      <div class="ctl"><label>רעש</label><div class="tp"><button type="button" id="fseed">הגרל רעש חדש</button></div></div></div>
+      <div class="stage" style="padding:8px 16px">${SVG(620, 400, svg, 'fiducial residuals')}</div>
+      <div class="readout">RMS שאריות: <span class="num">${F.rms.toFixed(2)} µm</span> · σ̂ = <span class="num">${isNaN(F.sigma) ? '—' : F.sigma.toFixed(2) + ' µm'}</span> (דרגות חופש <span class="num">${F.dof}</span>)${dropped >= 0 ? ` · הוצא: <span class="num">F${dropped + 1}</span>` : ''}<br>שגיאה בפגם אחרי ההתאמה: <span class="num">${err.toFixed(2)} µm</span> · בלי שום התאמה: <span class="num">${none.toFixed(0)} µm</span></div></div>`;
+    hxRead(el, [['fppm', 'ppm'], ['frot', 'rot'], ['fdx', 'dx'], ['fdy', 'dy'], ['fsig', 'sig'], ['fout', 'out']], st, draw);
+    el.querySelector('#fmode').addEventListener('change', e => { st.mode = e.target.value; draw(); });
+    el.querySelector('#fdrop').addEventListener('change', e => { st.drop = +e.target.value; draw(); });
+    el.querySelector('#fseed').addEventListener('click', () => { st.seed++; draw(); });
+  };
+  draw();
+}
+
+QB.push(
+{ id: 'Q90', t: 'fit', l: 1, title: 'קו בריבועים פחותים', fig: null,
+  q: 'מודדים ארבע נקודות: (0, 1), (1, 3), (2, 4), (3, 6). מצא את הקו y = a·x + b בריבועים פחותים, ובדוק שהשאריות מסתכמות לאפס.',
+  h: ['חשב Σx, Σy, Σx², Σxy.', 'a = (n·Σxy − Σx·Σy) / (n·Σx² − (Σx)²).'],
+  a: 'Σx = 6, Σy = 14, Σx² = 14, Σxy = 29. a = (4·29 − 6·14) / (4·14 − 36) = 32/20 = 1.6, b = (14 − 1.6·6)/4 = 1.1. שאריות: −0.1, 0.3, −0.3, 0.1, וסכומן 0.',
+  why: 'המשוואה ∂S/∂b = 0 היא בדיוק Σ r = 0. זו בדיקה מהירה לכל חישוב ידני.',
+  steps: ['סכומים: n = 4, Σx = 6, Σy = 14, Σx² = 14, Σxy = 29.', 'a = 32 / 20 = 1.6.', 'b = (14 − 9.6) / 4 = 1.1.', 'r = y − 1.6x − 1.1: −0.1, 0.3, −0.3, 0.1.'],
+  trap: 'לחשב שיפוע משתי הנקודות הקיצוניות בלבד (5/3), ולהתעלם מהאמצעיות.' },
+{ id: 'Q91', t: 'fit', l: 2, title: 'כמה fiducials לאפיני', fig: null,
+  q: 'כמה fiducials צריך כדי לפתור טרנספורמציה אפינית, ולמה בפועל משתמשים לפחות בארבעה?',
+  h: ['כמה פרמטרים באפיני?', 'כמה משוואות נותן כל fiducial?'],
+  a: 'לאפיני 6 פרמטרים וכל fiducial נותן 2 משוואות, ולכן המינימום 3 (שלא על קו אחד). עם 3 הפתרון מדויק ואין שאריות, כך שטעות במדידה אחת לא מתגלה. עם 4 יש 2 דרגות חופש: השאריות מגלות fiducial רע ומאפשרות להעריך את הרעש.',
+  why: 'מדידה עודפת היא הבדיקה העצמית של ההתאמה.',
+  steps: ['6 נעלמים, 2 משוואות לכל נקודה.', 'מינימום: 3 נקודות.', 'דרגות חופש עם 4: 8 − 6 = 2.'],
+  trap: 'לחשוב ש-3 fiducials "מספיקים" כי אין שאריות. אין שאריות כי אין מה שיבדוק.' },
+{ id: 'Q92', t: 'fit', l: 2, title: 'זרוע: fiducials קרובים', fig: null,
+  q: 'שני fiducials נמדדים עם שגיאה σ = 2 µm בכל ציר. מה שגיאת המיקום בנקודה שנמצאת 300 mm מהם, כשהמרחק בין ה-fiducials 200 mm, ומה כשהוא 50 mm?',
+  h: ['שגיאת הזווית: δθ = σ·√2 / d.', 'השגיאה בנקודה: δθ · R.'],
+  a: 'd = 200 mm: δθ = 2·√2/200 ≈ 14.1 µrad, ובנקודה ≈ 4.24 µm. d = 50 mm: δθ ≈ 56.6 µrad, ובנקודה ≈ 17 µm. פי ארבעה, כמו היחס בין המרחקים.',
+  why: 'שגיאת הזווית קטנה ביחס הפוך למרחק בין ה-fiducials, וגדלה עם הזרוע אל הנקודה.',
+  steps: ['σ√2 = 2.83 µm.', '2.83/200 = 0.0141 µm/mm, כפול 300 = 4.24 µm.', '2.83/50 = 0.0566 µm/mm, כפול 300 = 17 µm.'],
+  trap: 'להניח ששגיאת ההתאמה שווה לשגיאת fiducial בודד בכל הפאנל.' },
+{ id: 'Q93', t: 'fit', l: 3, title: 'RANSAC: כמה איטרציות', fig: null,
+  q: 'מתוך הנקודות, כ-70% טובות. כמה בחירות אקראיות של 3 נקודות צריך כדי שבסיכוי 99% לפחות אחת תהיה כולה טובה? ומה אם רק 50% טובות?',
+  h: ['הסיכוי שבחירה אחת כולה טובה: wˢ.', 'N = ln(1 − p) / ln(1 − wˢ).'],
+  a: 'w = 0.7: wˢ = 0.343, N = ln(0.01)/ln(0.657) ≈ 10.96, כלומר 11. w = 0.5: wˢ = 0.125, N = ln(0.01)/ln(0.875) ≈ 34.5, כלומר 35.',
+  why: 'מספר הבחירות גדל מהר כשיש יותר חריגים, כי צריך שכל s הנקודות יהיו טובות.',
+  steps: ['0.7³ = 0.343.', 'ln(0.01) = −4.605, ln(0.657) = −0.420: N ≈ 11.', '0.5³ = 0.125, ln(0.875) = −0.1335: N ≈ 35.'],
+  trap: 'לבחור N קבוע וקטן "כי זה עובד בדרך כלל", ולקבל מודל שגוי פעם בכמה עשרות פאנלים.' },
+{ id: 'Q94', t: 'fit', l: 3, title: 'תקציב שגיאה AOI ל-AOS', fig: null,
+  q: 'שגיאות בלתי תלויות: התאמה ב-AOI 3 µm, כיול מצלמה 2 µm, התאמה ב-AOS 3 µm, שולחן ומיקוד AOS 4 µm (σ). מה השגיאה הכוללת, ומה כדאי לשפר קודם?',
+  h: ['שגיאות בלתי תלויות מתחברות ב-RSS.', 'איזה איבר תורם הכי הרבה לסכום הריבועים?'],
+  a: 'σ = √(9 + 4 + 9 + 16) = √38 ≈ 6.16 µm, ו-3σ ≈ 18.5 µm. השולחן תורם 16 מתוך 38 (42%), ולכן שיפור שלו נותן הכי הרבה. הורדת השולחן ל-2 µm נותנת √26 ≈ 5.1 µm.',
+  why: 'ב-RSS המקור הגדול שולט. שיפור של מקור קטן כמעט לא משנה את הסך.',
+  steps: ['ריבועים: 9, 4, 9, 16.', 'סכום 38, שורש 6.16.', 'אחרי שיפור השולחן: 9 + 4 + 9 + 4 = 26, שורש 5.1.'],
+  trap: 'לשפר את כיול המצלמה (2 µm) ולצפות לשינוי גדול: 2 → 1 µm מוריד את הסך רק ל-5.92 µm.' }
+);
+VERIFY.push(
+  ['fit line a', lineFit([0, 1, 2, 3], [1, 3, 4, 6]).a, 1.6, 1e-12], ['fit line b', lineFit([0, 1, 2, 3], [1, 3, 4, 6]).b, 1.1, 1e-12], ['fit line rms', lineFit([0, 1, 2, 3], [1, 3, 4, 6]).rms, .224, .0005],
+  ['fit line sigma', Math.sqrt(.2 / 2), .316, .0005], ['fit scale err µm', 100e-6 * 300e3, 30, 1e-9], ['fit rot err µm', .5e-3 * 300e3, 150, 1e-9],
+  ['fit xfer x', 120 - .0005 * 80 + 2, 121.96, 1e-9], ['fit xfer y', .0005 * 120 + 80 - 1, 79.06, 1e-9], ['fit thermal µm', 16e-6 * 5 * 300e3, 24, 1e-9],
+  ['fit lever µrad', 2 * Math.SQRT2 / 200 * 1000, 14.1, .05], ['fit lever µm', 2 * Math.SQRT2 / 200 * 300, 4.24, .005], ['fit lever 50', 2 * Math.SQRT2 / 50 * 300, 17, .05],
+  ['fit ransac 0.7', ransacN(.99, .7, 3), 10.96, .01], ['fit ransac 0.5', ransacN(.99, .5, 3), 34.5, .05], ['fit rss', Math.sqrt(9 + 4 + 9 + 16), 6.16, .005], ['fit 3rss', 3 * Math.sqrt(38), 18.5, .05],
+  ['fit rss better', Math.sqrt(26), 5.1, .005], ['fit rss cam', Math.sqrt(9 + 1 + 9 + 16), 5.92, .005],
+  /* the lab's fit recovers a noise-free affine truth exactly */
+  ['fit lab exact', (() => { const P = { ppm: 120, rot: .5, dx: 40, dy: -25 }, m = FIT_FIDS.map(([x, y]) => fitTrue(P, x, y)), F = fitModel('affine', FIT_FIDS, m), t = fitTrue(P, 250, 180), p = F.f(250, 180); return Math.hypot(t[0] - p[0], t[1] - p[1]); })(), 0, 1e-6]
+);
+/* ============ Hub: image processing for inspection (v2.64) ============
+   From a pixel to a defect decision: gray levels, threshold, filtering, edges and their sub-pixel position,
+   the centre of a fiducial, template matching, morphology for width checks, and comparison to the design. */
+Object.entries({
+  'gray level': ['רמת אפור: המספר שפיקסל מקבל לפי כמות האור שהגיעה אליו. ב-8 ביט: 0 (שחור) עד 255 (לבן).', 'בהירות של פיקסל כמספר'],
+  'bit depth': ['עומק ביטים: כמה ביטים לכל פיקסל, ולכן כמה רמות אפור: 2ⁿ.', 'כמה רמות בהירות'],
+  'histogram': ['היסטוגרמה: כמה פיקסלים יש בכל רמת אפור. בתמונה של נחושת על מצע רואים שתי גבעות.', 'ספירת פיקסלים לפי בהירות'],
+  'threshold': ['סף: רמת אפור שמעליה פיקסל נחשב "נחושת" ומתחתיה "מצע". הופך תמונה אפורה לשחור-לבן.', 'גבול בין שני סוגי פיקסלים'],
+  'Otsu': ['שיטת Otsu: בוחרים את הסף שמגדיל את השונות בין שתי הקבוצות (ומקטין את השונות בתוך כל אחת).', 'בחירת סף אוטומטית'],
+  'convolution': ['קונבולוציה: מחליפים כל פיקסל בסכום ממושקל של שכניו, לפי מטריצה קטנה (kernel). כך עושים טשטוש, חידוד וגזירה.', 'סכום ממושקל של שכנים'],
+  'kernel': ['גרעין: מטריצה קטנה (למשל 3×3) של משקלים לקונבולוציה.', 'מטריצת המשקלים של מסנן'],
+  'Gaussian blur': ['טשטוש גאוסי: ממוצע ממושקל שבו שכנים קרובים שוקלים יותר. מוריד רעש בלי ליצור קצוות מלאכותיים.', 'טשטוש עם משקלים פעמוניים'],
+  'gradient': ['גרדיאנט: קצב השינוי של הבהירות. גדול בקצה, קטן באזור אחיד.', 'כמה מהר הבהירות משתנה'],
+  'Sobel': ['מסנן Sobel: kernel של 3×3 שמחשב גרדיאנט אופקי או אנכי עם מעט החלקה.', 'מסנן לגילוי קצוות'],
+  'edge': ['קצה: המקום שבו הבהירות משתנה בחדות, למשל גבול מוליך.', 'גבול בין בהיר לכהה'],
+  'subpixel': ['תת-פיקסל: מיקום מדויק יותר מגודל פיקסל, בעזרת אינטרפולציה בין פיקסלים או ממוצע ממושקל.', 'דיוק מתחת לפיקסל'],
+  'centroid': ['מרכז כובד: ממוצע מיקומי הפיקסלים, ממושקל בבהירות שלהם. נותן מרכז של fiducial בדיוק תת-פיקסל.', 'ממוצע מיקומים ממושקל'],
+  'template matching': ['התאמת תבנית: מזיזים תמונה קטנה של מה שמחפשים על התמונה, ובכל מקום מחשבים כמה היא דומה.', 'חיפוש תבנית בתמונה'],
+  'NCC': ['Normalized Cross-Correlation: מדד דמיון בין −1 ל-1 שלא מושפע מבהירות ומניגודיות. 1 = התאמה מושלמת.', 'מדד דמיון מנורמל'],
+  'morphology': ['מורפולוגיה: פעולות על צורות בתמונה בינארית, כמו שחיקה והרחבה.', 'פעולות על צורות'],
+  'erosion': ['שחיקה: מקטינה כל צורה ברדיוס r. קו צר מ-2r פיקסלים נעלם.', 'כיווץ צורות'],
+  'dilation': ['הרחבה: מגדילה כל צורה ברדיוס r. רווח צר מ-2r פיקסלים נסגר.', 'הרחבת צורות'],
+  'opening': ['פתיחה: שחיקה ואחריה הרחבה. מוחקת נקודות וקווים דקים, ושומרת על הצורות הגדולות.', 'שחיקה ואז הרחבה'],
+  'closing': ['סגירה: הרחבה ואחריה שחיקה. סוגרת חורים ורווחים קטנים.', 'הרחבה ואז שחיקה'],
+  'structuring element': ['האלמנט המבני: הצורה (עיגול או ריבוע ברדיוס r) שקובעת כמה שחיקה או הרחבה מזיזות.', 'הצורה שמגדירה שחיקה'],
+  'blob': ['כתם: קבוצה של פיקסלים מחוברים. כל פגם מועמד הוא blob עם שטח, מיקום וצורה.', 'קבוצת פיקסלים מחוברים'],
+  'reference image': ['תמונת ייחוס: איך הלוח אמור להיראות, מהתכנון או מלוח טוב. משווים אליה כל תמונה.', 'איך זה אמור להיראות']
+}).forEach(([k, v]) => hxTerm('img', k, v));
+
+/* a smooth edge sampled at pixel centres: dark lo on the left, bright hi on the right, edge at e (px), width b (px) */
+const edgeProf = (n, e, b, lo, hi, sig, seed) => { const g = hxRand(seed); return Array.from({ length: n }, (_, i) => lo + (hi - lo) / (1 + Math.exp(-1.7 * (i - e) / Math.max(b, .05))) + sig * g()); };
+/* where the profile first crosses T, by linear interpolation between the two pixels around it */
+function edgeCross(I, T) { for (let i = 0; i < I.length - 1; i++) if ((I[i] - T) * (I[i + 1] - T) <= 0 && I[i] !== I[i + 1]) return i + (T - I[i]) / (I[i + 1] - I[i]); return NaN; }
+const centroid = I => I.reduce((s, v, i) => s + i * v, 0) / I.reduce((s, v) => s + v, 0);
+function ncc(a, b) { const ma = a.reduce((s, v) => s + v, 0) / a.length, mb = b.reduce((s, v) => s + v, 0) / b.length; let n = 0, da = 0, db = 0; a.forEach((v, i) => { n += (v - ma) * (b[i] - mb); da += (v - ma) ** 2; db += (b[i] - mb) ** 2; }); return n / Math.sqrt(da * db); }
+const otsuB = (w0, m0, m1) => w0 * (1 - w0) * (m0 - m1) ** 2;
+
+hubX('img', {
+  tab: 'עיבוד תמונה', title: 'עיבוד תמונה: מפיקסל להחלטה על פגם', std: 'ISO 12233', qt: 'img', qtName: 'עיבוד תמונה',
+  lead: 'מה קורה לתמונה מהרגע שהמצלמה מוציאה אותה ועד שהמכונה אומרת "פגם": סף, מסננים, קצוות, מרכז של fiducial בדיוק תת-פיקסל, התאמת תבנית, מורפולוגיה והשוואה לתכנון. כל עמוד: הסבר, גזירה, דוגמה מחושבת, ומלכודת.',
+  nav: [['why', 'תמונה כמספרים', 'פיקסל, רמת אפור, ביטים'], ['thr', 'סף והיסטוגרמה', 'נחושת מול מצע, Otsu'], ['filt', 'מסננים וקונבולוציה', 'טשטוש ורעש'], ['edge', 'קצוות ומיקום תת-פיקסל', 'Sobel ואינטרפולציה'], ['cent', 'מרכז של fiducial', 'מרכז כובד'], ['match', 'התאמת תבנית', 'NCC'], ['morph', 'מורפולוגיה', 'שחיקה, הרחבה ורוחב קו'], ['cmp', 'השוואה לתכנון', 'מתמונה לפגם'], ['lab', 'מעבדה: קצה עם רעש', 'סף, טשטוש ותת-פיקסל'], ['q', 'שאלות: עיבוד תמונה', '']],
+  pages: {
+    why: () => SB('תמונה היא טבלה של מספרים. כל מספר אומר כמה אור הגיע לפיקסל אחד.', ['החיישן סופר אור בכל פיקסל, והממיר הופך את זה למספר שלם.', 'עם n ביטים יש 2ⁿ רמות: 8 ביט נותן 256 רמות, 12 ביט נותן 4096.', 'במצלמת line-scan כל שורה נלקחת בפולס אנקודר, ולכן גודל הפיקסל בכיוון הסריקה נקבע מהתנועה.', 'כל פעולה בהמשך היא חישוב על המספרים: השוואה לסף, ממוצע של שכנים, הפרש בין שכנים.'], 'הדיוק נקבע בשלושה מקומות: גודל הפיקסל על הלוח, הרעש בכל פיקסל, והניגודיות בין מה שמחפשים לבין הרקע.') +
+      FB([['levels = 2ⁿ', 'מספר רמות האפור', '8 ביט: 256, 12 ביט: 4096'], ['p_obj = p_sensor / M', 'גודל פיקסל על הלוח', '10 µm / 2 = 5 µm'], ['N_px = L / p_obj', 'כמה פיקסלים על אורך L', 'קו של 50 µm, פיקסל 5 µm: 10 פיקסלים'], ['C = (I_hi − I_lo) / (I_hi + I_lo)', 'ניגודיות', '(200 − 60) / 260 ≈ 0.54']]) +
+      where('מצלמת ה-line-scan ותאורת הסטרוב נותנות את המספרים. כל מה שבמרכז הזה רץ במחשב העיבוד, לפני שהמכונה מחליטה אם לעצור על פגם.'),
+    thr: () => px('בתמונה של לוח יש שני סוגים עיקריים: נחושת (בהירה, למשל סביב 200) ומצע (כהה, סביב 60). ההיסטוגרמה מראה שתי גבעות. סף ביניהן הופך את התמונה לבינארית.') +
+      olx(['סף פשוט: באמצע בין שני המרכזים. T = (200 + 60) / 2 = 130.', 'שיטת Otsu מחפשת את T שמגדיל את השונות בין הקבוצות: σ_B² = w₀ · w₁ · (μ₀ − μ₁)².', 'w₀ ו-w₁ הם חלקי הפיקסלים בכל צד של הסף, μ₀ ו-μ₁ הממוצעים שלהם.', 'מנסים כל T אפשרי (256 ערכים ב-8 ביט) ובוחרים את המקסימום.', 'דוגמה: 60% מצע בממוצע 60, 40% נחושת בממוצע 200: σ_B² = 0.6 · 0.4 · 140² = 4704.']) +
+      FB([['T = (μ_lo + μ_hi) / 2', 'סף באמצע', '(60 + 200) / 2 = 130'], ['σ_B² = w₀ · w₁ · (μ₀ − μ₁)²', 'השונות בין הקבוצות, שאותה Otsu מגדיל', '0.24 · 140² = 4704'], ['w₀ + w₁ = 1', 'חלקי הפיקסלים בשני הצדדים', '']]) +
+      trap('סף קבוע כשהתאורה משתנה לאורך השורה (נורה מזדקנת, קצה של פס LEDs). המצע בקצה נראה בהיר יותר ונספר כנחושת: קצר מדומה. לכן מכיילים אחידות תאורה (flat field) לפני הסף, או משתמשים בסף מקומי.'),
+    filt: () => px('קונבולוציה מחליפה כל פיקסל בסכום ממושקל של השכנים שלו. ה-kernel הוא טבלת המשקלים.') +
+      TT(['מסנן', 'kernel', 'מה עושה'], [['ממוצע 3×3', 'כל המשקלים 1/9', 'מוריד רעש, מטשטש קצוות'], ['גאוסי 3×3', '[[1, 2, 1], [2, 4, 2], [1, 2, 1]] / 16', 'מוריד רעש עם פחות טשטוש'], ['Sobel אופקי', '[[−1, 0, 1], [−2, 0, 2], [−1, 0, 1]]', 'גרדיאנט בכיוון x'], ['חציון', 'לא לינארי: הערך האמצעי', 'מוחק נקודות בודדות בלי למרוח קצוות']]) +
+      `<h3>למה ממוצע מוריד רעש</h3>` + olx(['לכל פיקסל רעש בלתי תלוי עם סטיית תקן σ.', 'ממוצע של N פיקסלים: השונות היא Σ σ² / N² = σ² / N.', 'לכן סטיית התקן יורדת ל-σ / √N.', 'ממוצע 4×4 = 16 פיקסלים: הרעש יורד פי 4. אבל קצה חד נמרח על פני 4 פיקסלים.']) +
+      FB([['g(x, y) = Σ k(i, j) · f(x − i, y − j)', 'קונבולוציה', ''], ['σ_avg = σ / √N', 'רעש אחרי ממוצע של N פיקסלים', 'N = 16: σ / 4'], ['Σ k = 1', 'מסנן החלקה לא משנה בהירות ממוצעת', 'גאוסי: 16 / 16']]) +
+      trap('לטשטש חזק "כדי שיהיה פחות רעש" ואז למדוד רוחב קו. הטשטוש משנה את רוחב הקו הנמדד כשהסף לא באמצע בין הרמות.'),
+    edge: () => px('קצה הוא שינוי חד בבהירות. הגרדיאנט גדול בו. כדי למצוא את מיקומו בדיוק טוב מפיקסל, מסתכלים על הערכים משני הצדדים.') +
+      `<h3>אינטרפולציה לינארית בחציית סף</h3>` + olx(['מוצאים שני פיקסלים סמוכים שהסף T ביניהם: Iᵢ < T < Iᵢ₊₁.', 'מניחים שבין שני מרכזי הפיקסלים הבהירות משתנה בקו ישר.', 'הנקודה שבה הקו מגיע ל-T: x = xᵢ + (T − Iᵢ) / (Iᵢ₊₁ − Iᵢ).', 'דוגמה: I₁₀ = 60, I₁₁ = 180, T = 100: x = 10 + 40/120 = 10.333 פיקסל.', 'בפיקסל של 5 µm: 51.67 µm מתחילת השורה, ולא 50 או 55.']) +
+      `<h3>כמה זה מדויק</h3>` + olx(['רעש σ_I ברמת האפור מזיז את נקודת החצייה.', 'קרוב לקצה, I(x) ≈ T + s · (x − x₀), כש-s הוא השיפוע ברמות לפיקסל.', 'שינוי δI בבהירות מזיז את החצייה ב-δx = δI / s.', 'לכן σ_x = σ_I / s. עם σ_I = 4 ו-s = 120 לפיקסל: 0.033 פיקסל, כלומר 0.17 µm בפיקסל של 5 µm.', 'קצה מטושטש (s קטן) או רעש גדול מקלקלים את הדיוק באותה מידה.']) +
+      FB([['G = √(Gx² + Gy²)', 'גודל הגרדיאנט', ''], ['x = xᵢ + (T − Iᵢ) / (Iᵢ₊₁ − Iᵢ)', 'מיקום הקצה בתת-פיקסל', '10 + 40/120 = 10.333'], ['σ_x = σ_I / s', 'דיוק מיקום הקצה', '4 / 120 = 0.033 px']]) +
+      trap('"תת-פיקסל" לא אומר שאפשר לראות פגם קטן מפיקסל. הוא אומר שאפשר למדוד מיקום של קצה גדול בדיוק טוב מפיקסל.'),
+    cent: () => px('fiducial הוא עיגול (או צלב) שמרכזו צריך להימדד במיקרונים בודדים. הפיקסל גדול יותר, אבל לעיגול יש עשרות פיקסלים בקצוות, והממוצע שלהם מדויק.') +
+      olx(['מחסירים את רמת הרקע מכל פיקסל, כדי שהרקע לא ימשוך את המרכז אליו.', 'מרכז הכובד בכל ציר: x̄ = Σ xᵢ · Iᵢ / Σ Iᵢ.', 'דוגמה סימטרית: I = [0, 10, 40, 10, 0] במיקומים 0 עד 4: x̄ = (10 + 80 + 30) / 60 = 2.0.', 'דוגמה לא סימטרית: I = [0, 10, 40, 30, 0]: x̄ = (10 + 80 + 90) / 80 = 2.25. המרכז זז רבע פיקסל לכיוון הצד הבהיר.', 'דרך אחרת: למצוא נקודות קצה בתת-פיקסל סביב העיגול, ולהתאים להן מעגל בריבועים פחותים (ראו מרכז ההתאמה).']) +
+      FB([['x̄ = Σ xᵢ · Iᵢ / Σ Iᵢ', 'מרכז כובד', '[0, 10, 40, 30, 0]: 2.25'], ['Iᵢ ← Iᵢ − I_bg', 'מחסירים רקע לפני הממוצע', ''], ['(x − x₀)² + (y − y₀)² = R²', 'מעגל להתאמה לנקודות הקצה', '']]) +
+      trap('לא להחסיר רקע. כל פיקסלי הרקע בחלון "מושכים" את המרכז למרכז החלון, וה-fiducial נראה זז לכיוון האמצע.'),
+    match: () => px('מחפשים איפה בתמונה נמצאת תבנית ידועה (fiducial, רכיב). מזיזים את התבנית על התמונה ובכל מיקום מחשבים מדד דמיון.') +
+      olx(['סכום הפרשים בריבוע (SSD) רגיש לבהירות: אם כל התמונה בהירה יותר ב-20, הוא גדל, למרות שהצורה זהה.', 'NCC מחסיר את הממוצע ומחלק בסטיות התקן, ולכן לא תלוי בבהירות ובניגודיות.', 'NCC = Σ (I − Ī)(T − T̄) / √(Σ (I − Ī)² · Σ (T − T̄)²).', 'דוגמה: I = [1, 2, 3], T = [2, 4, 6] (אותה צורה, ניגודיות כפולה): NCC = 1.', 'השיא של NCC הוא המיקום. התאמה טובה: מעל כ-0.8. אם שני שיאים קרובים בגובהם, ההתאמה לא אמינה.']) +
+      FB([['NCC = Σ (I − Ī)(T − T̄) / √(Σ (I − Ī)² · Σ (T − T̄)²)', 'דמיון מנורמל בין −1 ל-1', '[1, 2, 3] מול [2, 4, 6]: 1'], ['SSD = Σ (I − T)²', 'סכום הפרשים בריבוע, רגיש לבהירות', '']]) +
+      trap('תבנית סימטרית מדי (עיגול) לא נותנת סיבוב, ותבנית חוזרת (שורה של pads) נותנת כמה שיאים שווים. לכן fiducials הם צורות ייחודיות, רחוקות מדפוסים חוזרים.'),
+    morph: () => px('אחרי סף יש תמונה בינארית של נחושת. מורפולוגיה בודקת צורות: האם קו צר מדי, האם רווח בין קווים קטן מדי.') +
+      olx(['שחיקה ברדיוס r: פיקסל נשאר 1 רק אם כל העיגול ברדיוס r סביבו הוא 1. כל צורה מתכווצת ב-r מכל צד.', 'קו שרוחבו w פיקסלים נשאר אחרי שחיקה רק אם w > 2r.', 'בדיקת רוחב מינימלי: קו של 50 µm בפיקסל של 5 µm הוא 10 פיקסלים. הדרישה: לפחות 30 µm, כלומר 6 פיקסלים. שוחקים ברדיוס 3: קו תקין נשאר ברוחב 4, צוואר של 6 פיקסלים או פחות נעלם. מה שנעלם הוא "צוואר": open פוטנציאלי.', 'בדיקת רווח מינימלי: אותו דבר עם הרחבה על הנחושת. רווח של 2r פיקסלים או פחות נסגר: short פוטנציאלי.', 'opening (שחיקה ואז הרחבה) מוחק לכלוך קטן. closing (הרחבה ואז שחיקה) סוגר חורים קטנים.']) +
+      FB([['w > 2r', 'קו שורד שחיקה ברדיוס r', 'w = 10, r = 3: נשארים 4'], ['r = ⌈w_min / (2 · p)⌉', 'הרדיוס לבדיקת רוחב מינימלי', '30 µm, 5 µm: 3'], ['w_after = w − 2r', 'רוחב אחרי שחיקה', '10 − 6 = 4 פיקסלים']]) +
+      trap('לשכוח שהסף עצמו משנה את הרוחב הבינארי. סף גבוה מדי מצר כל קו, ובדיקת הרוחב מוצאת "צווארים" בכל הלוח.'),
+    cmp: () => px('ההחלטה על פגם נעשית בהשוואה: התמונה מול מה שאמור להיות שם (קובץ התכנון אחרי רישום, או תמונה של לוח טוב).') +
+      olx(['רישום: מעבירים את התכנון למערכת הצירים של התמונה (מרכז ההתאמה).', 'מחסירים: כל פיקסל שבו התמונה והתכנון לא מסכימים.', 'מקבצים פיקסלים מחוברים ל-blobs, ומודדים לכל אחד שטח, אורך ומיקום.', 'blob קטן מהסף נזרק כרעש. blob גדול הוא מועמד לפגם.', 'מסווגים: חוסר נחושת (open, צוואר) או עודף (short, בליטה), לפי הצד.', 'כל פגם שנמצא נשלח עם מיקום בקואורדינטות תכנון למכונת ה-AOS.']) +
+      FB([['L_min ≈ k · p_obj', 'גודל פגם מינימלי שאפשר לגלות באמינות (k בערך 2 עד 3)', 'p = 5 µm, k = 3: 15 µm'], ['A_blob = n_px · p_obj²', 'שטח של blob', '12 פיקסלים · 25 µm² = 300 µm²']]) +
+      trap('סף גודל נמוך מדי: כל גרגר אבק הוא "פגם", ומספר ה-false calls מציף את המפעיל. גבוה מדי: פגם אמיתי מתפספס. הבחירה היא סטטיסטית, וראו את מרכז הסטטיסטיקה.') +
+      where('זה הצעד שמחבר את המצלמה (כמה פיקסלים) ואת הרישום (איפה התכנון) להחלטה. מה שמגיע למפעיל הוא רשימת ה-blobs שעברו את הסף.'),
+    lab: () => `<p>${bidi('שורה של 20 פיקסלים חוצה קצה של מוליך. האמת: הקצה ב-9.37 פיקסלים. שנה טשטוש, רעש וסף, וראה איפה האינטרפולציה שמה את הקצה ומה השגיאה.')}</p><div id="imglab"></div><h3>אנימציה: מרכז כובד של כתם</h3><div id="imganim"></div>`
+  },
+  mount: { lab: B => { imgLab(B.querySelector('#imglab')); animMount('centroid', B.querySelector('#imganim')); } }
+});
+
+function imgLab(el) {
+  const st = { e: 9.37, b: 1, sig: 4, T: 130, seed: 1, p: 5 };
+  const draw = () => {
+    const I = edgeProf(20, st.e, st.b, 60, 200, st.sig, st.seed), x = edgeCross(I, st.T), err = x - st.e;
+    const X = i => 50 + i * 26, Y = v => 230 - v * .8;
+    let svg = `<path d="M${X(0)} ${Y(st.T)}H${X(19)}" class="live" stroke-dasharray="5 4"/>` + T_(X(19) + 4, Y(st.T) + 4, 'T', 'lblm');
+    I.forEach((v, i) => { svg += `<rect x="${X(i) - 10}" y="${Y(v)}" width="20" height="${Y(0) - Y(v)}" class="thin"/>`; });
+    svg += `<path d="M${X(st.e)} 20V${Y(0)}" class="ink" stroke-dasharray="3 3"/>` + T_(X(st.e) + 4, 30, 'true edge', 'lblm');
+    if (!isNaN(x)) svg += `<circle cx="${X(x)}" cy="${Y(st.T)}" r="5" class="fill-ink"/>` + T_(X(x) + 6, Y(st.T) - 8, 'found', 'lblm');
+    el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">${hxNum('ib', 'טשטוש (פיקסלים)', st.b, .1, 4, .1)}${hxNum('isig', 'רעש σ (רמות אפור)', st.sig, 0, 30, 1)}${hxNum('iT', 'סף T', st.T, 70, 190, 5)}${hxNum('ip', 'גודל פיקסל (µm)', st.p, 1, 20, .5)}<div class="ctl"><label>רעש</label><div class="tp"><button type="button" id="iseed">הגרל רעש חדש</button></div></div></div>
+      <div class="stage" style="padding:8px 16px">${SVG(600, 250, svg, 'edge profile')}</div>
+      <div class="readout">הקצה שנמצא: <span class="num">${isNaN(x) ? '—' : x.toFixed(3) + ' px'}</span> · שגיאה: <span class="num">${isNaN(x) ? '—' : err.toFixed(3) + ' px = ' + (err * st.p).toFixed(2) + ' µm'}</span><br>הערכה תאורטית σ_x = σ_I / s ≈ <span class="num">${(st.sig / (140 * 1.7 / 4 / Math.max(st.b, .05))).toFixed(3)} px</span> (s = השיפוע במרכז הקצה)${st.T !== 130 ? ' · הסף לא באמצע: הקצה זז לכיוון הצד הכהה או הבהיר' : ''}</div></div>`;
+    hxRead(el, [['ib', 'b'], ['isig', 'sig'], ['iT', 'T'], ['ip', 'p']], st, draw);
+    el.querySelector('#iseed').addEventListener('click', () => { st.seed++; draw(); });
+  };
+  draw();
+}
+
+QB.push(
+{ id: 'Q95', t: 'img', l: 1, title: 'קצה בתת-פיקסל', fig: null,
+  q: 'בשורה של תמונה: פיקסל 10 בבהירות 60, פיקסל 11 בבהירות 180. הסף 100. איפה הקצה, ובכמה מיקרונים מתחילת השורה, בפיקסל של 5 µm?',
+  h: ['הנח שבין שני הפיקסלים הבהירות משתנה בקו ישר.', 'x = xᵢ + (T − Iᵢ) / (Iᵢ₊₁ − Iᵢ).'],
+  a: 'x = 10 + (100 − 60) / (180 − 60) = 10.333 פיקסל, כלומר 51.67 µm.',
+  why: 'האינטרפולציה משתמשת בערכים ולא רק בשאלה איזה פיקסל עבר את הסף.',
+  steps: ['T − I₁₀ = 40.', 'I₁₁ − I₁₀ = 120.', '10 + 1/3 = 10.333 פיקסל.', '10.333 · 5 = 51.67 µm.'],
+  trap: 'לענות "פיקסל 11" ולאבד חצי פיקסל דיוק (2.5 µm).' },
+{ id: 'Q96', t: 'img', l: 2, title: 'מרכז כובד לא סימטרי', fig: null,
+  q: 'בחתך של fiducial הבהירויות (אחרי החסרת רקע) הן [0, 10, 40, 30, 0] במיקומים 0 עד 4. מה מרכז הכובד, ומה הוא אומר?',
+  h: ['x̄ = Σ xᵢ Iᵢ / Σ Iᵢ.', 'השווה למקרה הסימטרי [0, 10, 40, 10, 0].'],
+  a: 'Σ I = 80, Σ x·I = 0 + 10 + 80 + 90 + 0 = 180, x̄ = 2.25. המרכז זז רבע פיקסל לכיוון הצד הבהיר יותר (המקרה הסימטרי נותן 2.0).',
+  why: 'מרכז הכובד משתמש בכל הפיקסלים, ולכן רואה הזזות קטנות מפיקסל.',
+  steps: ['Σ I = 10 + 40 + 30 = 80.', 'Σ x·I = 1·10 + 2·40 + 3·30 = 180.', '180 / 80 = 2.25.'],
+  trap: 'לשכוח להחסיר רקע: אז כל פיקסלי החלון מושכים את המרכז לאמצע החלון.' },
+{ id: 'Q97', t: 'img', l: 2, title: 'ממוצע ורעש', fig: null,
+  q: 'הרעש בכל פיקסל σ = 8 רמות אפור. כמה פיקסלים צריך למצע כדי להוריד את הרעש ל-2, ומה המחיר?',
+  h: ['σ_avg = σ / √N.', 'מה הקשר בין חלון הממוצע לבין רוחב הקצה?'],
+  a: '8 / √N = 2, ולכן √N = 4 ו-N = 16 (למשל חלון 4×4). המחיר: קצוות נמרחים על פני כמה פיקסלים, ופרטים קטנים מחלון הממוצע נעלמים.',
+  why: 'ממוצע של רעשים בלתי תלויים: השונות יורדת פי N, וסטיית התקן פי √N.',
+  steps: ['σ² / N = 4.', 'N = 64 / 4 = 16.'],
+  trap: 'לחשוב שממוצע של 4 פיקסלים מוריד את הרעש פי 4. הוא מוריד פי 2.' },
+{ id: 'Q98', t: 'img', l: 2, title: 'בדיקת רוחב בשחיקה', fig: null,
+  q: 'פיקסל 5 µm. רוחב קו מינימלי מותר 30 µm. באיזה רדיוס שוחקים כדי שכל קטע צר מ-30 µm ייעלם, ומה נשאר מקו תקין של 50 µm?',
+  h: ['קו שרוחבו w פיקסלים שורד שחיקה ברדיוס r רק אם w > 2r.', 'כמה פיקסלים הם 30 µm?'],
+  a: '30 µm = 6 פיקסלים. שחיקה ברדיוס 3 מוחקת כל קטע שרוחבו 6 פיקסלים או פחות. קו של 50 µm = 10 פיקסלים נשאר ברוחב 10 − 6 = 4 פיקסלים.',
+  why: 'שחיקה מקטינה כל צורה ב-r מכל צד, ולכן מוחקת קווים שרוחבם עד 2r.',
+  steps: ['6 פיקסלים = 2r → r = 3.', '10 − 2·3 = 4.'],
+  trap: 'לבחור r = 6 ("הרוחב המינימלי בפיקסלים"): זה מוחק גם קווים תקינים של 50 µm.' },
+{ id: 'Q99', t: 'img', l: 3, title: 'דיוק קצה מרעש ושיפוע', fig: null,
+  q: 'בקצה, הבהירות עולה 120 רמות לפיקסל, והרעש σ = 4 רמות. מה דיוק המיקום של הקצה בפיקסלים ובמיקרונים (פיקסל 5 µm)? ומה אם הקצה מטושטש פי 3?',
+  h: ['σ_x = σ_I / s.', 'טשטוש פי 3 מקטין את השיפוע פי 3.'],
+  a: 'σ_x = 4 / 120 = 0.033 פיקסל ≈ 0.17 µm. עם טשטוש פי 3: s = 40, σ_x = 0.1 פיקסל = 0.5 µm.',
+  why: 'רעש בבהירות מזיז את נקודת החצייה ביחס הפוך לשיפוע. פוקוס טוב הוא חלק מדיוק המדידה.',
+  steps: ['4 / 120 = 0.0333.', '0.0333 · 5 = 0.167 µm.', '4 / 40 = 0.1, כפול 5 = 0.5 µm.'],
+  trap: 'לחשוב שטשטוש קל "לא משנה כי ממילא יש אינטרפולציה".' }
+);
+VERIFY.push(
+  ['img levels 8', 2 ** 8, 256, 0], ['img levels 12', 2 ** 12, 4096, 0], ['img contrast', 140 / 260, .54, .005], ['img thr', (60 + 200) / 2, 130, 0], ['img otsu', otsuB(.6, 60, 200), 4704, 1e-9],
+  ['img avg', 8 / Math.sqrt(16), 2, 1e-12], ['img cross', edgeCross([60, 180], 100) + 10, 10.333, .0005], ['img cross µm', (10 + 1 / 3) * 5, 51.67, .005],
+  ['img centroid sym', centroid([0, 10, 40, 10, 0]), 2, 1e-12], ['img centroid asym', centroid([0, 10, 40, 30, 0]), 2.25, 1e-12], ['img ncc', ncc([1, 2, 3], [2, 4, 6]), 1, 1e-12],
+  ['img sigx', 4 / 120, .033, .0005], ['img sigx µm', 4 / 120 * 5, .17, .005], ['img sigx blur', 4 / 40 * 5, .5, 1e-12], ['img morph', 10 - 2 * 3, 4, 0], ['img r', Math.ceil(30 / (2 * 5)), 3, 0],
+  ['img Lmin', 3 * 5, 15, 0], ['img blob', 12 * 25, 300, 0], ['img npx', 50 / 5, 10, 0], ['img pobj', 10 / 2, 5, 0],
+  /* the lab finds a noise-free edge within a few hundredths of a pixel when the threshold is midway */
+  ['img lab edge', Math.abs(edgeCross(edgeProf(20, 9.37, 1, 60, 200, 0, 1), 130) - 9.37), 0, .05]
+);
+/* ============ Hub: statistics and quality (v2.64) ============
+   What a number from a machine is worth: spread and the normal distribution, accuracy against precision, measurement
+   uncertainty, process capability, Gage R&R, false calls and escapes, and control charts. */
+Object.entries({
+  'mean': ['ממוצע: סכום המדידות חלקי מספרן.', 'ממוצע'],
+  'standard deviation': ['סטיית תקן: מדד לפיזור המדידות סביב הממוצע. במדגם מחלקים ב-n − 1.', 'מדד לפיזור'],
+  'normal distribution': ['התפלגות נורמלית (גאוסית): עקומת פעמון. 68% מהערכים בטווח ±1σ, 95% ב-±2σ, 99.73% ב-±3σ.', 'עקומת הפעמון'],
+  'standard error': ['שגיאת התקן של ממוצע: σ/√n. ממוצע של n מדידות מדויק פי √n ממדידה אחת.', 'הפיזור של ממוצע'],
+  'accuracy': ['נכונות (accuracy): עד כמה הממוצע של המדידות קרוב לערך האמיתי. ההפרש הוא ההטיה (bias).', 'קרבה לערך האמיתי'],
+  'precision': ['דיוק חוזר (precision): עד כמה מדידות חוזרות קרובות זו לזו. בסיווג: איזה חלק מהקריאות היו פגמים אמיתיים.', 'פיזור קטן, או חלק הקריאות הנכונות'],
+  'bias': ['הטיה: ההפרש הקבוע בין ממוצע המדידות לבין הערך האמיתי. מתקנים אותה בכיול.', 'שגיאה קבועה'],
+  'repeatability': ['חזרתיות: הפיזור כשאותו מכשיר ואותו מפעיל מודדים את אותו דבר שוב ושוב.', 'פיזור באותם תנאים'],
+  'reproducibility': ['שחזוריות: הפיזור הנוסף כשמשנים מפעיל, מכונה או יום.', 'פיזור בין מפעילים או מכונות'],
+  'Gage R&R': ['ניתוח מערכת מדידה: כמה מהפיזור שרואים בא ממערכת המדידה (חזרתיות ושחזוריות) ולא מהחלקים עצמם.', 'כמה מהפיזור הוא של המכשיר'],
+  'ndc': ['number of distinct categories: כמה קבוצות שונות של חלקים מערכת המדידה מסוגלת להבדיל. צריך לפחות 5.', 'כמה רמות המכשיר מבדיל'],
+  'tolerance': ['טולרנס: הטווח המותר בין הגבול התחתון לעליון.', 'הטווח המותר'],
+  'LSL': ['Lower Specification Limit: הגבול התחתון המותר.', 'גבול תחתון'],
+  'USL': ['Upper Specification Limit: הגבול העליון המותר.', 'גבול עליון'],
+  'Cp': ['יכולת תהליך: רוחב הטולרנס חלקי 6σ. אומר כמה התהליך צר יחסית לדרישה, בלי להתחשב במרכוז.', 'רוחב הדרישה מול הפיזור'],
+  'Cpk': ['יכולת תהליך עם מרכוז: המרחק מהממוצע לגבול הקרוב, חלקי 3σ. 1.33 נחשב יעד נפוץ.', 'מרחק לגבול הקרוב ביחידות 3σ'],
+  'process capability': ['יכולת תהליך: עד כמה תהליך יציב מייצר בתוך הדרישה. נמדדת ב-Cp ו-Cpk.', 'עד כמה התהליך בתוך הדרישה'],
+  'measurement uncertainty': ['אי-ודאות מדידה: הטווח שבו נמצא הערך האמיתי בהסתברות נתונה, מכל מקורות השגיאה יחד.', 'כמה אפשר לסמוך על המדידה'],
+  'coverage factor': ['מקדם כיסוי k: מכפילים בו את אי-הוודאות המשולבת. k = 2 נותן בערך 95%.', 'המכפיל לטווח של 95%'],
+  'false call': ['קריאה שגויה: המכונה סימנה פגם במקום שאין פגם. עולה זמן של מפעיל.', 'פגם מדומה'],
+  'escape': ['בריחה: פגם אמיתי שהמכונה לא סימנה. עולה לוח פגום אצל הלקוח.', 'פגם שהוחמץ'],
+  'recall': ['רגישות (recall): איזה חלק מהפגמים האמיתיים נתפסו: TP/(TP + FN).', 'חלק הפגמים שנתפסו'],
+  'confusion matrix': ['טבלת בלבול: ארבע הקבוצות של סיווג: פגם שנתפס (TP), פגם שהוחמץ (FN), קריאה שגויה (FP), ותקין שעבר (TN).', 'טבלת ארבע התוצאות'],
+  'control chart': ['תרשים בקרה: מדידות לאורך זמן עם קווי גבול ב-±3σ. נקודה מחוץ לגבולות או מגמה אומרות שמשהו השתנה.', 'מעקב אחרי תהליך בזמן'],
+  'SPC': ['Statistical Process Control: בקרה סטטיסטית של תהליך בעזרת תרשימי בקרה.', 'בקרה סטטיסטית'],
+  'ppm': ['parts per million: חלקים למיליון. 1000 ppm = 0.1%.', 'חלקים למיליון']
+}).forEach(([k, v]) => hxTerm('stat', k, v));
+
+/* the standard normal CDF (Abramowitz and Stegun 7.1.26, error below 1.5e-7) */
+function phi(z) { const t = 1 / (1 + .3275911 * Math.abs(z) / Math.SQRT2), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - .284496736) * t + .254829592) * t * Math.exp(-z * z / 2); return z >= 0 ? (1 + y) / 2 : (1 - y) / 2; }
+const sampleSd = a => { const m = a.reduce((s, v) => s + v, 0) / a.length; return Math.sqrt(a.reduce((s, v) => s + (v - m) ** 2, 0) / (a.length - 1)); };
+const capab = (mu, sd, lsl, usl) => ({ cp: (usl - lsl) / (6 * sd), cpk: Math.min(usl - mu, mu - lsl) / (3 * sd), ppm: 1e6 * (phi((lsl - mu) / sd) + 1 - phi((usl - mu) / sd)) });
+
+hubX('stat', {
+  tab: 'סטטיסטיקה ואיכות', title: 'סטטיסטיקה ואיכות: כמה שווה מספר שהמכונה מוציאה', std: 'ISO/IEC Guide 98-3', qt: 'stat', qtName: 'סטטיסטיקה ואיכות',
+  lead: 'מכונה מוציאה מספרים: מיקום, רוחב קו, כמות פגמים. כאן לומדים מה הם שווים: פיזור, נכונות מול חזרתיות, אי-ודאות, יכולת תהליך, ניתוח מערכת מדידה, קריאות שגויות ובריחות, ותרשימי בקרה.',
+  nav: [['why', 'למה סטטיסטיקה', 'אף מדידה לא מדויקת'], ['dist', 'פיזור והתפלגות נורמלית', 'σ, ±3σ, ממוצע'], ['acc', 'נכונות מול חזרתיות', 'הטיה ופיזור'], ['unc', 'אי-ודאות מדידה', 'RSS ו-k = 2'], ['cap', 'יכולת תהליך', 'Cp ו-Cpk'], ['grr', 'Gage R&R', 'כמה מהפיזור הוא המכשיר'], ['cls', 'קריאות שגויות ובריחות', 'precision ו-recall'], ['spc', 'תרשים בקרה', 'מתי משהו השתנה'], ['lab', 'מעבדה: סף ההחלטה', 'קריאות שגויות מול בריחות'], ['q', 'שאלות: סטטיסטיקה', '']],
+  pages: {
+    why: () => SB('כמו לשקול את עצמך חמש פעמים ולקבל חמישה מספרים קצת שונים. השאלה היא לא "מה המשקל", אלא "מה המשקל, ובכמה אפשר לטעות".', ['כל מדידה = ערך אמיתי + הטיה קבועה + רעש אקראי.', 'את ההטיה מתקנים בכיול. את הרעש מקטינים בממוצע, אבל לא מבטלים.', 'כדי לדעת אם מכונה טובה מספיק, משווים את הפיזור שלה לטולרנס של המוצר.', 'כדי לדעת אם התהליך השתנה, משווים את המדידות של היום לפיזור הרגיל.'], 'מספר בלי פיזור הוא חצי תשובה. בראיון ובשטח, תמיד לשאול "כמה σ?".') +
+      TT(['שאלה', 'הכלי', 'עמוד'], [['כמה המדידות מתפזרות?', 'σ והתפלגות נורמלית', 'פיזור'], ['המכשיר טוב מספיק?', 'Gage R&R, יחס לטולרנס', 'Gage R&R'], ['התהליך בתוך הדרישה?', 'Cp, Cpk', 'יכולת תהליך'], ['המכונה מסמנת יותר מדי או פחות מדי?', 'precision, recall', 'קריאות שגויות'], ['משהו השתנה היום?', 'תרשים בקרה', 'תרשים בקרה']]) +
+      where('ATP (קבלת מכונה) הוא סטטיסטיקה: חזרתיות של ציר, דיוק רישום, שיעור קריאות שגויות. וכל שיפור בשטח נמדד באותם מספרים.'),
+    dist: () => olx(['ממוצע: x̄ = Σ xᵢ / n.', 'סטיית תקן של מדגם: s = √(Σ (xᵢ − x̄)² / (n − 1)). מחלקים ב-n − 1 כי x̄ עצמו חושב מאותם נתונים, ו"לקח" דרגת חופש אחת.', 'דוגמה: 10, 12, 11, 13, 9. ממוצע 11. סטיות: −1, 1, 0, 2, −2. סכום ריבועים 10. s = √(10/4) ≈ 1.58.', 'כשהרבה גורמים קטנים ובלתי תלויים מצטברים, ההתפלגות נורמלית (משפט הגבול המרכזי).', 'בהתפלגות נורמלית: 68.3% בתוך ±1σ, 95.4% בתוך ±2σ, 99.73% בתוך ±3σ.', 'ממוצע של n מדידות מתפזר פחות: σ_x̄ = σ / √n.']) +
+      FB([['x̄ = Σ xᵢ / n', 'ממוצע', '55 / 5 = 11'], ['s = √(Σ (xᵢ − x̄)² / (n − 1))', 'סטיית תקן של מדגם', '√(10 / 4) ≈ 1.58'], ['σ_x̄ = σ / √n', 'שגיאת התקן של ממוצע', 'σ = 6, n = 9: 2'], ['P(|x − μ| > 3σ) ≈ 0.27%', 'מחוץ ל-±3σ', '2700 ppm, משני הצדדים']]) +
+      trap('לחשב σ מ-3 מדידות ולהסיק ממנו. עם n קטן, s עצמו לא אמין: ב-n = 3 הוא יכול לצאת בטעות של עשרות אחוזים.'),
+    acc: () => px('שני מושגים שמתבלבלים כל הזמן. נכונות (accuracy): האם הממוצע במקום הנכון. חזרתיות (precision): האם המדידות קרובות זו לזו.') +
+      TT(['', 'חזרתיות טובה', 'חזרתיות גרועה'], [['נכונות טובה', 'מטרה: כל המדידות צפופות סביב הערך', 'הממוצע נכון, אבל כל מדידה אקראית'], ['נכונות גרועה', 'צפוף, אבל במקום הלא נכון: הטיה. מתקנים בכיול', 'גם וגם']]) +
+      olx(['הטיה מגלים במדידה של תקן (מידה ידועה, מדויקת יותר מהמכונה).', 'הטיה = ממוצע המדידות על התקן פחות הערך שלו.', 'דוגמה: תקן של 100.000 mm נמדד 10 פעמים, ממוצע 100.012 mm, s = 3 µm. הטיה 12 µm, חזרתיות 3 µm. אחרי תיקון ההטיה נשארים 3 µm.', 'כלל אצבע: התקן צריך להיות מדויק לפחות פי 4 עד 10 ממה שבודקים.']) +
+      FB([['bias = x̄ − x_ref', 'ההטיה', '100.012 − 100.000 = 12 µm'], ['σ_rep = s', 'החזרתיות', '3 µm'], ['TUR = T / U_ref', 'יחס בין טולרנס לאי-ודאות התקן', 'לפחות 4:1']]) +
+      trap('לכייל מכונה "עד שהיא מראה בדיוק 100.000" על מדידה אחת. מכיילים לפי ממוצע של כמה מדידות, אחרת מתקנים לפי הרעש.'),
+    unc: () => px('אי-ודאות מדידה אומרת: "הערך האמיתי נמצא בתוך x ± U, בהסתברות של כ-95%". מחשבים אותה מכל המקורות.') +
+      olx(['רושמים כל מקור: חזרתיות, רזולוציה, תקן הכיול, טמפרטורה, וכן הלאה.', 'הופכים כל אחד לסטיית תקן uᵢ. רזולוציה (צעד a): u = a / √12, כי השגיאה אחידה בטווח ±a/2.', 'מקורות בלתי תלויים: u_c = √(Σ uᵢ²).', 'אי-ודאות מורחבת: U = k · u_c, ו-k = 2 נותן כיסוי של כ-95%.', 'דוגמה: חזרתיות 2 µm, רזולוציה 1 µm (u = 0.29), תקן 1 µm, טמפרטורה 1.5 µm: u_c = √(4 + 0.083 + 1 + 2.25) ≈ 2.71 µm, U ≈ 5.4 µm.']) +
+      FB([['u_c = √(Σ uᵢ²)', 'אי-ודאות משולבת', '√7.33 ≈ 2.71 µm'], ['U = k · u_c', 'אי-ודאות מורחבת', 'k = 2: 5.4 µm'], ['u_res = a / √12', 'רזולוציה כסטיית תקן', 'a = 1 µm: 0.29 µm']]) +
+      trap('לדווח "המכונה מדויקת ל-1 µm" כי זו הרזולוציה של המקודד. הרזולוציה היא רק מקור אחד, ובדרך כלל הקטן.'),
+    cap: () => px('יכולת תהליך משווה את הפיזור של התהליך לטולרנס. Cp אומר אם התהליך צר מספיק. Cpk אומר אם הוא גם ממורכז.') +
+      olx(['Cp = (USL − LSL) / (6σ): כמה פעמים "רוחב התהליך" (±3σ) נכנס בטולרנס.', 'Cpk = (המרחק מהממוצע לגבול הקרוב) / (3σ).', 'דוגמה: רוחב קו 50 ± 30 µm (LSL = 20, USL = 80), σ = 8 µm, ממוצע 50: Cp = 60/48 = 1.25 ו-Cpk = 1.25.', 'אם הממוצע זז ל-55: Cpk = (80 − 55) / 24 ≈ 1.04. Cp לא השתנה.', 'Cpk = 1 פירושו שהגבול ב-3σ מהממוצע: כ-1350 ppm מחוצה לו. Cpk = 1.33 (4σ): כ-32 ppm. לכן 1.33 הוא יעד נפוץ.']) +
+      FB([['Cp = (USL − LSL) / (6σ)', 'רוחב הדרישה מול הפיזור', '60 / 48 = 1.25'], ['Cpk = min(USL − μ, μ − LSL) / (3σ)', 'עם מרכוז', '25 / 24 ≈ 1.04'], ['ppm ≈ 10⁶ · (1 − Φ(3 · Cpk))', 'החלק שמחוץ לגבול הקרוב', 'Cpk = 1: 1350 ppm']]) +
+      trap('לחשב Cpk מתהליך לא יציב (שעדיין זז). Cpk מניח שהתהליך בבקרה: קודם תרשים בקרה, אחר כך יכולת.'),
+    grr: () => px('לפני שמודדים את התהליך, צריך לדעת שהמכשיר מסוגל. Gage R&R מפרק את הפיזור הנמדד לשני חלקים: פיזור אמיתי של החלקים, ופיזור של מערכת המדידה.') +
+      olx(['ניסוי טיפוסי: 10 חלקים, 3 מפעילים (או מכונות), כל אחד מודד כל חלק 2 עד 3 פעמים, בסדר אקראי.', 'חזרתיות (EV): הפיזור בין מדידות חוזרות של אותו מפעיל על אותו חלק.', 'שחזוריות (AV): הפיזור בין הממוצעים של המפעילים.', 'σ_ms = √(σ_EV² + σ_AV²). דוגמה: 1.6 ו-1.2 µm: √(2.56 + 1.44) = 2 µm.', 'ביחס לטולרנס: %GRR = 6σ_ms / (USL − LSL) · 100. עם 60 µm: 12 / 60 = 20%.', 'קריטריון מקובל: מתחת ל-10% טוב, 10% עד 30% בתנאים, מעל 30% לא מתאים.', 'מספר הקטגוריות: ndc = 1.41 · σ_part / σ_ms. עם σ_part = 8: 5.6, כלומר 5. צריך לפחות 5.']) +
+      FB([['σ_ms = √(σ_EV² + σ_AV²)', 'פיזור מערכת המדידה', '√(2.56 + 1.44) = 2 µm'], ['%GRR = 6σ_ms / (USL − LSL)', 'החלק של הטולרנס שהמכשיר "אוכל"', '12 / 60 = 20%'], ['ndc = ⌊1.41 · σ_part / σ_ms⌋', 'כמה רמות המכשיר מבדיל', '1.41 · 8 / 2 → 5']]) +
+      trap('לבחור 10 חלקים כמעט זהים. אז σ_part קטן, ndc יוצא נמוך, ונראה שהמכשיר גרוע, כשבעצם החלקים לא מייצגים את הטווח.'),
+    cls: () => px('AOI היא מסווג: לכל מקום בלוח היא אומרת "פגם" או "תקין". ארבע תוצאות אפשריות.') +
+      TT(['', 'פגם אמיתי', 'אין פגם'], [['המכונה סימנה', 'TP: נתפס', 'FP: קריאה שגויה (false call)'], ['המכונה לא סימנה', 'FN: בריחה (escape)', 'TN: תקין שעבר']]) +
+      olx(['recall = TP / (TP + FN): איזה חלק מהפגמים נתפסו. בריחה עולה לוח פגום אצל הלקוח.', 'precision = TP / (TP + FP): איזה חלק מהסימונים היו פגמים. קריאות שגויות עולות זמן מפעיל בעמדת אימות.', 'דוגמה ל-100 לוחות: 100 פגמים אמיתיים, 95 נתפסו, 400 קריאות שגויות. recall = 95%, precision = 95 / 495 ≈ 19.2%, 4 קריאות שגויות ללוח.', 'הסף קובע את האיזון: סף נמוך תופס יותר פגמים ומייצר יותר קריאות שגויות. אי אפשר להוריד את שניהם רק בסף.', 'כדי לשפר את שניהם יחד צריך להפריד טוב יותר בין ההתפלגויות: פיקסל קטן, תאורה, פוקוס, רישום מדויק.']) +
+      FB([['recall = TP / (TP + FN)', 'חלק הפגמים שנתפסו', '95 / 100 = 95%'], ['precision = TP / (TP + FP)', 'חלק הסימונים שהיו פגמים', '95 / 495 ≈ 19.2%'], ['FC/panel = FP / panels', 'קריאות שגויות ללוח', '400 / 100 = 4']]) +
+      trap('לדווח "המכונה תופסת 99% מהפגמים" בלי לציין כמה קריאות שגויות היא מייצרת. כל מכונה מגיעה ל-100% recall אם היא מסמנת הכול.'),
+    spc: () => px('תרשים בקרה עוקב אחרי מדידה לאורך זמן (למשל רוחב קו ממוצע במדגם של 4 נקודות בכל לוח). הגבולות מחושבים מהתהליך עצמו, לא מהדרישה.') +
+      olx(['מגדירים את הממוצע והפיזור של התהליך כשהוא יציב: μ ו-σ.', 'לממוצע של n מדידות: גבולות μ ± 3σ / √n. דוגמה: μ = 50, σ = 6, n = 4: 50 ± 9, כלומר 41 עד 59.', 'נקודה מחוץ לגבולות: סיבה מיוחדת (תאורה שנחלשה, טמפרטורה, חומר חדש). מחפשים אותה.', 'גם בלי יציאה מהגבולות: 7 נקודות ברצף מאותו צד של הממוצע, או מגמה עולה של 6, הם סימן שמשהו זז.', 'גבולות בקרה הם לא גבולות הדרישה. תהליך יכול להיות בבקרה ועדיין לא עומד בדרישה (Cpk נמוך), ולהפך.']) +
+      FB([['UCL, LCL = μ ± 3σ / √n', 'גבולות בקרה לממוצע מדגם', '50 ± 6·3/2: 41 עד 59'], ['P(out | stable) ≈ 0.27%', 'אזעקה שגויה לנקודה, כשהכול תקין', 'אחת מכל 370 נקודות']]) +
+      trap('לכוונן את המכונה אחרי כל נקודה שזזה (tampering). מגיבים רק לסימן סטטיסטי, אחרת מוסיפים פיזור.'),
+    lab: () => `<p>${bidi('המכונה מחשבת לכל מקום ציון. במקום תקין הציון מתפזר סביב 30 (σ = 8), בפגם אמיתי סביב 60 (σ = 10). ב-100 לוחות יש 10,000 מקומות חשודים ו-100 פגמים אמיתיים. הזז את הסף וראה את המחיר.')}</p><div id="statlab"></div><h3>אנימציה: Cpk כשהתהליך זז</h3><div id="statanim"></div>`
+  },
+  mount: { lab: B => { statLab(B.querySelector('#statlab')); animMount('cpk', B.querySelector('#statanim')); } }
+});
+
+function statLab(el) {
+  const st = { T: 45, mg: 30, sg: 8, md: 60, sd: 10, ng: 10000, nd: 100 };
+  const draw = () => {
+    const FP = st.ng * (1 - phi((st.T - st.mg) / st.sg)), TP = st.nd * (1 - phi((st.T - st.md) / st.sd)), FN = st.nd - TP, prec = TP / (TP + FP), rec = TP / st.nd;
+    const X = v => 40 + v * 5.2, pdf = (x, m, s) => Math.exp(-(((x - m) / s) ** 2) / 2) / (s * Math.sqrt(2 * Math.PI)), Yg = x => 200 - pdf(x, st.mg, st.sg) * 3000, Yd = x => 200 - pdf(x, st.md, st.sd) * 3000;
+    let pg = 'M' + X(0) + ' 200', pd = 'M' + X(0) + ' 200'; for (let x = 0; x <= 100; x += 1) { pg += `L${X(x)} ${Yg(x)}`; pd += `L${X(x)} ${Yd(x)}`; }
+    const svg = `<path d="${pg}" class="ink"/><path d="${pd}" class="live"/><path d="M${X(st.T)} 20V205" class="faults" stroke-dasharray="5 4"/><path d="M${X(0)} 200H${X(100)}" class="thin"/>` + T_(X(st.mg), 215, 'good', 'lblm', 'middle') + T_(X(st.md), 215, 'defect', 'lblm', 'middle') + T_(X(st.T) + 4, 30, 'threshold', 'lblm');
+    el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">${hxNum('sT', 'סף T', st.T, 20, 80, 1)}${hxNum('smd', 'ממוצע ציון הפגמים', st.md, 35, 90, 1)}${hxNum('ssg', 'פיזור ציון התקינים σ', st.sg, 2, 20, 1)}</div>
+      <div class="stage" style="padding:8px 16px">${SVG(600, 225, svg, 'score distributions')}</div>
+      <div class="readout">נתפסו <span class="num">${TP.toFixed(1)}</span> מתוך 100 (recall <span class="num">${(rec * 100).toFixed(1)}%</span>) · בריחות <span class="num">${FN.toFixed(1)}</span><br>קריאות שגויות <span class="num">${FP.toFixed(0)}</span>, כלומר <span class="num">${(FP / 100).toFixed(1)}</span> ללוח · precision <span class="num">${(prec * 100).toFixed(1)}%</span><br>${rec < .95 ? 'הסף גבוה: פגמים בורחים.' : FP / 100 > 5 ? 'הסף נמוך: המפעיל טובע בקריאות שגויות.' : 'איזון סביר. שיפור נוסף דורש הפרדה טובה יותר בין ההתפלגויות.'}</div></div>`;
+    hxRead(el, [['sT', 'T'], ['smd', 'md'], ['ssg', 'sg']], st, draw);
+  };
+  draw();
+}
+
+QB.push(
+{ id: 'Q100', t: 'stat', l: 1, title: 'סטיית תקן של מדגם', fig: null,
+  q: 'חמש מדידות של רוחב קו: 10, 12, 11, 13, 9 µm. מה הממוצע וסטיית התקן של המדגם, ולמה מחלקים ב-n − 1?',
+  h: ['חשב סטיות מהממוצע וריבועיהן.', 'כמה נתונים "חופשיים" נשארו אחרי שחישבת ממוצע?'],
+  a: 'ממוצע 11. סטיות −1, 1, 0, 2, −2, סכום ריבועים 10. s = √(10/4) ≈ 1.58 µm. מחלקים ב-n − 1 כי הממוצע חושב מאותן מדידות, וזה מקטין את הסטיות. החלוקה ב-n − 1 מתקנת את ההערכה.',
+  why: 'אחרי שהממוצע קבוע, רק 4 מתוך 5 הסטיות חופשיות.',
+  steps: ['Σx = 55, x̄ = 11.', 'Σ(x − x̄)² = 1 + 1 + 0 + 4 + 4 = 10.', 's = √(10 / 4) = 1.58.'],
+  trap: 'לחלק ב-n ולקבל 1.41: הערכה נמוכה מדי של הפיזור.' },
+{ id: 'Q101', t: 'stat', l: 2, title: 'Cp מול Cpk', fig: null,
+  q: 'טולרנס 50 ± 30 µm, σ = 8 µm. מה Cp ו-Cpk כשהממוצע 50, ומה כשהוא 55? מה כדאי לתקן קודם?',
+  h: ['Cp = (USL − LSL)/(6σ).', 'Cpk = min(USL − μ, μ − LSL)/(3σ).'],
+  a: 'Cp = 60/48 = 1.25 בשני המקרים. ממוצע 50: Cpk = 1.25. ממוצע 55: Cpk = 25/24 ≈ 1.04. התיקון הראשון הוא מרכוז (זול: כיול או קיזוז), לא הקטנת פיזור.',
+  why: 'Cp אומר מה התהליך מסוגל אם ימורכז, Cpk אומר מה הוא עושה עכשיו.',
+  steps: ['6σ = 48, Cp = 1.25.', 'USL − 55 = 25, 3σ = 24.', 'Cpk ≈ 1.04.'],
+  trap: 'להסתפק ב-Cp = 1.25 ולהתעלם מהזזה שמעלה את שיעור הפסולים פי כמה.' },
+{ id: 'Q102', t: 'stat', l: 2, title: 'Gage R&R', fig: null,
+  q: 'חזרתיות σ_EV = 1.6 µm, שחזוריות σ_AV = 1.2 µm, טולרנס 60 µm, פיזור החלקים σ_part = 8 µm. האם מערכת המדידה מתאימה?',
+  h: ['σ_ms = √(σ_EV² + σ_AV²).', '%GRR = 6σ_ms חלקי הטולרנס, ndc = 1.41 σ_part / σ_ms.'],
+  a: 'σ_ms = √(2.56 + 1.44) = 2 µm. %GRR = 12/60 = 20%: בטווח 10% עד 30%, מתאים בתנאים. ndc = 1.41·8/2 = 5.6 → 5, הסף המינימלי. כדאי לשפר את החזרתיות, שהיא הגדולה.',
+  why: 'כשהמכשיר אוכל חלק גדול מהטולרנס, חלקים טובים נפסלים וחלקים רעים עוברים ליד הגבולות.',
+  steps: ['σ_ms = 2.', '6·2/60 = 20%.', 'ndc = 5.64 → 5.'],
+  trap: 'לחבר 1.6 + 1.2 = 2.8 במקום ב-RSS.' },
+{ id: 'Q103', t: 'stat', l: 2, title: 'precision ו-recall ב-AOI', fig: null,
+  q: 'ב-100 לוחות יש 100 פגמים אמיתיים. המכונה סימנה 495 מקומות, מהם 95 פגמים אמיתיים. מה ה-recall, ה-precision, וכמה קריאות שגויות ללוח?',
+  h: ['TP = 95, FN = 5, FP = 400.', 'recall = TP/(TP + FN), precision = TP/(TP + FP).'],
+  a: 'recall = 95/100 = 95%. precision = 95/495 ≈ 19.2%. 400 קריאות שגויות, כלומר 4 ללוח.',
+  why: 'שני המדדים מודדים עלויות שונות: בריחה עולה אצל הלקוח, קריאה שגויה עולה זמן מפעיל.',
+  steps: ['FP = 495 − 95 = 400.', 'recall = 95%.', 'precision = 19.2%.', '400/100 = 4 ללוח.'],
+  trap: 'לבלבל precision עם recall, ולדווח 95% "דיוק".' },
+{ id: 'Q104', t: 'stat', l: 3, title: 'גבולות בקרה מול גבולות דרישה', fig: null,
+  q: 'תהליך יציב: μ = 50, σ = 6 µm, מדגם של 4 נקודות בכל לוח. מה גבולות הבקרה לממוצע המדגם? והדרישה היא 20 עד 80 µm לכל נקודה: האם נקודה של 62 בממוצע מדגם היא בעיה?',
+  h: ['גבולות לממוצע: μ ± 3σ/√n.', 'גבולות הבקרה לא קשורים לגבולות הדרישה.'],
+  a: '50 ± 3·6/2 = 50 ± 9: 41 עד 59. ממוצע 62 מחוץ לגבולות הבקרה: סימן שהתהליך השתנה, ומחפשים סיבה. זה עדיין בתוך הדרישה, ולכן הלוח לא בהכרח פסול. התרשים מזהיר לפני שמגיעים לפסולים.',
+  why: 'גבולות הבקרה מתארים את התהליך, גבולות הדרישה את המוצר.',
+  steps: ['σ/√4 = 3.', '3·3 = 9.', '41 עד 59.', '62 > 59: סיבה מיוחדת.'],
+  trap: 'להתעלם כי "זה עדיין בתוך הטולרנס", ולגלות את הבעיה רק כשהיא כבר מייצרת פסולים.' }
+);
+VERIFY.push(
+  ['stat mean', [10, 12, 11, 13, 9].reduce((a, b) => a + b) / 5, 11, 0], ['stat s', sampleSd([10, 12, 11, 13, 9]), 1.58, .005], ['stat se', 6 / Math.sqrt(9), 2, 1e-12],
+  ['stat 1sigma', phi(1) - phi(-1), .683, .0005], ['stat 2sigma', phi(2) - phi(-2), .954, .0005], ['stat 3sigma', phi(3) - phi(-3), .9973, .0001], ['stat out3 ppm', 2e6 * (1 - phi(3)), 2700, 5],
+  ['stat bias µm', (100.012 - 100) * 1000, 12, 1e-6], ['stat uc', Math.sqrt(4 + 1 / 12 + 1 + 2.25), 2.71, .005], ['stat U', 2 * Math.sqrt(4 + 1 / 12 + 1 + 2.25), 5.4, .05], ['stat ures', 1 / Math.sqrt(12), .29, .005],
+  ['stat cp', capab(50, 8, 20, 80).cp, 1.25, 1e-12], ['stat cpk', capab(55, 8, 20, 80).cpk, 1.04, .005], ['stat ppm cpk1', 1e6 * (1 - phi(3)), 1350, 1], ['stat ppm cpk133', 1e6 * (1 - phi(4)), 32, 1],
+  ['stat grr ms', Math.sqrt(1.6 ** 2 + 1.2 ** 2), 2, 1e-12], ['stat grr %', 6 * 2 / 60 * 100, 20, 1e-9], ['stat ndc', Math.floor(1.41 * 8 / 2), 5, 0],
+  ['stat recall', 95 / 100, .95, 0], ['stat precision', 95 / 495, .192, .0005], ['stat fc/panel', 400 / 100, 4, 0], ['stat ucl', 50 + 3 * 6 / 2, 59, 0], ['stat lcl', 50 - 3 * 6 / 2, 41, 0], ['stat arl', 1 / (2 * (1 - phi(3))), 370, 1]
+);
+/* ============ Hub: signals and control inside the machine (v2.64) ============
+   Sampling and aliasing, the ADC, filters (analog and digital), FFT for vibration, the servo loop in numbers,
+   estimating speed from an encoder, and a first look at observers and the Kalman filter. */
+Object.entries({
+  'sampling': ['דגימה: קריאת אות רציף בזמנים קבועים, כל Tₛ שניות. התדר fₛ = 1/Tₛ.', 'קריאה כל פרק זמן קבוע'],
+  'aliasing': ['התחזות: אות בתדר גבוה מחצי תדר הדגימה נראה אחרי הדגימה כאות בתדר נמוך, שלא קיים באמת.', 'תדר גבוה שנראה נמוך'],
+  'anti-aliasing filter': ['מסנן נגד התחזות: מסנן מעביר-נמוכים אנלוגי לפני הממיר, שמחליש כל מה שמעל חצי תדר הדגימה.', 'מסנן לפני הדגימה'],
+  'quantization': ['קוונטיזציה: עיגול הערך הנמדד לאחת מ-2ⁿ רמות של הממיר. השגיאה עד חצי LSB.', 'עיגול לרמה הקרובה'],
+  'SNR': ['Signal to Noise Ratio: יחס בין הספק האות להספק הרעש, בדרך כלל בדציבלים.', 'יחס אות לרעש'],
+  'dB': ['דציבל: 10·log₁₀ של יחס הספקים, או 20·log₁₀ של יחס מתחים.', 'יחידה לוגריתמית ליחס'],
+  'low-pass': ['מעביר-נמוכים: מסנן שמעביר תדרים נמוכים ומחליש גבוהים. מוריד רעש.', 'מסנן שמחליש תדרים גבוהים'],
+  'cutoff frequency': ['תדר הקטעון: התדר שבו מסנן מחליש פי √2 (3 dB). במסנן RC: 1/(2πRC).', 'תדר ההחלשה של 3 dB'],
+  'moving average': ['ממוצע נע: ממוצע של N הדגימות האחרונות. מוחק לגמרי תדר שמחזורו נכנס בחלון בדיוק.', 'ממוצע של N האחרונות'],
+  'IIR': ['Infinite Impulse Response: מסנן ספרתי שמשתמש גם ביציאות הקודמות שלו, למשל y[n] = y[n−1] + α(x[n] − y[n−1]).', 'מסנן ספרתי עם משוב'],
+  'FIR': ['Finite Impulse Response: מסנן ספרתי שמשתמש רק בכניסות, למשל ממוצע נע.', 'מסנן ספרתי בלי משוב'],
+  'FFT': ['Fast Fourier Transform: חישוב מהיר של הספקטרום של N דגימות. מראה אילו תדרים יש באות.', 'ניתוח תדרים מהיר'],
+  'frequency resolution': ['רזולוציית תדר: המרחק בין שני תדרים סמוכים בספקטרום, fₛ/N.', 'המרווח בין תדרים בספקטרום'],
+  'window function': ['פונקציית חלון: הכפלת הדגימות בעקומה שיורדת לאפס בקצוות, כדי לצמצם "דליפה" של שיא לתדרים שכנים.', 'הקטנת דליפה בספקטרום'],
+  'resonance': ['תהודה: תדר שבו מבנה מכני רוטט בקלות. אם הלולאה מעוררת אותו, הציר מזמזם.', 'תדר שבו המבנה רוטט'],
+  'notch filter': ['מסנן מחריץ: מסנן שמחליש תדר צר אחד, למשל תהודה מכנית.', 'מסנן לתדר אחד'],
+  'following error': ['שגיאת עקיבה: ההפרש בין המיקום המבוקש לבין המיקום בפועל בזמן תנועה.', 'פיגור הציר אחרי הפקודה'],
+  'velocity gain': ['הגבר מהירות Kv: כמה מהירות הלולאה מבקשת לכל יחידת שגיאה. שגיאת העקיבה במהירות קבועה: v/Kv.', 'הגבר שקובע את הפיגור'],
+  'feedforward': ['הזנה קדמית: מוסיפים לפקודה את מה שידוע מראש (מהירות, תאוצה), כדי שהלולאה תתקן רק את השארית.', 'פקודה מראש בלי לחכות לשגיאה'],
+  'damping ratio': ['מקדם ריסון ζ: אומר כמה התגובה של מערכת מסדר שני מתנדנדת. 1 בלי חריגה, 0.5 חריגה של כ-16%.', 'כמה המערכת מתנדנדת'],
+  'natural frequency': ['תדר טבעי ωₙ: התדר שבו מערכת מסדר שני הייתה מתנדנדת בלי ריסון.', 'תדר התנודה בלי ריסון'],
+  'overshoot': ['חריגה: כמה התגובה עוברת את הערך הסופי לפני שהיא מתייצבת, באחוזים.', 'עבר את היעד'],
+  'settling time': ['זמן התייצבות: הזמן עד שהתגובה נשארת קרובה (בדרך כלל 2%) לערך הסופי.', 'זמן עד שנרגע'],
+  'observer': ['משערך: מודל של המערכת שרץ בבקר במקביל, ומתקן את עצמו לפי המדידות. נותן גדלים שלא נמדדים ישירות, כמו מהירות.', 'מודל שמעריך את המצב'],
+  'Kalman filter': ['מסנן קלמן: משערך שבוחר בכל צעד כמה לסמוך על המודל וכמה על המדידה, לפי השונות של כל אחד.', 'שילוב אופטימלי של מודל ומדידה'],
+  'Kalman gain': ['הגבר קלמן K: המשקל של המדידה בעדכון. K = P/(P + R): קרוב ל-1 כשהמדידה אמינה יותר מהמודל.', 'כמה לסמוך על המדידה']
+}).forEach(([k, v]) => hxTerm('sig', k, v));
+
+const aliasF = (f, fs) => Math.abs(f - Math.round(f / fs) * fs);
+const osOf = z => Math.exp(-z * Math.PI / Math.sqrt(1 - z * z));
+function iirStep(n, a, sig, seed) { const g = hxRand(seed); let y = 0; const xs = [], ys = []; for (let i = 0; i < n; i++) { const x = (i >= 10 ? 1 : 0) + sig * g(); y = y + a * (x - y); xs.push(x); ys.push(y); } return { xs, ys }; }
+
+hubX('sig', {
+  tab: 'אותות ובקרה', title: 'אותות ובקרה בתוך המכונה: מדגימה ועד לולאה', std: 'IEC 61800-7', qt: 'sig', qtName: 'אותות ובקרה',
+  lead: 'כל חיישן במכונה נקרא כאות דגום, וכל ציר הוא לולאת בקרה ספרתית. כאן: דגימה והתחזות, הממיר, מסננים, FFT לרעידות, הלולאה במספרים, מהירות מאנקודר, ומשערכים. כל נוסחה עם גזירה ודוגמה מחושבת.',
+  nav: [['why', 'אות דגום במכונה', 'איפה זה מופיע'], ['samp', 'דגימה והתחזות', 'נייקוויסט'], ['adc', 'הממיר A/D', 'LSB, רעש, SNR'], ['filt', 'מסננים', 'RC, IIR, ממוצע נע'], ['fft', 'FFT ורעידות', 'רזולוציה ושיאים'], ['loop', 'הלולאה במספרים', 'פיגור, ריסון, חריגה'], ['enc', 'מהירות מאנקודר', 'קוונטיזציה ונגזרת'], ['obs', 'משערך וקלמן', 'מודל ומדידה'], ['lab', 'מעבדה: מסנן על מדרגה', 'רעש מול פיגור'], ['q', 'שאלות: אותות ובקרה', '']],
+  pages: {
+    why: () => SB('בקר הוא מחשב שמסתכל על העולם דרך חור מנעול: הוא רואה את החיישן רק בזמני הדגימה, ורק ברמות של הממיר.', ['חיישן לחץ, טמפרטורה או זרם נותן מתח רציף.', 'מסנן אנלוגי מחליש את מה שמעל חצי תדר הדגימה.', 'הממיר קורא את המתח כל Tₛ ומעגל אותו ל-2ⁿ רמות.', 'מסנן ספרתי מוריד רעש.', 'הלולאה משווה לערך הרצוי ומחשבת פקודה, שוב כל Tₛ.'], 'שלוש שאלות לכל אות: באיזה קצב דוגמים, באיזה רזולוציה, ומה המסנן עושה לפיגור.') +
+      TT(['אות במכונה', 'קצב דגימה טיפוסי', 'מה חשוב'], [['זרם המנוע בדרייבר', 'עשרות kHz', 'לולאת זרם מהירה'], ['מיקום אנקודר', '1 עד 16 kHz', 'מהירות מחושבת מההפרש'], ['לחץ ואקום', 'מאות Hz', 'מסנן ממוצע נגד רעש'], ['טמפרטורה', 'מתחת ל-10 Hz', 'רזולוציה, לא מהירות']]) +
+      where('לולאת הציר (מרכז "לולאת בקרה"), חיישני הוואקום והטמפרטורה, ותזמון הטריגר של המצלמה. הדוגמאות בטבלה הן סדרי גודל נפוצים, וכל מכונה שונה.'),
+    samp: () => px('אות סינוס בתדר f, דגום בקצב fₛ. כל שתי דגימות רחוקות Tₛ = 1/fₛ.') +
+      olx(['הדגימה ה-n: x[n] = sin(2π · f · n / fₛ).', 'מוסיפים לתדר כפולה שלמה של fₛ: sin(2π (f + k·fₛ) n / fₛ) = sin(2π f n / fₛ + 2π k n) = אותו ערך. כלומר f ו-f + k·fₛ נותנים אותן דגימות בדיוק.', 'לכן אחרי דגימה אי אפשר להבדיל בין f לבין f ± k·fₛ. רואים את הנציג הקרוב לאפס: f_alias = |f − k·fₛ|, עם k השלם הקרוב ל-f/fₛ.', 'כדי שכל תדר יופיע במקומו, צריך f < fₛ/2 (תדר נייקוויסט).', 'דוגמה: רעידה של 9 kHz נדגמת ב-10 kHz: k = 1, f_alias = 1 kHz. הבקר "רואה" תנודה איטית של 1 kHz שלא קיימת.']) +
+      FB([['f_N = fₛ / 2', 'תדר נייקוויסט', 'fₛ = 10 kHz: 5 kHz'], ['f_alias = |f − k·fₛ|', 'התדר שנראה אחרי הדגימה', '9 kHz ב-10 kHz: 1 kHz'], ['k ≈ f / fₛ', 'הכפולה השלמה הקרובה', '9 / 10 → 1']]) +
+      trap('לסמוך על מסנן ספרתי כדי להוריד רעש בתדר גבוה. אחרי הדגימה הרעש כבר "קופל" לתדר נמוך, ושום מסנן ספרתי לא יכול להפריד אותו מהאות. רק מסנן אנלוגי לפני הממיר.'),
+    adc: () => olx(['ממיר של n ביטים בטווח V_ref מחלק אותו ל-2ⁿ רמות. רוחב רמה: LSB = V_ref / 2ⁿ.', 'דוגמה: 12 ביט, 10 V: LSB = 10 / 4096 ≈ 2.44 mV.', 'שגיאת העיגול אחידה בין −LSB/2 ל-+LSB/2. השונות של התפלגות אחידה ברוחב a היא a²/12, ולכן σ_q = LSB / √12 ≈ 0.70 mV.', 'יחס אות לרעש לסינוס בטווח המלא: הספק האות (V_ref/2)²/2, הספק הרעש LSB²/12. היחס: 1.5 · 2²ⁿ.', 'בדציבלים: SNR = 10 · log₁₀(1.5 · 4ⁿ) = 6.02 · n + 1.76 dB. 12 ביט: 74 dB.', 'כל ביט נוסף = 6 dB = פי 2 ברזולוציה.']) +
+      FB([['LSB = V_ref / 2ⁿ', 'רוחב רמה', '10 V / 4096 ≈ 2.44 mV'], ['σ_q = LSB / √12', 'רעש הקוונטיזציה', '≈ 0.70 mV'], ['SNR = 6.02·n + 1.76 dB', 'יחס אות לרעש אידאלי', '12 ביט: 74 dB'], ['ENOB = (SNR − 1.76) / 6.02', 'מספר ביטים אפקטיבי מ-SNR שנמדד', '62 dB: 10 ביטים']]) +
+      trap('להשתמש בממיר 16 ביט ולהסיק שהמדידה טובה פי 16 מ-12 ביט, כשהרעש של החיישן והכבל גדול מ-LSB של 12 ביט. הביטים הנוספים מודדים רעש.'),
+    filt: () => `<h3>מסנן RC</h3>` + olx(['קבל C נטען דרך נגד R. תגובת התדר: H(jω) = 1 / (1 + jωRC).', 'הגודל: |H| = 1 / √(1 + (ωRC)²). ב-ω = 1/RC הגודל 1/√2, כלומר −3 dB.', 'תדר הקטעון: f_c = 1 / (2π·R·C). דוגמה: 10 kΩ, 100 nF: 159 Hz.', 'מעל f_c ההחלשה 20 dB לעשור: פי 10 בתדר, פי 10 בהחלשה.']) +
+      `<h3>אותו מסנן, ספרתי</h3>` + olx(['τ · dy/dt = x − y. בדגימה: τ · (y[n] − y[n−1]) / Tₛ ≈ x[n] − y[n].', 'מסדרים: y[n] = y[n−1] + α · (x[n] − y[n−1]), עם α = Tₛ / (τ + Tₛ).', 'דוגמה: Tₛ = 1 ms, τ = 10 ms: α = 1/11 ≈ 0.091. f_c = 1/(2π·10 ms) ≈ 15.9 Hz.', 'מחיר: פיגור. אחרי מדרגה, היציאה מגיעה ל-63% אחרי τ ול-95% אחרי 3τ.']) +
+      `<h3>ממוצע נע</h3>` + px('ממוצע של N דגימות מוחק לגמרי כל תדר שמחזור שלם שלו נכנס בחלון: f = fₛ/N וכפולותיו. fₛ = 1 kHz, N = 20: מוחק 50 Hz ואת ההרמוניות של הרשת, בפיגור של N/2 = 10 דגימות.') +
+      FB([['f_c = 1 / (2π·R·C)', 'תדר קטעון RC', '10 kΩ, 100 nF: 159 Hz'], ['y[n] = y[n−1] + α·(x[n] − y[n−1])', 'מסנן מסדר ראשון ספרתי', ''], ['α = Tₛ / (τ + Tₛ)', 'המקדם', '1 / 11 ≈ 0.091'], ['f_null = fₛ / N', 'התדר שממוצע נע מוחק', '1000 / 20 = 50 Hz']]) +
+      trap('לשים מסנן חזק על אות שנכנס ללולאה. כל פיגור במסנן הוא פיגור פאזה בלולאה, ומקטין את מרווח הפאזה: הציר מתחיל להתנדנד.'),
+    fft: () => px('FFT מפרק N דגימות לסכום של סינוסים ומראה את עוצמת כל תדר. בשטח: מודדים רעידה או זרם, ומחפשים שיא שמסביר רעש.') +
+      olx(['N דגימות בקצב fₛ מכסות זמן T = N/fₛ.', 'התדרים בספקטרום הם k · fₛ/N, עבור k = 0 עד N/2. המרווח: Δf = fₛ/N = 1/T.', 'דוגמה: fₛ = 10 kHz, N = 1024: Δf ≈ 9.77 Hz, עד 5 kHz. כדי להפריד שני שיאים במרחק 2 Hz צריך T ≥ 0.5 s.', 'אם התדר לא נופל בדיוק על k·Δf, השיא "דולף" לתדרים שכנים. חלון (Hann) מצמצם את הדליפה במחיר שיא רחב מעט.', 'שימוש: זמזום של ציר ב-120 Hz בספקטרום של זרם המנוע, כשהתהודה המכנית שנמדדה בבדיקת הלם היא 120 Hz: הלולאה מעוררת תהודה. פותרים במסנן מחריץ (notch filter) או בהורדת הגבר.']) +
+      FB([['Δf = fₛ / N', 'רזולוציית תדר', '10000 / 1024 ≈ 9.77 Hz'], ['T = N / fₛ', 'משך החלון', '1024 / 10 kHz = 102.4 ms'], ['f_max = fₛ / 2', 'התדר הגבוה ביותר בספקטרום', '5 kHz']]) +
+      trap('להגדיל את fₛ כדי לשפר רזולוציה. Δf = 1/T: רק חלון ארוך יותר בזמן משפר רזולוציה.'),
+    loop: () => `<h3>שגיאת עקיבה</h3>` + olx(['לולאת מיקום פרופורציונלית: הבקר מבקש מהירות v_cmd = Kv · e, כש-e השגיאה.', 'בתנועה במהירות קבועה v, במצב יציב v_cmd = v, ולכן e = v / Kv.', 'דוגמה: v = 200 mm/s, Kv = 1000 1/s: e = 0.2 mm. הציר "מאחר" ב-0.2 mm כל הזמן.', 'בהזנה קדמית של המהירות (feedforward) הבקר כבר מבקש v, והלולאה מתקנת רק את השארית: השגיאה יורדת לסדר של מיקרונים.']) +
+      `<h3>מערכת מסדר שני</h3>` + olx(['הרבה צירים סגורים מתנהגים בערך כמו G(s) = ωₙ² / (s² + 2ζωₙ s + ωₙ²).', 'לתגובת מדרגה עם ζ < 1: חריגה M = e^(−ζπ / √(1 − ζ²)).', 'ζ = 0.5: M ≈ 16.3%. ζ = 0.7: M ≈ 4.6%.', 'זמן התייצבות ל-2%: t_s ≈ 4 / (ζ·ωₙ). דוגמה: ζ = 0.7, ωₙ = 2π · 50 rad/s: ≈ 18 ms.', 'כלל אצבע לקשר עם מרווח פאזה: ζ ≈ PM / 100 (טוב עד כ-70°). PM = 45° → ζ ≈ 0.45 → חריגה של כ-20%.']) +
+      FB([['e_ss = v / Kv', 'שגיאת עקיבה במהירות קבועה', '200 / 1000 = 0.2 mm'], ['M = e^(−ζπ / √(1 − ζ²))', 'חריגה', 'ζ = 0.5: 16.3%'], ['t_s ≈ 4 / (ζ·ωₙ)', 'זמן התייצבות 2%', '4 / (0.7 · 314) ≈ 18 ms'], ['ζ ≈ PM / 100', 'קשר משוער למרווח פאזה', '45° → 0.45']]) +
+      trap('להעלות Kv כדי להקטין את שגיאת העקיבה עד שהציר מזמזם. קודם feedforward, ורק אחר כך הגבר.') + where('מרכז "לולאת בקרה" מסביר את PID והחוגים. כאן המספרים שמחברים אותם לביצועים שרואים במכונה.'),
+    enc: () => olx(['אנקודר נותן מיקום בצעדים של res (למשל 1 µm). הבקר מחשב מהירות מההפרש: v = Δx / Tₛ.', 'אם בין שתי דגימות עבר פחות מצעד אחד, ההפרש 0 או 1 צעד: המהירות קופצת בין 0 ל-res/Tₛ.', 'דוגמה: res = 1 µm, Tₛ = 1 ms: צעד המהירות 1 mm/s. בתנועה של 0.3 mm/s המהירות הנמדדת קופצת בין 0 ל-1 mm/s.', 'ממוצע על M דגימות (Δx על M·Tₛ): הרזולוציה משתפרת פי M, במחיר פיגור של M·Tₛ/2. M = 10: 0.1 mm/s, פיגור 5 ms.', 'גזירה מגבירה רעש: אם במיקום רעש σ_x בלתי תלוי, בהפרש של שתי דגימות σ = √2·σ_x, ובמהירות σ_v = √2 · σ_x / Tₛ. σ_x = 0.5 µm, Tₛ = 1 ms: ≈ 0.71 mm/s.']) +
+      FB([['v = Δx / Tₛ', 'מהירות מהפרש מיקום', ''], ['Δv = res / Tₛ', 'צעד הקוונטיזציה של המהירות', '1 µm / 1 ms = 1 mm/s'], ['Δv_M = res / (M·Tₛ)', 'אחרי ממוצע על M דגימות', '0.1 mm/s'], ['σ_v = √2 · σ_x / Tₛ', 'רעש המהירות מגזירה', '0.71 mm/s']]) +
+      trap('לקצר את Tₛ כדי לקבל מהירות "מדויקת יותר". בדגימה מהירה יותר כל צעד מקודד הוא קפיצה גדולה יותר במהירות. פתרון: משערך, או מדידת זמן בין פולסים במהירות נמוכה.'),
+    obs: () => px('משערך מריץ מודל של המערכת במקביל, ומתקן אותו לפי המדידה. מסנן קלמן בוחר את התיקון לפי מי אמין יותר: המודל או המדידה.') +
+      olx(['חיזוי: x̂⁻ = מה שהמודל צופה מהצעד הקודם. אי-הוודאות שלו P⁻ = P + Q (Q: כמה המודל "סוטה" בכל צעד).', 'מדידה z עם שונות R.', 'הגבר: K = P⁻ / (P⁻ + R). אם המדידה מדויקת (R קטן), K קרוב ל-1. אם המודל מדויק (P⁻ קטן), K קרוב ל-0.', 'עדכון: x̂ = x̂⁻ + K · (z − x̂⁻). והשונות קטנה: P = (1 − K) · P⁻.', 'דוגמה בצעד אחד: P⁻ = 4, R = 1: K = 0.8, P = 0.8. השונות אחרי השילוב קטנה משל כל אחד מהם לבד.', 'בציר: המודל הוא "מיקום חדש = מיקום + מהירות · Tₛ", המדידה היא האנקודר, והמשערך נותן מהירות חלקה בלי פיגור של ממוצע.']) +
+      FB([['K = P⁻ / (P⁻ + R)', 'הגבר קלמן', '4 / 5 = 0.8'], ['x̂ = x̂⁻ + K·(z − x̂⁻)', 'עדכון ההערכה', ''], ['P = (1 − K)·P⁻', 'השונות אחרי עדכון', '0.2 · 4 = 0.8'], ['1/P = 1/P⁻ + 1/R', 'אותו דבר: מידע מתחבר', '1/4 + 1 = 1.25 → 0.8']]) +
+      trap('לכוונן Q ו-R "עד שזה נראה טוב" בלי למדוד את רעש החיישן. R נמדד: מחזיקים את הציר במקום ומחשבים את השונות של המדידה.'),
+    lab: () => `<p>${bidi('מדרגה של 1 בדגימה 10, עם רעש. המסנן y[n] = y[n−1] + α(x[n] − y[n−1]). קבע τ ו-Tₛ, וראה את הפשרה בין רעש לפיגור.')}</p><div id="siglab"></div><h3>אנימציה: התחזות בדגימה</h3><div id="siganim"></div>`
+  },
+  mount: { lab: B => { sigLab(B.querySelector('#siglab')); animMount('alias', B.querySelector('#siganim')); } }
+});
+
+function sigLab(el) {
+  const st = { tau: 10, ts: 1, sig: .2, seed: 2 };
+  const draw = () => {
+    const a = st.ts / (st.tau + st.ts), n = 80, R = iirStep(n, a, st.sig, st.seed), X = i => 40 + i * 6.8, Y = v => 200 - v * 140;
+    let px1 = '', py1 = ''; R.xs.forEach((v, i) => { px1 += (i ? 'L' : 'M') + X(i) + ' ' + Y(v); }); R.ys.forEach((v, i) => { py1 += (i ? 'L' : 'M') + X(i) + ' ' + Y(v); });
+    const k63 = R.ys.findIndex((v, i) => i >= 10 && v >= .632), tail = R.ys.slice(60), m = tail.reduce((s, v) => s + v, 0) / tail.length, sd = Math.sqrt(tail.reduce((s, v) => s + (v - m) ** 2, 0) / (tail.length - 1));
+    const svg = `<path d="${px1}" class="thin"/><path d="${py1}" class="live"/><path d="M${X(0)} ${Y(0)}H${X(n)}M${X(0)} ${Y(1)}H${X(n)}" class="gridl" stroke-dasharray="3 4"/>` + T_(X(n) + 4, Y(1) + 4, '1', 'lblm') + T_(X(0), 16, 'grey: input with noise · blue: filtered', 'lblm');
+    el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">${hxNum('gtau', 'τ (ms)', st.tau, .5, 50, .5)}${hxNum('gts', 'Tₛ (ms)', st.ts, .1, 5, .1)}${hxNum('gsig', 'רעש σ', st.sig, 0, .6, .05)}<div class="ctl"><label>רעש</label><div class="tp"><button type="button" id="gseed">הגרל רעש חדש</button></div></div></div>
+      <div class="stage" style="padding:8px 16px">${SVG(600, 220, svg, 'filtered step')}</div>
+      <div class="readout">α = <span class="num">${a.toFixed(3)}</span> · f_c ≈ <span class="num">${(1000 / (2 * Math.PI * st.tau)).toFixed(1)} Hz</span> · זמן עד 63%: <span class="num">${k63 < 0 ? '—' : ((k63 - 10 + 1) * st.ts).toFixed(1) + ' ms'}</span> (צפוי בערך τ = ${st.tau} ms)<br>רעש ביציאה במצב יציב: <span class="num">${sd.toFixed(3)}</span> מול <span class="num">${st.sig}</span> בכניסה (צפוי בערך σ·√(α/(2 − α)) = ${(st.sig * Math.sqrt(a / (2 - a))).toFixed(3)})</div></div>`;
+    hxRead(el, [['gtau', 'tau'], ['gts', 'ts'], ['gsig', 'sig']], st, draw);
+    el.querySelector('#gseed').addEventListener('click', () => { st.seed++; draw(); });
+  };
+  draw();
+}
+
+QB.push(
+{ id: 'Q105', t: 'sig', l: 1, title: 'התחזות', fig: null,
+  q: 'חיישן רעידות נדגם ב-10 kHz, ובאות יש רכיב של 9 kHz. איזה תדר רואים אחרי הדגימה, ואיך מונעים את זה?',
+  h: ['f_alias = |f − k·fₛ|, כש-k השלם הקרוב ל-f/fₛ.', 'איפה צריך לשים את המסנן?'],
+  a: 'k = 1, f_alias = |9 − 10| = 1 kHz. רואים תנודה של 1 kHz שלא קיימת. מונעים במסנן אנלוגי מעביר-נמוכים לפני הממיר, שמחליש מעל 5 kHz, או בדגימה מהירה יותר.',
+  why: 'f ו-f − fₛ נותנים אותן דגימות בדיוק. אחרי הדגימה אין דרך להפריד ביניהם.',
+  steps: ['f_N = 5 kHz, ו-9 kHz מעליו.', '9/10 → k = 1.', '|9 − 10| = 1 kHz.'],
+  trap: 'לנסות להוריד את ה-1 kHz במסנן ספרתי. הוא כבר בתוך האות.' },
+{ id: 'Q106', t: 'sig', l: 1, title: 'רזולוציה של ממיר', fig: null,
+  q: 'ממיר 12 ביט בטווח 0 עד 10 V. מה ה-LSB, מה רעש הקוונטיזציה (σ), ומה ה-SNR האידאלי?',
+  h: ['LSB = V/2ⁿ, σ = LSB/√12.', 'SNR = 6.02n + 1.76 dB.'],
+  a: 'LSB = 10/4096 ≈ 2.44 mV. σ = 2.44/3.46 ≈ 0.70 mV. SNR ≈ 74 dB.',
+  why: 'שגיאת העיגול אחידה ברוחב LSB, והשונות של התפלגות אחידה היא רוחב²/12.',
+  steps: ['2¹² = 4096.', '10 V / 4096 = 2.44 mV.', '√12 = 3.46: 0.70 mV.', '6.02 · 12 + 1.76 = 74.0 dB.'],
+  trap: 'לחשוב שהשגיאה היא LSB שלם. המקסימום חצי LSB, וסטיית התקן LSB/√12.' },
+{ id: 'Q107', t: 'sig', l: 2, title: 'ממוצע נע ו-50 Hz', fig: null,
+  q: 'אות חיישן נדגם ב-1 kHz ויש עליו זמזום של 50 Hz מהרשת. כמה דגימות צריך בממוצע נע כדי למחוק אותו, ומה המחיר?',
+  h: ['ממוצע של N דגימות מוחק את fₛ/N וכפולותיו.', 'כמה דגימות יש במחזור אחד של 50 Hz?'],
+  a: 'N = 1000/50 = 20 דגימות (20 ms, מחזור שלם של 50 Hz). הממוצע מוחק גם 100 Hz, 150 Hz וכו\'. המחיר: פיגור של כ-10 ms (N/2 דגימות).',
+  why: 'בחלון שבו נכנס מחזור שלם, החלק החיובי והשלילי של הסינוס מבטלים זה את זה.',
+  steps: ['T_50 = 20 ms.', 'N = 20 ms · 1 kHz = 20.', 'פיגור N/2 = 10 דגימות = 10 ms.'],
+  trap: 'לבחור N = 16 (חזקה של 2, "נוח"): מקבלים מחיקה ב-62.5 Hz, והזמזום נשאר.' },
+{ id: 'Q108', t: 'sig', l: 2, title: 'שגיאת עקיבה', fig: null,
+  q: 'ציר נע ב-200 mm/s עם לולאת מיקום פרופורציונלית, Kv = 1000 1/s, בלי הזנה קדמית. מה הפיגור בזמן התנועה, ומה מקטין אותו בלי להעלות את ההגבר?',
+  h: ['e = v/Kv.', 'מה הלולאה צריכה כדי לבקש מהירות בלי שגיאה?'],
+  a: 'e = 200/1000 = 0.2 mm. הזנה קדמית של המהירות: הבקר מבקש את v מראש, והלולאה מתקנת רק את השארית, כך שהשגיאה יורדת למיקרונים.',
+  why: 'בלולאה P, הדרך היחידה לבקש מהירות היא שגיאה. ההזנה הקדמית נותנת את המהירות בלי שגיאה.',
+  steps: ['v/Kv = 0.2 mm.', 'עם feedforward: v_cmd = v + Kv·e, ו-e → 0.'],
+  trap: 'להעלות Kv עד שהציר מזמזם, כדי לרדוף אחרי שגיאה שה-feedforward פותר.' },
+{ id: 'Q109', t: 'sig', l: 3, title: 'קלמן בצעד אחד', fig: null,
+  q: 'החיזוי של המודל עם שונות 4, והמדידה עם שונות 1. מה הגבר קלמן, מה השונות אחרי העדכון, ומה ההערכה אם החיזוי 10.0 והמדידה 11.0?',
+  h: ['K = P⁻/(P⁻ + R).', 'x̂ = x̂⁻ + K(z − x̂⁻).'],
+  a: 'K = 4/5 = 0.8. P = (1 − 0.8)·4 = 0.8. x̂ = 10 + 0.8·1 = 10.8.',
+  why: 'המדידה אמינה פי 4 מהמודל, ולכן היא מקבלת משקל 0.8. והשונות המשולבת (0.8) קטנה משתיהן.',
+  steps: ['K = 0.8.', 'P = 0.8.', 'x̂ = 10.8.'],
+  trap: 'לחשוב שקלמן "בוחר" את המדידה או את המודל. הוא ממצע אותם לפי האמינות.' }
+);
+VERIFY.push(
+  ['sig alias', aliasF(9000, 10000), 1000, 1e-9], ['sig alias 2', aliasF(11000, 10000), 1000, 1e-9], ['sig nyq', 10000 / 2, 5000, 0],
+  ['sig lsb mV', 10 / 4096 * 1000, 2.44, .005], ['sig sq mV', 10 / 4096 * 1000 / Math.sqrt(12), .70, .005], ['sig snr', 6.02 * 12 + 1.76, 74, .05], ['sig snr exact', 10 * Math.log10(1.5 * 4 ** 12), 74, .05], ['sig enob', (62 - 1.76) / 6.02, 10, .01],
+  ['sig fc', 1 / (2 * Math.PI * 1e4 * 100e-9), 159, .5], ['sig alpha', 1 / 11, .091, .0005], ['sig fc tau', 1 / (2 * Math.PI * .01), 15.9, .05], ['sig null', 1000 / 20, 50, 0],
+  ['sig df', 10000 / 1024, 9.77, .005], ['sig T', 1024 / 10000 * 1000, 102.4, 1e-9], ['sig e', 200 / 1000, .2, 1e-12],
+  ['sig os 0.5', osOf(.5), .163, .0005], ['sig os 0.7', osOf(.7), .046, .0005], ['sig ts', 4 / (.7 * 2 * Math.PI * 50) * 1000, 18, .5], ['sig os pm45', osOf(.45), .2, .01],
+  ['sig dv', 1e-3 / 1e-3, 1, 1e-12], ['sig dv M', 1e-3 / (10 * 1e-3), .1, 1e-12], ['sig sv', Math.SQRT2 * .5e-3 / 1e-3, .71, .005],
+  ['sig K', 4 / 5, .8, 0], ['sig P', .2 * 4, .8, 1e-12], ['sig xhat', 10 + .8 * 1, 10.8, 1e-12],
+  /* the lab's filter reaches 63% about τ after the step */
+  ['sig lab tau', (() => { const R = iirStep(80, 1 / 11, 0, 1); return R.ys.findIndex((v, i) => i >= 10 && v >= .632) - 10 + 1; })(), 10.5, 1]
+);
+/* ============ Hub: reliability and functional safety (v2.64) ============
+   Failure rate and MTBF, systems in series and in parallel, availability, Weibull and the bathtub curve,
+   FMEA, fault trees, and how ISO 13849-1 turns a safety function into a Performance Level. */
+Object.entries({
+  'failure rate': ['קצב כשל λ: כמה כשלים צפויים ליחידת זמן, בדרך כלל לשעה. בתקופת החיים השימושית הוא בערך קבוע.', 'כשלים לשעה'],
+  'MTBF': ['Mean Time Between Failures: הזמן הממוצע בין כשלים, במערכת שמתקנים. כשקצב הכשל קבוע: 1/λ.', 'זמן ממוצע בין כשלים'],
+  'MTTF': ['Mean Time To Failure: הזמן הממוצע עד כשל, לרכיב שלא מתקנים.', 'זמן ממוצע עד כשל'],
+  'MTTR': ['Mean Time To Repair: הזמן הממוצע לתקן, כולל איתור, חלק חילוף ובדיקה.', 'זמן ממוצע לתיקון'],
+  'FIT': ['Failures In Time: כשל אחד במיליארד שעות. 1000 FIT = 10⁻⁶ לשעה.', 'כשלים למיליארד שעות'],
+  'reliability': ['אמינות R(t): הסיכוי שהמערכת תעבוד בלי כשל עד הזמן t.', 'סיכוי לעבוד עד t'],
+  'availability': ['זמינות: איזה חלק מהזמן המערכת מוכנה לעבודה. MTBF/(MTBF + MTTR).', 'חלק הזמן שהמכונה עובדת'],
+  'redundancy': ['יתירות: שני רכיבים או ערוצים שעושים אותו דבר, כך שהמערכת עובדת גם אם אחד נכשל.', 'גיבוי מקביל'],
+  'common cause failure': ['כשל ממקור משותף: סיבה אחת שמפילה את שני הערוצים יחד, למשל אותו מתח יתר. מקטינה את התועלת של יתירות.', 'סיבה אחת ששוברת את שני הערוצים'],
+  'Weibull': ['התפלגות Weibull: R(t) = e^(−(t/η)^β). β קטן מ-1: כשלי ילדות, β = 1: אקראיים, β גדול מ-1: בלאי.', 'מודל לכשלים לאורך החיים'],
+  'bathtub curve': ['עקומת האמבטיה: קצב הכשל גבוה בהתחלה (ילדות), נמוך וקבוע באמצע, ועולה בסוף (בלאי).', 'קצב כשל לאורך החיים'],
+  'burn-in': ['הרצה מוקדמת: מפעילים רכיבים זמן מה לפני המשלוח, כדי שכשלי הילדות יקרו במפעל.', 'הרצה שמסננת כשלי ילדות'],
+  'B10': ['B10: הזמן (או מספר המחזורים) שעד אליו 10% מהיחידות נכשלות. B10D: עד ש-10% נכשלות באופן מסוכן.', 'הזמן עד 10% כשלים'],
+  'FMEA': ['Failure Mode and Effects Analysis: לכל רכיב, כל דרך שבה הוא יכול להיכשל, מה התוצאה, ומה הציון שלה.', 'ניתוח דרכי כשל והשפעתן'],
+  'RPN': ['Risk Priority Number: חומרה × הסתברות × קושי גילוי, כל אחד 1 עד 10. מסדר את העבודה.', 'ציון סיכון ב-FMEA'],
+  'fault tree': ['עץ תקלות: מתחילים מהאירוע הלא רצוי ויורדים לסיבות, עם שערי AND ו-OR. מחשבים ממנו הסתברות.', 'עץ סיבות עם AND ו-OR'],
+  'Performance Level': ['רמת ביצוע (PL) לפי ISO 13849-1: a עד e. מבטאת את הסיכוי לכשל מסוכן בשעה של פונקציית בטיחות.', 'דרגת אמינות של פונקציית בטיחות'],
+  'PFH': ['Probability of dangerous Failure per Hour: הסיכוי לכשל מסוכן בשעה. ממנו נקבעים ה-PL וה-SIL.', 'כשל מסוכן לשעה'],
+  'Diagnostic Coverage': ['כיסוי אבחון (Diagnostic Coverage): איזה חלק מהכשלים המסוכנים הבדיקות העצמיות מגלות.', 'כיסוי הבדיקה העצמית'],
+  'category': ['קטגוריה (B, 1, 2, 3, 4) ב-ISO 13849-1: המבנה של פונקציית הבטיחות. 3 ו-4 הם שני ערוצים, ובקטגוריה 4 כל כשל יחיד מתגלה.', 'מבנה הערוצים'],
+  'SIL': ['Safety Integrity Level לפי IEC 62061 ו-IEC 61508: 1 עד 3 במכונות. PL d מקביל בערך ל-SIL 2.', 'רמת שלמות בטיחותית'],
+  'safety function': ['פונקציית בטיחות: מה שהמערכת עושה כדי להוריד סיכון, למשל "פתיחת דלת עוצרת את הלייזר ואת הצירים".', 'פעולה שמורידה סיכון']
+}).forEach(([k, v]) => hxTerm('rel', k, v));
+
+const relExp = (lam, t) => Math.exp(-lam * t);
+const relWb = (t, eta, beta) => Math.exp(-Math.pow(t / eta, beta));
+const nOp = (days, hours, tcyc) => days * hours * 3600 / tcyc;
+const PLTAB = [['a', '10⁻⁵ ≤ PFH_D < 10⁻⁴'], ['b', '3·10⁻⁶ ≤ PFH_D < 10⁻⁵'], ['c', '10⁻⁶ ≤ PFH_D < 3·10⁻⁶'], ['d', '10⁻⁷ ≤ PFH_D < 10⁻⁶'], ['e', '10⁻⁸ ≤ PFH_D < 10⁻⁷']];
+
+hubX('rel', {
+  tab: 'אמינות ובטיחות', title: 'אמינות ובטיחות פונקציונלית: כמה זמן זה יעבוד, ומה קורה כשלא', std: 'ISO 13849-1', qt: 'rel', qtName: 'אמינות ובטיחות',
+  lead: 'קצב כשל ו-MTBF, מערכות בטור ובמקביל, זמינות, Weibull ועקומת האמבטיה, FMEA, עץ תקלות, ואיך תקן בטיחות הופך פונקציה כמו "דלת פתוחה עוצרת לייזר" לרמת ביצוע. כל נוסחה עם גזירה ודוגמה מחושבת.',
+  nav: [['why', 'למה אמינות', 'מכונה שלא עובדת לא מייצרת'], ['rate', 'קצב כשל ו-MTBF', 'λ, R(t), FIT'], ['sys', 'טור ומקביל', 'יתירות'], ['avail', 'זמינות', 'MTBF ו-MTTR'], ['weib', 'Weibull ועקומת האמבטיה', 'ילדות, אקראי, בלאי'], ['fmea', 'FMEA', 'חומרה, הסתברות, גילוי'], ['fta', 'עץ תקלות', 'AND ו-OR'], ['pl', 'רמת ביצוע (PL)', 'ISO 13849-1'], ['lab', 'מעבדה: מערכת בטור', 'יתירות וזמינות'], ['q', 'שאלות: אמינות', '']],
+  pages: {
+    why: () => SB('מכונה שעומדת לא מוצאת פגמים. ומכונת לייזר שלא נעצרת כשפותחים דלת היא סכנה. אמינות עונה על הראשון, בטיחות פונקציונלית על השני.', ['כל רכיב נכשל בסוף. השאלה היא באיזה קצב.', 'מקצב הכשל של הרכיבים מחשבים את המערכת: בטור (כל אחד חיוני) או במקביל (גיבוי).', 'זמינות מוסיפה את זמן התיקון: מכונה שנופלת לעיתים רחוקות אבל מתוקנת לאט עדיין עומדת הרבה.', 'FMEA ועץ תקלות שואלים מראש "מה יכול להשתבש", ומסדרים מה לתקן קודם.', 'בבטיחות לא מסתפקים ב"נדיר": מחשבים כמה נדיר, ומבנים את המעגל כך שכשל יחיד לא יסכן.'], 'אמינות נמדדת בשעות עבודה. בטיחות נמדדת בהסתברות לכשל מסוכן בשעה.') +
+      where('שרשרת ה-interlock והלייזר (מרכז "שרשרת הבטיחות"), חלקי בלאי כמו מסננים ובוכנות, ו-ATP שבו מתחייבים לזמינות.'),
+    rate: () => olx(['כשקצב הכשל λ קבוע, הסיכוי לשרוד עוד dt בלי כשל הוא 1 − λ·dt, ולכן dR/dt = −λ·R.', 'הפתרון: R(t) = e^(−λt).', 'הזמן הממוצע עד כשל: MTTF = ∫₀^∞ R(t) dt = 1/λ.', 'דוגמה: λ = 2·10⁻⁶ לשעה (2000 FIT). MTBF = 500,000 שעות. אחרי שנה רצופה (8760 h): R = e^(−0.0175) ≈ 0.983.', 'שימו לב: ב-t = MTBF נשארים רק e^(−1) ≈ 37%. MTBF הוא לא "כמה זמן זה מחזיק".']) +
+      FB([['R(t) = e^(−λt)', 'הסיכוי לעבוד עד t', 'λ = 2·10⁻⁶, שנה: 0.983'], ['MTBF = 1 / λ', 'זמן ממוצע בין כשלים', '500,000 h'], ['λ [FIT] = λ [1/h] · 10⁹', 'המרה ל-FIT', '2000 FIT'], ['R(MTBF) = e^(−1)', 'שורדים ב-t = MTBF', '≈ 37%']]) +
+      trap('"MTBF של 500,000 שעות = 57 שנה, ולכן זה לא יישבר." עם 100 מכונות בשטח, זה כשל כל 5000 שעות, כלומר כמה כשלים בשנה.'),
+    sys: () => `<h3>בטור: כל רכיב חיוני</h3>` + olx(['המערכת עובדת רק אם כולם עובדים: R_s = R₁ · R₂ · … · Rₙ.', 'עם קצבי כשל קבועים: R_s = e^(−(λ₁ + λ₂ + …)t), כלומר λ_s = Σ λᵢ.', 'דוגמה: ספק 2·10⁻⁶, דרייבר 5·10⁻⁶, אנקודר 3·10⁻⁶: λ_s = 10⁻⁵, MTBF = 100,000 h, ובשנה R ≈ 0.916.', 'המסקנה: כל רכיב שמוסיפים בטור מוריד אמינות.']) +
+      `<h3>במקביל: גיבוי</h3>` + olx(['המערכת נכשלת רק אם כולם נכשלים: 1 − R_p = (1 − R₁)(1 − R₂).', 'שני ערוצים של 0.9: R_p = 1 − 0.01 = 0.99.', 'מגבלה: כשל ממקור משותף (אותו ספק, אותו כבל, אותו מתח יתר) מפיל את שניהם. לכן ערוצים מופרדים פיזית ומגוונים.']) +
+      FB([['R_s = Π Rᵢ', 'בטור', ''], ['λ_s = Σ λᵢ', 'קצב כשל בטור', '2 + 5 + 3 = 10·10⁻⁶'], ['R_p = 1 − Π (1 − Rᵢ)', 'במקביל', '1 − 0.1² = 0.99']]) +
+      trap('לחשב יתירות כאילו הערוצים בלתי תלויים, כשהם על אותו ספק כוח. אז האמינות שמחושבת אופטימית בהרבה.'),
+    avail: () => olx(['במחזור ממוצע: MTBF שעות עבודה, ואחריהן MTTR שעות תיקון.', 'זמינות: A = MTBF / (MTBF + MTTR).', 'דוגמה: MTBF = 2000 h, MTTR = 4 h: A = 2000/2004 ≈ 0.998.', 'ב-6000 שעות עבודה בשנה: (1 − A)·6000 ≈ 12 שעות השבתה.', 'אותה זמינות אפשר לקבל ב-MTBF כפול, או ב-MTTR חצי. הקטנת MTTR (חלפים במלאי, אבחון מהיר, מודולים להחלפה) לרוב זולה יותר.']) +
+      FB([['A = MTBF / (MTBF + MTTR)', 'זמינות', '2000 / 2004 ≈ 0.998'], ['downtime = (1 − A) · T', 'השבתה בתקופה T', '≈ 12 h ב-6000 h'], ['A ≈ 1 − MTTR / MTBF', 'קירוב כש-MTTR קטן', '1 − 0.002']]) +
+      trap('למדוד MTTR רק מזמן העבודה של הטכנאי. הזמן עד שהגיע, עד שהחלק הגיע, והבדיקה אחרי התיקון הם חלק מההשבתה.') + where('זה הקשר בין אבחון מהיר (ציד התקלות באתר) לבין כסף: כל שעה שנחסכת ב-MTTR היא שעה של ייצור.'),
+    weib: () => px('קצב הכשל לא קבוע לאורך כל החיים. Weibull מתאר את שלוש התקופות בפרמטר אחד, β.') +
+      olx(['R(t) = e^(−(t/η)^β). η הוא הזמן שבו נשארים 37%. β הוא הצורה.', 'קצב הכשל: h(t) = −R′/R = (β/η) · (t/η)^(β−1).', 'β < 1: h יורד עם הזמן, כשלי ילדות (הלחמה רעה, רכיב פגום). מסננים ב-burn-in.', 'β = 1: h קבוע = 1/η. זה המקרה האקספוננציאלי.', 'β > 1: h עולה, בלאי (מיסבים, מגעים, אטמים, מאווררים). מחליפים לפי זמן או מחזורים, לפני הכשל.', 'דוגמה: η = 10,000 h, β = 2. ב-5000 h: R = e^(−0.25) ≈ 0.779. B10 (10% נכשלו): t = η·(−ln 0.9)^(1/β) ≈ 3246 h.']) +
+      FB([['R(t) = e^(−(t/η)^β)', 'אמינות Weibull', 'η = 10,000, β = 2, t = 5000: 0.779'], ['h(t) = (β/η)·(t/η)^(β−1)', 'קצב הכשל לאורך הזמן', ''], ['B10 = η · (−ln 0.9)^(1/β)', 'הזמן עד 10% כשלים', '≈ 3246 h']]) +
+      trap('להחליף רכיב אקראי (β = 1) "מראש" לפי לוח זמנים. אצלו חדש וישן נכשלים באותו קצב, וההחלפה רק מוסיפה סיכון להרכבה לא נכונה.'),
+    fmea: () => px('FMEA עובר על המערכת רכיב אחר רכיב, ושואל: איך זה יכול להיכשל, מה יקרה, ועד כמה זה חמור.') +
+      TT(['רכיב', 'דרך כשל', 'השפעה', 'S', 'O', 'D', 'RPN', 'פעולה'], [['מתג interlock בדלת', 'מגע מולחם, לא נפתח', 'הלייזר לא נעצר כשהדלת פתוחה', '10', '2', '7', '140', 'ערוץ שני, מגע מאולץ, בדיקה בכל פתיחה'], ['מסנן ואקום', 'נסתם', 'יניקה חלשה, פאנל זז בסריקה', '6', '5', '4', '120', 'מד הפרש לחצים, החלפה לפי שעות'], ['מאוורר בארון', 'מיסב נשחק', 'חום, דרייבר נכנס להגנה', '8', '4', '6', '192', 'חיישן מהירות למאוורר, התראה'], ['מחבר אנקודר', 'מגע רופף', 'שגיאת מיקום, עצירה', '7', '3', '5', '105', 'נעילה, בדיקה ב-ATP']]) +
+      olx(['S (חומרה), O (הסתברות), D (קושי גילוי): כל אחד 1 עד 10. D גבוה = קשה לגלות לפני שזה קורה.', 'RPN = S · O · D. עובדים מהגבוה למטה, אבל כל S = 9 או 10 מטפלים בו בלי קשר ל-RPN.', 'דוגמה: המאוורר: 8 · 4 · 6 = 192. אחרי חיישן מהירות D יורד ל-2: 8 · 4 · 2 = 64.']) +
+      FB([['RPN = S · O · D', 'ציון הסיכון', '8 · 4 · 6 = 192'], ['RPN′ = S · O · D′', 'אחרי שיפור הגילוי', '8 · 4 · 2 = 64']]) +
+      trap('להוריד RPN של כשל בטיחותי בשיפור הגילוי בלבד. כשל עם S = 10 דורש שינוי מבנה (ערוץ שני), לא רק התראה.'),
+    fta: () => px('עץ תקלות מתחיל מהאירוע שלא רוצים, למשל "קרן לייזר כשהדלת פתוחה", ויורד לסיבות. שער OR: מספיקה סיבה אחת. שער AND: צריך את כולן יחד.') +
+      olx(['OR של אירועים בלתי תלויים: P = 1 − Π (1 − pᵢ) ≈ Σ pᵢ כשהם קטנים.', 'AND של אירועים בלתי תלויים: P = Π pᵢ.', 'דוגמה עם ערוץ יחיד: מתג נכשל (10⁻³) OR ממסר נכשל (10⁻³): P ≈ 2·10⁻³.', 'שני ערוצים, וכל ערוץ כזה: הכשל דורש את שניהם: P ≈ (2·10⁻³)² = 4·10⁻⁶.', 'עם כשל משותף בחלק β = 5% מהכשלים: P ≈ 0.05 · 2·10⁻³ + 4·10⁻⁶ ≈ 1.04·10⁻⁴. הכשל המשותף שולט.']) +
+      FB([['P_OR = 1 − Π (1 − pᵢ)', 'שער OR', '≈ 2·10⁻³'], ['P_AND = Π pᵢ', 'שער AND', '(2·10⁻³)² = 4·10⁻⁶'], ['P ≈ β·p + p²', 'שני ערוצים עם כשל משותף', '1.04·10⁻⁴']]) +
+      trap('לחשב יתירות כ-p², ולשכוח את β. כשל משותף של 5% בלבד מבטל רוב התועלת של הערוץ השני.'),
+    pl: () => px('ISO 13849-1 נותן דרך מסודרת לומר עד כמה אפשר לסמוך על פונקציית בטיחות. מתחילים מהסיכון (כמה חמור, כמה זמן חשופים, אפשר להימנע?), שקובע את ה-PL הנדרש. אחר כך מראים שהמעגל משיג אותו.') +
+      TT(['PL', 'הסתברות לכשל מסוכן בשעה'], PLTAB) +
+      olx(['ה-PL שהמעגל משיג תלוי במבנה (הקטגוריה), ב-MTTF_D של כל ערוץ, ובכיסוי האבחון (Diagnostic Coverage), כלומר איזה חלק מהכשלים הבדיקה העצמית מגלה.', 'לרכיבים אלקטרומכניים (מגען, ממסר, מתג) מחשבים MTTF_D מנתון B10D של היצרן ומספר הפעולות בשנה.', 'n_op = ימים בשנה · שעות ביום · 3600 / זמן מחזור בשניות.', 'MTTF_D = B10D / (0.1 · n_op).', 'דוגמה: B10D = 2·10⁶ פעולות, 220 ימים, 16 שעות, פעולה כל 60 s: n_op = 211,200 בשנה. MTTF_D ≈ 94.7 שנה: גבוה.', 'קטגוריה 3 (שני ערוצים, כשל יחיד לא מסוכן) עם MTTF_D גבוה וכיסוי אבחון בינוני מגיעה בדרך כלל ל-PL d. הטבלה המלאה בתקן.']) +
+      TT(['גודל', 'נמוך', 'בינוני', 'גבוה'], [['MTTF_D (שנים)', '3 עד 10', '10 עד 30', '30 עד 100'], ['כיסוי אבחון', '60% עד 90%', '90% עד 99%', '99% ומעלה']]) +
+      FB([['n_op = d · h · 3600 / t_cycle', 'פעולות בשנה', '220 · 16 · 3600 / 60 = 211,200'], ['MTTF_D = B10D / (0.1 · n_op)', 'זמן ממוצע לכשל מסוכן', '2·10⁶ / 21,120 ≈ 94.7 שנה']]) +
+      trap('לבחור ממסר בטיחות "PL e" ולהסיק שהפונקציה כולה PL e. ה-PL הוא של השרשרת: חיישן, לוגיקה ומפעיל יחד, והחלש קובע.') + where('שרשרת ה-interlock של הדלת והלייזר. המרכז "שרשרת הבטיחות" מראה את החיווט, וכאן החשבון שמאחוריו.'),
+    lab: () => `<p>${bidi('מערכת של ספק, דרייבר ואנקודר בטור. קבע את קצבי הכשל, הוסף ספק שני במקביל, וזמן תיקון. ראה אמינות לשנה, MTBF וזמינות.')}</p><div id="rellab"></div><h3>אנימציה: Weibull ועקומת האמבטיה</h3><div id="relanim"></div>`
+  },
+  mount: { lab: B => { relLab(B.querySelector('#rellab')); animMount('weibull', B.querySelector('#relanim')); } }
+});
+
+function relLab(el) {
+  const st = { l1: 2, l2: 5, l3: 3, red: 0, mttr: 4, t: 8760 };
+  const draw = () => {
+    const L = [st.l1, st.l2, st.l3].map(v => v * 1e-6), R = L.map(l => relExp(l, st.t)); let R1 = R[0];
+    if (st.red) R1 = 1 - (1 - R[0]) ** 2;
+    const Rs = R1 * R[1] * R[2], lam = st.red ? -Math.log(Rs) / st.t : L[0] + L[1] + L[2], mtbf = 1 / lam, A = mtbf / (mtbf + st.mttr);
+    el.innerHTML = `<div class="bench"><div class="controls" style="border-top:none">${hxNum('rl1', 'ספק λ (10⁻⁶/h)', st.l1, 0, 50, .5)}${hxNum('rl2', 'דרייבר λ (10⁻⁶/h)', st.l2, 0, 50, .5)}${hxNum('rl3', 'אנקודר λ (10⁻⁶/h)', st.l3, 0, 50, .5)}${hxNum('rmt', 'MTTR (h)', st.mttr, .5, 72, .5)}${hxNum('rt', 'זמן משימה (h)', st.t, 100, 50000, 100)}
+      <div class="ctl"><label for="rred">ספק</label><select id="rred"><option value="0"${st.red ? '' : ' selected'}>ספק אחד</option><option value="1"${st.red ? ' selected' : ''}>שני ספקים במקביל</option></select></div></div>
+      <div class="readout">R(${st.t} h) לכל רכיב: <span class="num">${R.map(r => r.toFixed(4)).join(' · ')}</span><br>אמינות המערכת: <span class="num">${Rs.toFixed(4)}</span> · MTBF ${st.red ? '(שקול בזמן הזה)' : ''}: <span class="num">${Math.round(mtbf).toLocaleString('en')} h</span> · זמינות: <span class="num">${(A * 100).toFixed(3)}%</span>${st.red ? '<br>שני ספקים: הספק כמעט יצא מהחשבון, והרכיב החלש עכשיו הוא הדרייבר.' : ''}</div></div>`;
+    hxRead(el, [['rl1', 'l1'], ['rl2', 'l2'], ['rl3', 'l3'], ['rmt', 'mttr'], ['rt', 't']], st, draw);
+    el.querySelector('#rred').addEventListener('change', e => { st.red = +e.target.value; draw(); });
+  };
+  draw();
+}
+
+QB.push(
+{ id: 'Q110', t: 'rel', l: 1, title: 'MTBF ואמינות לשנה', fig: null,
+  q: 'לרכיב קצב כשל קבוע של 2·10⁻⁶ לשעה. מה ה-MTBF, וכמה סיכוי שיעבוד שנה רצופה (8760 h) בלי כשל? ומה אם יש 100 כאלה בשטח?',
+  h: ['MTBF = 1/λ.', 'R(t) = e^(−λt).'],
+  a: 'MTBF = 500,000 h. R(8760) = e^(−0.0175) ≈ 0.983. עם 100 יחידות: צפויים כ-100 · 0.0175 ≈ 1.75 כשלים בשנה.',
+  why: 'MTBF גבוה לא אומר שאין כשלים. הוא אומר באיזה קצב הם קורים באוכלוסייה.',
+  steps: ['1/(2·10⁻⁶) = 500,000.', 'λt = 0.01752.', 'e^(−0.01752) = 0.9826.', '100 · 0.0175 ≈ 1.75.'],
+  trap: 'לחשוב שרכיב "יחזיק 57 שנה" כי זה ה-MTBF.' },
+{ id: 'Q111', t: 'rel', l: 2, title: 'מערכת בטור', fig: null,
+  q: 'ספק (2·10⁻⁶/h), דרייבר (5·10⁻⁶/h) ואנקודר (3·10⁻⁶/h) בטור. מה ה-MTBF של המערכת, ומה האמינות לשנה?',
+  h: ['בטור קצבי הכשל מתחברים.', 'MTBF = 1/λ, R = e^(−λt).'],
+  a: 'λ_s = 10⁻⁵/h, MTBF = 100,000 h. R(8760) = e^(−0.0876) ≈ 0.916.',
+  why: 'בטור כל רכיב חיוני, ולכן הסיכויים להיכשל מתחברים.',
+  steps: ['2 + 5 + 3 = 10 (·10⁻⁶).', 'MTBF = 10⁵ h.', 'e^(−0.0876) ≈ 0.916.'],
+  trap: 'לקחת את ה-MTBF של הרכיב החלש (200,000 h) כ-MTBF של המערכת.' },
+{ id: 'Q112', t: 'rel', l: 2, title: 'זמינות', fig: null,
+  q: 'למכונה MTBF של 2000 h ו-MTTR של 4 h. מה הזמינות, וכמה שעות השבתה ב-6000 שעות עבודה? מה עדיף: להכפיל MTBF או לחצות MTTR?',
+  h: ['A = MTBF/(MTBF + MTTR).', 'מה קורה לזמינות כש-MTTR יורד בחצי?'],
+  a: 'A = 2000/2004 ≈ 0.998, כ-12 שעות השבתה. הכפלת MTBF: 4000/4004 ≈ 0.999. חציית MTTR: 2000/2002 ≈ 0.999. אותה זמינות, וחציית MTTR (חלפים, אבחון) בדרך כלל זולה יותר.',
+  why: 'הזמינות תלויה ביחס MTTR/MTBF. אפשר לשפר כל צד שלו.',
+  steps: ['2000/2004 = 0.998.', '0.002 · 6000 ≈ 12 h.', 'שתי הדרכים: יחס 1/1000.'],
+  trap: 'להשקיע רק ברכיבים אמינים יותר, ולהשאיר תיקון שלוקח יום בגלל חוסר בחלקים.' },
+{ id: 'Q113', t: 'rel', l: 3, title: 'יתירות וכשל משותף', fig: null,
+  q: 'בכל ערוץ בטיחות הסיכוי לכשל מסוכן 2·10⁻³. מה הסיכוי עם שני ערוצים בלתי תלויים, ומה אם 5% מהכשלים משותפים לשניהם (β = 0.05)?',
+  h: ['AND: מכפלה.', 'כשל משותף מפיל את שניהם יחד: β·p.'],
+  a: 'בלתי תלויים: (2·10⁻³)² = 4·10⁻⁶. עם β: 0.05 · 2·10⁻³ + 4·10⁻⁶ ≈ 1.04·10⁻⁴, פי 26 יותר. לכן מפרידים ערוצים פיזית וחשמלית, ומגוונים אותם.',
+  why: 'כשל משותף עוקף את היתירות, ולכן הוא שולט ברגע שהערוצים טובים.',
+  steps: ['p² = 4·10⁻⁶.', 'β·p = 10⁻⁴.', 'סך ≈ 1.04·10⁻⁴.'],
+  trap: 'לחשב רק p² ולהניח שהבטיחות טובה פי 500 מערוץ יחיד.' },
+{ id: 'Q114', t: 'rel', l: 3, title: 'MTTF_D ממגען', fig: null,
+  q: 'למגען B10D = 2·10⁶ פעולות. הוא פועל כל 60 שניות, 16 שעות ביום, 220 ימים בשנה. מה ה-MTTF_D, ובאיזו דרגה הוא לפי ISO 13849-1?',
+  h: ['n_op = d · h · 3600 / t_cycle.', 'MTTF_D = B10D / (0.1 · n_op).'],
+  a: 'n_op = 220 · 16 · 3600/60 = 211,200 בשנה. MTTF_D = 2·10⁶ / 21,120 ≈ 94.7 שנה: גבוה (30 עד 100). אם הוא פועל כל 6 שניות: 9.47 שנה, כבר נמוך.',
+  why: 'רכיב אלקטרומכני נשחק לפי מספר פעולות, ולכן התדירות קובעת את ה-MTTF_D.',
+  steps: ['220 · 16 = 3520 h.', '3520 · 60 = 211,200.', '0.1 · 211,200 = 21,120.', '2·10⁶ / 21,120 ≈ 94.7.'],
+  trap: 'להשתמש ב-B10D כאילו הוא MTTF_D בשנים, בלי מספר הפעולות.' }
+);
+VERIFY.push(
+  ['rel mtbf', 1 / 2e-6, 5e5, 1e-6], ['rel R year', relExp(2e-6, 8760), .983, .0005], ['rel fit', 2e-6 * 1e9, 2000, 1e-6], ['rel R mtbf', relExp(1, 1), .368, .0005], ['rel fleet', 100 * 2e-6 * 8760, 1.75, .005],
+  ['rel series mtbf', 1 / 1e-5, 1e5, 1e-6], ['rel series R', relExp(1e-5, 8760), .916, .0005], ['rel parallel', 1 - .1 ** 2, .99, 1e-12],
+  ['rel A', 2000 / 2004, .998, .0005], ['rel down', (1 - 2000 / 2004) * 6000, 12, .05], ['rel A2', 4000 / 4004, .999, .0005], ['rel A3', 2000 / 2002, .999, .0005],
+  ['rel wb', relWb(5000, 1e4, 2), .779, .0005], ['rel b10', 1e4 * Math.pow(-Math.log(.9), 1 / 2), 3246, .5],
+  ['rel rpn', 8 * 4 * 6, 192, 0], ['rel rpn2', 8 * 4 * 2, 64, 0], ['rel rpn int', 10 * 2 * 7, 140, 0], ['rel rpn vac', 6 * 5 * 4, 120, 0], ['rel rpn enc', 7 * 3 * 5, 105, 0],
+  ['rel or', 1 - (1 - 1e-3) ** 2, 2e-3, 1e-6], ['rel and', (2e-3) ** 2, 4e-6, 1e-12], ['rel ccf', .05 * 2e-3 + 4e-6, 1.04e-4, 1e-9],
+  ['rel nop', nOp(220, 16, 60), 211200, 0], ['rel mttfd', 2e6 / (.1 * nOp(220, 16, 60)), 94.7, .05], ['rel mttfd fast', 2e6 / (.1 * nOp(220, 16, 6)), 9.47, .005]
 );
 /* ============ PCB, AOI and AOS: industry context, machines, integration process, ATP ============ */
 
@@ -6824,7 +7666,7 @@ function termRoute(k) { if (TERM_LINK[k]) return TERM_LINK[k]; const lk = Object
 function routeGo(r) { const [a, b] = r.split('/'); if (a === 'q') showQ(b, [b]); else if (a === 'scn') playScn(b); else go(a, b); window.scrollTo(0, 0); }
 function routeTitle(r) {
   const [a, b] = r.split('/');
-  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: typeof MOT_NAV !== 'undefined' && MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   if (a === 's1') { const c = COMPONENTS.find(x => x.id === b); return c ? 'רכיבים · ' + c.name.replace(/<[^>]+>/g, '') : r; }
   if (a === 's2') { const x = SYSX[b]; return x ? 'מערכות · ' + x.title : r; }
   if (a === 'q') { const q = QB.find(x => x.id === b); return q ? 'שאלה ' + b + ' · ' + q.title : r; }
@@ -6911,6 +7753,17 @@ GLOSS.master += ' ב-I2C וב-SPI: האדון, המכשיר שמתחיל כל ה
 GLOSS.slave += ' ב-I2C וב-SPI: הרכיב שעונה לאדון, לפי כתובת (I2C) או לפי חוט בחירה (SPI).';
 GLOSS.Start += ' בתקשורת טורית (START): ביט הפתיחה של מסגרת UART, או תנאי הפתיחה של I2C (SDA יורד בזמן ש-SCL גבוה).';
 GLOSS.Stop += ' בתקשורת טורית (STOP): ביט הסיום של מסגרת UART, או תנאי הסיום של I2C (SDA עולה בזמן ש-SCL גבוה).';
+/* ============ Terms of the extra hubs: one definition per term, where each is explained, and its category ============ */
+TERM_CATS.splice(TERM_CATS.indexOf('מכונות והספק'), 0, 'אלגוריתמים ונתונים');
+{ const HCAT = { fit: 'אלגוריתמים ונתונים', img: 'אלגוריתמים ונתונים', stat: 'אלגוריתמים ונתונים', sig: 'בקרה ותנועה', rel: 'בטיחות ותקנים' };
+  const inLex = k => LEX.some(e => e[0].toLowerCase() === k.toLowerCase() || e[2].some(a => a.replace(/^=/, '').toLowerCase() === k.toLowerCase()));
+  Object.entries(HXTERMS).forEach(([k, hub]) => { if (hub === '_') return;
+    if (inLex(k) && !HXDUP.includes(k)) { delete GLOSS[k]; delete GSHORT[k]; }   /* the lexicon already defines it: keep one definition */
+    const H = HUBX[hub], page = H.nav.map(n => n[0]).find(id => H.pages[id] && !['lab', 'q'].includes(id) && H.pages[id]().includes(k));
+    if (!TERM_LINK[k]) TERM_LINK[k] = hub + '/' + (page || H.nav[0][0]);
+    if (!TERM_CAT[k] && !HXDUP.includes(k)) TERM_CAT[k] = HCAT[hub];
+  });
+}
 /* ============ Small 3D engine (canvas, no library) and 3D simulations ============ */
 /* camera: yaw/pitch orbit around the origin; z is up */
 /* the page colours the canvas drawings read (one place, so every scene reads the same set) */
@@ -8927,6 +9780,38 @@ VERIFY.push(
   ['serial CAN bits', 47 + 8 * 8, 111, 0], ['serial CAN µs', 111 / 500e3 * 1e6, 222, 1e-9], ['serial CAN load %', 100 * 222e-6 * 100, 2.22, .005], ['serial CAN term', 120 * 120 / 240, 60, 1e-12],
   ['serial CAN mask', 0x1A4 & 0x780, 0x180, 0], ['serial I2C addr', (0x48 << 1) | 0, 0x90, 0], ['serial arb winner', canArb([0x123, 0x1A4, 0x2F0]).winner, 0, 0], ['serial arb loser bit', canArb([0x123, 0x1A4]).rows.findIndex(r => r.lost[1]), 3, 0]
 );
+/* ============ The math level of the extra hubs (v2.64): formula boxes and what every symbol means ============ */
+Object.assign(FORM, {
+  fit: [['a = (n·Σxy − Σx·Σy) / (n·Σx² − (Σx)²)', 'שיפוע הקו בריבועים פחותים', 'נקודות (0,1), (1,3), (2,4), (3,6): 1.6'], ['x = (AᵀA)⁻¹ Aᵀ b', 'הפתרון הכללי של ריבועים פחותים', ''], ['σ̂ = √(Σ r² / (m − k))', 'רעש המדידה מהשאריות', 'קו: √(0.2 / 2) ≈ 0.316'], ['δθ = σ·√2 / d', 'שגיאת הזווית משני fiducials', '2 µm, 200 mm: 14.1 µrad'], ['N = ln(1 − p) / ln(1 − wˢ)', 'מספר הבחירות ב-RANSAC', '0.99, 0.7, 3: 11'], ['σ_tot = √(Σ σᵢ²)', 'תקציב שגיאה של שלבים בלתי תלויים', '√38 ≈ 6.16 µm']]
+  ,img: [['x = xᵢ + (T − Iᵢ) / (Iᵢ₊₁ − Iᵢ)', 'מיקום קצה בתת-פיקסל', '10 + 40 / 120 = 10.333'], ['x̄ = Σ xᵢ · Iᵢ / Σ Iᵢ', 'מרכז כובד', '[0, 10, 40, 30, 0]: 2.25'], ['σ_x = σ_I / s', 'דיוק מיקום הקצה', '4 / 120 = 0.033 px'], ['σ_avg = σ / √N', 'רעש אחרי ממוצע', 'N = 16: σ / 4'], ['w_after = w − 2r', 'רוחב קו אחרי שחיקה', '10 − 6 = 4 px']],
+  stat: [['s = √(Σ (xᵢ − x̄)² / (n − 1))', 'סטיית תקן של מדגם', '√(10 / 4) ≈ 1.58'], ['Cpk = min(USL − μ, μ − LSL) / (3σ)', 'יכולת תהליך עם מרכוז', '25 / 24 ≈ 1.04'], ['σ_ms = √(σ_EV² + σ_AV²)', 'פיזור מערכת המדידה', '√(2.56 + 1.44) = 2 µm'], ['P = TP / (TP + FP)', 'precision: חלק הסימונים שהיו פגמים', '95 / 495 ≈ 19.2%'], ['U = k · u_c', 'אי-ודאות מורחבת', '2 · 2.71 ≈ 5.4 µm']],
+  sig: [['f_a = |f − k·fₛ|', 'התדר שנראה אחרי דגימה', '9 kHz ב-10 kHz: 1 kHz'], ['LSB = V_ref / 2ⁿ', 'רוחב רמת ממיר', '10 V / 4096 ≈ 2.44 mV'], ['SNR = 6.02·n + 1.76', 'יחס אות לרעש אידאלי, dB', '12 ביט: 74 dB'], ['α = Tₛ / (τ + Tₛ)', 'מקדם מסנן ספרתי מסדר ראשון', '1 / 11 ≈ 0.091'], ['e = v / Kv', 'שגיאת עקיבה', '200 / 1000 = 0.2 mm'], ['K = P / (P + R)', 'הגבר קלמן', '4 / 5 = 0.8']],
+  rel: [['R = e^(−λt)', 'אמינות בקצב כשל קבוע', 'λ = 2·10⁻⁶, שנה: 0.983'], ['MTBF = 1 / λ', 'זמן ממוצע בין כשלים', '500,000 h'], ['A = MTBF / (MTBF + MTTR)', 'זמינות', '2000 / 2004 ≈ 0.998'], ['RPN = S · O · D', 'ציון סיכון ב-FMEA', '8 · 4 · 6 = 192'], ['MTTF_D = B10D / (0.1 · n_op)', 'זמן ממוצע לכשל מסוכן', '≈ 94.7 שנה']]
+});
+Object.assign(FORMT, { fit: 'התאמה וטרנספורמציה', img: 'עיבוד תמונה', stat: 'סטטיסטיקה ואיכות', sig: 'אותות ובקרה', rel: 'אמינות ובטיחות' });
+Object.assign(SYMD, {
+  'f:fit': { 'a': E('slope', 'שיפוע', '', 'כמה y גדל כש-x גדל ב-1'), 'n': E('number of points', 'מספר נקודות', '', 'כמה מדידות יש'), 'x': E('parameter vector', 'וקטור הפרמטרים', '', 'הנעלמים שמחפשים (בקו: a ו-b)'), 'A': E('design matrix', 'מטריצת המודל', '', 'שורה לכל מדידה, עמודה לכל פרמטר'), 'b': E('measurement vector', 'וקטור המדידות', '', 'מה שנמדד'),
+    'σ̂': E('estimated noise', 'רעש מוערך', 'µm', 'סטיית התקן של מדידה בודדת, מהשאריות'), 'r': E('residual', 'שארית', 'µm', 'מדידה פחות ניבוי המודל'), 'm': E('number of measurements', 'מספר מדידות', '', 'כמה משוואות'), 'k': E('number of parameters', 'מספר פרמטרים', '', 'כמה נעלמים במודל'),
+    'δθ': E('angle error', 'שגיאת זווית', 'µrad', 'כמה הסיבוב המחושב שגוי'), 'σ': E('measurement noise', 'רעש מדידה', 'µm', 'סטיית התקן של מדידת fiducial בכל ציר'), 'd': E('fiducial spacing', 'מרחק בין fiducials', 'mm', 'המרחק בין שני הסימנים'),
+    'N': E('number of draws', 'מספר בחירות', '', 'כמה פעמים RANSAC בוחר קבוצה אקראית'), 'p': E('success probability', 'הסתברות הצלחה', '', 'הסיכוי הרצוי שלפחות בחירה אחת נקייה'), 'w': E('inlier ratio', 'חלק הנקודות הטובות', '', 'איזה חלק מהנקודות אינן חריגות'), 's': E('sample size', 'גודל הבחירה', '', 'כמה נקודות בכל בחירה (3 לאפיני)'),
+    'σ_tot': E('total error', 'שגיאה כוללת', 'µm', 'סטיית התקן של כל השרשרת'), 'σᵢ': E('error of one stage', 'שגיאת שלב', 'µm', 'סטיית התקן של מקור אחד') },
+  'f:img': { 'x': E('edge position', 'מיקום הקצה', 'px', 'איפה הבהירות חוצה את הסף'), 'xᵢ': E('pixel index', 'מספר הפיקסל', 'px', 'הפיקסל שלפני החצייה'), 'T': E('threshold', 'סף', 'רמות', 'רמת האפור שמפרידה בין נחושת למצע'), 'Iᵢ': E('pixel intensity', 'בהירות פיקסל', 'רמות', 'רמת האפור של פיקסל i'), 'Iᵢ₊₁': E('next pixel intensity', 'בהירות הפיקסל הבא', 'רמות', 'רמת האפור של הפיקסל שאחרי'),
+    'x̄': E('centroid', 'מרכז כובד', 'px', 'הממוצע הממושקל של המיקומים'), 'σ_x': E('edge position noise', 'פיזור מיקום הקצה', 'px', 'כמה מיקום הקצה רועד ממדידה למדידה'), 'σ_I': E('intensity noise', 'רעש בהירות', 'רמות', 'סטיית התקן של רמת האפור'), 's': E('edge slope', 'שיפוע הקצה', 'רמות לפיקסל', 'כמה הבהירות עולה בפיקסל אחד'),
+    'σ_avg': E('noise after averaging', 'רעש אחרי ממוצע', 'רמות', 'הרעש אחרי מיצוע N פיקסלים'), 'σ': E('pixel noise', 'רעש פיקסל', 'רמות', 'הרעש בפיקסל בודד'), 'N': E('pixels averaged', 'מספר פיקסלים בממוצע', '', 'כמה פיקסלים ממצעים'), 'w_after': E('width after erosion', 'רוחב אחרי שחיקה', 'px', 'מה שנשאר מהקו'), 'w': E('line width', 'רוחב קו', 'px', 'הרוחב לפני השחיקה'), 'r': E('erosion radius', 'רדיוס שחיקה', 'px', 'כמה מכווצים מכל צד') },
+  'f:stat': { 's': E('sample standard deviation', 'סטיית תקן של מדגם', 'µm', 'הפיזור במדגם'), 'xᵢ': E('measurement', 'מדידה', 'µm', 'מדידה בודדת'), 'x̄': E('sample mean', 'ממוצע המדגם', 'µm', 'הממוצע'), 'n': E('sample size', 'גודל מדגם', '', 'כמה מדידות'),
+    'Cpk': E('process capability index', 'מדד יכולת עם מרכוז', '', 'המרחק לגבול הקרוב ביחידות 3σ'), 'USL': E('upper limit', 'גבול עליון', 'µm', 'הגבול העליון המותר'), 'LSL': E('lower limit', 'גבול תחתון', 'µm', 'הגבול התחתון המותר'), 'μ': E('process mean', 'ממוצע התהליך', 'µm', 'הממוצע של התהליך'), 'σ': E('process spread', 'פיזור התהליך', 'µm', 'סטיית התקן של התהליך'),
+    'σ_ms': E('measurement system spread', 'פיזור מערכת המדידה', 'µm', 'הפיזור שנובע מהמכשיר'), 'σ_EV': E('repeatability', 'חזרתיות', 'µm', 'פיזור במדידות חוזרות'), 'σ_AV': E('reproducibility', 'שחזוריות', 'µm', 'פיזור בין מפעילים או מכונות'),
+    'P': E('precision', 'precision', '', 'חלק הסימונים שהיו פגמים אמיתיים'), 'TP': E('true positives', 'פגמים שנתפסו', '', 'סימונים נכונים'), 'FP': E('false positives', 'קריאות שגויות', '', 'סימונים בלי פגם'),
+    'U': E('expanded uncertainty', 'אי-ודאות מורחבת', 'µm', 'הטווח שבו נמצא הערך האמיתי בכ-95%'), 'k': E('coverage factor', 'מקדם כיסוי', '', '2 נותן כ-95%'), 'u_c': E('combined uncertainty', 'אי-ודאות משולבת', 'µm', 'כל המקורות יחד ב-RSS') },
+  'f:sig': { 'f_a': E('alias frequency', 'תדר מתחזה', 'kHz', 'התדר שנראה אחרי הדגימה'), 'f': E('signal frequency', 'תדר האות', 'kHz', 'התדר האמיתי'), 'k': E('nearest integer', 'השלם הקרוב', '', 'round(f / fₛ)'), 'fₛ': E('sampling rate', 'קצב דגימה', 'kHz', 'כמה דגימות בשנייה'),
+    'LSB': E('least significant bit', 'רוחב רמה', 'mV', 'השינוי הקטן ביותר שהממיר מבחין בו'), 'V_ref': E('reference voltage', 'מתח ייחוס', 'V', 'הטווח המלא של הממיר'), 'n': E('number of bits', 'מספר ביטים', '', 'הרזולוציה של הממיר'), 'SNR': E('signal to noise ratio', 'יחס אות לרעש', 'dB', 'כמה האות גדול מהרעש'),
+    'α': E('filter coefficient', 'מקדם המסנן', '', 'איזה חלק מההפרש נכנס בכל צעד'), 'Tₛ': E('sample period', 'זמן בין דגימות', 'ms', 'ההופכי של קצב הדגימה'), 'τ': E('time constant', 'קבוע זמן', 'ms', 'זמן עד 63% מהמדרגה'),
+    'e': E('following error', 'שגיאת עקיבה', 'mm', 'הפיגור של הציר אחרי הפקודה'), 'v': E('speed', 'מהירות', 'mm/s', 'מהירות התנועה'), 'Kv': E('velocity gain', 'הגבר מהירות', '1/s', 'כמה מהירות הלולאה מבקשת ליחידת שגיאה'),
+    'K': E('Kalman gain', 'הגבר קלמן', '', 'המשקל של המדידה בעדכון'), 'P': E('prediction variance', 'שונות החיזוי', '', 'אי-הוודאות של המודל לפני המדידה'), 'R': E('measurement variance', 'שונות המדידה', '', 'אי-הוודאות של החיישן') },
+  'f:rel': { 'R': E('reliability', 'אמינות', '', 'הסיכוי לעבוד עד t'), 'λ': E('failure rate', 'קצב כשל', '1/h', 'כשלים לשעה'), 't': E('time', 'זמן', 'h', 'זמן העבודה'), 'MTBF': E('mean time between failures', 'זמן ממוצע בין כשלים', 'h', 'ההופכי של קצב הכשל'),
+    'A': E('availability', 'זמינות', '', 'חלק הזמן שהמכונה מוכנה'), 'MTTR': E('mean time to repair', 'זמן ממוצע לתיקון', 'h', 'מהכשל ועד שחוזרים לעבוד'), 'RPN': E('risk priority number', 'ציון סיכון', '', 'חומרה × הסתברות × גילוי'), 'S': E('severity', 'חומרה', '1 עד 10', 'כמה התוצאה חמורה'), 'O': E('occurrence', 'הסתברות', '1 עד 10', 'כמה זה קורה'), 'D': E('detection', 'קושי גילוי', '1 עד 10', 'כמה קשה לגלות לפני התוצאה'),
+    'MTTF_D': E('mean time to dangerous failure', 'זמן ממוצע לכשל מסוכן', 'שנים', 'לפי ISO 13849-1'), 'B10D': E('cycles to 10% dangerous failures', 'מחזורים עד 10% כשלים מסוכנים', 'פעולות', 'נתון של היצרן'), 'n_op': E('operations per year', 'פעולות בשנה', '1/שנה', 'כמה פעמים הרכיב פועל בשנה') }
+});
 /* ============ The engineer level of each architecture topic, step by step ============
    ENGSTEPS[id] = [{ t: what is computed, eq: [one equation per line], note: why / what it means }].
    Equations are plain text read left to right (a line of derivation per row); the Hebrew is in t and note.
@@ -9099,6 +9984,21 @@ const MASTER = [
   { id: 'serial', track: 'found', t: 'תקשורת טורית', L: [
     ['p:ser/why'], ['p:ser/uart'], ['p:ser/i2c', 'p:ser/spi'], ['p:ser/can', 'p:ser/cmp'], ['p:ser/dbg'], ['p:ser/lab'],
     ['qb:ser', 'p:ser/q'], ['x:ecat', 'x:boards']] },
+  { id: 'fit', track: 'found', t: 'התאמה וטרנספורמציה', L: [
+    ['p:fit/why'], ['p:fit/ls'], ['p:fit/mat', 'p:fit/tf'], ['p:fit/aff', 'p:fit/robust', 'p:fit/geo'], ['p:fit/xfer'], ['p:fit/code', 'p:fit/lab'],
+    ['qb:fit', 'p:fit/q'], ['x:aoi', 'x:aos']] },
+  { id: 'img', track: 'found', t: 'עיבוד תמונה', L: [
+    ['p:img/why'], ['p:img/thr'], ['p:img/filt', 'p:img/edge'], ['p:img/cent', 'p:img/match', 'p:img/morph'], ['p:img/cmp'], ['p:img/lab'],
+    ['qb:img', 'p:img/q'], ['x:cam', 'x:aoi']] },
+  { id: 'stat', track: 'found', t: 'סטטיסטיקה ואיכות', L: [
+    ['p:stat/why'], ['p:stat/dist'], ['p:stat/acc', 'p:stat/unc'], ['p:stat/cap', 'p:stat/grr', 'p:stat/cls'], ['p:stat/spc'], ['p:stat/lab'],
+    ['qb:stat', 'p:stat/q'], ['x:bringup', 'x:industry']] },
+  { id: 'sig', track: 'found', t: 'אותות ובקרה', L: [
+    ['p:sig/why'], ['p:sig/samp'], ['p:sig/adc', 'p:sig/filt'], ['p:sig/fft', 'p:sig/loop', 'p:sig/enc'], ['p:sig/obs'], ['p:sig/lab'],
+    ['qb:sig', 'p:sig/q'], ['x:servo', 'x:meas']] },
+  { id: 'rel', track: 'found', t: 'אמינות ובטיחות פונקציונלית', L: [
+    ['p:rel/why'], ['p:rel/rate'], ['p:rel/sys', 'p:rel/avail'], ['p:rel/weib', 'p:rel/fmea', 'p:rel/fta'], ['p:rel/pl'], ['p:rel/lab'],
+    ['qb:rel', 'p:rel/q'], ['x:safety', 'x:bringup']] },
   { id: 'meas', track: 'found', t: 'מדידה, מכשירים וחיישנים', L: [
     ['p:lab'], ['p:lab/dmm'], ['p:lab/s-wire', 'p:s1/loop'], ['p:lab/scope', 'p:lab/s-prox', 'p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'p:lib/ai'],
     ['p:s1/loop#math'], ['p:s1/loop#full'], ['qb:lin', 'scn:s1:loop'], ['x:bringup', 'x:boards']] },
@@ -9164,21 +10064,23 @@ const ZN = (id, level, t, core, around, parts = []) => ({ id, level, t, core, ar
 const ZOOM = [
   /* 5 · the process: scan, find, repair; and the work around it */
   ZN('proc', 5, 'סריקה, מציאת חוסר או עודף נחושת, ותיקון', 't:aoi:scene', ['t:aos:scene', 't:aoi:flow', 't:aoi:rev', 't:aoi:quiz', 't:aoi:math:*', 't:aoi:fault:*', 't:aoi:integ', 'p:s2/machine'], ['cam', 'servo', 'vac', 'safety', 'laser', 'pwr', 'ecat']),
-  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas']),
+  ZN('bringup', 5, 'הפעלה ראשונה, ATP ושטח', 't:bringup:scene', ['t:bringup:flow', 't:bringup:rev', 't:bringup:quiz', 't:bringup:math:*', 't:bringup:fault:*', 't:bringup:integ', 'p:int/zero', 'p:int/flow', 'p:int/power', 'p:int/atp', 'p:int/tools', 'p:int/field', 'p:s3'], ['pwr', 'safety', 'servo', 'meas', 'stat']),
   ZN('ind', 5, 'קו הייצור: איפה המכונות עומדות ומה נמדד', 'p:pcb/ov', ['p:pcb/line', 'p:pcb/pcba', 'p:pcb/def', 'p:pcb/prod', 'p:pcb/kpi', 'f:ind'], []),
   /* 4 · systems working in parallel */
   ZN('cam', 4, 'מצלמת line-scan ותאורה', 't:cam:scene', ['t:cam:flow', 'sim:scan3d', 't:cam:rev', 't:cam:quiz', 't:cam:math:*', 't:cam:fault:*', 't:cam:integ', 'p:opt/ov', 'p:opt/q', 'p:opt/ch'], ['trig', 'optics', 'reg']),
   ZN('servo', 4, 'ציר סרבו', 't:servo:scene', ['t:servo:flow', 't:servo:rev', 't:servo:quiz', 't:servo:math:*', 't:servo:fault:*', 't:servo:integ', 'p:s2/servo'], ['loop', 'trans']),
   ZN('vac', 4, 'שולחן ואקום', 't:vac:scene', ['t:vac:flow', 's:vac', 't:vac:rev', 't:vac:quiz', 't:vac:math:*', 't:vac:fault:*', 't:vac:integ', 'p:s2/vac'], ['valve']),
-  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock']),
+  ZN('safety', 4, 'שרשרת הבטיחות', 't:safety:scene', ['t:safety:flow', 't:safety:rev', 't:safety:quiz', 't:safety:math:*', 't:safety:fault:*', 't:safety:integ', 'p:s4'], ['interlock', 'rel']),
   ZN('laser', 4, 'תיקון בלייזר (AOS)', 'fig:aos', ['t:aos:flow', 'sim:cr3d', 't:aos:rev', 't:aos:quiz', 't:aos:math:*', 't:aos:fault:*', 't:aos:integ', 'p:s2/aos'], ['laserunit', 'reg']),
   ZN('pwr', 4, 'ספק 24V וחלוקת מתח', 't:pwr:scene', ['t:pwr:flow', 't:pwr:rev', 't:pwr:quiz', 't:pwr:math:*', 't:pwr:fault:*', 't:pwr:integ', 'p:mot/wire', 'p:mot/tri', 'p:mot/energy', 'p:mot/sims'], ['psu']),
   ZN('ecat', 4, 'בקרה ותקשורת EtherCAT', 't:ecat:scene', ['t:ecat:flow', 't:ecat:rev', 't:ecat:quiz', 't:ecat:math:*', 't:ecat:fault:*', 't:ecat:integ', 'p:mot/iface'], ['iocards', 'serial']),
   /* 3 · mechanisms and principles */
   ZN('trig', 3, 'טריגר וסטרוב: מתי מצלמים ומתי מאירים', 'fig:linescan', ['c:linescan:story', 'c:linescan:steps', 'c:linescan:bench', 'c:linescan:numbers', 'c:linescan:formulas', 'c:linescan:wrong', 'c:strobe:story', 'c:strobe:steps', 'c:strobe:bench', 'c:strobe:formulas', 'c:strobe:wrong'], ['enc', 'logic', 'mosfet']),
   ZN('optics', 3, 'עדשה, פוקוס, יישור והטיה', 'c:lens:story', ['c:lens:steps', 'c:lens:bench', 'c:lens:formulas', 'c:lens:wrong', 'c:tilt:story', 'c:tilt:steps', 'c:tilt:bench', 'c:tilt:formulas', 'c:tilt:wrong', 'c:thermal:story', 'c:thermal:steps', 'c:thermal:bench', 'c:thermal:formulas', 'c:thermal:wrong']),
-  ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong']),
-  ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake']),
+  ZN('reg', 3, 'רישום: יישור התמונה לתכנון', 'c:fid:story', ['c:fid:steps', 'c:fid:bench', 'c:fid:numbers', 'c:fid:formulas', 'c:fid:wrong'], ['fit', 'img']),
+  ZN('img', 2, 'עיבוד תמונה: מפיקסל להחלטה על פגם', 'p:img/why', ['p:img/thr', 'p:img/filt', 'p:img/edge', 'p:img/cent', 'p:img/match', 'p:img/morph', 'p:img/cmp', 'p:img/lab', 'p:img/q', 'f:img']),
+  ZN('fit', 2, 'התאמה וטרנספורמציה: ריבועים פחותים והעברה בין מכונות', 'p:fit/why', ['p:fit/ls', 'p:fit/mat', 'p:fit/tf', 'p:fit/aff', 'p:fit/robust', 'p:fit/geo', 'p:fit/xfer', 'p:fit/code', 'p:fit/lab', 'p:fit/q', 'f:fit']),
+  ZN('loop', 3, 'לולאת הבקרה של הציר', 's:servo', [], ['enc', 'motor', 'pwm', 'brake', 'sig']),
   ZN('trans', 3, 'תמסורת: בורג כדורי ו-backlash', 'c:screw:story', ['sim:bs3d', 'c:screw:steps', 'c:screw:bench', 'c:screw:formulas', 'c:screw:wrong'], ['fits']),
   ZN('valve', 3, 'שסתום הוואקום: מהבקר לאוויר', 'c:cyl:story', ['c:cyl:steps', 'c:cyl:bench', 'c:cyl:formulas', 'c:cyl:wrong'], ['relay', 'sensors']),
   ZN('interlock', 3, 'interlock של דלת', 's:interlock', ['c:limit:story', 'c:limit:steps', 'c:limit:bench', 'c:limit:formulas', 'c:limit:wrong', 'p:s2/interlock'], ['relay', 'switch']),
@@ -9194,6 +10096,9 @@ const ZOOM = [
   ZN('fits', 2, 'התאמות, טולרנסים ושרטוט מכני', 'c:fits:story', ['c:fits:steps', 'c:fits:bench', 'c:fits:formulas', 'c:fits:wrong', 'p:b/mech', 'p:b/mdrill']),
   ZN('logic', 2, 'לוגיקה ספרתית: זיכרון, מונים ומחלקי תדר', 'p:dig/why', ['p:dig/tbl', 'p:dig/sr', 'p:dig/dl', 'p:dig/dff', 'p:dig/jk', 'p:dig/t', 'p:dig/reg', 'p:dig/cnt', 'p:dig/timing', 'p:dig/lab', 'p:dig/q', 'f:logic']),
   ZN('serial', 3, 'תקשורת טורית: UART, I2C, SPI ו-CAN', 'p:ser/why', ['p:ser/uart', 'p:ser/i2c', 'p:ser/spi', 'p:ser/can', 'p:ser/cmp', 'p:ser/dbg', 'p:ser/lab', 'p:ser/q', 'f:serial'], ['logic']),
+  ZN('stat', 3, 'סטטיסטיקה ואיכות: Cpk, Gage R&R וקריאות שגויות', 'p:stat/why', ['p:stat/dist', 'p:stat/acc', 'p:stat/unc', 'p:stat/cap', 'p:stat/grr', 'p:stat/cls', 'p:stat/spc', 'p:stat/lab', 'p:stat/q', 'f:stat'], ['meas']),
+  ZN('sig', 2, 'אותות ובקרה: דגימה, מסננים, FFT ומשערכים', 'p:sig/why', ['p:sig/samp', 'p:sig/adc', 'p:sig/filt', 'p:sig/fft', 'p:sig/loop', 'p:sig/enc', 'p:sig/obs', 'p:sig/lab', 'p:sig/q', 'f:sig'], ['sensors']),
+  ZN('rel', 3, 'אמינות ובטיחות פונקציונלית: MTBF, FMEA ו-PL', 'p:rel/why', ['p:rel/rate', 'p:rel/sys', 'p:rel/avail', 'p:rel/weib', 'p:rel/fmea', 'p:rel/fta', 'p:rel/pl', 'p:rel/lab', 'p:rel/q', 'f:rel'], ['relay']),
   ZN('meas', 2, 'מדידה: מולטימטר, סקופ וחיווט חיישנים', 'p:lab/dmm', ['p:lab/scope', 'p:lab/s-wire', 'f:meas'], ['sensors']),
   ZN('sensors', 1, 'חיישנים: קרבה, אופטי, טמפרטורה, גשר ו-Hall', 'p:lab/s-prox', ['p:lab/s-photo', 'p:lab/s-temp', 'p:lab/s-bridge', 'p:lab/s-hall', 'f:sensors']),
   /* 1 · components */
@@ -9214,7 +10119,7 @@ const ZCTX = { cam: 'AOI', trig: 'AOI', optics: 'AOI', laser: 'AOS', laserunit: 
 /* windows that are a whole existing page, and resources that serve every scale */
 const ZRES = [['p:path', 'מסלול'], ['p:topic', 'סימולטור תהליך'], ['p:pri', '12 עקרונות'], ['p:qb', 'מבחן טכני'], ['p:ch', 'ציד תקלות'], ['p:gl', 'מילון מושגים'], ['p:s0', 'הכנה לראיון'], ['p:b/grammar', 'דקדוק של סכמה'], ['p:b/quiz', 'חידון סמלים'], ['p:about', 'על הפרויקט']];
 /* topics that are not parts of the machine are appendices; the appendices view shows only the shared resources that are not old indexes */
-const ZAPPX = new Set(['ind', 'logic', 'meas']);
+const ZAPPX = new Set(['ind', 'logic', 'meas', 'stat', 'rel']);
 const ZRES_SHOWN = ZRES.filter(([r]) => !['p:path', 'p:topic', 'p:about'].includes(r));
 const zNode = id => ZOOM.find(n => n.id === id);
 const zParents = id => ZOOM.filter(n => n.parts.includes(id));
@@ -9330,7 +10235,7 @@ function zMountBase(w, el) {
 const WIN_BASE = WIN.add({ id: 'base', test: () => true, info: zInfoBase, mount: zMountBase });
 
 function zRouteTitle(r) {
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV }, [h, sub] = r.split('/');
   if (hubs[h]) { const x = sub ? hubs[h].find(n => n[0] === sub) : hubs[h][0]; if (x) return x[1]; }
   if (h === 's2' && SYSX[sub]) return SYSX[sub].title; if (h === 'lib') { const B = BOARDS.find(x => x.id === sub); return B ? (B.name || B.t || sub).replace(/<[^>]+>/g, '') : sub; }
   const bt = { board: 'קריאת כרטיס אמיתי', set: 'סט שרטוטים מלא', mech: 'שרטוט מכני מאפס', mdrill: 'קריאת שרטוט ייצור', decode: 'מפענחי ערכים', grammar: 'דקדוק של סכמה', quiz: 'חידון סמלים' };
@@ -9418,7 +10323,7 @@ function zWireSub() {
 function zCoverage() {
   const placed = new Set(ZOOM.flatMap(zWindows));
   const routes = []; document.querySelectorAll('nav.sheets button').forEach(b => routes.push(b.dataset.sheet));
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   Object.entries(hubs).forEach(([h, n]) => n.forEach(x => routes.push(h + '/' + x[0])));
   ['atlas', 'grammar', 'decode', 'quiz', 'board', 'set', 'mech', 'mdrill'].forEach(t => routes.push('b/' + t));
   COMPONENTS.forEach(c => routes.push('s1/' + c.id)); Object.keys(SYSX).forEach(k => routes.push('s2/' + k)); BOARDS.forEach(x => routes.push('lib/' + x.id));
@@ -9430,7 +10335,7 @@ function zCoverage() {
     if (r === 'mot/why') return has('m:why:') ? 'שלושת חלונות המנוע' : null;
     if (r === 'mot/lab') return placed.has('sim:mlab') ? 'סימולציית המנוע' : null;
     if (r === 'b/atlas') return has('a:') ? 'כרטיסי הרכיבים' : null;
-    if (['mot', 'dig', 'ser', 'pcb', 'int', 'brd', 'opt', 'b', 's1', 's2', 'lab'].includes(r)) return 'אינדקס של עמודים שכולם בעץ';
+    if (['mot', 'dig', 'ser', ...Object.keys(HUBX), 'pcb', 'int', 'brd', 'opt', 'b', 's1', 's2', 'lab'].includes(r)) return 'אינדקס של עמודים שכולם בעץ';
     return null;
   };
   const rows = [...new Set(routes)].map(r => ({ r, how: placed.has('p:' + r) ? 'tree' : res.has(r) ? 'res' : alias(r) ? 'alias' : 'missing', note: alias(r) }));
@@ -10545,6 +11450,86 @@ ANIMS.baud = { node: 'serial', t: 'UART: שגיאת קצב והדגימה שזז
   } };
 { const n = zNode('serial'); if (n && !n.around.includes('anim:baud')) n.around.unshift('anim:baud'); }
 INNER.ecat.push(IB('serial', 'פורטי שירות (UART) ושבב CAN', [-0.9, -0.55, -0.3, 0.3, 0, 0.15], [-1.0, 0, 0], 'text'));
+/* ============ Animations of the extra hubs (v2.64), and their place in the zoom tree and the 3D machine ============ */
+const hxPlot = (ctx, W, H) => { const x0 = 60, y0 = H - 50, w = W - 100, h = H - 110; ctx.strokeStyle = AC.text; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y0 - h); ctx.lineTo(x0, y0); ctx.lineTo(x0 + w, y0); ctx.stroke(); return { x0, y0, w, h }; };
+ANIMS.lsq = { node: 'fit', t: 'ריבועים פחותים: הקו שמקטין את סכום ריבועי השאריות',
+  params: [['n', 'מספר נקודות n', 3, 30, 1, 8, ''], ['sig', 'רעש σ', 0, 3, 0.1, 1, '']],
+  calc: P => { const g = hxRand(7), xs = [], ys = []; for (let i = 0; i < P.n; i++) { const x = 10 * i / (P.n - 1); xs.push(x); ys.push(.8 * x + 2 + P.sig * g()); } const L = lineFit(xs, ys); return { xs, ys, ...L, S: L.r.reduce((s, v) => s + v * v, 0), sh: P.n > 2 ? Math.sqrt(L.r.reduce((s, v) => s + v * v, 0) / (P.n - 2)) : 0 }; },
+  steps: [(P, V) => `${P.n} נקודות, והאמת היא y = 0.8x + 2 עם רעש σ = ${P.sig}.`,
+    (P, V) => `לכל קו מועמד, השארית בכל נקודה היא הקטע האנכי: rᵢ = yᵢ − a·xᵢ − b.`,
+    (P, V) => `מקטינים S = Σ rᵢ². הנגזרות לפי a ו-b מתאפסות, ומתקבל: a = <b>${V.a.toFixed(3)}</b>, b = <b>${V.b.toFixed(3)}</b>.`,
+    (P, V) => `S = ${V.S.toFixed(2)}, והערכת הרעש σ̂ = √(S / (n − 2)) = <b>${V.sh.toFixed(2)}</b>. יותר נקודות: a ו-b קרובים יותר לאמת.`],
+  draw(ctx, W, H, P, V, s) {
+    const A = hxPlot(ctx, W, H), X = x => A.x0 + x / 10 * A.w, Y = y => A.y0 - (y + 2) / 16 * A.h;
+    if (s >= 2) { ctx.strokeStyle = AC.live; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(0), Y(V.b)); ctx.lineTo(X(10), Y(V.a * 10 + V.b)); ctx.stroke(); }
+    ctx.strokeStyle = AC.tint; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(X(0), Y(2)); ctx.lineTo(X(10), Y(10)); ctx.stroke(); ctx.setLineDash([]);
+    V.xs.forEach((x, i) => { if (s >= 1) { const yh = (s >= 2 ? V.a * x + V.b : .8 * x + 2); ctx.strokeStyle = AC.mech; ctx.beginPath(); ctx.moveTo(X(x), Y(V.ys[i])); ctx.lineTo(X(x), Y(yh)); ctx.stroke(); } ctx.fillStyle = AC.ink; ctx.beginPath(); ctx.arc(X(x), Y(V.ys[i]), 4, 0, 7); ctx.fill(); });
+    ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('x', A.x0 + A.w + 6, A.y0 + 4); ctx.fillText('y', A.x0 - 14, A.y0 - A.h); ctx.fillText('dashed: truth · blue: least-squares fit · brown: residuals', A.x0, 24);
+  } };
+
+ANIMS.centroid = { node: 'img', t: 'מרכז כובד של כתם: דיוק תת-פיקסל',
+  params: [['off', 'הזזה אמיתית (px)', -0.5, 0.5, 0.01, 0.3, ''], ['w', 'רוחב הכתם σ (px)', 0.5, 3, 0.1, 1.2, ''], ['bg', 'רקע', 0, 40, 1, 20, '']],
+  calc: P => { const c = 4 + P.off, I = Array.from({ length: 9 }, (_, i) => P.bg + 100 * Math.exp(-((i - c) ** 2) / (2 * P.w * P.w))), raw = centroid(I), sub = centroid(I.map(v => v - P.bg)); return { c, I, raw, sub }; },
+  steps: [(P, V) => `הכתם האמיתי במרכז ${V.c.toFixed(2)} פיקסלים, על רקע של ${P.bg}.`,
+    (P, V) => `כל פיקסל מקבל בהירות לפי כמה מהכתם נפל עליו.`,
+    (P, V) => `מרכז כובד בלי החסרת רקע: x̄ = Σ x·I / Σ I = <b>${V.raw.toFixed(3)}</b>. הרקע מושך למרכז החלון (4).`,
+    (P, V) => `אחרי החסרת רקע: <b>${V.sub.toFixed(3)}</b>, שגיאה <b>${(V.sub - V.c).toFixed(3)}</b> פיקסל.`],
+  draw(ctx, W, H, P, V, s) {
+    const A = hxPlot(ctx, W, H), bw = A.w / 9, Y = v => A.y0 - v / 140 * A.h;
+    V.I.forEach((v, i) => { ctx.fillStyle = s >= 1 ? AC.tint : AC.cream; ctx.fillRect(A.x0 + i * bw + 2, Y(v), bw - 4, A.y0 - Y(v)); ctx.strokeStyle = AC.ink; ctx.strokeRect(A.x0 + i * bw + 2, Y(v), bw - 4, A.y0 - Y(v)); });
+    const X = x => A.x0 + (x + .5) * bw; ctx.strokeStyle = AC.ink; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(X(V.c), A.y0); ctx.lineTo(X(V.c), A.y0 - A.h); ctx.stroke(); ctx.setLineDash([]);
+    if (s >= 2) { ctx.fillStyle = AC.mech; ctx.beginPath(); ctx.arc(X(V.raw), A.y0 + 14, 6, 0, 7); ctx.fill(); }
+    if (s >= 3) { ctx.fillStyle = AC.live; ctx.beginPath(); ctx.arc(X(V.sub), A.y0 + 30, 6, 0, 7); ctx.fill(); }
+    ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('dashed: true centre · brown: centroid with background · blue: background removed', A.x0, 24);
+  } };
+ANIMS.cpk = { node: 'stat', t: 'Cp ו-Cpk: כשהתהליך זז או מתרחב',
+  params: [['mu', 'ממוצע μ', 30, 70, 0.5, 55, 'µm'], ['sd', 'פיזור σ', 3, 15, 0.5, 8, 'µm']],
+  calc: P => capab(P.mu, P.sd, 20, 80),
+  steps: [(P, V) => `הדרישה: 20 עד 80 µm. התהליך: ממוצע ${P.mu}, σ = ${P.sd}.`,
+    (P, V) => `Cp = (80 − 20) / (6σ) = <b>${V.cp.toFixed(2)}</b>: כמה פעמים ±3σ נכנס בטולרנס, בלי קשר למרכוז.`,
+    (P, V) => `Cpk = מרחק לגבול הקרוב / 3σ = <b>${V.cpk.toFixed(2)}</b>.`,
+    (P, V) => `מחוץ לדרישה: <b>${V.ppm < 1 ? V.ppm.toFixed(2) : Math.round(V.ppm)} ppm</b>. Cpk = 1.33 נותן בערך 32 ppm.`],
+  draw(ctx, W, H, P, V, s) {
+    const A = hxPlot(ctx, W, H), X = x => A.x0 + x / 100 * A.w, pdf = x => Math.exp(-(((x - P.mu) / P.sd) ** 2) / 2), Y = v => A.y0 - v * A.h * .9;
+    ctx.fillStyle = 'rgba(123,90,60,.35)'; for (let x = 0; x <= 100; x += .5) if ((x < 20 || x > 80) && s >= 3) ctx.fillRect(X(x), Y(pdf(x)), A.w / 200 + 1, A.y0 - Y(pdf(x)));
+    ctx.strokeStyle = AC.live; ctx.lineWidth = 2; ctx.beginPath(); for (let x = 0; x <= 100; x += .5) { const y = Y(pdf(x)); if (x === 0) ctx.moveTo(X(x), y); else ctx.lineTo(X(x), y); } ctx.stroke(); ctx.lineWidth = 1;
+    ctx.strokeStyle = AC.ink; [20, 80].forEach(l => { ctx.beginPath(); ctx.moveTo(X(l), A.y0); ctx.lineTo(X(l), A.y0 - A.h); ctx.stroke(); });
+    if (s >= 1) { ctx.fillStyle = 'rgba(48,120,176,.12)'; ctx.fillRect(X(P.mu - 3 * P.sd), A.y0 - A.h, X(P.mu + 3 * P.sd) - X(P.mu - 3 * P.sd), A.h); }
+    ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('LSL 20', X(20) + 4, A.y0 - A.h + 12); ctx.fillText('USL 80', X(80) + 4, A.y0 - A.h + 12); ctx.fillText('shaded band: mean ± 3σ · brown: out of specification', A.x0, 24);
+  } };
+ANIMS.alias = { node: 'sig', t: 'התחזות: תדר גבוה שנראה נמוך',
+  params: [['f', 'תדר האות f', 0.5, 19.5, 0.1, 9, 'kHz']],
+  calc: P => ({ fs: 10, fa: aliasF(P.f, 10), ok: P.f < 5 }),
+  steps: [(P, V) => `אות של ${P.f} kHz נדגם ב-fₛ = 10 kHz. תדר נייקוויסט: 5 kHz.`,
+    (P, V) => `הדגימות (נקודות) נלקחות כל 0.1 ms.`,
+    (P, V) => `דרך הנקודות עובר גם סינוס של <b>${V.fa.toFixed(1)} kHz</b>: f_alias = |f − k·fₛ|.`,
+    (P, V) => V.ok ? 'f קטן מ-fₛ/2, והתדר נשמר.' : `f מעל fₛ/2: אחרי הדגימה אי אפשר להבדיל בינו לבין ${V.fa.toFixed(1)} kHz. רק מסנן אנלוגי לפני הממיר מונע את זה.`],
+  draw(ctx, W, H, P, V, s) {
+    const A = hxPlot(ctx, W, H), T = 1.2, X = t => A.x0 + t / T * A.w, Y = v => A.y0 - A.h / 2 - v * A.h * .4;
+    ctx.strokeStyle = AC.tint; ctx.lineWidth = 1.5; ctx.beginPath(); for (let i = 0; i <= 600; i++) { const t = i / 600 * T; const y = Y(Math.sin(2 * Math.PI * P.f * t)); if (!i) ctx.moveTo(X(t), y); else ctx.lineTo(X(t), y); } ctx.stroke();
+    if (s >= 2) { const sg = Math.sign(Math.sin(2 * Math.PI * P.f * .1 * 1 + 1e-9)) || 1; ctx.strokeStyle = AC.mech; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i <= 600; i++) { const t = i / 600 * T; const k = Math.round(P.f / 10), y = Y(Math.sin(2 * Math.PI * (P.f - k * 10) * t)); if (!i) ctx.moveTo(X(t), y); else ctx.lineTo(X(t), y); } ctx.stroke(); }
+    if (s >= 1) { ctx.fillStyle = AC.ink; for (let n = 0; n * .1 <= T; n++) { const t = n * .1; ctx.beginPath(); ctx.arc(X(t), Y(Math.sin(2 * Math.PI * P.f * t)), 4.5, 0, 7); ctx.fill(); } }
+    ctx.lineWidth = 1; ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('light: the real signal · dots: samples · brown: what the samples show · time in ms', A.x0, 24);
+  } };
+ANIMS.weibull = { node: 'rel', t: 'Weibull: ילדות, אקראי ובלאי',
+  params: [['beta', 'צורה β', 0.5, 4, 0.1, 2, ''], ['t', 'זמן t', 0, 30000, 500, 5000, 'h']],
+  calc: P => { const eta = 1e4; return { eta, R: relWb(P.t, eta, P.beta), h: P.beta / eta * Math.pow(Math.max(P.t, 1) / eta, P.beta - 1), b10: eta * Math.pow(-Math.log(.9), 1 / P.beta) }; },
+  steps: [(P, V) => `R(t) = e^(−(t/η)^β), עם η = 10,000 h. ב-t = η נשארים 37% בכל β.`,
+    (P, V) => `β = ${P.beta}: ${P.beta < 1 ? 'קצב הכשל יורד, כשלי ילדות' : P.beta === 1 ? 'קצב כשל קבוע, אקראי' : 'קצב הכשל עולה, בלאי'}.`,
+    (P, V) => `ב-t = ${P.t} h: R = <b>${V.R.toFixed(3)}</b>, וקצב הכשל h = <b>${(V.h * 1e6).toFixed(0)}·10⁻⁶</b> לשעה.`,
+    (P, V) => `B10 (10% נכשלו) = η·(−ln 0.9)^(1/β) = <b>${Math.round(V.b10)} h</b>.`],
+  draw(ctx, W, H, P, V, s) {
+    const A = hxPlot(ctx, W, H), X = t => A.x0 + t / 30000 * A.w, Y = r => A.y0 - r * A.h;
+    ctx.strokeStyle = AC.live; ctx.lineWidth = 2; ctx.beginPath(); for (let t = 0; t <= 30000; t += 150) { const y = Y(relWb(t, V.eta, P.beta)); if (!t) ctx.moveTo(X(t), y); else ctx.lineTo(X(t), y); } ctx.stroke();
+    if (s >= 1) { const hm = P.beta / V.eta * Math.pow(3, Math.max(P.beta - 1, 0)) * 1.05 + 1e-12; ctx.strokeStyle = AC.mech; ctx.beginPath(); for (let t = 150; t <= 30000; t += 150) { const h = P.beta / V.eta * Math.pow(t / V.eta, P.beta - 1), y = Y(Math.min(h / hm, 1)); if (t === 150) ctx.moveTo(X(t), y); else ctx.lineTo(X(t), y); } ctx.stroke(); }
+    ctx.lineWidth = 1; ctx.strokeStyle = AC.ink; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(X(P.t), A.y0); ctx.lineTo(X(P.t), A.y0 - A.h); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = AC.text; ctx.font = '12px system-ui, sans-serif'; ctx.fillText('blue: reliability R(t) · brown: failure rate h(t), scaled · axis: 0 to 30,000 h', A.x0, 24);
+  } };
+/* the extra hubs as zoom nodes: put every animation first in its node */
+['lsq', 'centroid', 'cpk', 'alias', 'weibull'].forEach(id => { const n = zNode(ANIMS[id].node); if (n && !n.around.includes('anim:' + id)) n.around.unshift('anim:' + id); });
+INNER.laser.push(IB('fit', 'מעבד הרישום וההתאמה', [-0.95, -0.65, -0.2, 0.2, -0.6, -0.4], [-1.0, 0, -0.5], 'text'));
+INNER.cam.push(IB('img', 'מעבד התמונה', [0.75, 1.0, -0.2, 0.2, -0.6, -0.4], [1.0, 0, -0.5], 'text'));
+INNER.servo.push(IB('sig', 'כרטיס הבקר: מסננים ולולאה', [0.9, 1.2, -0.25, 0.25, 0.3, 0.45], [1.2, 0, 0.4], 'text'));
 /* ============ A live AOI scan, from the line to the AOI-to-AOS record; and vacuum hold against the depth of field ============
    Bare-board copper only (the scope of this book): shorts, excess copper and residue go to laser removal;
    opens, nicks and pinholes are missing copper, which a laser cannot remove. Nothing moves until the learner presses start,
@@ -11510,7 +12495,7 @@ function zWorldView() {
 }
 /* ============ The learning path and the practice (v2.45) ============
    The tree and the machine show everything there is; this file says where to start and what to do next.
-   - Seven parallel tracks cover the 40 topics once each (a track is a line of stages, a stage is one topic). Four central subjects
+   - Seven parallel tracks cover the 45 topics once each (a track is a line of stages, a stage is one topic). Four central subjects
      (calibration, noise and grounding, heat, failure analysis) gather what used to be scattered across pages, and are tracks too.
    - A stage is practised in short sessions: six cards, three lives, a wrong card comes back once at the end, every card goes
      into the one spaced-repetition store the review tab already uses (`fh-review`, boxes of 1, 3, 7 and 21 days).
@@ -11524,10 +12509,10 @@ const PATHKEY = 'fh-path', PLIVES = 3, PCARDS = 6, PCROWNS = 3;
 const PTRACKS = [
   { id: 'el', icon: '⚡', t: 'חשמל בסיסי', why: 'הרכיבים שכל מעגל בנוי מהם: מהנגד ועד השנאי.', stages: ['resistor', 'source', 'switch', 'fuse', 'capacitor', 'diode', 'coil', 'xfmr', 'mosfet', 'connector'] },
   { id: 'ci', icon: '🔌', t: 'מעגלים, מדידה וספק', why: 'ממסר, PWM, לוגיקה, מדידה וחיישנים, ואיך מזינים את הכול.', stages: ['relay', 'pwm', 'meas', 'sensors', 'logic', 'psu', 'pwr'] },
-  { id: 'mo', icon: '⚙️', t: 'תנועה ובקרה', why: 'מנוע, אנקודר, בלם, תמסורת ולולאת הבקרה, עד ציר סרבו שלם.', stages: ['motor', 'enc', 'brake', 'fits', 'trans', 'loop', 'servo'] },
-  { id: 'op', icon: '👁️', t: 'ראייה ולייזר', why: 'עדשה, טריגר, רישום, מצלמה, ומקור הלייזר שמתקן.', stages: ['optics', 'trig', 'reg', 'cam', 'laserunit', 'laser'] },
-  { id: 'sa', icon: '🛡️', t: 'אוויר ובטיחות', why: 'שסתום, שולחן ואקום, interlock ושרשרת הבטיחות.', stages: ['valve', 'vac', 'interlock', 'safety'] },
-  { id: 'sy', icon: '🧠', t: 'בקרה, תקשורת ותהליך', why: 'כרטיסי קלט/פלט, EtherCAT, מחזור הבדיקה, הפעלה ראשונה והקו כולו.', stages: ['iocards', 'serial', 'ecat', 'proc', 'bringup', 'ind'] }
+  { id: 'mo', icon: '⚙️', t: 'תנועה ובקרה', why: 'מנוע, אנקודר, בלם, תמסורת ולולאת הבקרה, עד ציר סרבו שלם.', stages: ['motor', 'enc', 'brake', 'fits', 'trans', 'loop', 'sig', 'servo'] },
+  { id: 'op', icon: '👁️', t: 'ראייה ולייזר', why: 'עדשה, טריגר, רישום, מצלמה, ומקור הלייזר שמתקן.', stages: ['optics', 'trig', 'reg', 'img', 'fit', 'cam', 'laserunit', 'laser'] },
+  { id: 'sa', icon: '🛡️', t: 'אוויר ובטיחות', why: 'שסתום, שולחן ואקום, interlock ושרשרת הבטיחות.', stages: ['valve', 'vac', 'interlock', 'safety', 'rel'] },
+  { id: 'sy', icon: '🧠', t: 'בקרה, תקשורת ותהליך', why: 'כרטיסי קלט/פלט, EtherCAT, מחזור הבדיקה, הפעלה ראשונה והקו כולו.', stages: ['iocards', 'serial', 'ecat', 'proc', 'bringup', 'stat', 'ind'] }
 ];
 /* the four central subjects: what they gather, in a typical order; every item points at topics that already exist and at question-bank cards */
 const PCENTRAL = [
@@ -11573,7 +12558,7 @@ const PQMAP = {
   trig: 'Q34 Q38 Q59', optics: 'Q35 Q36 Q37 Q43 Q55 Q56 Q57 Q58 Q61 Q62', reg: 'P03 P09', loop: 'Q39 Q33 Q41 M07', trans: 'Q41 Q33', valve: 'Q42 Q24', interlock: 'Q40 Q44 Q02',
   laserunit: 'P04 P05 P06 P16', psu: 'Q17 Q18 Q54 P12 M15', iocards: 'Q27 Q28 Q29 Q30 Q31 Q32 Q45 Q46 Q47 Q48 Q49 Q50 Q51 Q52 Q53 Q54 Q68', relay: 'Q20 Q22 Q23 Q63 Q67 Q69', enc: 'Q33 Q39',
   motor: 'M01 M02 M03 M04 M05 M06 M07 M08 M09 M10 M11 M12', pwm: 'Q13 Q21 M15', brake: 'Q22 Q23', fits: 'P09', logic: 'Q04 Q05 Q06 Q07 Q08 Q09 Q10 Q70 Q71 Q72 Q73 Q74 Q75 Q76 Q77 Q78 Q79',
-  serial: 'Q80 Q81 Q82 Q83 Q84 Q85 Q86 Q87 Q88 Q89', meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
+  img: 'Q95 Q96 Q97 Q98 Q99', stat: 'Q100 Q101 Q102 Q103 Q104 P14', sig: 'Q105 Q106 Q107 Q108 Q109', rel: 'Q110 Q111 Q112 Q113 Q114', fit: 'Q90 Q91 Q92 Q93 Q94 P03 P09', serial: 'Q80 Q81 Q82 Q83 Q84 Q85 Q86 Q87 Q88 Q89', meas: 'Q27 Q28 Q30 Q32', sensors: 'Q19 Q15 Q16', resistor: 'Q11 Q03 Q18', capacitor: 'Q12 Q13 Q17 Q45', coil: 'Q23 Q69 Q67', diode: 'Q18 Q22 Q23', mosfet: 'Q20 Q21 Q26 Q64 Q65 Q66',
   fuse: 'Q47 M01 M13', switch: 'Q01 Q02 Q10 Q44', source: 'Q19 Q54 Q03', xfmr: 'M13 M14 Q17', connector: 'Q29 Q31 Q27'
 };
 /* every track including the central subjects, and every stage by id */
@@ -13143,7 +14128,7 @@ const BOOK = [
         why: 'בורג כדורי הופך סיבוב לתנועה קווית, וכל חלק מכני מגיע עם טולרנס. backlash הוא הפער שהבקר לא רואה.',
         goals: ['לקרוא שרטוט מכני וטולרנסים', 'להסביר backlash ואיך מודדים אותו', 'לחשב תנועה לפי פסיעת הבורג'],
         bridge: 'עכשיו סוגרים את הלולאה: בקר שמשווה בין מה שביקשו למה שנמדד.' },
-      { id: 'b13', t: 'לולאת בקרה וציר סרבו', nodes: ['loop', 'servo'], pre: ['b10', 'b11', 'b12'],
+      { id: 'b13', t: 'לולאת בקרה וציר סרבו', nodes: ['loop', 'sig', 'servo'], pre: ['b10', 'b11', 'b12'],
         why: 'ציר סרבו הוא לולאה סגורה: פקודה, שגיאה, תיקון. היא מתקנת רק את מה שהיא מודדת, וזה מסביר חצי מתקלות התנועה.',
         goals: ['להסביר שגיאת מעקב (following error) ומה מגדיל אותה', 'להסביר מה עושה כל איבר ב-PID', 'לאבחן ציר שרוטט או בורח'],
         bridge: 'הצירים מזיזים את הפאנל מתחת למצלמה. בחלק הבא: איך רואים אותו.' } ] },
@@ -13157,7 +14142,7 @@ const BOOK = [
         why: 'מצלמת line-scan מצלמת שורה בכל פולס מהאנקודר, והסטרוב מאיר בדיוק אז. מיקום, לא זמן.',
         goals: ['לחשב קצב שורות מהמהירות ומגודל הפיקסל', 'להסביר טשטוש תנועה ואיך הבזק קצר מונע אותו', 'לאבחן תמונה מתוחה או כהה'],
         bridge: 'יש תמונה. עכשיו צריך לדעת איפה היא ביחס לתכנון.' },
-      { id: 'b16', t: 'מצלמה ורישום', nodes: ['cam', 'reg'], pre: ['b15'],
+      { id: 'b16', t: 'מצלמה, רישום והתאמה', nodes: ['cam', 'reg', 'img', 'fit'], pre: ['b15'],
         why: 'המצלמה בונה תמונה מהשורות, והרישום מתאים אותה לתכנון לפי fiducials. בלי רישום, כל פגם נמצא במקום הלא נכון.',
         goals: ['להסביר שדה ראייה, רוחב מעבר וזמן סריקה', 'להסביר איך שני fiducials נותנים היסט, סיבוב וקנה מידה', 'לאבחן יישור שנכשל'],
         bridge: 'מה שנמצא, צריך לתקן. הפרק הבא הוא הלייזר.' },
@@ -13171,7 +14156,7 @@ const BOOK = [
         why: 'שסתום שבקר מפעיל, ונטורי שיוצר יניקה, ומתג לחץ שמאשר. כל אחד מהם יכול לעצור את המכונה.',
         goals: ['להסביר שאיבה מעריכית, לחץ יציב וקבוע זמן', 'לחשב כוח הצמדה מוואקום ומשטח', 'לאבחן ואקום שלא מגיע לסף'],
         bridge: 'השולחן אוחז. עכשיו מי שומר על מי שעומד ליד המכונה.' },
-      { id: 'b19', t: 'interlock ושרשרת הבטיחות', nodes: ['interlock', 'safety'], pre: ['b2', 'b5'],
+      { id: 'b19', t: 'interlock ושרשרת הבטיחות', nodes: ['interlock', 'safety', 'rel'], pre: ['b2', 'b5'],
         why: 'בטיחות לא עוברת דרך התוכנה: שני ערוצים, ממסר בטיחות ו-STO. תקלה סבירה צריכה להיראות כמו "עצור".',
         goals: ['להסביר שני ערוצים, ממסר בטיחות ו-Reset ידני', 'להסביר STO ולחשב מרחק עצירה', 'לאבחן מגע מרותך או ערוץ פתוח'],
         bridge: 'כל המערכות האלה מדברות עם הבקר. החלק הבא: כרטיסים ותקשורת.' } ] },
@@ -13187,7 +14172,7 @@ const BOOK = [
         why: 'פאנל נכנס, נאחז, נרשם, נסרק, החשדות מאומתים, והעודף מוסר בלייזר. מחזור אחד, כל המערכות.',
         goals: ['לתאר מחזור AOI ומחזור AOS שלב אחרי שלב', 'להסביר false call מול escape', 'למצוא באיזה שלב נשבר מחזור'],
         bridge: 'מכונה חדשה צריך להפעיל לראשונה ולקבל. זה הפרק הבא.' },
-      { id: 'b22', t: 'הפעלה ראשונה ו-ATP', nodes: ['bringup'], pre: ['b21', 'b19', 'b9'],
+      { id: 'b22', t: 'הפעלה ראשונה ו-ATP', nodes: ['bringup', 'stat'], pre: ['b21', 'b19', 'b9'],
         why: 'הפעלה ראשונה היא סדר: בלי מתח, מתח בלי תנועה, תנועה בלי תהליך. ATP הוא ההוכחה שהמכונה עומדת בדרישות.',
         goals: ['לבצע הפעלה ראשונה בסדר בטוח', 'להסביר חזרתיות ומה זה מבחן קבלה', 'להסביר למה מכיילים אחרי warm-up'],
         bridge: 'מכונה אחת עובדת. איפה היא בקו, ומה הלקוח מודד?' },
@@ -13833,7 +14818,7 @@ function bqMount(el, card, seed, done) {
      to come back to the chapter;
    - certification of a chapter is its test (80%) and every fault scenario that lives in it, solved; the course certificate is
      every chapter and the final exam, printable. */
-const BOOK_SUBJ = { draw: 'b1', mechdraw: 'b12', dig: 'b8', meas: 'b7', elec: 'b10', servo: 'b13', vac: 'b18', cam: 'b16', aos: 'b17', pwr: 'b9', ecat: 'b20', serial: 'b20', safety: 'b19', aoi: 'b21', boards: 'b27', bringup: 'b22', industry: 'b23', res: 'b28' };
+const BOOK_SUBJ = { draw: 'b1', mechdraw: 'b12', dig: 'b8', meas: 'b7', elec: 'b10', servo: 'b13', vac: 'b18', cam: 'b16', aos: 'b17', pwr: 'b9', ecat: 'b20', serial: 'b20', fit: 'b16', img: 'b16', stat: 'b22', sig: 'b13', rel: 'b19', safety: 'b19', aoi: 'b21', boards: 'b27', bringup: 'b22', industry: 'b23', res: 'b28' };
 const bookNodeCh = n => n ? Object.values(bookCh()).find(c => (c.nodes || []).includes(n.id || n)) : null;
 /* the topic an asset belongs to, if it belongs to one */
 function bookRefNode(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.slice(ref.indexOf(':') + 1), win = w => ZOOM.find(n => zWindows(n).includes(w)) || null;
@@ -13854,7 +14839,7 @@ function bookExpand(ref) { const k = ref.slice(0, ref.indexOf(':')), v = ref.sli
   return k === 'x' ? [] : [ref]; }
 /* the place an asset opens, and so what it is (v2.58): a hub's root is its first page, a system's page is its first stage ("from zero"),
    the card library's page is its first card, and a page's long reading or formulas are the page. Two refs with one place are one item. */
-const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
+const BOOK_HUBS = () => ({ mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV, b: [['atlas']] });
 function bookTarget(a) { const k = a.slice(0, a.indexOf(':')), v = a.slice(a.indexOf(':') + 1);
   if (k === 's2') { const [id, st] = v.split('#'); return 's2:' + id + '#' + (st || 'zero'); }
   if (k !== 'p') return a;
@@ -14307,7 +15292,7 @@ function buildSearch() {
   const tabName = s => { const b = document.querySelector(`nav.sheets [data-sheet="${s}"]`); return b ? b.firstChild.textContent.trim() : s; };
   const I = [];
   document.querySelectorAll('nav.sheets button').forEach(b => I.push({ t: b.firstChild.textContent.trim(), k: b.textContent, type: 'לשונית', r: b.dataset.sheet }));
-  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
+  const hubs = { mot: MOT_NAV, dig: DIG_NAV, ser: SER_NAV, ...hubxNavs(), pcb: PCB_NAV, lab: LAB_NAV, int: INT_NAV, brd: BRD_NAV, opt: OPT_NAV };
   Object.entries(hubs).forEach(([h, nav]) => nav.forEach(n => I.push({ t: n[1], k: n[1] + ' ' + (n[2] || ''), type: tabName(h), r: h + '/' + n[0] })));
   COMPONENTS.forEach(c => I.push({ t: plain(c.name), k: plain(c.name) + ' ' + (c.en || ''), type: 'רכיב', r: 's1/' + c.id }));
   Object.entries(SYSX).forEach(([id, x]) => I.push({ t: x.title, k: x.title + ' ' + (x.sub || ''), type: 'מערכת', r: 's2/' + id }));
@@ -15206,7 +16191,7 @@ function showS0() {
 function go(sheet, arg) {
   GO_BEFORE.forEach(f => f(sheet, arg));
   document.querySelectorAll('nav.sheets button').forEach(b => b.setAttribute('aria-selected', b.dataset.sheet === sheet));
-  ({ zoom: (a) => showZoom(a), about: showAbout, path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, ser: showSer, brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
+  ({ zoom: (a) => showZoom(a), about: showAbout, path: showPath, pri: showPri, lab: showLab, pcb: showPcb, mot: showMot, topic: showTopic, gl: showGloss, int: showInt, dig: showDig, ser: showSer, ...hubxRoutes(), brd: showBoards, opt: showOptics, qb: showQB, ch: showCH2, b: showB, s0: showS0, s1: showS1, s2: showSys, s3: showS3, s4: showS4 })[sheet](arg);
   if (sheet === 's3' || sheet === 's4') markVisit(sheet);
   if (FH_RET && sheet !== 'ch') { const r = FH_RET; const bar = document.createElement('div'); bar.className = 'retbar'; bar.innerHTML = `<button type="button" class="btn primary">חזרה לתקלה ${r}</button>`; bar.querySelector('button').addEventListener('click', () => { FH_RET = null; playScn(r); }); content.prepend(bar); }
   window.scrollTo(0, 0);
@@ -15262,7 +16247,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.63.0';
+const APP_VERSION = '2.64.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
