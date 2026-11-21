@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.68.0] — 2026-11-22
+
+Every algorithm page now has something to move, and the whole AOI to AOS chain can be played.
+
+- **The chain, as one figure** (`fit/pipe`, inside the inspection cycle): calibration, AOI registration, the defect centre in the image, AOS registration, the stage and the laser pointing each add error; bars per stage, the RSS at a defect 250 mm from the centre, and 300 simulated laser shots against the tolerance, with the share of hits and the dominant stage.
+- **17 more live figures** (`src/39u-hxsim3.js`, 44 in all): least squares as a projection (the residual is perpendicular); Procrustes with and without centring; affine against rigid under heat, rotation and noise; the sub-pixel edge (blur, noise, threshold); a fiducial centroid with background, noise and dirt; comparison to design, where half a pixel of misregistration makes false calls along every edge; Monte Carlo against the RSS uncertainty and k; Cp and Cpk from a sample; the ROC curve; frequency folding; RC against moving average at 50 Hz; one Kalman step as three Gaussians; a reliability block diagram with redundancy where it matters; a year of failures and repairs; FMEA actions against the action line; and MTTF_D from B10D with the bands of ISO 13849-1.
+- The PL figure states only what the standard's bands say (MTTF_D, diagnostic coverage, maximum PL per category) and points to the standard's chart for the PL itself.
+
 ## [2.67.0] — 2026-11-22
 
 The algorithms can be seen and moved.

@@ -7,7 +7,7 @@ const problems = []; let checks = 0; const ok = (c, m) => { checks++; if (!c) pr
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1100, height: 900 } }); const errs = []; pg.on('pageerror', e => errs.push(e.message));
 await pg.goto(INDEX); await pg.waitForTimeout(400);
 const routes = await pg.evaluate(() => Object.keys(HXSIM_AT));
-ok(routes.length >= 25, 'at least 25 live figures (' + routes.length + ')');
+ok(routes.length >= 44, 'at least 44 live figures (' + routes.length + ')');
 for (const r of routes) {
   const [h, s] = r.split('/'); await pg.evaluate(([h, s]) => go(h, s), [h, s]); await pg.waitForTimeout(80);
   const R = await pg.evaluate(() => { const x = document.querySelector('#content .hxs'); if (!x) return { none: true }; const svg = () => x.querySelector('.hxs-fig').innerHTML, out = () => x.querySelector('.hxs-out').textContent, s0 = svg(), o0 = out(); let bad = /NaN|Infinity|undefined/.test(s0 + o0), moved = false;
