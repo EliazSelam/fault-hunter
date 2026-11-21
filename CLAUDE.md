@@ -166,4 +166,5 @@ Every new English term must be defined (in `TERM_NEW` in `src/58-terms.js`, or i
 - `src/39l-hubx.js`: `hubX(key, cfg)` registers a hub (tab in `00-shell.html`, `nav`, `pages` returning HTML, optional `mount` for live parts, `qt` question topic). Hub lists everywhere use `...hubxNavs()` and routes `...hubxRoutes()`; `tests/verify.mjs` walks `HUBX`.
 - Hubs: `fit` (39m), `img` (39n), `stat` (39o), `sig` (39p), `rel` (39q). Their formula boxes and symbols are in `71f-hubx-math.js`, animations and 3D parts in `87c-hubx-anim.js`, term links and categories in `58c-hubx-terms.js`.
 - A hub term goes through `hxTerm(hub, key, [full, short])`: if the glossary already has the key it is only linked (listed in `HXDUP`), and if the lexicon has it the hub's copy is dropped.
+- The topic list (`src/99c-toc.js`): `tocTree()` (book chapters → zoom nodes, then nodes in no chapter), `tocLevels(n)` (lesson pages, then HUBS levels), state in `TS`, opened windows in localStorage `fh-toc`. Its DOM is outside `#content` and uses toc-* classes and data-tc/tn/tl/tw, so no other suite counts it. `TOC_NEW` lists the nodes marked new.
 

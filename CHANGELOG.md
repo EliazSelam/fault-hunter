@@ -2,6 +2,15 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.65.0] — 2026-11-21
+
+Everything in one ordered list, beside every page.
+
+- **"רשימת הנושאים לפי הסדר"** (`src/99c-toc.js`): the book's chapters in order; under each chapter its topics; under each topic its lesson pages first and then its explanation levels (essence, flow, engineer, math, reverse engineering, faults, integration); under each level its windows. Every item opens in place.
+- Only the chapter and the topic you are in are open, and they open by themselves when you navigate. Where you are is highlighted, what you opened is ticked (with a count per topic and per level), and the topics added in 2.63 and 2.64 carry "חדש" (their chapters show a dot while closed). A filter finds a topic by a word.
+- Wide screens (1500 px and more) keep the list docked on the right; narrower screens and phones open it from the header button and close it when you choose an item. Palette colours only.
+- Tests: new suite `toc` (every topic once, book order, current page, new badges, every item of seven topics opens its window, filter, phone drawer, no horizontal scroll). 18 suites.
+
 ## [2.64.0] — 2026-11-21
 
 Five hubs for the algorithms and the engineering around the machine.
