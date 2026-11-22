@@ -2,7 +2,7 @@
 /* the machine leads; what is outside it is an appendix. Every other tab is still a page, reached from inside the machine. */
 const NAV_GROUPS = [
   ['machine', 'המכונה', 'בתלת-ממד, עץ, זום', ['zoom']],
-  ['appx', 'נספחים', 'תרגול, עקרונות, מילון, ראיון', ['qb', 'ch', 'pri', 'gl', 's4', 's0']],
+  ['appx', 'תרגול ומשאבים', 'מבחן, ציד תקלות, מילון, ראיון', ['qb', 'ch', 'pri', 'gl', 's4', 's0']],
   ['about', 'על הפרויקט', 'Eliaz Selam', ['about']]
 ];
 const groupOf = sheet => (NAV_GROUPS.find(g => g[3].includes(sheet)) || NAV_GROUPS[0])[0];

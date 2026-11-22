@@ -12,7 +12,7 @@
 const PATHKEY = 'fh-path', PLIVES = 3, PCARDS = 6, PCROWNS = 3;
 /* the tracks: every zoom topic exactly once, in learning order inside the track */
 const PTRACKS = [
-  { id: 'el', icon: '⚡', t: 'חשמל בסיסי', why: 'הרכיבים שכל מעגל בנוי מהם: מהנגד ועד השנאי.', stages: ['resistor', 'source', 'switch', 'fuse', 'capacitor', 'diode', 'coil', 'xfmr', 'mosfet', 'connector'] },
+  { id: 'el', icon: '⚡', t: 'חשמל בסיסי', why: 'הרכיבים שכל מעגל בנוי מהם, בסדר של הספר: מהנגד ועד הטרנזיסטור.', stages: ['resistor', 'source', 'switch', 'fuse', 'connector', 'capacitor', 'coil', 'xfmr', 'diode', 'mosfet'] },
   { id: 'ci', icon: '🔌', t: 'מעגלים, מדידה וספק', why: 'ממסר, PWM, לוגיקה, מדידה וחיישנים, ואיך מזינים את הכול.', stages: ['relay', 'pwm', 'meas', 'sensors', 'logic', 'psu', 'pwr'] },
   { id: 'mo', icon: '⚙️', t: 'תנועה ובקרה', why: 'מנוע, אנקודר, בלם, תמסורת ולולאת הבקרה, עד ציר סרבו שלם.', stages: ['motor', 'enc', 'brake', 'fits', 'trans', 'loop', 'sig', 'servo'] },
   { id: 'op', icon: '👁️', t: 'ראייה ולייזר', why: 'עדשה, טריגר, רישום, מצלמה, ומקור הלייזר שמתקן.', stages: ['optics', 'trig', 'reg', 'img', 'fit', 'cam', 'laserunit', 'laser'] },

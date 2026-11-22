@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Build, then run every check. Exit code is non-zero if any suite fails.
 # Usage: tests/run_all.sh            (all suites)
-#        tests/run_all.sh models     (only the named suites: build, verify, models, teach, scenarios, figures, terms, topics, map, zoom, sims, path, book, labs, backup, textbook, math, toc, live, progress)
+#        tests/run_all.sh models     (only the named suites: build, verify, models, teach, scenarios, figures, terms, topics, map, zoom, sims, path, book, labs, backup, textbook, math, toc, live, progress, find)
 set -u
 cd "$(dirname "$0")/.."
 OUT="${VALIDATE_OUT:-$(mktemp -d)}"; export VALIDATE_OUT="$OUT"
 want() { [ $# -eq 0 ] && return 0; for a in $SEL; do [ "$a" = "$1" ] && return 0; done; return 1; }
-SEL="${*:-build verify models teach scenarios figures terms topics map zoom sims path book labs backup textbook math toc live progress}"
+SEL="${*:-build verify models teach scenarios figures terms topics map zoom sims path book labs backup textbook math toc live progress find}"
 declare -a RES; FAIL=0
 run() { local name="$1"; shift; if want "$name"; then
   "$@" > "$OUT/$name.log" 2>&1; local rc=$?
@@ -33,6 +33,7 @@ run math node tests/math_audit.mjs
 run toc node tests/toc_audit.mjs
 run live node tests/hxsim_audit.mjs
 run progress node tests/progress_audit.mjs
+run find node tests/find_audit.mjs
 printf '%s\n' "${RES[@]}"
 echo "index.html: $(wc -c < index.html) bytes · logs: $OUT"
 if [ $FAIL -ne 0 ]; then echo "---- failures"; grep -h "^FAIL\|^✗\|^  " "$OUT"/*.log | head -60; exit 1; fi

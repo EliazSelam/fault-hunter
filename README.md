@@ -38,7 +38,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs twenty suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs twenty-one suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|
@@ -54,6 +54,11 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | textbook | The book as a textbook: every chapter read whole (each item once, every exercise answered, every calculation with a tolerance), every control pressed without leaving the chapter, all 282 places opened in frames where they say, the notebook, my questions, the calculator, the drawer, one way back, a phone, and every fault's help to learn it (39 checks) |
 | backup | The progress backup: carried between three separate browsers by code and by file, it arrives exactly; nothing else leaves; a broken or foreign backup changes nothing; the undo restores exactly (23 checks) |
 | labs | The 25 3D labs: each mounts, runs and frees its WebGL context, and its numbers are recomputed from the textbook formula; every lab, the vacuum table, the safety chain and the scan head are checked on the rendered pixels at desktop and phone size (250 checks); every topic has an animated or 3D window |
+| math | The math level everywhere: every topic has one, every derivation and formula box names each symbol with its unit and meaning, and a derivation lives in one place |
+| toc | The topic list beside every page: every topic once in the book's order, where you are, what is new, and every item opens |
+| live | The 44 live figures of the algorithm pages: each draws, survives every slider at both ends, reacts, and shows up inside its machine topic |
+| progress | The progress dashboard: every number recomputed from what the course keeps, the daily log, every drawing, the controls, the backup, a phone |
+| find | Finding and moving: every topic, chapter and view is the first hit for its own name, old pages open inside their topic, every topic leads to the one before and after it in the book, every topic has level 0 and level 5, page windows name their page, the path follows the book, the frame on a phone |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 

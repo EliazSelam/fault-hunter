@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.70.0] — 2026-11-22
+
+Finding things and moving between them: an audit of the whole site on navigation, clarity and the learning method, and the first round of fixes.
+
+- **Search** knows the 45 topics, the 29 chapters of the book, the views (the book, the dashboard, the path…), the central subjects and 147 simulations, labs and live figures, and ranks them first. A hit on an old page (a system, an algorithm page) opens the window that holds it inside its topic, so it never leaves the machine tree.
+- **Every topic page says where it sits in the book**: its chapter, its place in the chapter, and the topics before and after it (at the top, and as two large buttons at the end).
+- **Every topic has something to see first and questions in level 5**: an algorithm topic's lab is now its level 0 and its question page its level 5. Of the 22 topics that had nothing in level 5, 8 get their question page there and the other 14 (all 10 basic components among them) get a window with their practice cards and a button that starts a session; the book keeps its own exercises and leaves these windows out.
+- **Page windows say what they open**: the 93 windows that open a whole page show its name and what it covers, instead of one generic sentence.
+- **The learning path follows the book**: the basic-electricity track had 7 places where it disagreed with the book's order.
+- **The frame**: the views bar is complete from the first page drawn (the dashboard was missing until a second page), a link straight to the dashboard opens it, a tab bar with a single tab is hidden, the theme button says "dark mode" or "light mode", the top area for practice and resources is called that instead of a second "appendices", and the dashboard says its 45 topics are 40 in the machine and 5 appendices.
+- **On a phone**: the description folds away and the views bar and the topics of the same scale are one row you scroll sideways; a topic's title moves up from 1164 to 690 px, and the views bar from four rows (164 px) to one (40 px).
+- Tests: new suite `find` (26 checks). 21 suites.
+
 ## [2.69.0] — 2026-11-22
 
 Progress, measured: one page that shows what was opened, what stays, how fast, and what is next.

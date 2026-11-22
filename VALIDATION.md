@@ -110,6 +110,10 @@ A chapter must be readable whole without leaving it. The suite reads every chapt
 
 The dashboard may only show what the course keeps. The suite opens it for a new visitor (six cards at zero against the true totals, no forecast, nothing undefined), checks that a navigation logs a view for today and that a window counts once, the first time it is opened, then seeds a history and recomputes every number itself: the share of windows opened, solved questions only, chapters read and passed exams only, a streak that stops at the first empty day, and the forecast as what is left over the pace of the last 14 days. It counts one ring per track, 35 heatmap days, a bar per chapter, question topic and level, presses the range buttons, a chapter bar, a ring and the topic list's button, checks the backup carries the log, the palette, and a phone in one column with nothing wider than the screen.
 
+## 6f. Finding and moving (`tests/find_audit.mjs`)
+
+Content that cannot be found is content that does not exist for the learner. The suite searches for every topic, chapter and view by its own name and requires it to be the first hit; opens a topic, a chapter, an old system page, an algorithm page and a 3D lab from the search and checks each lands inside the machine tree with its window open; walks the book's order of topics (each once, no step backwards) and presses the next and chapter buttons; requires every topic to have something in level 0 and questions in level 5, with one home per window; mounts every page window and requires its page's name and an open button; checks the learning path against the book inside every track; the views bar on the first page and the deep link to the dashboard; the tab bar, the theme button; and a phone, where the views bar is one row and nothing is wider than the screen.
+
 ## 7. One command (`tests/run_all.sh`)
 
-Builds, then runs all twenty suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.
+Builds, then runs all twenty-one suites and prints one line each. The project skill `.claude/skills/fh-validate` makes this the gate before any commit or publish.

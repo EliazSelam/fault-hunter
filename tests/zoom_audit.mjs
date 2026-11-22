@@ -232,9 +232,9 @@ await pg.evaluate(() => go('zoom', 'cam')); await pg.waitForTimeout(500);
 ok(await pg.evaluate(() => { const el = document.querySelector('#hubpanel .zbody'); el.act.setState({ v: 1, step: 2, camera: [{ yaw: 1.1, pitch: 0.9, dist: 8 }] }); const c = el.querySelector('canvas')._V.st, s = el.act.getState(); return Math.abs(c.yaw - 1.1) < 1e-9 && Math.abs(c.pitch - 0.9) < 1e-9 && c.dist === 8 && s.step === '2' && s.camera[0].yaw === 1.1; }), 'step 4: a 3D scene\u2019s camera and step are read and set through its handle');
 ok(await pg.evaluate(() => { const h = HS.snap; return Object.values(h).every(s => s.v === 1 && typeof s.w === 'string'); }), 'step 4: saved snapshots carry a version and their window');
 /* stage 2, step 3: sections */
-ok(await pg.evaluate(() => NODE_SECTIONS.map(s => s.id).join() === 'visit,path,crumb,title,mastery,hub,children'), 'step 3: the topic page is the sections visit, path, crumb, title, mastery, hub, children, in that order');
+ok(await pg.evaluate(() => NODE_SECTIONS.map(s => s.id).join() === 'visit,path,crumb,title,seq,mastery,hub,children,seqend'), 'step 3: the topic page is the sections visit, path, crumb, title, its place in the book, mastery, hub, children, the next and previous in the book, in that order');
 await pg.evaluate(() => go('zoom', 'relay')); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => [...document.querySelector('.zmain').children].map(e => e.className.split(' ')[0] || e.tagName).join() === 'zpath,zsibs,zcrumb,H2,pth-node,hub,zring,ztiles'), 'step 3: the topic page has the same elements in the same order as before, with what stays in memory after the title');
+ok(await pg.evaluate(() => [...document.querySelector('.zmain').children].map(e => e.className.split(' ')[0] || e.tagName).join() === 'zpath,zsibs,zcrumb,H2,zseq,pth-node,hub,zring,ztiles,zseqend'), 'step 3: the topic page has the same elements in the same order as before, with its place in the book under the title and the next and previous in the book at the end');
 await pg.evaluate(() => { document.querySelector('.zpath [data-zn="vac"]').click(); }); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => ZS.node === 'vac'), 'step 3: a path button moves once, to that topic');
 await pg.evaluate(() => { MS.path = []; MS.sel = null; go('zoom', 'machine'); mSetMachine('aoi'); }); await pg.waitForTimeout(250);
