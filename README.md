@@ -38,7 +38,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs nineteen suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs twenty suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|

@@ -49,7 +49,7 @@ await B.fill('#bkPaste', code.slice(0, -30)); await B.click('#bkRead'); await B.
 const errUI = await B.evaluate(() => ({ err: !!document.querySelector('#bkPrev .bk-err'), go: !!document.querySelector('#bkGo') })); ok(errUI.err && !errUI.go && same(await own(B), B0), 'device B: a code cut short shows an error, offers no loading, and changes nothing');
 await B.fill('#bkPaste', 'קוד: ' + code + ' '); await B.click('#bkRead'); await B.waitForTimeout(200);
 const PRE = await B.evaluate(() => ({ rows: [...document.querySelectorAll('#bkPrev .bk-sum tbody tr')].map(r => [...r.cells].map(c => c.textContent.trim())), warn: !!document.querySelector('#bkPrev .bk-warn'), go: !!document.querySelector('#bkGo') }));
-ok(PRE.go && PRE.warn && PRE.rows.length === 7 && PRE.rows[0][1] === '2' && PRE.rows[0][2] === '0' && PRE.rows[6][1] === String(NV(EXP)) && PRE.rows[6][2] === String(NV(B0)) && same(await own(B), B0), 'device B: before loading, the backup is summarized beside this device\'s state, with a warning, and nothing has changed yet (' + JSON.stringify(PRE.rows) + ')');
+ok(PRE.go && PRE.warn && PRE.rows.length === 8 && PRE.rows[0][1] === '2' && PRE.rows[0][2] === '0' && PRE.rows[6][1] === String(NV(EXP)) && PRE.rows[6][2] === String(NV(B0)) && same(await own(B), B0), 'device B: before loading, the backup is summarized beside this device\'s state, with a warning, and nothing has changed yet (' + JSON.stringify(PRE.rows) + ')');
 await Promise.all([B.waitForNavigation(), B.click('#bkGo')]); await B.waitForTimeout(500);
 const B1 = await own(B), undo1 = B1['fh-undo']; delete B1['fh-undo'];
 ok(same(B1, EXP), 'device B: after loading, its progress is exactly device A\'s');

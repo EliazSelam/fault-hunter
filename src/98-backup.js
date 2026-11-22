@@ -21,7 +21,7 @@ function bkCheck(o, undo) {
 /* what a backup holds, counted from its own data (nothing is read from this device) */
 function bkCount(data) { const J = k => { try { return JSON.parse(data[k] || 'null'); } catch (e) { return null; } }, n = o => o && typeof o === 'object' ? (Array.isArray(o) ? o.length : Object.keys(o).length) : 0, p = J('faulthunter-v1') || {}, B = J('fh-book') || {};
   return [['🧩', 'תקלות שנפתרו', Object.values(p).filter(r => r && typeof r === 'object' && r.score !== undefined).length], ['📖', 'פרקים שסומנו כנקראו', n(B.read)], ['📝', 'מבחני פרק', n(B.exam)],
-    ['🔁', 'כרטיסים בחזרה המרווחת', n(J('fh-review'))], ['❓', 'שאלות שדורגו במאגר', n(J('fh-qbank'))], ['🗺️', 'חלונות שנפתחו', n(J('fh-explored'))], ['👣', 'דפים שבוקרו', n(J('fh-visits'))]]; }
+    ['🔁', 'כרטיסים בחזרה המרווחת', n(J('fh-review'))], ['❓', 'שאלות שדורגו במאגר', n(J('fh-qbank'))], ['🗺️', 'חלונות שנפתחו', n(J('fh-explored'))], ['👣', 'דפים שבוקרו', n(J('fh-visits'))], ['📊', 'ימים ביומן ההתקדמות', n(J('fh-act'))]]; }
 /* the text code: FH1. + base64url of the deflated JSON, or FH0. + base64url of the JSON itself where the browser cannot compress */
 const bkB64 = u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const bkUnB64 = t => { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; const s = atob(t), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };

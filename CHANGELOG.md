@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.69.0] — 2026-11-22
+
+Progress, measured: one page that shows what was opened, what stays, how fast, and what is next.
+
+- **Progress dashboard** (`src/99d-progress.js`, bar "📊 התקדמות" and a button in the topic list): a forecast of days to finish at the current pace; six cards (topics explored, windows opened, questions solved, chapters read with passed exams, crowned stages, streak); a ring per learning track (outer: opened, inner: still in memory) and the same as an engineering profile radar; cumulative windows over 7, 30 or 90 days; a five-week activity heatmap; bars by level of explanation, by question topic and by book chapter (a chapter bar opens the chapter); what is next in the book's order and the new content not yet finished; reviews due in the coming week.
+- Every number comes from what the course already keeps in this browser, plus one daily log (`fh-act`: views, and windows opened for the first time). The backup carries it and lists it.
+- Tests: new suite `progress` (empty state, the log, every number recomputed from seeded keys, every drawing, the controls, the backup, a phone). 20 suites.
+
 ## [2.68.0] — 2026-11-22
 
 Every algorithm page now has something to move, and the whole AOI to AOS chain can be played.
