@@ -64,6 +64,7 @@ function zProgressView() {
         <p class="pg-sub">תוכן חדש שעוד לא סיימת:</p>${newN.map(x => `<button type="button" class="pg-new" data-pgn="${x.n.id}"><span class="toc-new">חדש</span> ${x.n.t.split(':')[0]} <small>${x.s}/${x.all}</small></button>`).join('')}</section>
       <section class="pg-card"><header><b>חזרות בשבוע הקרוב</b><small>כרטיסים שמגיע זמנם, לפי יום</small></header>${(() => { const f = pathForecast(); const mx = Math.max(4, ...f); return hxChart({ x: [0, 7], y: [0, mx * 1.15], h: 220, xt: [], yt: [0, Math.round(mx / 2), mx], bars: f.map((v, i) => ({ x0: i + .12, x1: i + .88, h: v })), txt: f.map((v, i) => ({ x: i + .5, y: 0, t: i ? '+' + i : 'היום', a: 'middle' })) }); })()}</section>
     </div></div>`;
+  zWireSub();   /* the views bar of this page: without it nothing in the bar leads anywhere (fixed in v2.71) */
   content.querySelectorAll('[data-pgr]').forEach(b => b.addEventListener('click', () => { try { sessionStorage.setItem('fh-pg-range', b.dataset.pgr); } catch (e) { } zProgressView(); }));
   content.querySelectorAll('[data-pgc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.pgc; BV.exam = null; go('zoom', 'book'); }));
   content.querySelectorAll('[data-pgn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.pgn)));

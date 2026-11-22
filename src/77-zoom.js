@@ -242,5 +242,5 @@ function showZoom(arg) {
   const id = !arg ? 'machine' : /^L[1-5]$/.test(arg) ? 'level' : (ZVIEW.views[arg] && arg !== 'node' && arg !== 'level') ? arg : 'node';
   ZVIEW.show(id, arg); window.scrollTo(0, 0);
 }
-ZVIEW.add('node', { group: 'main', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
+ZVIEW.add('node', { group: 'hidden', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
 ZVIEW.add('level', { bar: true, render: arg => zLevelView(+arg.slice(1)) });

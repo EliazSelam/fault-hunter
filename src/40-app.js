@@ -104,7 +104,7 @@ function showS1(id) {
   });
   const tb0 = $('#toB'); if (tb0) tb0.addEventListener('click', () => go('b'));
   const sec = content.querySelector('#comp');
-  sec.innerHTML = `<h2 style="font-size:24px">${c.name}<span class="kind ${KIND[c.kind][0]}">${KIND[c.kind][1]}</span></h2>${simpleBlock(c.id)}${introCard(c)}<p class="lead">${c.lead}</p><h3>הסכמה</h3><div class="scheme">${c.schematic()}</div>${formBox(c.id)}<h3>סימולציה</h3><div id="bh"></div>
+  sec.innerHTML = `<h2 class="subh">${c.name}<span class="kind ${KIND[c.kind][0]}">${KIND[c.kind][1]}</span></h2>${simpleBlock(c.id)}${introCard(c)}<p class="lead">${c.lead}</p><h3>הסכמה</h3><div class="scheme">${c.schematic()}</div>${formBox(c.id)}<h3>סימולציה</h3><div id="bh"></div>
     ${c.say ? `<div class="note say"><b>בראיון, באנגלית:</b><p lang="en" dir="ltr">${c.say}</p></div>` : ''}
     <details class="more"${moreOpen()}><summary>להעמקה: אופן הפעולה המלא, מגבלות, תקלות ותקנים</summary><div class="cols"><div><h3>אופן פעולה</h3>${ol(c.how)}</div>
     <div><h3>מגבלות</h3>${ul(c.limits)}<h3>תקלות נפוצות</h3>${tbl(['תסמין', 'סיבה אפשרית', 'בדיקה'], c.problems)}<h3>תקנים</h3>${tbl(['תקן', 'מה הוא מגדיר'], c.standards.map(x => ['<span class="mono">' + x[0] + '</span>', x[1]]))}</div></div></details>`;
@@ -120,7 +120,7 @@ function showS2(id) {
   SYSTEMS.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = x.name; if (x.id === c.id) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => showS2(x.id)); idx.appendChild(b); });
   const sec = content.querySelector('#sys');
   const uses = c.uses.map(u => { const k = COMPONENTS.find(x => x.id === u); return `<button type="button" class="kind" data-go="${u}" style="cursor:pointer;background:none">${k.name}</button>`; }).join(' ');
-  sec.innerHTML = `<h2 style="font-size:24px">${c.name}</h2><p class="lead">${c.lead}</p><p style="margin:-10px 0 8px;font-size:14px">בנוי מ: ${uses}</p><div id="bh"></div>
+  sec.innerHTML = `<h2 class="subh">${c.name}</h2><p class="lead">${c.lead}</p><p style="margin:-10px 0 8px;font-size:14px">בנוי מ: ${uses}</p><div id="bh"></div>
     <div class="cols"><div><h3>זרימת האות בין החלקים</h3>${ol(c.flow)}</div><div><h3>איך לקרוא</h3><p>${c.read}</p></div></div>`;
   sec.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go('s1', b.dataset.go)));
   active = bench(c, sec.querySelector('#bh'));

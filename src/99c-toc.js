@@ -53,7 +53,7 @@ function tocHtml() {
           tocLevels(n).forEach(([lv, ws]) => {
             const key = n.id + '|' + lv[0], lOpen = TS.lvl[key] !== undefined ? TS.lvl[key] : !!(isCur && cur.w && ws.includes(cur.w)), done = ws.filter(tocWinSeen).length;
             h += `<li class="toc-lv"><button type="button" class="toc-row toc-l" data-tl="${key}" aria-expanded="${lOpen}" ><span class="toc-car">${lOpen ? '▾' : '▸'}</span><span class="toc-lc" style="background:${lv[4]}" aria-hidden="true"></span>${lv === TOC_PAGES ? '' : HUBS.indexOf(lv) + '. '}${lv[1]} <small class="toc-cnt">${done}/${ws.length}</small></button>`;
-            if (lOpen) h += '<ul class="toc-ws">' + ws.map(w => { const t = zInfo(w).t || w, on = isCur && cur.w === w; return `<li><button type="button" class="toc-row toc-w${on ? ' on' : ''}" data-tw="${n.id}|${w.replace(/"/g, '&quot;')}"${on ? ' aria-current="true"' : ''}><span class="toc-ck">${tocWinSeen(w) ? '✓' : ''}</span>${String(t).replace(/<[^>]+>/g, '')}${/^(anim|3d|scan):/.test(w) || (w.startsWith('p:') && HXSIM_AT[w.slice(2)]) ? ' <span class="toc-live">חי</span>' : ''}</button></li>`; }).join('') + '</ul>';
+            if (lOpen) h += '<ul class="toc-ws">' + ws.map(w => { const t = tocWinLabel(w, zWindows(n)), on = isCur && cur.w === w; return `<li><button type="button" class="toc-row toc-w${on ? ' on' : ''}" data-tw="${n.id}|${w.replace(/"/g, '&quot;')}"${on ? ' aria-current="true"' : ''}><span class="toc-ck">${tocWinSeen(w) ? '✓' : ''}</span>${String(t).replace(/<[^>]+>/g, '')}${/^(anim|3d|scan):/.test(w) || (w.startsWith('p:') && HXSIM_AT[w.slice(2)]) ? ' <span class="toc-live">חי</span>' : ''}</button></li>`; }).join('') + '</ul>';
             h += '</li>';
           });
           h += '</ul>';
@@ -107,3 +107,7 @@ GO_BEFORE.push(() => { TS.scrollCur = true; });
 const _goToc = go; go = function (sheet, arg) { _goToc(sheet, arg); tocLayout(); tocSoon(); };
 window.addEventListener('hashchange', tocSoon);
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tocInit); else tocInit();
+/* a window's name in the list: its title, or, where several windows of the level share a title (a topic that gathers
+   several subjects), what kind of window it is and the subject in short (v2.71) */
+function tocWinLabel(w, ws) { const i = zInfo(w), t = i.t || w; if (ws.filter(x => zInfo(x).t === t).length < 2) return t;
+  return ((ZKIND[i.kind] || [i.kind])[0] || '') + ' · ' + t.split(':')[0]; }

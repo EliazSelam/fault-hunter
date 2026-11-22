@@ -2,6 +2,21 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.71.0] — 2026-11-22
+
+Direction, meaning and clarity, from the review of v2.70.
+
+- **The dashboard no longer traps you**: its views bar was drawn but never wired, so nothing in it led anywhere. It is wired, and a new check presses the bar of every view.
+- **Formulas keep their order inside Hebrew text, on every page**: a formula such as "x̄ = Σ xᵢ / n" could come out as ".Σ xᵢ / n = x̄". The algorithm pages now keep a combining mark (x̄) and a leading ± with their formula and cut a run where a sentence or a list goes on; and every page drawn into the content gets the same treatment, including formulas that run across bold or glossary marks. Across 208 pages, 1217 text runs were at risk; none are left, and formulas split across elements went from 63 to 23.
+- **A glossary meaning never lands inside a formula**: "T = Kt (torque per amp)·I" becomes "T = Kt·I (Kt: torque per amp)".
+- **Every abbreviation spells out its letters**: 113 abbreviation-like glossary entries had no full form; about 90 of them are real abbreviations (Cp, Cpk, PID, UART, CRC, MOSFET, ...) and now have it, in the tooltip and in the short meaning shown the first time it appears (Cpk: Process Capability Index, and what its k is). Words that only look like abbreviations (AND, OK, MHz) are listed apart.
+- **The central limit theorem and the Monte Carlo method are explained** where the statistics pages use them, and both are in the glossary.
+- **One scale of headings**: page title 36px, section title 27px, sub-heading 21px, body 16px (14 places that forced 24px now use the scale).
+- **The engineer level reads as an outline**: each step keeps its title and equation in view, and folds its explanation and table of symbols.
+- **The topic list names windows apart**: a topic that gathers several subjects (optics: lens, tilt, thermal expansion, 42 windows) showed one title many times in the list; each window is now named by its kind and subject (the level itself already grouped them).
+- The "last topic" button left the views bar.
+- Tests: new suite `rtl` (16 checks over 208 pages). 22 suites.
+
 ## [2.70.0] — 2026-11-22
 
 Finding things and moving between them: an audit of the whole site on navigation, clarity and the learning method, and the first round of fixes.

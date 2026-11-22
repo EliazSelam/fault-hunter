@@ -19,7 +19,7 @@ for (const id of ['fit', 'img', 'stat', 'sig', 'rel', 'serial', 'cam']) {
   const ws = await pg.evaluate(id => { go('zoom', id); TS.open[id] = true; tocLevels(zNode(id)).forEach(([lv]) => TS.lvl[id + '|' + lv[0]] = true); tocRender(); return [...document.querySelectorAll(`#toc [data-tw^="${id}|"]`)].map(x => x.dataset.tw); }, id);
   ok(ws.length === await pg.evaluate(id => zWindows(zNode(id)).length, id), id + ': every window of the topic is an item of the list');
   for (const tw of ws.slice(0, 6)) {
-    await pg.click(`#toc [data-tw="${tw}"]`); await pg.waitForTimeout(120);
+    await pg.click(`#toc [data-tw="${tw}"]`); await pg.waitForTimeout(250);
     const [n, w] = [tw.slice(0, tw.indexOf('|')), tw.slice(tw.indexOf('|') + 1)];
     const r = await pg.evaluate(([n, w]) => ({ hash: location.hash, win: HS.win[n], seen: tocWinSeen(w), on: !!document.querySelector(`#toc .toc-w.on[data-tw="${n}|${w}"]`) }), [n, w]);
     ok(r.hash.startsWith('#/zoom/' + n) && r.win === w && r.seen && r.on, `${tw}: opens its window, is marked where you are and as opened (${JSON.stringify(r)})`);

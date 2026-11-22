@@ -90,7 +90,7 @@ showMot = function (sub) {
   const mine = ['parts', 'dcm', 'ind', 'sync', 'tri', 'xfmr', 'conv', 'energy'];
   if (!mine.includes(sub)) return _showMot(sub);
   active = null; setTab('mot'); markVisit('mot:' + sub);
-  const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot), H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot), H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'parts') {
     B.innerHTML = H('רוטור, סטטור ומה ביניהם') + SB('כמו גלגל ענק בתוך טבעת: הטבעת (סטטור) עומדת במקום ויוצרת שדה מגנטי, והגלגל שבתוכה (רוטור) מסתובב כי השדה מושך אותו.', ['הסטטור הוא הגוף העומד. ברוב המנועים יש בו ליפופים בחריצים, שמקבלים זרם מהרשת או מהדרייבר.', 'הרוטור מסתובב על הציר. יש בו מגנטים, מוטות מקוצרים, או ליפוף, לפי סוג המנוע.', 'ביניהם מרווח אוויר דק, שדרכו עובר השדה. אם המסבים נשחקים, הרוטור מתחכך בסטטור.', 'כוח בין השדה של הסטטור לשדה של הרוטור יוצר מומנט על הציר.', 'בקצה הציר: מסבים, אנקודר או בלם, וחיבור לעומס (צימוד, גיר, בורג).'], 'הסטטור עומד ומחובר לחשמל. הרוטור מסתובב ומחובר לעומס.') +
       `<div class="scheme">${crossSectionSVG()}</div>` +

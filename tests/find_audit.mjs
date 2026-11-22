@@ -14,6 +14,12 @@ ok(await ev(() => !!document.querySelector('.zsub [data-zv="progress"]') && !!do
 const d = await page(1440, '#/zoom/progress');
 ok(await d.evaluate(() => !!document.querySelector('.pg-kpi') && location.hash === '#/zoom/progress'), 'a link straight to the dashboard opens it'); await d.close();
 
+/* every view's bar leads to every other view (the dashboard's bar was drawn but not wired until v2.71) */
+const VB = await ev(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), views = ZVIEW.list.filter(v => v[2] === 'main' && v[0] !== 'node').map(v => v[0]), bad = [];
+  for (const a of views) { go('zoom', a); await wait(60); const to = views.find(v => v !== a), b = document.querySelector(`.zsub [data-zv="${to}"]`); if (!b) { bad.push(a + ': no bar'); continue; } b.click(); await wait(60); if (!location.hash.startsWith('#/zoom/' + to)) bad.push(a + '→' + to + ' stayed at ' + location.hash); }
+  return { n: views.length, bad }; });
+ok(!VB.bad.length, `from every view, its views bar leads to another view (${VB.n} views; ${VB.bad.join(' | ')})`);
+
 /* 2. search: every topic, chapter and view is found by its own name and comes first */
 const S = await ev(() => { const bad = [];
   ZOOM.forEach(z => { const h = searchIdx(z.t)[0]; if (!h || h.type !== 'נושא' || h.t !== z.t) bad.push('topic ' + z.id + ' → ' + (h && h.type + ':' + h.t)); });

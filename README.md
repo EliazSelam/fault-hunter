@@ -38,7 +38,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 
 ## Verified
 
-`tests/run_all.sh` builds the app and runs twenty-one suites. It must print `ALL SUITES PASSED`.
+`tests/run_all.sh` builds the app and runs twenty-two suites. It must print `ALL SUITES PASSED`.
 
 | Suite | What it checks |
 |---|---|
@@ -59,6 +59,7 @@ The tabs are grouped into five sections (start, foundations, systems and machine
 | live | The 44 live figures of the algorithm pages: each draws, survives every slider at both ends, reacts, and shows up inside its machine topic |
 | progress | The progress dashboard: every number recomputed from what the course keeps, the daily log, every drawing, the controls, the backup, a phone |
 | find | Finding and moving: every topic, chapter and view is the first hit for its own name, old pages open inside their topic, every topic leads to the one before and after it in the book, every topic has level 0 and level 5, page windows name their page, the path follows the book, the frame on a phone |
+| rtl | Direction and meaning: on 208 pages no formula in Hebrew text is left out of order and no glossary meaning sits inside a formula, every abbreviation spells out its letters, the central limit theorem and Monte Carlo are explained, headings step down, the engineer level folds into an outline, no two windows of a topic share a name in the topic list |
 
 It runs on every push (GitHub Actions → *Verify content*). Method, corrections and remaining assumptions are in [VALIDATION.md](VALIDATION.md).
 

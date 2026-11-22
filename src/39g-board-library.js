@@ -144,7 +144,7 @@ function showLib(id) {
   active = null; const b = BOARDS.find(x => x.id === id) || BOARDS[0];
   content.innerHTML = `<h2>ספריית כרטיסים</h2><p class="lead">שבעה סוגי כרטיסים שתפגוש בארון של מכונה. לכל אחד: מה הוא עושה, איך הוא בנוי בפועל, איפה מודדים, ואיך הוא נכשל. המבנה מייצג כרטיס טיפוסי מהסוג הזה, לא דגם של יצרן מסוים.</p>
     <div class="split"><nav class="index" aria-label="כרטיסים">${BOARDS.map(x => `<button type="button" data-b="${x.id}"${x.id === b.id ? ' aria-current="true"' : ''}>${x.name}<small>${x.en}</small></button>`).join('')}<button type="button" data-sys="card" style="margin-top:10px">← הכרטיס האלקטרוני בשישה צעדים</button></nav>
-    <section class="block"><h2 style="font-size:24px">${b.name}<span class="kind">${b.en}</span></h2>
+    <section class="block"><h2 class="subh">${b.name}<span class="kind">${b.en}</span></h2>
       <div class="simple"><div class="sa"><b>בפשטות</b><p>${b.simple}</p></div><div class="ss"><b>מה הוא עושה</b><p style="margin:4px 0 0">${b.what}</p><b>איפה פוגשים אותו</b><p style="margin:4px 0 0">${b.where}</p></div></div>
       <h3>המבנה בפועל</h3><p style="font-size:14px;color:var(--muted)">לחיצה על אזור בכרטיס מסבירה מה יש בו. ${Object.entries(ZK).map(([k, v]) => `<span class="kb">${v[2]}</span>`).join(' ')}${b.iso ? ' · הקו המקווקו: קו ההפרדה (isolation barrier)' : ''}</p>
       <div class="scheme">${boardLayout(b)}</div><div class="note" id="zinfo">בחר אזור בכרטיס.</div>

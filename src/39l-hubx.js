@@ -11,7 +11,7 @@ function showHubX(key, sub) {
   const q = h.nav.find(n => n[0] === 'q'); if (q) q[2] = QB.filter(x => x.t === h.qt).length + ' שאלות';
   const B = hubFrame(h.title, h.lead, h.nav, sub, k => showHubX(key, k));
   if (sub === 'q') qList(B, h.qt, () => showHubX(key, 'q'));
-  else { B.innerHTML = `<h2 style="font-size:24px">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); hxSimMount(B, key + '/' + sub); }
+  else { B.innerHTML = `<h2 class="subh">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); hxSimMount(B, key + '/' + sub); }
   setTitle(h.tab, h.nav.find(n => n[0] === sub)[1], h.std);
 }
 /* a hub's terms: defined here unless the glossary already has them (then the hub only links to them) */
@@ -38,9 +38,18 @@ Object.entries({
   'Kv': ['הגבר המהירות של לולאת מיקום, ביחידות 1/s.', 'הגבר מהירות']
 }).forEach(([k, v]) => hxTerm('_', k, v));
 /* math-aware bidi: keeps a whole formula (subscripts, ᵀ, ‖, brackets, ≤) as one left-to-right run inside Hebrew text */
-const BIDI_S = 'A-Za-z0-9µΩΑ-ωθ(\\[‖⌈−√½Σ|', BIDI_M = BIDI_S + '°±×=.,:;+\\-_\\/~²³⁴⁵⁶⁷⁸⁹⁰¹⁻⁺ⁿ≈·\'"()\\] ₀-ₜᵢ-ᵪᵀ‖⌉≤≥<>∞∂∫′|!*^&%{}', BIDI_E = 'A-Za-z0-9µΩΑ-ωθ)\\]‖⌉%²³⁶ᵀ⁻¹ₓᵢ₀-₉|′';
+const BIDI_S = 'A-Za-z0-9µΩΑ-ωθ(\\[‖⌈−√½Σ|±∓≈~+', BIDI_M = BIDI_S + '°±×=.,:;+\\-_\\/~²³⁴⁵⁶⁷⁸⁹⁰¹⁻⁺ⁿ≈·\'"()\\] ₀-ₜᵢ-ᵪᵀ‖⌉≤≥<>∞∂∫′|!*^&%{}\u0300-\u036f\ue001-\ue003', BIDI_E = 'A-Za-z0-9µΩΑ-ωθ)\\]‖⌉%²³⁶ᵀ⁻¹ₓᵢ₀-₉|′\u0300-\u036f';
 const BIDI_RE = new RegExp('[' + BIDI_S + '][' + BIDI_M + ']*[' + BIDI_E + ']|[A-Za-z0-9µΩΑ-ω]', 'g');
-function bidiX(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(BIDI_RE, m => `<bdi>${m}</bdi>`)).join(''); }
+/* a run is cut where a sentence or a list goes on (", " ". " "; " ": " outside brackets), so each item keeps its place in the Hebrew order;
+   a combining mark (x̄) and a leading ± stay with their formula (v2.71) */
+function bidiRun(m) {
+  const out = []; let d = 0, cur = '';
+  for (let i = 0; i < m.length; i++) { const c = m[i]; if ('([⌈‖{'.includes(c) && !(c === '‖' && d > 0)) d++; else if (')]⌉}'.includes(c)) d = Math.max(0, d - 1);
+    if (d === 0 && /[.,;:]/.test(c) && /\s/.test(m[i + 1] || '')) { out.push(cur, c); cur = ''; continue; } cur += c; }
+  out.push(cur);
+  return out.map((x, i) => i % 2 ? x : x.replace(/^(\s*)(.*?)(\s*)$/s, (a, l, mid, r) => mid && /[A-Za-z0-9µΩΑ-ω]/.test(mid) ? `${l}<bdi>${mid}</bdi>${r}` : a)).join('');
+}
+function bidiX(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(BIDI_RE, bidiRun)).join(''); }
 /* shared bits for the hub pages */
 const olx = a => ol(a.map(bidiX));
 const px = t => `<p>${bidiX(t)}</p>`;

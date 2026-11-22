@@ -120,7 +120,7 @@ const SENS_BENCH = {
 const SENS_NAV = [['prox', 'קרבה: השראתי וקיבולי'], ['photo', 'אופטי'], ['wire', 'PNP מול NPN'], ['temp', 'טמפרטורה'], ['bridge', 'מד מעוות וגשר'], ['hall', 'Hall']];
 function showLabSensor(B, id) {
   const x = SENS[id];
-  B.innerHTML = `<h2 style="font-size:24px">${x.title}</h2>
+  B.innerHTML = `<h2 class="subh">${x.title}</h2>
     <div class="zstory"><b>העיקרון האחד</b><p>${x.one}</p></div>
     <h3>איך זה עובד, שלב אחר שלב</h3><ol class="tsteps">${x.steps.map((st, i) => `<li><div class="tn">${i + 1}</div><div class="tb"><p class="tw"><b>מה קורה:</b> ${st[0]}</p><p class="ty"><b>למה:</b> ${st[1]}</p></div></li>`).join('')}</ol>
     <h3>נסה</h3><div id="sbench"></div>

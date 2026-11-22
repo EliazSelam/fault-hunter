@@ -146,7 +146,7 @@ function showSys(id, step) {
   const x = SYSX[id];
   content.innerHTML = `<h2>מערכות</h2><p class="lead">כל מערכת נלמדת באותו סדר: מה היא ולמה היא קיימת, איך היא עובדת כשהכול תקין, איך היא נכשלת, תרחיש פתור עד הסוף, ואז תרגול.</p>
     <div class="split"><nav class="index" aria-label="מערכות">${Object.entries(SYSX).map(([k, v]) => `<button type="button" data-s="${k}"${k === id ? ' aria-current="true"' : ''}>${v.title}</button>`).join('')}</nav>
-    <section class="block" id="sx"><h2 style="font-size:24px">${x.title}</h2>
+    <section class="block" id="sx"><h2 class="subh">${x.title}</h2>
     <ol class="stepper">${STEPS6.map((s, i) => `<li><button type="button" data-st="${s[0]}" aria-current="${s[0] === step}"><span>${i + 1}</span>${s[1]}</button></li>`).join('')}</ol><div id="sxb"></div>
     <div class="stepnav"></div></section></div>`;
   content.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => showSys(b.dataset.s)));

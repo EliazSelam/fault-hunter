@@ -126,7 +126,7 @@ details.drill p{margin:6px 0 0}
 
 .cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 32px}
 @media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
-.block h3{font-size:17px;color:var(--ink);margin:18px 0 6px}
+.block h3{font-size:20px;color:var(--ink);margin:20px 0 6px}
 .block ol,.block ul{margin:0;padding-inline-start:20px}
 .block li{margin:3px 0}
 .scheme{border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--sheet);overflow-x:auto}
@@ -683,6 +683,15 @@ nav.sheets.one{display:none}
   .zsibs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.zsibs::-webkit-scrollbar{display:none}.zsibs button{flex:none;white-space:nowrap}
   .zseqend{grid-template-columns:1fr}
 }
+/* v2.71: one scale of headings across the site, each level a clear step down from the one above (body text is 16px) */
+.sheet h2{font-size:clamp(26px,3.2vw,36px);line-height:1.15;letter-spacing:-.005em}
+.sheet .block>h2,.sheet h2.subh{font-size:clamp(22px,2.4vw,27px);line-height:1.2}
+:where(.sheet) h3{font-size:21px;line-height:1.3}
+:where(.sheet) h4{font-size:18px;line-height:1.35}
+:where(.sheet) h5{font-size:16px}
+/* v2.71: the engineer level as an outline */
+.engstep>details.engmore{margin:4px 0 2px}.engstep>details.engmore>summary{cursor:pointer;font-size:13px;color:#3078B0;list-style:none;display:inline-block;padding:1px 0}
+.engstep>details.engmore>summary::before{content:'▸ ';}.engstep>details.engmore[open]>summary::before{content:'▾ ';}
 </style>
 </head>
 <body>
@@ -3141,7 +3150,7 @@ function showSys(id, step) {
   const x = SYSX[id];
   content.innerHTML = `<h2>מערכות</h2><p class="lead">כל מערכת נלמדת באותו סדר: מה היא ולמה היא קיימת, איך היא עובדת כשהכול תקין, איך היא נכשלת, תרחיש פתור עד הסוף, ואז תרגול.</p>
     <div class="split"><nav class="index" aria-label="מערכות">${Object.entries(SYSX).map(([k, v]) => `<button type="button" data-s="${k}"${k === id ? ' aria-current="true"' : ''}>${v.title}</button>`).join('')}</nav>
-    <section class="block" id="sx"><h2 style="font-size:24px">${x.title}</h2>
+    <section class="block" id="sx"><h2 class="subh">${x.title}</h2>
     <ol class="stepper">${STEPS6.map((s, i) => `<li><button type="button" data-st="${s[0]}" aria-current="${s[0] === step}"><span>${i + 1}</span>${s[1]}</button></li>`).join('')}</ol><div id="sxb"></div>
     <div class="stepnav"></div></section></div>`;
   content.querySelectorAll('[data-s]').forEach(b => b.addEventListener('click', () => showSys(b.dataset.s)));
@@ -4099,7 +4108,7 @@ function showLib(id) {
   active = null; const b = BOARDS.find(x => x.id === id) || BOARDS[0];
   content.innerHTML = `<h2>ספריית כרטיסים</h2><p class="lead">שבעה סוגי כרטיסים שתפגוש בארון של מכונה. לכל אחד: מה הוא עושה, איך הוא בנוי בפועל, איפה מודדים, ואיך הוא נכשל. המבנה מייצג כרטיס טיפוסי מהסוג הזה, לא דגם של יצרן מסוים.</p>
     <div class="split"><nav class="index" aria-label="כרטיסים">${BOARDS.map(x => `<button type="button" data-b="${x.id}"${x.id === b.id ? ' aria-current="true"' : ''}>${x.name}<small>${x.en}</small></button>`).join('')}<button type="button" data-sys="card" style="margin-top:10px">← הכרטיס האלקטרוני בשישה צעדים</button></nav>
-    <section class="block"><h2 style="font-size:24px">${b.name}<span class="kind">${b.en}</span></h2>
+    <section class="block"><h2 class="subh">${b.name}<span class="kind">${b.en}</span></h2>
       <div class="simple"><div class="sa"><b>בפשטות</b><p>${b.simple}</p></div><div class="ss"><b>מה הוא עושה</b><p style="margin:4px 0 0">${b.what}</p><b>איפה פוגשים אותו</b><p style="margin:4px 0 0">${b.where}</p></div></div>
       <h3>המבנה בפועל</h3><p style="font-size:14px;color:var(--muted)">לחיצה על אזור בכרטיס מסבירה מה יש בו. ${Object.entries(ZK).map(([k, v]) => `<span class="kb">${v[2]}</span>`).join(' ')}${b.iso ? ' · הקו המקווקו: קו ההפרדה (isolation barrier)' : ''}</p>
       <div class="scheme">${boardLayout(b)}</div><div class="note" id="zinfo">בחר אזור בכרטיס.</div>
@@ -4197,7 +4206,7 @@ function showBoards(sub) {
   if (sub === 'bench') return showSys('card', 'guided');
   const B = hubFrame('כרטיסים: חקירה וחקר כשל', BRD_LEAD, BRD_NAV, sub, showBoards);
   if (sub === 'fa') {
-    B.innerHTML = `<h2 style="font-size:24px">תהליך חקר כשל של כרטיס</h2>
+    B.innerHTML = `<h2 class="subh">תהליך חקר כשל של כרטיס</h2>
       <div class="simple"><div class="sa"><b>בפשטות</b><p>כמו חוקר זירה: קודם מתעדים בלי לגעת, אחר כך בודקים בלי לשנות, ורק בסוף מפרקים. ובכל שלב שואלים לא רק "מה נשרף" אלא "למה".</p></div><div class="ss"><b>שני מצבים שונים</b><ol><li><b>אבחון בשטח:</b> להחזיר את המכונה לעבודה, לרוב בהחלפת כרטיס.</li><li><b>חקר כשל:</b> אחרי ההחלפה, להבין למה הכרטיס נכשל, כדי שהבא לא ייכשל באותה דרך.</li></ol></div><p class="rem"><b>הדבר האחד לזכור:</b> כל מדידה בלי מתח באה לפני הדלקה, וכל הדלקה של כרטיס חשוד נעשית עם הגבלת זרם.</p></div>
       <h3>השלבים</h3>${tbl(['שלב', 'מה עושים'], SYSX.card.fa)}
       <h3>הכלים</h3>${tbl(['כלי', 'למה הוא משמש', 'איפה'], [['מגדלת או מיקרוסקופ', 'הלחמות סדוקות, חריכה, קבלים נפוחים, קורוזיה', 'שטח ומעבדה'], ['מולטימטר', 'מתחים עם מתח, התנגדות ודיודות בלי מתח', 'שטח ומעבדה'], ['סקופ', 'ריפל, נפילות קצרות, אותות דיגיטליים', 'שטח ומעבדה'], ['ספק מעבדה עם הגבלת זרם', 'הדלקה בטוחה של כרטיס חשוד, הזרקת זרם לאיתור קצר', 'מעבדה'], ['מצלמה תרמית או ספריי הקפאה', 'מציאת רכיב חם, תקלות שתלויות בטמפרטורה', 'מעבדה'], ['מד ESR', 'קבלים אלקטרוליטיים מזדקנים', 'מעבדה'], ['ערכת ESD', 'רצועת הארקה ומשטח, בכל טיפול בכרטיס', 'תמיד'], ['רנטגן וחתך', 'הלחמות מתחת לשבבים, סדקים פנימיים', 'מעבדת חקר כשל ייעודית']])}
@@ -4239,7 +4248,7 @@ function showOptics(sub) {
   const B = hubFrame('אופטיקה', OPT_LEAD, OPT_NAV, sub, showOptics);
   if (sub === 'ov') {
     const chain = { title: 'optics chain', nodes: [[1, 'st', 10, 30, 'Strobe', 'מקור אור'], [2, 'pn', 150, 30, 'Panel', 'האובייקט'], [3, 'ln', 290, 30, 'Lens', 'עדשה'], [4, 'sn', 430, 30, 'Sensor', 'line-scan'], [5, 'fg', 570, 30, 'Frame grabber', 'תמונה'], [6, 'mo', 150, 160, 'Motion X', 'תנועה'], [7, 'tr', 430, 160, 'Trigger', 'מיקום → צילום'], [8, 'pc', 570, 160, 'Image PC', 'זיהוי']], edges: ['M120 53H148', 'M260 53H288', 'M400 53H428', 'M540 53H568', 'M625 76V158', 'M205 158V78', 'M260 183H428', 'M485 158V78', 'M485 206V240H65V78'], dashed: [] };
-    B.innerHTML = `<h2 style="font-size:24px">מבוא לאופטיקה של מכונת בדיקה</h2>
+    B.innerHTML = `<h2 class="subh">מבוא לאופטיקה של מכונת בדיקה</h2>
       <div class="simple"><div class="sa"><b>בפשטות</b><p>כמו סורק מסמכים: מנורה מאירה, עדשה מקרינה את הדף על שורת חיישנים, והדף זז מתחתיה. כל "תמונה" היא בעצם אלפי שורות שצולמו ברגעים מדויקים.</p></div><div class="ss"><b>צעד אחר צעד</b><ol><li>התאורה מהבהבת בדיוק ברגע הצילום.</li><li>האור מוחזר מהפאנל אל העדשה.</li><li>העדשה יוצרת תמונה חדה על החיישן, רק אם המרחק נכון.</li><li>החיישן מצלם שורה, בכל פעם שהפאנל זז פיקסל אחד.</li><li>המחשב מחבר את השורות לתמונה, ומחפש פגמים.</li></ol></div><p class="rem"><b>הדבר האחד לזכור:</b> אור, מרחק, ותזמון. כמעט כל תקלה אופטית היא בעיה באחד מהשלושה.</p></div>
       <h3>השרשרת</h3><div class="scheme">${sysDiagram(chain)}</div>
       <h3>הגדלים שקובעים הכול</h3>${tbl(['גודל', 'נוסחה', 'דוגמה', 'מה הוא קובע'], [['פיקסל על הפאנל', 'פיקסל בחיישן ÷ הגדלה', '3.5µm ÷ 0.5 = 7µm', 'הפרט הקטן שהחיישן מבחין בו'], ['רוחב שדה', 'מספר פיקסלים × פיקסל על הפאנל', '8192 × 7µm ≈ 57mm', 'כמה מעברים צריך לפאנל'], ['רזולוציה אופטית', '0.61 · λ / NA', '0.61 × 0.5 / 0.2 ≈ 1.5µm', 'הפרט הקטן שהעדשה מפרידה'], ['עומק שדה', 'λ / NA²', '0.5 / 0.04 = 12.5µm', 'כמה גובה מותר לסטות'], ['קצב שורות', 'מהירות ÷ פיקסל', '200mm/s ÷ 7µm ≈ 28.6kHz', 'המהירות המקסימלית'], ['מריחת תנועה', 'מהירות × זמן חשיפה', '200mm/s × 20µs = 4µm', 'כמה קצר צריך להיות הפולס'], ['התארכות תרמית', 'α · L · ΔT', '23·10⁻⁶ × 100mm × 5°C ≈ 11.5µm', 'יציבות הפוקוס לאורך זמן']].map(r => [r[0], `<span class="mono">${r[1]}</span>`, `<span class="mono">${r[2]}</span> ${kb('ex')}`, r[3]]))}
@@ -4312,7 +4321,7 @@ function showDig(sub) {
   active = null; sub = sub || 'why'; setTab('dig'); markVisit('dig:' + sub);
   DIG_NAV[DIG_NAV.length - 1][2] = QB.filter(q => q.t === 'dig').length + ' שאלות';
   const B = hubFrame('לוגיקה ספרתית: מ-latch למונה', 'איך שומרים ביט, איך מסנכרנים אותו לשעון, ואיך בונים מזה אוגרים, מונים ומחלקי תדר. כל עמוד: הסבר פשוט, סכמה ברמת שערים, טבלת אמת, נוסחאות, ולמה צריך את זה.', DIG_NAV, sub, showDig);
-  const H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'why') {
     B.innerHTML = H('למה צריך זיכרון') + SB('מעגל צירופי הוא כמו מחשבון: התוצאה תלויה רק במה שמקלידים עכשיו. מעגל סדרתי הוא כמו מונה אנשים בכניסה: התוצאה תלויה גם במה שקרה קודם.', ['שערים (AND, OR, NOT) מחשבים יציאה מהכניסות הנוכחיות בלבד.', 'כדי לספור, להשהות או לזכור, צריך רכיב שמחזיק ביט.', 'הרכיב הפשוט ביותר: שני שערים שכל אחד מזין את השני (משוב).', 'שעון אחד משותף קובע מתי כל רכיבי הזיכרון מתעדכנים יחד.', 'מזה בונים: אוגר (כמה ביטים), מונה (אוגר שמתקדם), מחלק תדר (מונה שמוציא שעון איטי).'], 'זיכרון = משוב. שעון = מתי מותר להשתנות.') +
       TT(['', 'צירופי (combinational)', 'סדרתי (sequential)'], [['היציאה תלויה ב', 'כניסות עכשיו', 'כניסות עכשיו + מצב קודם'], ['דוגמאות', 'מקודד, מרבב, מחבר', 'latch, flip-flop, אוגר, מונה'], ['משוב', 'אין', 'יש'], ['שעון', 'לא צריך', 'בדרך כלל כן']]) +
@@ -4824,7 +4833,7 @@ function showSer(sub) {
   active = null; sub = sub || 'why'; setTab('ser'); markVisit('ser:' + sub);
   SER_NAV[SER_NAV.length - 1][2] = QB.filter(q => q.t === 'ser').length + ' שאלות';
   const B = hubFrame('תקשורת טורית: UART, I2C, SPI ו-CAN', 'איך רכיבים בלוח ובמכונה מעבירים ביטים זה לזה על מעט חוטים: איך נראית מסגרת, מי קובע את הקצב, איך מכוונים כתובת, ואיך מאבחנים כשהקו שותק. כל עמוד: הסבר פשוט, סכמה, תרשים זמנים, נוסחאות עם דוגמה מחושבת, ומלכודת.', SER_NAV, sub, k => showSer(k));
-  const H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'why') {
     B.innerHTML = H('למה תקשורת טורית') + SB('כמו להעביר מילה אות אחרי אות בטלפון, במקום לשלוח שמונה שליחים במקביל. פחות חוטים, והסדר חשוב.', ['תקשורת מקבילית שולחת כל ביט בחוט משלו: מהר, אבל שמונה חוטים ועוד שעון, והחוטים צריכים להגיע באותו רגע.', 'תקשורת טורית שולחת ביט אחרי ביט על חוט אחד: פחות חוטים, פחות מחברים, ומרחק גדול יותר.', 'המקלט צריך לדעת איפה כל ביט מתחיל. שתי דרכים: חוט שעון משותף (I2C, SPI), או הסכמה מראש על קצב ועל קצה פתיחה (UART).', 'מסגרת (frame) אורזת את הביטים: פתיחה, כתובת או מזהה, נתונים, בדיקה וסיום.'], 'ארבעה פרוטוקולים, ארבע התשובות לשאלה "מי מסנכרן את מי ומי מדבר מתי".') +
       TT(['', 'UART', 'I2C', 'SPI', 'CAN'], [['חוטים', 'TX, RX', 'SDA, SCL', 'SCLK, MOSI, MISO, CS לכל רכיב', 'CANH, CANL'], ['שעון', 'אין, קצב מוסכם', 'חוט SCL', 'חוט SCLK', 'אין, מסתנכרן על קצוות'], ['מי מדבר', 'שני הצדדים', 'אדון פותח, רכיב עונה', 'אדון פותח, רכיב עונה', 'כל צומת, בורר לפי מזהה'], ['בחירת יעד', 'אין (נקודה לנקודה)', 'כתובת של 7 ביטים', 'חוט CS', 'מזהה הודעה, מסנן אצל המקבל']]) +
@@ -5035,7 +5044,7 @@ function showHubX(key, sub) {
   const q = h.nav.find(n => n[0] === 'q'); if (q) q[2] = QB.filter(x => x.t === h.qt).length + ' שאלות';
   const B = hubFrame(h.title, h.lead, h.nav, sub, k => showHubX(key, k));
   if (sub === 'q') qList(B, h.qt, () => showHubX(key, 'q'));
-  else { B.innerHTML = `<h2 style="font-size:24px">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); hxSimMount(B, key + '/' + sub); }
+  else { B.innerHTML = `<h2 class="subh">${h.nav.find(n => n[0] === sub)[1]}</h2>` + h.pages[sub](); if (h.mount && h.mount[sub]) h.mount[sub](B); hxSimMount(B, key + '/' + sub); }
   setTitle(h.tab, h.nav.find(n => n[0] === sub)[1], h.std);
 }
 /* a hub's terms: defined here unless the glossary already has them (then the hub only links to them) */
@@ -5062,9 +5071,18 @@ Object.entries({
   'Kv': ['הגבר המהירות של לולאת מיקום, ביחידות 1/s.', 'הגבר מהירות']
 }).forEach(([k, v]) => hxTerm('_', k, v));
 /* math-aware bidi: keeps a whole formula (subscripts, ᵀ, ‖, brackets, ≤) as one left-to-right run inside Hebrew text */
-const BIDI_S = 'A-Za-z0-9µΩΑ-ωθ(\\[‖⌈−√½Σ|', BIDI_M = BIDI_S + '°±×=.,:;+\\-_\\/~²³⁴⁵⁶⁷⁸⁹⁰¹⁻⁺ⁿ≈·\'"()\\] ₀-ₜᵢ-ᵪᵀ‖⌉≤≥<>∞∂∫′|!*^&%{}', BIDI_E = 'A-Za-z0-9µΩΑ-ωθ)\\]‖⌉%²³⁶ᵀ⁻¹ₓᵢ₀-₉|′';
+const BIDI_S = 'A-Za-z0-9µΩΑ-ωθ(\\[‖⌈−√½Σ|±∓≈~+', BIDI_M = BIDI_S + '°±×=.,:;+\\-_\\/~²³⁴⁵⁶⁷⁸⁹⁰¹⁻⁺ⁿ≈·\'"()\\] ₀-ₜᵢ-ᵪᵀ‖⌉≤≥<>∞∂∫′|!*^&%{}\u0300-\u036f\ue001-\ue003', BIDI_E = 'A-Za-z0-9µΩΑ-ωθ)\\]‖⌉%²³⁶ᵀ⁻¹ₓᵢ₀-₉|′\u0300-\u036f';
 const BIDI_RE = new RegExp('[' + BIDI_S + '][' + BIDI_M + ']*[' + BIDI_E + ']|[A-Za-z0-9µΩΑ-ω]', 'g');
-function bidiX(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(BIDI_RE, m => `<bdi>${m}</bdi>`)).join(''); }
+/* a run is cut where a sentence or a list goes on (", " ". " "; " ": " outside brackets), so each item keeps its place in the Hebrew order;
+   a combining mark (x̄) and a leading ± stay with their formula (v2.71) */
+function bidiRun(m) {
+  const out = []; let d = 0, cur = '';
+  for (let i = 0; i < m.length; i++) { const c = m[i]; if ('([⌈‖{'.includes(c) && !(c === '‖' && d > 0)) d++; else if (')]⌉}'.includes(c)) d = Math.max(0, d - 1);
+    if (d === 0 && /[.,;:]/.test(c) && /\s/.test(m[i + 1] || '')) { out.push(cur, c); cur = ''; continue; } cur += c; }
+  out.push(cur);
+  return out.map((x, i) => i % 2 ? x : x.replace(/^(\s*)(.*?)(\s*)$/s, (a, l, mid, r) => mid && /[A-Za-z0-9µΩΑ-ω]/.test(mid) ? `${l}<bdi>${mid}</bdi>${r}` : a)).join('');
+}
+function bidiX(html) { return String(html).split(/(<[^>]+>)/).map(s => s.startsWith('<') ? s : s.replace(BIDI_RE, bidiRun)).join(''); }
 /* shared bits for the hub pages */
 const olx = a => ol(a.map(bidiX));
 const px = t => `<p>${bidiX(t)}</p>`;
@@ -5492,7 +5510,7 @@ hubX('stat', {
     why: () => SB('כמו לשקול את עצמך חמש פעמים ולקבל חמישה מספרים קצת שונים. השאלה היא לא "מה המשקל", אלא "מה המשקל, ובכמה אפשר לטעות".', ['כל מדידה = ערך אמיתי + הטיה קבועה + רעש אקראי.', 'את ההטיה מתקנים בכיול. את הרעש מקטינים בממוצע, אבל לא מבטלים.', 'כדי לדעת אם מכונה טובה מספיק, משווים את הפיזור שלה לטולרנס של המוצר.', 'כדי לדעת אם התהליך השתנה, משווים את המדידות של היום לפיזור הרגיל.'], 'מספר בלי פיזור הוא חצי תשובה. בראיון ובשטח, תמיד לשאול "כמה σ?".') +
       TT(['שאלה', 'הכלי', 'עמוד'], [['כמה המדידות מתפזרות?', 'σ והתפלגות נורמלית', 'פיזור'], ['המכשיר טוב מספיק?', 'Gage R&R, יחס לטולרנס', 'Gage R&R'], ['התהליך בתוך הדרישה?', 'Cp, Cpk', 'יכולת תהליך'], ['המכונה מסמנת יותר מדי או פחות מדי?', 'precision, recall', 'קריאות שגויות'], ['משהו השתנה היום?', 'תרשים בקרה', 'תרשים בקרה']]) +
       where('ATP (קבלת מכונה) הוא סטטיסטיקה: חזרתיות של ציר, דיוק רישום, שיעור קריאות שגויות. וכל שיפור בשטח נמדד באותם מספרים.'),
-    dist: () => olx(['ממוצע: x̄ = Σ xᵢ / n.', 'סטיית תקן של מדגם: s = √(Σ (xᵢ − x̄)² / (n − 1)). מחלקים ב-n − 1 כי x̄ עצמו חושב מאותם נתונים, ו"לקח" דרגת חופש אחת.', 'דוגמה: 10, 12, 11, 13, 9. ממוצע 11. סטיות: −1, 1, 0, 2, −2. סכום ריבועים 10. s = √(10/4) ≈ 1.58.', 'כשהרבה גורמים קטנים ובלתי תלויים מצטברים, ההתפלגות נורמלית (משפט הגבול המרכזי).', 'בהתפלגות נורמלית: 68.3% בתוך ±1σ, 95.4% בתוך ±2σ, 99.73% בתוך ±3σ.', 'ממוצע של n מדידות מתפזר פחות: σ_x̄ = σ / √n.']) +
+    dist: () => olx(['ממוצע: x̄ = Σ xᵢ / n.', 'סטיית תקן של מדגם: s = √(Σ (xᵢ − x̄)² / (n − 1)). מחלקים ב-n − 1 כי x̄ עצמו חושב מאותם נתונים, ו"לקח" דרגת חופש אחת.', 'דוגמה: 10, 12, 11, 13, 9. ממוצע 11. סטיות: −1, 1, 0, 2, −2. סכום ריבועים 10. s = √(10/4) ≈ 1.58.', 'כשהרבה גורמים קטנים ובלתי תלויים מצטברים, ההתפלגות נורמלית. זה משפט הגבול המרכזי: הסכום, או הממוצע, של הרבה משתנים אקראיים בלתי תלויים, שלכל אחד מהם שונות סופית, מתפלג בקירוב נורמלית, גם כשכל אחד מהם לבד לא נורמלי. לכן שגיאת מדידה, שמורכבת מרעש, מטמפרטורה ומרטט, נראית כמו פעמון.', 'בהתפלגות נורמלית: 68.3% בתוך ±1σ, 95.4% בתוך ±2σ, 99.73% בתוך ±3σ.', 'ממוצע של n מדידות מתפזר פחות: σ_x̄ = σ / √n.']) +
       FB([['x̄ = Σ xᵢ / n', 'ממוצע', '55 / 5 = 11'], ['s = √(Σ (xᵢ − x̄)² / (n − 1))', 'סטיית תקן של מדגם', '√(10 / 4) ≈ 1.58'], ['σ_x̄ = σ / √n', 'שגיאת התקן של ממוצע', 'σ = 6, n = 9: 2'], ['P(|x − μ| > 3σ) ≈ 0.27%', 'מחוץ ל-±3σ', '2700 ppm, משני הצדדים']]) +
       trap('לחשב σ מ-3 מדידות ולהסיק ממנו. עם n קטן, s עצמו לא אמין: ב-n = 3 הוא יכול לצאת בטעות של עשרות אחוזים.'),
     acc: () => px('שני מושגים שמתבלבלים כל הזמן. נכונות (accuracy): האם הממוצע במקום הנכון. חזרתיות (precision): האם המדידות קרובות זו לזו.') +
@@ -5501,7 +5519,7 @@ hubX('stat', {
       FB([['bias = x̄ − x_ref', 'ההטיה', '100.012 − 100.000 = 12 µm'], ['σ_rep = s', 'החזרתיות', '3 µm'], ['TUR = T / U_ref', 'יחס בין טולרנס לאי-ודאות התקן', 'לפחות 4:1']]) +
       trap('לכייל מכונה "עד שהיא מראה בדיוק 100.000" על מדידה אחת. מכיילים לפי ממוצע של כמה מדידות, אחרת מתקנים לפי הרעש.'),
     unc: () => px('אי-ודאות מדידה אומרת: "הערך האמיתי נמצא בתוך x ± U, בהסתברות של כ-95%". מחשבים אותה מכל המקורות.') +
-      olx(['רושמים כל מקור: חזרתיות, רזולוציה, תקן הכיול, טמפרטורה, וכן הלאה.', 'הופכים כל אחד לסטיית תקן uᵢ. רזולוציה (צעד a): u = a / √12, כי השגיאה אחידה בטווח ±a/2.', 'מקורות בלתי תלויים: u_c = √(Σ uᵢ²).', 'אי-ודאות מורחבת: U = k · u_c, ו-k = 2 נותן כיסוי של כ-95%.', 'דוגמה: חזרתיות 2 µm, רזולוציה 1 µm (u = 0.29), תקן 1 µm, טמפרטורה 1.5 µm: u_c = √(4 + 0.083 + 1 + 2.25) ≈ 2.71 µm, U ≈ 5.4 µm.']) +
+      olx(['רושמים כל מקור: חזרתיות, רזולוציה, תקן הכיול, טמפרטורה, וכן הלאה.', 'הופכים כל אחד לסטיית תקן uᵢ. רזולוציה (צעד a): u = a / √12, כי השגיאה אחידה בטווח ±a/2.', 'מקורות בלתי תלויים: u_c = √(Σ uᵢ²).', 'אי-ודאות מורחבת: U = k · u_c, ו-k = 2 נותן כיסוי של כ-95%.', 'דוגמה: חזרתיות 2 µm, רזולוציה 1 µm (u = 0.29), תקן 1 µm, טמפרטורה 1.5 µm: u_c = √(4 + 0.083 + 1 + 2.25) ≈ 2.71 µm, U ≈ 5.4 µm.', 'בדיקה בלי נוסחה, בשיטת מונטה-קרלו: מגרילים במחשב אלפי ערכים לכל מקור לפי ההתפלגות שלו (נורמלית או אחידה), מחברים אותם, ומסתכלים על הפיזור של הסכום. ההדמיה למטה מגרילה 4000 מקרים, ומראה כמה מהם נופלים בתוך ±U. השיטה עובדת גם כשהקשר בין המקורות לא ליניארי או כשההתפלגויות לא נורמליות, ושם RSS כבר לא מדויק.']) +
       FB([['u_c = √(Σ uᵢ²)', 'אי-ודאות משולבת', '√7.33 ≈ 2.71 µm'], ['U = k · u_c', 'אי-ודאות מורחבת', 'k = 2: 5.4 µm'], ['u_res = a / √12', 'רזולוציה כסטיית תקן', 'a = 1 µm: 0.29 µm']]) +
       trap('לדווח "המכונה מדויקת ל-1 µm" כי זו הרזולוציה של המקודד. הרזולוציה היא רק מקור אחד, ובדרך כלל הקטן.'),
     cap: () => px('יכולת תהליך משווה את הפיזור של התהליך לטולרנס. Cp אומר אם התהליך צר מספיק. Cpk אומר אם הוא גם ממורכז.') +
@@ -6780,7 +6798,7 @@ function defectSVG(kind) {
 function showPcb(sub) {
   active = null; sub = sub || 'ov'; setTab('pcb'); markVisit('pcb:' + sub);
   const B = hubFrame('AOI ו-AOS בייצור PCB', 'מי הלקוח, מה המכונות עושות אצלו, ואיפה צוות אינטגרציה אצל יצרן הציוד נכנס. כאן נבנה ההקשר לכל השאר.', PCB_NAV, sub, showPcb);
-  const H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'ov') {
     B.innerHTML = H('התמונה הגדולה') +
       `<div class="simple"><div class="sa"><b>בפשטות</b><p>מפעל של לוחות מעגלים קונה מכונות שבודקות ומתקנות את הלוחות לפני שמרכיבים עליהם רכיבים. אצל יצרן הציוד, צוות האינטגרציה מקבל תתי-מערכות, מרכיב מהן מכונה שלמה, מכייל, ומוכיח ב-ATP שהיא עובדת לפני שהיא נשלחת ללקוח.</p></div><div class="ss"><b>צעד אחר צעד</b><ol><li>יצרן הלוחות מייצר שכבות נחושת על פאנלים גדולים.</li><li>אחרי כל שכבה, מכונת AOI סורקת ומשווה לתכנון (CAM).</li><li>תחנת אימות מסננת התראות שווא.</li><li>מכונת AOS מתקנת בלייזר את הפגמים שאפשר להציל.</li><li>האינטגרטור אצל יצרן הציוד דואג שהמכונות האלה יעבדו לפי המפרט, שוב ושוב.</li></ol></div><p class="rem"><b>הדבר האחד לזכור:</b> אינטגרטור לא מפתח מכונה. הוא הופך תתי-מערכות למכונה שעומדת במפרט, שוב ושוב, ומחזיר לפיתוח מה שלמד.</p></div>` +
@@ -6844,7 +6862,7 @@ function intLinks(arr) { return arr.map(([t, s, a]) => `<button type="button" cl
 function showInt(sub) {
   active = null; sub = sub || 'flow'; setTab('int'); markVisit('int:' + sub);
   const B = hubFrame('תהליך אינטגרציה', 'מה צוות אינטגרציה עושה בפועל: מתתי-מערכות ועד מכונה שעוברת ATP ונשלחת ללקוח. בכל שלב: מה בודקים, מה המלכודת, ואיפה מתרגלים.', INT_NAV, sub, showInt);
-  const H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'flow') {
     B.innerHTML = H('מתתי-מערכות למכונה שעוברת ATP') + `<div class="simple"><div class="sa"><b>בפשטות</b><p>כמו להרכיב מכונית במפעל: כל חלק כבר נבדק אצל הספק. העבודה כאן היא לחבר את כולם, לוודא שהם עובדים יחד, לכייל, ולהוכיח במספרים שהמכונה עומדת במפרט.</p></div><div class="ss"><b>העיקרון</b><ol><li>בודקים לפני שמדליקים.</li><li>מדליקים בהדרגה.</li><li>מכיילים רק כשהמכונה יציבה.</li><li>מוכיחים במספרים, ומתעדים.</li></ol></div><p class="rem"><b>הדבר האחד לזכור:</b> אינטגרציה היא המקום הזול ביותר למצוא בעיה. כל תקלה שנתפסת כאן היא תקלה שהלקוח לא יראה.</p></div>` +
       tbl(['#', 'שלב', 'מה בודקים', 'המלכודת', 'איפה מתרגלים'], INT_FLOW.map((f, i) => [i + 1, `<b>${f[0]}</b>`, f[1], `<span style="color:var(--fault)">${f[2]}</span>`, intLinks(f[3])]));
@@ -7019,7 +7037,7 @@ showInt = function (sub) {
   active = null; setTab('int'); markVisit('int:zero');
   const B = hubFrame('תהליך אינטגרציה', 'מה צוות אינטגרציה עושה בפועל: מתתי-מערכות ועד מכונה שעוברת ATP ונשלחת ללקוח.', INT_NAV, 'zero', showInt);
   const IW = [['תת-מערכת', 'חלק גדול שמגיע מוכן: ראש סריקה, שולחן, ארון חשמל.'], ['Bring-up', 'להעיר מערכת בפעם הראשונה: מתח, תקשורת, תנועה ראשונה.'], ['כיול', 'מדידה מול ייחוס ידוע, ותיקון של המכונה עד שהיא מודדת נכון.'], ['ATP', 'רשימת בדיקות עם קריטריון מספרי לכל אחת. המכונה חייבת לעבור את כולן לפני שהיא נשלחת.'], ['Revision', 'גרסה של שרטוט או של חלק. עובדים רק מהגרסה המשוחררת.'], ['FSE', 'Field Service Engineer: מהנדס השירות שמטפל במכונה אצל הלקוח.']];
-  const head = `<h2 style="font-size:24px">מאפס: מה זה אינטגרציה</h2>
+  const head = `<h2 class="subh">מאפס: מה זה אינטגרציה</h2>
     <div class="zstory"><b>הסיפור</b><p>תחשוב על הרכבת רהיט גדול מאיקאה, רק שכל חלק נבנה במפעל אחר, ויש בו חשמל, אוויר, אופטיקה ותוכנה. כל חלק נבדק לבד אצל הספק. אבל אף אחד עוד לא בדק שהם עובדים <b>יחד</b>. אינטגרטור מקבל את החלקים, מחבר אותם, מוודא שהם מדברים זה עם זה, מכייל, ומוכיח במספרים שהמכונה עומדת במה שהובטח ללקוח. אצל יצרן ציוד זה קורה בצוות האינטגרציה, כלומר בקו הייצור.</p></div>`;
   const rest = `<h3>הרעיון בארבעה משפטים</h3><ol class="chain zchain"><li><b>בודקים לפני שמדליקים.</b> רוב הנזק קורה בדקה הראשונה של מתח, ממשהו שאפשר היה למדוד עם מכונה כבויה.</li><li><b>מדליקים בהדרגה.</b> ענף אחרי ענף, כדי שאם משהו לא תקין, תדע בדיוק מה.</li><li><b>מכיילים רק כשהמכונה יציבה.</b> אחרי warm-up, כי חום מזיז מיקרונים.</li><li><b>מוכיחים במספרים, ומתעדים.</b> "נראה טוב" זה לא תוצאה. 2.4 µm מול מפרט של 3 µm, זו תוצאה.</li></ol>
     <h3>יום עבודה, שלב אחר שלב</h3>${tbl(['שלב', 'מה עושים, בפשטות', 'למה'], [['1. מקבלים חלקים', 'בודקים שכל חלק הוא מה שבשרטוט, בגרסה הנכונה, ושלא ניזוק בהובלה.', 'חלק מגרסה ישנה יכול להיראות זהה ולא להתאים.'], ['2. מרכיבים', 'מחברים מכנית לפי השרטוט: מומנט לכל בורג, יישור מסילות.', 'בורג לא מהודק = מצלמה שזזה = מדידה לא חוזרת.'], ['3. מחווטים ובודקים בלי מתח', 'רציפות, מספרי חוטים, התנגדות בין 24V ל-0V.', 'קצר שנמצא עכשיו לא שורף כלום.'], ['4. מדליקים בהדרגה', 'ספק בלי עומס, ואז ענף אחרי ענף.', 'כך יודעים מה הפיל את הספק.'], ['5. בודקים חיישנים, יציאות ובטיחות', 'כל דלת, כל E-stop, כל כניסה ויציאה מול הרשימה.', 'בטיחות קודמת לתנועה.'], ['6. מזיזים צירים', 'כיוון, גבולות, חזרה לנקודת אפס, כוונון.', 'ציר שבורח יכול לשבור את המכונה.'], ['7. מכיילים אופטיקה', 'פוקוס, יישור, קנה מידה, תאורה, stitching, ולייזר מול מצלמה.', 'כאן נקבע הדיוק שהלקוח קונה.'], ['8. ATP', 'מריצים את רשימת הבדיקות ורושמים כל מספר.', 'זו ההוכחה.'], ['9. Burn-in', 'מריצים ברצף שעות.', 'כשלים מוקדמים מופיעים כאן ולא אצל הלקוח.'], ['10. לומדים מהשטח', 'תקלה מלקוח משוחזרת אצלנו והופכת לבדיקה בנוהל.', 'כדי שהמכונה הבאה לא תצא איתה.']])}
@@ -7908,7 +7926,7 @@ function showMot(sub) {
   active = null; sub = sub || 'why'; setTab('mot'); markVisit('mot:' + sub);
   MOT_NAV[MOT_NAV.length - 1][2] = QB.filter(q => q.t === 'mot').length + ' שאלות';
   const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot);
-  const H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'why') {
     B.innerHTML = H('איך מנוע מסתובב') + SB('כמו נדנדה שדוחפים בזמן הנכון: זרם בסליל שבתוך שדה מגנטי מקבל כוח, והכוח מסובב את הציר. ככל שהמנוע מהיר יותר, הוא "מתנגד" יותר לזרם שנכנס אליו.', ['זרם עובר בחוט שנמצא בשדה מגנטי, והחוט מקבל כוח: F = B·I·L.', 'כמה חוטים כאלה סביב ציר נותנים מומנט: T = Kt·I. יותר זרם, יותר מומנט.', 'כשהציר מסתובב, אותם חוטים מייצרים מתח נגדי: E = Ke·ω.', 'המתח שהספק נותן מתחלק בין הנפילה על הסליל (I·R) לבין המתח הנגדי.', 'לכן בהתנעה (ω = 0) הזרם הכי גבוה, ובסיבוב מהיר בלי עומס הוא כמעט אפס.'], 'מומנט בא מזרם. מהירות באה ממתח.') +
       `<h3>הגזירה, צעד אחר צעד (מנוע DC)</h3>${ol(['משוואה חשמלית (במצב יציב, בלי השראות): V = I·R + Ke·ω.', 'משוואה מכנית (במצב יציב, בלי חיכוך): T = Kt·I = T_L.', 'מציבים I = T_L / Kt במשוואה החשמלית: ω = (V − R·T_L/Kt) / Ke.', 'כלומר קו ישר: ω = V/Ke − (R/(Ke·Kt))·T. זו "עקומת מהירות-מומנט".', 'בלי עומס (T = 0): ω₀ = V/Ke. בעצירה (ω = 0): I_s = V/R ו-T_s = Kt·V/R.', 'הספק מכני P = T·ω, מקסימלי באמצע הקו: ב-T = T_s/2, וערכו V²/(4R).'])}` +
@@ -8117,7 +8135,7 @@ showMot = function (sub) {
   const mine = ['parts', 'dcm', 'ind', 'sync', 'tri', 'xfmr', 'conv', 'energy'];
   if (!mine.includes(sub)) return _showMot(sub);
   active = null; setTab('mot'); markVisit('mot:' + sub);
-  const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot), H = t => `<h2 style="font-size:24px">${t}</h2>`;
+  const B = hubFrame(MOT_TITLE, MOT_LEAD, MOT_NAV, sub, showMot), H = t => `<h2 class="subh">${t}</h2>`;
   if (sub === 'parts') {
     B.innerHTML = H('רוטור, סטטור ומה ביניהם') + SB('כמו גלגל ענק בתוך טבעת: הטבעת (סטטור) עומדת במקום ויוצרת שדה מגנטי, והגלגל שבתוכה (רוטור) מסתובב כי השדה מושך אותו.', ['הסטטור הוא הגוף העומד. ברוב המנועים יש בו ליפופים בחריצים, שמקבלים זרם מהרשת או מהדרייבר.', 'הרוטור מסתובב על הציר. יש בו מגנטים, מוטות מקוצרים, או ליפוף, לפי סוג המנוע.', 'ביניהם מרווח אוויר דק, שדרכו עובר השדה. אם המסבים נשחקים, הרוטור מתחכך בסטטור.', 'כוח בין השדה של הסטטור לשדה של הרוטור יוצר מומנט על הציר.', 'בקצה הציר: מסבים, אנקודר או בלם, וחיבור לעומס (צימוד, גיר, בורג).'], 'הסטטור עומד ומחובר לחשמל. הרוטור מסתובב ומחובר לעומס.') +
       `<div class="scheme">${crossSectionSVG()}</div>` +
@@ -11003,7 +11021,7 @@ function showZoom(arg) {
   const id = !arg ? 'machine' : /^L[1-5]$/.test(arg) ? 'level' : (ZVIEW.views[arg] && arg !== 'node' && arg !== 'level') ? arg : 'node';
   ZVIEW.show(id, arg); window.scrollTo(0, 0);
 }
-ZVIEW.add('node', { group: 'main', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
+ZVIEW.add('node', { group: 'hidden', order: 4, title: null, bar: true, render: arg => { ZS.node = arg && zNode(arg) ? arg : 'proc'; zNodeView(ZS.node); } });
 ZVIEW.add('level', { bar: true, render: arg => zLevelView(+arg.slice(1)) });
 /* ============ Zoom views: tree by scale, 3D stack, duplicates report; and "about the project" ============ */
 const zVis = () => ZOOM.filter(z => !(typeof ZAPPX !== 'undefined' && ZAPPX.has(z.id)));
@@ -16175,7 +16193,7 @@ const DMM_RULES = [
   ['דיודה', 'סמל הדיודה.', 'אדום על האנודה, שחור על הקתודה: כ-0.5 עד 0.7V. הפוך: OL.', 'דיודה מקוצרת מראה כמעט 0 בשני הכיוונים.']
 ];
 function showLabDmm(B) {
-  B.innerHTML = `<h2 style="font-size:24px">מולטימטר: איך מודדים נכון</h2>
+  B.innerHTML = `<h2 class="subh">מולטימטר: איך מודדים נכון</h2>
     <div class="zstory"><b>העיקרון האחד</b><p>המולטימטר הוא לא "צופה מהצד". הוא רכיב שמחברים למעגל. במתח הוא נגד ענק (כמעט לא משנה כלום). בזרם הוא חוט עבה (מקצר כל מה שהוא נוגע בו במקביל). בהתנגדות הוא מקור זרם קטן משלו (ולכן המעגל חייב להיות כבוי). כל הכללים נובעים מזה.</p></div>
     <h3>נסה: מעגל של 24V עם ממסר</h3><p class="zhint">המשימות: (1) מדוד 24V בין TP1 ל-TP0. (2) עבור ל-A ושקע 10A, ושים את החודים על TP1 ו-TP0. מה קרה? (3) החלף פיוזים, פתח את S1, ומדוד זרם נכון: אדום על TP2, שחור על TP3. (4) בחר "תקלה א/ב/ג", ומצא אותה בעזרת מתח בלבד, מהמקור והלאה.</p><div id="labdmm"></div>
     <h3>כללי השימוש</h3>${tbl(['מה מודדים', 'הגדרות', 'איך מחברים', 'מגבלות וזהירות'], DMM_RULES)}
@@ -16307,7 +16325,7 @@ const GEN_RULES = [
   ['הגדרת עומס (50 Ω / High-Z)', 'המחולל מחשב את התצוגה לפי העומס שהגדרת. אם הגדרת 50 Ω וחיברת סקופ, תקבל פי 2.']
 ];
 function showLabScope(B) {
-  B.innerHTML = `<h2 style="font-size:24px">מחולל אותות ואוסילוסקופ</h2>
+  B.innerHTML = `<h2 class="subh">מחולל אותות ואוסילוסקופ</h2>
     <div class="zstory"><b>העיקרון האחד</b><p>המולטימטר נותן מספר אחד, ממוצע. האוסילוסקופ מצייר את המתח לאורך זמן, ולכן רואים בו מה שהממוצע מסתיר: קוצים, ריפל, תזמון בין שני אותות, והיחס בין כניסה ליציאה. המחולל הוא מקור אות ידוע: מכניסים אות ידוע למעגל, ורואים בסקופ מה המעגל עושה לו.</p></div>
     <h3>נסה</h3><p class="zhint">(1) הזז את רמת הטריגר מעל 2V: התמונה "רצה". החזר אותה. (2) הגדר במחולל "50 Ω": האות כפול. (3) הגדר בסקופ "×1": האות קטן פי 10. (4) בחר תדר 1.59 kHz ומצב XY: אליפסה של 45°. (5) עבור ל-Schmitt trigger ולמצב XY: לולאת היסטרזיס. (6) הוסף offset ועבור לצימוד AC.</p><div id="labscope"></div>
     <h3>אוסילוסקופ: מה כל כפתור עושה</h3>${tbl(['כפתור', 'מה הוא עושה, ולמה'], SCOPE_RULES)}
@@ -16436,7 +16454,7 @@ const SENS_BENCH = {
 const SENS_NAV = [['prox', 'קרבה: השראתי וקיבולי'], ['photo', 'אופטי'], ['wire', 'PNP מול NPN'], ['temp', 'טמפרטורה'], ['bridge', 'מד מעוות וגשר'], ['hall', 'Hall']];
 function showLabSensor(B, id) {
   const x = SENS[id];
-  B.innerHTML = `<h2 style="font-size:24px">${x.title}</h2>
+  B.innerHTML = `<h2 class="subh">${x.title}</h2>
     <div class="zstory"><b>העיקרון האחד</b><p>${x.one}</p></div>
     <h3>איך זה עובד, שלב אחר שלב</h3><ol class="tsteps">${x.steps.map((st, i) => `<li><div class="tn">${i + 1}</div><div class="tb"><p class="tw"><b>מה קורה:</b> ${st[0]}</p><p class="ty"><b>למה:</b> ${st[1]}</p></div></li>`).join('')}</ol>
     <h3>נסה</h3><div id="sbench"></div>
@@ -16792,7 +16810,7 @@ function showS1(id) {
   });
   const tb0 = $('#toB'); if (tb0) tb0.addEventListener('click', () => go('b'));
   const sec = content.querySelector('#comp');
-  sec.innerHTML = `<h2 style="font-size:24px">${c.name}<span class="kind ${KIND[c.kind][0]}">${KIND[c.kind][1]}</span></h2>${simpleBlock(c.id)}${introCard(c)}<p class="lead">${c.lead}</p><h3>הסכמה</h3><div class="scheme">${c.schematic()}</div>${formBox(c.id)}<h3>סימולציה</h3><div id="bh"></div>
+  sec.innerHTML = `<h2 class="subh">${c.name}<span class="kind ${KIND[c.kind][0]}">${KIND[c.kind][1]}</span></h2>${simpleBlock(c.id)}${introCard(c)}<p class="lead">${c.lead}</p><h3>הסכמה</h3><div class="scheme">${c.schematic()}</div>${formBox(c.id)}<h3>סימולציה</h3><div id="bh"></div>
     ${c.say ? `<div class="note say"><b>בראיון, באנגלית:</b><p lang="en" dir="ltr">${c.say}</p></div>` : ''}
     <details class="more"${moreOpen()}><summary>להעמקה: אופן הפעולה המלא, מגבלות, תקלות ותקנים</summary><div class="cols"><div><h3>אופן פעולה</h3>${ol(c.how)}</div>
     <div><h3>מגבלות</h3>${ul(c.limits)}<h3>תקלות נפוצות</h3>${tbl(['תסמין', 'סיבה אפשרית', 'בדיקה'], c.problems)}<h3>תקנים</h3>${tbl(['תקן', 'מה הוא מגדיר'], c.standards.map(x => ['<span class="mono">' + x[0] + '</span>', x[1]]))}</div></div></details>`;
@@ -16808,7 +16826,7 @@ function showS2(id) {
   SYSTEMS.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.innerHTML = x.name; if (x.id === c.id) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => showS2(x.id)); idx.appendChild(b); });
   const sec = content.querySelector('#sys');
   const uses = c.uses.map(u => { const k = COMPONENTS.find(x => x.id === u); return `<button type="button" class="kind" data-go="${u}" style="cursor:pointer;background:none">${k.name}</button>`; }).join(' ');
-  sec.innerHTML = `<h2 style="font-size:24px">${c.name}</h2><p class="lead">${c.lead}</p><p style="margin:-10px 0 8px;font-size:14px">בנוי מ: ${uses}</p><div id="bh"></div>
+  sec.innerHTML = `<h2 class="subh">${c.name}</h2><p class="lead">${c.lead}</p><p style="margin:-10px 0 8px;font-size:14px">בנוי מ: ${uses}</p><div id="bh"></div>
     <div class="cols"><div><h3>זרימת האות בין החלקים</h3>${ol(c.flow)}</div><div><h3>איך לקרוא</h3><p>${c.read}</p></div></div>`;
   sec.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go('s1', b.dataset.go)));
   active = bench(c, sec.querySelector('#bh'));
@@ -16969,7 +16987,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.70.0';
+const APP_VERSION = '2.71.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
@@ -17068,7 +17086,7 @@ function tocHtml() {
           tocLevels(n).forEach(([lv, ws]) => {
             const key = n.id + '|' + lv[0], lOpen = TS.lvl[key] !== undefined ? TS.lvl[key] : !!(isCur && cur.w && ws.includes(cur.w)), done = ws.filter(tocWinSeen).length;
             h += `<li class="toc-lv"><button type="button" class="toc-row toc-l" data-tl="${key}" aria-expanded="${lOpen}" ><span class="toc-car">${lOpen ? '▾' : '▸'}</span><span class="toc-lc" style="background:${lv[4]}" aria-hidden="true"></span>${lv === TOC_PAGES ? '' : HUBS.indexOf(lv) + '. '}${lv[1]} <small class="toc-cnt">${done}/${ws.length}</small></button>`;
-            if (lOpen) h += '<ul class="toc-ws">' + ws.map(w => { const t = zInfo(w).t || w, on = isCur && cur.w === w; return `<li><button type="button" class="toc-row toc-w${on ? ' on' : ''}" data-tw="${n.id}|${w.replace(/"/g, '&quot;')}"${on ? ' aria-current="true"' : ''}><span class="toc-ck">${tocWinSeen(w) ? '✓' : ''}</span>${String(t).replace(/<[^>]+>/g, '')}${/^(anim|3d|scan):/.test(w) || (w.startsWith('p:') && HXSIM_AT[w.slice(2)]) ? ' <span class="toc-live">חי</span>' : ''}</button></li>`; }).join('') + '</ul>';
+            if (lOpen) h += '<ul class="toc-ws">' + ws.map(w => { const t = tocWinLabel(w, zWindows(n)), on = isCur && cur.w === w; return `<li><button type="button" class="toc-row toc-w${on ? ' on' : ''}" data-tw="${n.id}|${w.replace(/"/g, '&quot;')}"${on ? ' aria-current="true"' : ''}><span class="toc-ck">${tocWinSeen(w) ? '✓' : ''}</span>${String(t).replace(/<[^>]+>/g, '')}${/^(anim|3d|scan):/.test(w) || (w.startsWith('p:') && HXSIM_AT[w.slice(2)]) ? ' <span class="toc-live">חי</span>' : ''}</button></li>`; }).join('') + '</ul>';
             h += '</li>';
           });
           h += '</ul>';
@@ -17122,6 +17140,10 @@ GO_BEFORE.push(() => { TS.scrollCur = true; });
 const _goToc = go; go = function (sheet, arg) { _goToc(sheet, arg); tocLayout(); tocSoon(); };
 window.addEventListener('hashchange', tocSoon);
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tocInit); else tocInit();
+/* a window's name in the list: its title, or, where several windows of the level share a title (a topic that gathers
+   several subjects), what kind of window it is and the subject in short (v2.71) */
+function tocWinLabel(w, ws) { const i = zInfo(w), t = i.t || w; if (ws.filter(x => zInfo(x).t === t).length < 2) return t;
+  return ((ZKIND[i.kind] || [i.kind])[0] || '') + ' · ' + t.split(':')[0]; }
 /* ============ Progress dashboard (v2.69): what you opened, what stays, how fast, and what is next ============
    Reads only what the course already keeps (fh-explored, fh-toc, fh-visits, fh-qbank, fh-book, fh-path, fh-review) and one new
    daily log, fh-act ({ 'YYYY-MM-DD': { v: page views, w: windows opened for the first time } }). Shown as the zoom view
@@ -17188,6 +17210,7 @@ function zProgressView() {
         <p class="pg-sub">תוכן חדש שעוד לא סיימת:</p>${newN.map(x => `<button type="button" class="pg-new" data-pgn="${x.n.id}"><span class="toc-new">חדש</span> ${x.n.t.split(':')[0]} <small>${x.s}/${x.all}</small></button>`).join('')}</section>
       <section class="pg-card"><header><b>חזרות בשבוע הקרוב</b><small>כרטיסים שמגיע זמנם, לפי יום</small></header>${(() => { const f = pathForecast(); const mx = Math.max(4, ...f); return hxChart({ x: [0, 7], y: [0, mx * 1.15], h: 220, xt: [], yt: [0, Math.round(mx / 2), mx], bars: f.map((v, i) => ({ x0: i + .12, x1: i + .88, h: v })), txt: f.map((v, i) => ({ x: i + .5, y: 0, t: i ? '+' + i : 'היום', a: 'middle' })) }); })()}</section>
     </div></div>`;
+  zWireSub();   /* the views bar of this page: without it nothing in the bar leads anywhere (fixed in v2.71) */
   content.querySelectorAll('[data-pgr]').forEach(b => b.addEventListener('click', () => { try { sessionStorage.setItem('fh-pg-range', b.dataset.pgr); } catch (e) { } zProgressView(); }));
   content.querySelectorAll('[data-pgc]').forEach(b => b.addEventListener('click', () => { BV.ch = b.dataset.pgc; BV.exam = null; go('zoom', 'book'); }));
   content.querySelectorAll('[data-pgn]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.pgn)));
@@ -17324,4 +17347,165 @@ syncGroup((document.querySelector('nav.sheets [aria-selected="true"]') || {}).da
     b.textContent = dark ? '☀️ מצב בהיר' : '🌙 מצב כהה'; b.setAttribute('aria-label', dark ? 'מעבר למצב בהיר' : 'מעבר למצב כהה'); };
   b.addEventListener('click', upd); upd();
 })();
+/* ============ v2.71: formulas inside Hebrew text keep their own order, on every page ============
+   A formula in a right-to-left paragraph is laid out by the bidi algorithm piece by piece: "x̄ = Σ xᵢ / n." can come out
+   as ".Σ xᵢ / n = x̄". The algorithm pages (39l) already wrap their formulas with bidiX; this does the same for whatever
+   is drawn into the content: every text node of a right-to-left block that holds a formula gets its formula runs
+   isolated (<bdi>), one run per formula, cut where the sentence or the list goes on. Code, SVG, inputs and anything
+   already isolated are left alone. It runs on what is added to the page, so a window opened later is covered too. */
+const BIDI_FORM = /[=√Σ±≈×÷≤≥−^_()[\]²³⁻ᵢ-ᵪ₀-₉σμπθωΔλτφ∑∫∞]|[A-Za-z]\/[A-Za-z0-9]|\d\s*[\/*]\s*\d/;
+const BIDI_SKIP = 'svg,canvas,code,pre,script,style,textarea,input,select,bdi,[dir="ltr"],.mono,.codebox,.kb,math,.nobidi';
+function bidiNeeds(t) {
+  const runs = t.match(BIDI_RE); if (!runs) return false;
+  return runs.some(r => r.length > 1 && BIDI_FORM.test(r) && /[A-Za-z0-9µΩΑ-ω]/.test(r));
+}
+function bidiRtlBlock(n) { const el = n.parentElement; return !!el && getComputedStyle(el).direction === 'rtl'; }
+/* the text nodes under root that would come out of order */
+function bidiRisk(root) {
+  const out = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => {
+    const p = n.parentElement; if (!p || p.closest(BIDI_SKIP)) return NodeFilter.FILTER_REJECT;
+    return n.nodeValue.trim() && bidiNeeds(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } });
+  for (let n = w.nextNode(); n; n = w.nextNode()) if (bidiRtlBlock(n)) out.push(n);
+  return out;
+}
+function bidiFix(root) {
+  if (!root) return 0; const nodes = bidiRisk(root);
+  /* < > & are held as private marks through bidiX (which reads markup) and become entities only after, so "x < 5" stays one run */
+  nodes.forEach(n => { const held = n.nodeValue.replace(/&/g, '\ue003').replace(/</g, '\ue001').replace(/>/g, '\ue002');
+    const html = bidiX(held).replace(/\ue003/g, '&amp;').replace(/\ue001/g, '&lt;').replace(/\ue002/g, '&gt;');
+    const t = document.createElement('template'); t.innerHTML = html; if (!t.content.querySelector('bdi')) return; n.replaceWith(t.content); });
+  return nodes.length + bidiBlocks(root);
+}
+/* a formula that runs across inline elements ("a = <b>0.720</b>") is found in the block's whole text and isolated as one range */
+const BIDI_BLOCK = 'p,li,td,dd,dt,figcaption,caption,blockquote,h4,h5,label,.lead,.note';
+const BIDI_SKIP_IN = 'svg,canvas,code,pre,script,style,textarea,input,select,[dir="ltr"],.mono,.codebox,.kb,math,.nobidi';
+function bidiPieces(m, at) {   /* the same cuts as bidiRun, as [start, end] offsets */
+  const out = []; let d = 0, st = 0;
+  const push = (a, b) => { while (a < b && /\s/.test(m[a])) a++; while (b > a && /\s/.test(m[b - 1])) b--; if (b - a > 1 && /[A-Za-z0-9µΩΑ-ω]/.test(m.slice(a, b))) out.push([at + a, at + b]); };
+  for (let i = 0; i < m.length; i++) { const c = m[i]; if ('([⌈{'.includes(c)) d++; else if (')]⌉}'.includes(c)) d = Math.max(0, d - 1);
+    if (d === 0 && /[.,;:]/.test(c) && /\s/.test(m[i + 1] || '')) { push(st, i); st = i + 1; } }
+  push(st, m.length); return out;
+}
+function bidiBlocks(root) {
+  let n = 0; const blocks = root.matches && root.matches(BIDI_BLOCK) ? [root] : [];
+  blocks.push(...root.querySelectorAll(BIDI_BLOCK));
+  blocks.forEach(B => {
+    if (B.closest(BIDI_SKIP) || B.querySelector(BIDI_BLOCK + ',div,ul,ol,table,section')) return;
+    const T = B.textContent; if (!/[א-ת]/.test(T) || !BIDI_FORM.test(T)) return;
+    const map = [], w = document.createTreeWalker(B, NodeFilter.SHOW_TEXT); let off = 0;
+    for (let t = w.nextNode(); t; t = w.nextNode()) { map.push([t, off]); off += t.nodeValue.length; }
+    const at = i => { for (let k = map.length - 1; k >= 0; k--) if (map[k][1] <= i) return [map[k][0], i - map[k][1]]; return null; };
+    const pieces = []; let m; BIDI_RE.lastIndex = 0;
+    while ((m = BIDI_RE.exec(T))) if (m[0].length > 1 && BIDI_FORM.test(m[0])) pieces.push(...bidiPieces(m[0], m.index));
+    pieces.reverse().forEach(([a, b]) => {
+      const s = at(a), e = at(b - 1); if (!s || !e) return;
+      const sp = s[0].parentElement, ep = e[0].parentElement; if (!sp || !ep) return;
+      const sB = sp.closest('bdi'), eB = ep.closest('bdi');
+      if (sB && sB === eB && B.contains(sB)) return;   /* already one isolated run */
+      if ((sB && (sB.className || sB.hasAttribute('dir'))) || (eB && (eB.className || eB.hasAttribute('dir')))) return;   /* a marked run (LB in the labs) is left as it was written */
+      if (sp.closest('.gdef,' + BIDI_SKIP_IN) || ep.closest('.gdef,' + BIDI_SKIP_IN)) return;
+      /* pieces of the formula that were isolated one by one ("<bdi>y</bdi>[<bdi>n</bdi>]") become one run */
+      const r = document.createRange();
+      if (sB && B.contains(sB)) r.setStartBefore(sB); else r.setStart(s[0], s[1]);
+      if (eB && B.contains(eB)) r.setEndAfter(eB); else r.setEnd(e[0], e[1] + 1);
+      if (r.cloneContents().querySelector('input,select,button,textarea,.gdef')) return;
+      const bd = document.createElement('bdi'); bd.appendChild(r.extractContents()); bd.querySelectorAll('bdi:not([class]):not([dir])').forEach(x => x.replaceWith(...x.childNodes));   /* only the plain pieces; a marked one (nogl, ltr) stays as it is */
+      bd.querySelectorAll('b,i,span,em,strong').forEach(x => { if (!x.textContent) x.remove(); }); r.insertNode(bd); n++; });
+  });
+  return n;
+}
+(function () {
+  const host = document.getElementById('content'); if (!host || typeof MutationObserver === 'undefined') return;
+  let pend = new Set(), timer = 0;
+  const run = () => { timer = 0; obs.disconnect(); try { pend.forEach(r => { if (r.isConnected) bidiFix(r); }); } finally { pend = new Set(); obs.observe(host, { childList: true, subtree: true }); } };
+  const obs = new MutationObserver(list => { list.forEach(m => m.addedNodes.forEach(n => { const r = n.nodeType === 1 ? n : n.parentElement; if (r && !r.closest('svg,canvas,bdi')) pend.add(r); })); if (!timer) timer = setTimeout(run, 0); });
+  bidiFix(host); obs.observe(host, { childList: true, subtree: true });
+})();
+/* the glossary marks a term the first time it appears and adds its short meaning in brackets. Inside a formula that bracket
+   would break the formula ("T = Kt (torque per amp)·I"): the formula is isolated first, and a meaning found inside it is
+   moved to right after the formula, with the term's name ("T = Kt·I (Kt: torque per amp)"). */
+const _glossifyBidi = glossify;
+glossify = function (root) {
+  try { bidiFix(root); } catch (e) { }
+  _glossifyBidi(root);
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('bdi').forEach(b => { const ds = [...b.querySelectorAll('.gdef')]; if (!ds.length) return;
+    const esc = x => x.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    const alone = b.textContent.replace(ds.map(d => d.textContent).join(''), '').trim() === ds.map(d => (d.previousElementSibling || {}).textContent || '').join('').trim();   /* the run is just the term: no need to name it again */
+    const txt = ds.map(d => { const a = d.previousElementSibling, k = !alone && a && a.classList.contains('gl') ? a.textContent : ''; return (k ? `<bdi>${esc(k)}</bdi>: ` : '') + esc(d.textContent.trim().replace(/^\(|\)$/g, '')); });
+    ds.forEach(d => d.remove()); const s = document.createElement('span'); s.className = 'gdef'; s.innerHTML = ' (' + txt.join('; ') + ')'; b.after(s); });
+};
+/* ============ v2.71: every abbreviation says what its letters stand for ============
+   A glossary entry for an abbreviation now opens with its full form, in the tooltip and in the short meaning shown the first
+   time it appears. Words that only look like abbreviations (AND, OK, RUN, units such as MHz) are listed apart, so the check
+   in the tests knows them. */
+const ACRO = {
+  PELV: 'Protective Extra-Low Voltage', EMI: 'Electromagnetic Interference', EMC: 'Electromagnetic Compatibility', ESD: 'Electrostatic Discharge',
+  TVS: 'Transient Voltage Suppressor', MOSFET: 'Metal-Oxide-Semiconductor Field-Effect Transistor', 'N-MOSFET': 'N-channel MOSFET',
+  PID: 'Proportional-Integral-Derivative', PD: 'Proportional-Derivative',
+  NAMUR: 'Normenarbeitsgemeinschaft für Mess- und Regeltechnik in der chemischen Industrie (שם הארגון במקור)',
+  PNP: 'P-N-P: סדר שכבות הטרנזיסטור ביציאה', NPN: 'N-P-N: סדר שכבות הטרנזיסטור ביציאה',
+  EtherCAT: 'Ethernet for Control Automation Technology', CRC: 'Cyclic Redundancy Check', MTF: 'Modulation Transfer Function',
+  MES: 'Manufacturing Execution System', 'GD&T': 'Geometric Dimensioning and Tolerancing', SMD: 'Surface-Mount Device', PC: 'Personal Computer',
+  BJT: 'Bipolar Junction Transistor', DIN: 'Deutsches Institut für Normung', RC: 'Resistor-Capacitor', ADC: 'Analog-to-Digital Converter',
+  ISO: 'International Organization for Standardization (השם הקצר בא מהמילה היוונית isos, "שווה", ולא מראשי התיבות)',
+  IEC: 'International Electrotechnical Commission', ANSI: 'American National Standards Institute', LDO: 'Low-Dropout regulator',
+  MLCC: 'Multilayer Ceramic Capacitor', IGBT: 'Insulated-Gate Bipolar Transistor', NTC: 'Negative Temperature Coefficient', PHY: 'Physical layer',
+  XOR: 'Exclusive OR', NOR: 'NOT OR', NAND: 'NOT AND', XNOR: 'Exclusive NOR',
+  SPI: 'Serial Peripheral Interface', UART: 'Universal Asynchronous Receiver-Transmitter', I2C: 'Inter-Integrated Circuit (I²C)', CAN: 'Controller Area Network',
+  TX: 'Transmit', RX: 'Receive', LSB: 'Least Significant Bit', MSB: 'Most Significant Bit', SDA: 'Serial Data', SCL: 'Serial Clock', SCLK: 'Serial Clock',
+  ACK: 'Acknowledge', NACK: 'Not Acknowledge', CPOL: 'Clock Polarity', CPHA: 'Clock Phase', CANH: 'CAN High', CANL: 'CAN Low',
+  'RS-485': 'Recommended Standard 485', 'RS-232': 'Recommended Standard 232', EEPROM: 'Electrically Erasable Programmable Read-Only Memory',
+  UBRR: 'USART Baud Rate Register', TTL: 'Transistor-Transistor Logic', CMOS: 'Complementary Metal-Oxide-Semiconductor', ID: 'Identifier',
+  SOF: 'Start of Frame', RTR: 'Remote Transmission Request', IDE: 'Identifier Extension', DLC: 'Data Length Code', EOF: 'End of Frame', IFS: 'Interframe Space',
+  FD: 'Flexible Data-rate', GPS: 'Global Positioning System', MATLAB: 'MATrix LABoratory', 'FR-4': 'Flame Retardant, דרגה 4',
+  Cp: 'Process Capability: מדד יכולת התהליך', Cpk: 'Process Capability Index עם מרכוז: ה-k הוא ההיסט היחסי של הממוצע מאמצע הטולרנס, k = |m − μ| / (T/2), ולכן Cpk = Cp·(1 − k)',
+  CAM: 'Computer-Aided Manufacturing', UV: 'Ultraviolet', BLDC: 'Brushless DC', MPCB: 'Motor Protection Circuit Breaker', SI: "Système international d'unités",
+  PMSM: 'Permanent Magnet Synchronous Motor', GND: 'Ground', COM: 'Common', PWR: 'Power', 'TO-220': 'Transistor Outline 220', 'TO-92': 'Transistor Outline 92',
+  'SOT-23': 'Small-Outline Transistor 23', DIP: 'Dual In-line Package', ASME: 'American Society of Mechanical Engineers',
+  SEMI: 'Semiconductor Equipment and Materials International', MIT: 'Massachusetts Institute of Technology', GPL: 'GNU General Public License',
+  GRR: 'Gage Repeatability and Reproducibility', 'Gage R&R': 'Gage Repeatability and Reproducibility',
+  JK: 'J ו-K הם שמות הכניסות של ה-flip-flop, לא ראשי תיבות', QR: 'Q ו-R הם שמות המטריצות: Q אורתוגונלית, R משולשית עליונה'
+};
+/* words and units that look like abbreviations but are not: what the glossary says about them is the whole story */
+const NOT_ACRO = new Set(['AND', 'OR', 'NOT', 'OK', 'POWER', 'LOAD', 'DATA', 'RUN', 'OUT', 'IN', 'ON/OFF', 'STEP', 'DIR', 'XY', 'VA', 'MHz', 'MPa', 'V/Hz', 'LCR', 'High-Z', 'PN', 'CCM', 'DCM']);
+const acroLike = k => /^[A-Z][A-Za-z0-9&\-\/·²]*$/.test(k) && ((k.match(/[A-Z]/g) || []).length >= 2 || /^C[pP][kK]?$|^Pp[kK]?$/.test(k));
+const acroHas = (k, d) => /קיצור של|ראשי תיבות|ר"ת/.test(d) || /([A-Z][a-z]+[\s-]+){1,}[A-Z]?[a-z]+/.test(d.split(':')[0] + ' ' + d.slice(0, 80));
+Object.entries(ACRO).forEach(([k, x]) => { if (!GLOSS[k]) return;
+  if (!GLOSS[k].includes(x.split(':')[0].split(' (')[0])) GLOSS[k] = x + '. ' + GLOSS[k];
+  if (typeof GSHORT !== 'undefined' && GSHORT[k] && !GSHORT[k].includes(x.split(':')[0].split(' (')[0])) GSHORT[k] = x.split(':')[0].split(' (')[0] + ': ' + GSHORT[k]; });
+/* an entry that already opens with its full form ("Equipment Variation: …") gives it to the short meaning too, so the first mention shows the letters */
+Object.keys(GLOSS).forEach(k => { if (!acroLike(k) || NOT_ACRO.has(k) || ACRO[k] || typeof GSHORT === 'undefined' || !GSHORT[k]) return;
+  const m = GLOSS[k].match(/^(?:[^:]{0,20}\()?([A-Z][a-z]+(?:[\s-]+[A-Za-z][a-z]*){1,6})(?=[):.,]|\s+[^A-Za-z\s])/); if (m && !GSHORT[k].includes(m[1])) GSHORT[k] = m[1] + ': ' + GSHORT[k]; });
+/* for the tests: abbreviations in the glossary whose letters are still not spelled out */
+function acroMissing() { return Object.keys(GLOSS).filter(k => acroLike(k) && !NOT_ACRO.has(k) && !acroHas(k, GLOSS[k]) && !(ACRO[k] && GLOSS[k].startsWith(ACRO[k]))); }
+
+/* two ideas the statistics pages lean on, explained where they are used */
+Object.entries({
+  'משפט הגבול המרכזי': ['משפט הגבול המרכזי (Central Limit Theorem): סכום, או ממוצע, של הרבה משתנים אקראיים בלתי תלויים, שלכל אחד מהם שונות סופית, מתפלג בקירוב נורמלית, כמעט בלי קשר להתפלגות של כל אחד מהם. לכן שגיאה שמורכבת מהרבה גורמים קטנים (רעש, טמפרטורה, רטט) נראית כמו פעמון, ולכן ממוצע של n מדידות מתפזר פי √n פחות.', 'סכום של הרבה גורמים קטנים ובלתי תלויים מתפלג נורמלית'],
+  'מונטה-קרלו': ['שיטת מונטה-קרלו (Monte Carlo): במקום לפתור את פיזור התוצאה בנוסחה, מגרילים במחשב אלפי ערכים לכל גורם לפי ההתפלגות שלו, מחשבים את התוצאה לכל הגרלה, ומודדים את הפיזור של התוצאות. השם בא מבית הקזינו במונקו, כי הכלי הוא הגרלה. כך מקבלים פיזור גם כשהקשר לא ליניארי או כשההתפלגויות לא נורמליות, במקומות שבהם RSS כבר לא מדויק.', 'הגרלה של אלפי מקרים במחשב, במקום נוסחה']
+}).forEach(([k, v]) => { GLOSS[k] = v[0]; GSHORT[k] = v[1]; });
+if (typeof GL_RE !== 'undefined') { GL_RE = null; } if (typeof GL2_RE !== 'undefined') { GL2_RE = null; }
+/* the Hebrew pass of the glossary finds its terms by these patterns (54-lexicon); the two new ones join it, with the usual prefixes (ו, ה, ב, ...) */
+['משפט הגבול המרכזי', 'מונטה-קרלו'].forEach(k => HEB_GL.push([k, new RegExp('(^|[^\\u0590-\\u05FF])((?:[והבכלמש]{0,2})' + k.replace(/[-]/g, '[-\\s]?') + ')(?=$|[^\\u0590-\\u05FF])')]));
+/* ============ v2.71: long windows read as an outline ============
+   1. The engineer level (t:<id>:eng) is a chain of steps. Each step keeps its title and its equation in view, so the chain
+      reads at a glance; its explanation and its table of symbols fold under "the explanation and the symbols".
+   2. The topic list names the windows of a topic that gathers several subjects (optics: lens, tilt, thermal expansion)
+      by kind and subject, instead of repeating one title (99c, tocWinLabel). */
+function engCollapse(el) {
+  el.querySelectorAll('ol.engsteps > li.engstep').forEach((li, i) => {
+    if (li.querySelector(':scope > details.engmore')) return;
+    const keep = new Set([li.querySelector(':scope > .engt'), li.querySelector(':scope > .engeq')]), rest = [...li.children].filter(c => !keep.has(c));
+    if (!rest.length) return;
+    const d = document.createElement('details'); d.className = 'engmore';
+    const s = document.createElement('summary'); s.textContent = 'ההסבר והסימנים'; d.append(s, ...rest); li.append(d);
+  });
+}
+const _winMountClar = WIN.mount.bind(WIN);
+WIN.mount = function (w, el) { const r = _winMountClar(w, el); if (/^t:[a-z0-9]+:eng$/.test(w)) engCollapse(el); return r; };
+
+/* (a level's windows were already grouped by subject in 85-layers; the topic list now names them apart too, in 99c) */
+/* the engineer level is short enough now that it is folded: it is no longer cut with "show all the text" (85-layers) */
+TEXTKINDS.delete('eng');
 </script></body></html>
