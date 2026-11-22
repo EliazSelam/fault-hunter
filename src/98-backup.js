@@ -2,7 +2,7 @@
    Everything the course remembers lives in this browser's localStorage, under the keys that start with fh- or faulthunter- (and the theme).
    A backup is one JSON object holding those keys as text. It leaves as a file or as a text code (compressed when the browser can), and comes
    back only after a check, a summary of what it holds, and a confirmation. The state it replaces is kept for one undo. */
-const BK_APP = 'fault-hunter', BK_UNDO = 'fh-undo', BK_DONE = 'fh-restored', BK_PREFS = new Set(['theme', 'fh-mode']);
+const BK_APP = 'fault-hunter', BK_UNDO = 'fh-undo', BK_DONE = 'fh-restored', BK_PREFS = new Set(['theme', 'fh-mode', 'fh-tbpar']);
 /* progress worth carrying: not a preference, and not the list of pages visited, which every page load adds to */
 const bkReal = k => !BK_PREFS.has(k) && k !== 'fh-visits';
 const bkOwn = k => typeof k === 'string' && k !== BK_UNDO && (/^(fh-|faulthunter-)[a-z0-9-]+$/.test(k) || k === 'theme');

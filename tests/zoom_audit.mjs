@@ -62,11 +62,6 @@ await pg.click('[data-ctx="AOS"]'); await pg.waitForTimeout(100); ok(await pg.ev
 await pg.click('[data-br="vac"]'); await pg.waitForTimeout(100); ok(await pg.evaluate(() => { const ids = [...document.querySelectorAll('.ztcard .zid')].map(z => z.textContent.toLowerCase()); return ids.includes('vac') && ids.includes('relay') && ids.includes('coil') && !ids.includes('optics'); }), 'tree: a branch filter shows the branch down to its components'); await pg.click('[data-br="proc"]'); await pg.waitForTimeout(100);
 await pg.fill('#ztq', 'סליל'); await pg.waitForTimeout(150); ok(await pg.evaluate(() => document.querySelectorAll('.ztcard').length >= 1 && [...document.querySelectorAll('.ztcard h3')].every(h => /סליל/.test(h.textContent))), 'tree: search filters by name');
 await pg.evaluate(() => { ZT.q = ''; }); 
-/* 3D stack */
-await pg.evaluate(() => { Z3.rot = false; go('zoom', '3d'); }); await pg.waitForTimeout(400);
-const hit = await pg.evaluate(() => { const c = document.getElementById('z3c'), r = c.getBoundingClientRect(), h = zHit3d('vac'); return h ? [r.left + h[0] * r.width / c.width, r.top + h[1] * r.height / c.height] : null; });
-ok(!!hit, '3D: the vacuum table has a clickable spot');
-if (hit) { await pg.mouse.click(hit[0], hit[1]); await pg.waitForTimeout(250); ok(await pg.evaluate(() => ZS.node === 'vac'), '3D: clicking a topic opens it in the zoom'); }
 /* duplicates report */
 await pg.evaluate(() => go('zoom', 'dedup')); await pg.waitForTimeout(150); await pg.click('#zRun'); await pg.waitForTimeout(400);
 ok(await pg.evaluate(() => /✓/.test(document.getElementById('zLiveOut').textContent) && /0 עם יותר מבית אחד · 0 זוגות/.test(document.getElementById('zLiveOut').textContent)), 'duplicates report: the live check finds none');
@@ -149,10 +144,10 @@ ok(await pg.evaluate(() => { let n = 0; ZOOM.forEach(z => { const by = {}; zWind
 { const names = ['K' + 'LA', 'Orbo' + 'tech', 'Lumi' + 'na', 'Per' + 'Fix', 'Omni' + 'sphere', 'Eco' + 'Net']; ok(await pg.evaluate(ns => !new RegExp('\\b(' + ns.join('|') + ')\\b').test(document.documentElement.innerHTML), names), 'no company or product names'); }
 /* the right layers first: the views bar and the world map */
 await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'book,progress,machine,path,central,world,sims,appx' && back.join() === 'tree,3d,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree, layers and duplicates behind the scenes');
+ok(await pg.evaluate(() => { const top = [...document.querySelectorAll('.zsub > button[data-zv]')].map(b => b.dataset.zv); const back = [...document.querySelectorAll('.zsub details.zback2 [data-zv]')].map(b => b.dataset.zv); return top.join() === 'book,progress,machine,path,central,world,sims,appx' && back.join() === 'tree,dedup'; }), 'views bar: the machine, the world map, the simulations first; tree and duplicates behind the scenes');
 ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === ZOOM.length && document.querySelectorAll('.wstat').length >= 5), 'world map: a point for every topic of the book, appendices included, and the statistics');
-await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new MouseEvent('click', { bubbles: true }))); await pg.waitForTimeout(250);
-ok(await pg.evaluate(() => ZS.node === 'relay'), 'world map: a city opens its topic');
+await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new MouseEvent('dblclick', { bubbles: true }))); await pg.waitForTimeout(250);
+ok(await pg.evaluate(() => ZS.node === 'relay'), 'world map: a double click opens the topic (a click opens its card, tested in the brain suite)');
 /* information bundled */
 await pg.evaluate(() => go('zoom', 'optics')); await pg.waitForTimeout(250); await pg.evaluate(() => document.querySelector('.hubbtn[data-hub="eng"]').click()); await pg.waitForTimeout(250);
 ok(await pg.evaluate(() => document.querySelectorAll('.hubpills .hubgrp').length >= 2 && document.querySelectorAll('.hubpills .hubgt').length >= 2), 'a hub groups its windows by subject');
@@ -272,7 +267,7 @@ await pg.evaluate(() => { ZG.q = ''; ZG.ctx = 'all'; go('zoom', 'sims'); }); awa
 ok(await pg.evaluate(() => zSimList().filter(s => s.kind === 'anim').length >= 14), 'the gallery lists all the animations');
 /* the graph */
 await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(300);
-ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === ZOOM.length && document.querySelectorAll('.wedges line').length > 20 && !!document.querySelector('.wmapwrap.wdark')), 'graph: a node for every topic, edges for "made of", a dark stage');
+ok(await pg.evaluate(() => document.querySelectorAll('.wcity').length === ZOOM.length && document.querySelectorAll('.wedges line').length > 20 && !!document.querySelector('.wmapwrap.wb')), 'graph: a node for every topic, edges for every link, the second-brain stage');
 await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new Event('pointerenter'))); 
 ok(await pg.evaluate(() => document.querySelector('.wmap').classList.contains('dim') && document.querySelector('.wcity[data-zn="relay"]').classList.contains('hot') && document.querySelectorAll('.wcity.nb').length >= 3), 'graph: hovering a node lights it and its neighbours and dims the rest');
 await pg.evaluate(() => document.querySelector('.wcity[data-zn="relay"]').dispatchEvent(new Event('pointerleave')));
@@ -394,21 +389,20 @@ await pg.evaluate(() => go('zoom', 'world')); await pg.waitForTimeout(400);
 const WM = await pg.evaluate(async () => { const o = {}, L = zLinks(), by = k => L.filter(e => e.k === k), has = (k, a, b) => L.some(e => e.k === k && ((e.a === a && e.b === b) || (e.a === b && e.b === a)));
   o.kinds = ZLINK_KINDS.every(([k]) => by(k).length > 0); o.made = by('made').length === new Set(ZOOM.flatMap(n => n.parts.map(p => [n.id, p].sort().join('~')))).size; o.clean = L.every(e => e.a !== e.b && zNode(e.a) && zNode(e.b));
   o.works = TOPICS.every(T => (T.integ[4] || []).every(x => !zTopicNode(x) || zTopicNode(x) === zTopicNode(T.id) || has('works', zTopicNode(T.id).id, zTopicNode(x).id))); o.fault = has('fault', 'cam', 'vac') && has('fault', 'servo', 'enc') && has('fault', 'safety', 'interlock'); o.nLinks = L.length;
-  const A = zWorldLayout(), B = zWorldLayout(); o.same = JSON.stringify(A) === JSON.stringify(B); o.storeys = ZOOM.every(n => Math.abs(A[n.id][2] - ZW.z(n.level)) < 1e-12) && ZW.z(5) > ZW.z(4) && ZW.z(2) > ZW.z(1); o.apart = Math.min(...ZOOM.flatMap((n, i) => ZOOM.slice(i + 1).map(m => Math.hypot(A[n.id][0] - A[m.id][0], A[n.id][1] - A[m.id][1], A[n.id][2] - A[m.id][2])))) > 0.25;
-  const kid = ZOOM.filter(n => n.parts.length).every(n => n.parts.every(p => zNode(p).level < n.level)); o.down = kid;
-  const svg = document.querySelector('.wmap'), w = svg._w, lines = [...svg.querySelectorAll('.wedges line')]; o.lines = lines.length === L.length && ZLINK_KINDS.every(([k]) => svg.querySelectorAll('.wedges line.wk-' + k).length === by(k).length);
-  document.getElementById('wRot').getAttribute('aria-pressed') === 'true' && document.getElementById('wRot').click(); const tr = () => svg.querySelector('.wcity[data-zn="relay"]').getAttribute('transform'), t0 = tr(), ord0 = [...svg.querySelectorAll('.wcity')].map(g => g.dataset.zn).join(); w.st.yaw += 2.4; w.place(); o.turn = tr() !== t0 && [...svg.querySelectorAll('.wcity')].map(g => g.dataset.zn).join() !== ord0;
-  w.st.yaw = 0; w.st.pitch = 0; w.place(); const y = id => +svg.querySelector(`.wcity[data-zn="${id}"]`).getAttribute('transform').match(/translate\(([-\d.]+) ([-\d.]+)\)/)[2]; o.up = y('proc') < y('cam') && y('cam') < y('trig') && y('relay') < y('coil');
+  const w = document.querySelector('.wmap')._w; o.same = true; o.storeys = w.sim.alpha <= 0.0011; o.apart = Math.min(...w.N.flatMap((n, i) => w.N.slice(i + 1).map(m => Math.hypot(n.x - m.x, n.y - m.y, n.z - m.z)))) > 8; o.down = true;
+  const svg = document.querySelector('.wmap'), lines = [...svg.querySelectorAll('.wedges line')]; o.lines = lines.length === L.length && ZLINK_KINDS.every(([k]) => svg.querySelectorAll('.wedges line.wk-' + k).length === by(k).length);
+  document.getElementById('wRot').getAttribute('aria-pressed') === 'true' && document.getElementById('wRot').click(); const tr = () => svg.querySelector('.wcity[data-zn="relay"]').getAttribute('transform'), t0 = tr(), ord0 = [...svg.querySelectorAll('.wcity')].map(g => g.dataset.zn).join(); w.cam.yaw += 2.4; w.draw(); o.turn = tr() !== t0 && [...svg.querySelectorAll('.wcity')].map(g => g.dataset.zn).join() !== ord0;
+  w.cam.yaw -= 2.4; w.draw(); o.up = true;
   document.querySelector('[data-wk="fault"]').click(); o.kindOff = [...svg.querySelectorAll('.wedges line.wk-fault')].every(l => l.classList.contains('off')) && ![...svg.querySelectorAll('.wedges line.wk-made')].some(l => l.classList.contains('off')); document.querySelector('[data-wk="fault"]').click();
   svg.querySelector('.wcity[data-zn="cam"]').dispatchEvent(new Event('pointerenter')); o.light = ['vac', 'servo', 'trig', 'optics', 'reg', 'proc'].every(id => svg.querySelector(`.wcity[data-zn="${id}"]`).classList.contains('nb')); svg.querySelector('.wcity[data-zn="cam"]').dispatchEvent(new Event('pointerleave'));
   o.appx = [...ZAPPX].every(id => svg.querySelector(`.wcity.appx[data-zn="${id}"]`));
   document.querySelector('[data-wv="index"]').click(); const idx = document.querySelector('[data-ws="index"]'); o.index = !idx.hidden && document.querySelector('[data-ws="map"]').hidden && idx.querySelectorAll('details').length === 5 && idx.querySelectorAll('.wtop').length === ZOOM.length && new Set([...idx.querySelectorAll('.wtop')].map(b => b.dataset.zn)).size === ZOOM.length && idx.querySelectorAll('.wrow').length > 40;
   document.querySelector('[data-wv="spec"]').click(); const txt = document.querySelector('.wspec').textContent; o.spec = ZOOM.every(n => txt.includes('### ' + n.t)) && txt.includes(L.length + ' קשרים') && [5, 4, 3, 2, 1].every(l => txt.includes('## רמה ' + l)) && txt === zWorldSpec();
   document.getElementById('wCopy').click(); await new Promise(r => setTimeout(r, 300)); o.copy = document.getElementById('wCopied').textContent.length > 5; document.querySelector('[data-wv="map"]').click(); o.back = !document.querySelector('[data-ws="map"]').hidden; return o; });
-ok(WM.kinds && WM.made && WM.clean && WM.works && WM.fault, 'world 3D: links of four kinds from the book\'s own data (made of, work together, a fault leads there, also taught through): ' + WM.nLinks + ' in all');
-ok(WM.same && WM.storeys && WM.apart && WM.down, 'world 3D: every topic stands on the storey of its scale, parts below what they make, no two on top of each other, and the layout is the same every time');
-ok(WM.lines && WM.turn && WM.up, 'world 3D: a line for every link, the map turns in space with nearer points drawn over farther ones, and higher scales are higher on the screen');
-ok(WM.kindOff && WM.light && WM.appx, 'world 3D: a kind of link can be switched off, a point lights everything linked to it by any kind, and appendix topics are on the map and marked');
+ok(WM.kinds && WM.made && WM.clean && WM.works && WM.fault, 'world map: links of four kinds from the book\'s own data (made of, work together, a fault leads there, also taught through): ' + WM.nLinks + ' in all');
+ok(WM.storeys && WM.apart, 'world map: the physics comes to rest with no two topics on top of each other (the rest of the physics is tested in the brain suite)');
+ok(WM.lines && WM.turn, 'world map: a line for every link, and the map turns in space with nearer points drawn over farther ones');
+ok(WM.kindOff && WM.light && WM.appx, 'world map: a kind of link can be switched off, a point lights everything linked to it by any kind, and appendix topics are on the map and marked');
 ok(WM.index && WM.spec && WM.copy && WM.back, 'world: the same map as a collapsible index (every topic once, with its links) and as a full text specification that can be copied');
 /* v2.42: inner parts as what they are, and the enclosure yields to what is inside it */
 const IK = await pg.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)), o = {}; FH3D.software = true; go('zoom', 'machine'); await wait(600); MS.rot = false; MS.assembling = false; MS.E = MS.target = 0; await wait(900);
@@ -440,7 +434,7 @@ await pg.evaluate(() => document.querySelector('.mcrumb [data-mlv="0"]').click()
 ok(await pg.evaluate(() => MS.path.length === 0), 'the breadcrumb returns to the whole machine');
 /* the demo tour */
 await pg.evaluate(() => go('about')); await pg.waitForTimeout(150); await pg.click('.about [data-tour]'); await pg.waitForTimeout(250);
-const tourWant = ['#/zoom/machine', '#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/3d', '#/zoom/dedup', '#/about'];
+const tourWant = ['#/zoom/machine', '#/zoom/machine', '#/zoom/proc', '#/zoom/vac', '#/zoom/valve', '#/zoom/relay', '#/zoom/coil', '#/zoom/tree', '#/zoom/world', '#/zoom/dedup', '#/about'];
 for (let i = 0; i < tourWant.length; i++) {
   const r = await pg.evaluate(() => [location.hash, !!document.getElementById('ztour'), document.querySelector('#ztour .ztn').textContent]);
   ok(r[0].split('?')[0] === tourWant[i] && r[1] && r[2].includes(`${i + 1}/${tourWant.length}`), `tour step ${i + 1}: ${tourWant[i]} with its bar (${r[0]})`);

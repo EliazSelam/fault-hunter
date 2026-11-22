@@ -175,10 +175,10 @@ ok(TB.probs === 3 && TB.ex >= 6 && TB.risk === 0 && TB.whyOnce === 1, 'textbook 
 const G = await ev(() => { const p = content.querySelector('.tb-prob'), st = [...p.querySelectorAll('.tb-st')], seen = [], h0 = location.hash;
   for (let i = 0; i < st.length + 1; i++) { seen.push(st.filter(x => !x.hidden).length); const n = p.querySelector('[data-tbn]'); if (!n.hidden) n.click(); }
   const before = p.querySelector('.tb-lastans').hidden; p.querySelector('[data-tbr]').click(); const after = !p.querySelector('.tb-lastans').hidden;
-  const w = content.querySelector('[data-tbw]'); w.click(); const mounted = !!content.querySelector(`.bk-win[data-w="${w.dataset.tbw}"] .bk-wb > :not([data-mount])`) || !content.querySelector(`.bk-win[data-w="${w.dataset.tbw}"] [data-mount]`);
+  const w = content.querySelector('[data-tbw]'); w.click(); const d = document.getElementById('fhDrawer'), mounted = TBS.w === w.dataset.tbw && !d.hidden && d.classList.contains('tb-par') && document.querySelector('#drwB .tbs-win').children.length > 0; drawerClose();
   return { seen, before, after, mounted, stay: location.hash === h0 }; });
 ok(G.seen.join() === Array.from({ length: G.seen.length }, (_, i) => Math.min(i + 1, G.seen.length - 1)).join() && G.before && G.after, 'a solved problem opens one step per press, and its last step shows only on request (' + G.seen + ')');
-ok(G.mounted && G.stay, 'a pointer to a window opens that window inside the chapter, without leaving it');
+ok(G.mounted && G.stay, 'a pointer to a window opens it beside the text, without leaving the chapter');
 const NUM = await ev(() => { const c = TBOOK.b6.check, Vs = 24, near = (a, b, t = 1e-6) => Math.abs(a - b) <= t * Math.max(1, Math.abs(b)), bad = [];
   const tri = (V, D, L, f) => V * D * (1 - D) / (L * f), exact = (V, R, T, tau, D) => { const a = Math.exp(-D * T / tau), b = Math.exp(-(1 - D) * T / tau); return V / R * (1 - a) * (1 - b) / (1 - a * b); };
   [['avg', c.avg1, 0.3 * 24], ['rms', c.rms1, 24 * Math.sqrt(0.3)], ['P', c.Pr, 0.3 * 576 / 12], ['I2', c.I2, 3], ['dI2', c.dI2, tri(24, .5, 2e-3, 20e3)], ['dI2 exact', c.dI2x, exact(24, 4, 5e-5, 5e-4, .5)],
@@ -192,6 +192,55 @@ const NUM = await ev(() => { const c = TBOOK.b6.check, Vs = 24, near = (a, b, t 
   const { a: A6, k: K6, f: F6 } = c.E6, dP = -2 * A6 / F6 ** 3 + K6; if (Math.abs(dP) > 1e-9 * K6 * 1e3) bad.push('optimum ' + dP);
   const txt = content.textContent; [c.avg1, c.dI2, c.P2.f / 1e3].forEach(v => { const s = (+v.toFixed(3)).toString(); if (!txt.includes(s)) bad.push('not in the text: ' + s); });
   return bad; });
+/* ---- v2.73: reading beside the simulation ---- */
+const PAR = await ev(async () => { const w8 = ms => new Promise(r => setTimeout(r, ms)), o = {}, S = TBOOK.b6.side, d = () => document.getElementById('fhDrawer');
+  o.btns = [...content.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(S).join() && !content.querySelector('.tb-adv [data-tbpar]');
+  o.wins = Object.values(S).every(x => x.win.every(([w]) => zWindows(zNode('pwm')).includes(w)));
+  o.eqs = Object.values(S).every(x => x.look.every(([eq]) => content.querySelector(`.tb-eq[data-eq="${eq}"]`)));
+  o.marks = [...new Set(Object.values(S).flatMap(x => x.look.map(l => l[0])))].every(eq => content.querySelector(`.tb-eq[data-eq="${eq}"] [data-tbse]`));
+  content.querySelector('[data-tbpar="6.2"]').click(); await w8(200);
+  const b = document.getElementById('drwB'); o.open = !d().hidden && d().classList.contains('tb-par') && document.body.classList.contains('tb-par-on') && TBS.sid === '6.2' && TBS.w === S['6.2'].win[0][0] && /6\.2/.test(document.getElementById('drwT').textContent);
+  o.tabs = [...b.querySelectorAll('[data-tbsw]')].map(x => x.dataset.tbsw).join() === S['6.2'].win.map(x => x[0]).join() && b.querySelector('.tbs-win').children.length > 0 && b.querySelectorAll('.tbs-look li').length === S['6.2'].look.length;
+  b.querySelectorAll('[data-tbsw]')[1].click(); await w8(150); o.tab = TBS.w === S['6.2'].win[1][0] && document.querySelector('#drwB [data-tbsw][aria-selected="true"]').dataset.tbsw === S['6.2'].win[1][0];
+  document.querySelector('#drwB [data-tbseq="6.8"]').click(); await w8(900); const e = content.querySelector('.tb-eq[data-eq="6.8"]'), r = e.getBoundingClientRect(); o.chip = r.top > 0 && r.bottom < innerHeight && e.classList.contains('tb-flash');
+  content.querySelector('.tb-eq[data-eq="6.10"] [data-tbse]').click(); await w8(150); o.eqbtn = TBS.sid === '6.3' && document.querySelector('#drwB [data-tbsl="6.10"]').classList.contains('tb-flash');
+  /* following the reading: the panel moves to the section in the middle of the screen, and stays put when following is off */
+  TBS.t = 0; content.querySelector('.tb-eq[data-eq="6.2"]').scrollIntoView({ block: 'center' }); await w8(900); o.follow = TBS.sid === '6.1';
+  document.querySelector('#drwB .tbs-follow input').click(); TBS.t = 0; content.querySelector('.tb-eq[data-eq="6.8"]').scrollIntoView({ block: 'center' }); await w8(900); o.still = TBS.sid === '6.1'; document.querySelector('#drwB .tbs-follow input').click();
+  o.nogl = !content.querySelector('.tb-eq .gl, .tb-eq .gdef');
+  drawerClose(); o.closed = d().hidden && !document.body.classList.contains('tb-par-on') && TBS.sid === null && !d().classList.contains('tb-par');
+  content.querySelector('[data-tbpar="6.1"]').click(); await w8(100); go('zoom', 'world'); await w8(200); o.leave = d().hidden && TBS.sid === null;
+  BV.ch = 'b6'; go('zoom', 'book'); await w8(200);
+  /* the choice is kept: opened by hand, the next visit opens the panel by itself as a section reaches the middle; closed with ✕, it stops */
+  o.kept = localStorage.getItem('fh-tbpar') === '1'; TBS.t = 0; content.querySelector('.tb-eq[data-eq="6.8"]').scrollIntoView({ block: 'center' }); await w8(900); o.auto = !d().hidden && TBS.sid === '6.2';
+  d().querySelector('.drw-x').click(); o.off = localStorage.getItem('fh-tbpar') === '0' && d().hidden; TBS.t = 0; content.querySelector('.tb-eq[data-eq="6.2"]').scrollIntoView({ block: 'center' }); await w8(900); o.offStays = d().hidden;
+  localStorage.removeItem('fh-tbpar');
+  return o; });
+ok(PAR.btns && PAR.wins && PAR.eqs && PAR.marks, 'reading beside the simulation: every section with windows has its button, every window is the topic\'s, every equation named has its button');
+ok(PAR.open && PAR.tabs, 'the panel opens beside the text with the section\'s windows as tabs, the first one running, and a line for every equation it shows');
+ok(PAR.tab, 'a tab changes the window in the panel');
+ok(PAR.chip && PAR.eqbtn, 'an equation in the panel leads to it in the text, and an equation in the text leads to its line in the panel');
+ok(PAR.follow && PAR.still, 'the panel follows the section being read, and stays put when following is off');
+ok(PAR.nogl, 'no glossary meaning is written inside an equation');
+ok(PAR.closed && PAR.leave, 'closing the panel, or leaving the chapter, stops it');
+ok(PAR.kept && PAR.auto && PAR.off && PAR.offStays, 'a reader who opened the panel gets it by itself next time, and closing it with ✕ stops that');
+/* the numbers in the panel are what the simulations show */
+const LOOK = await ev(() => { const bad = [], L = Object.values(TBOOK.b6.side).flatMap(x => x.look.map(l => l[1])).join(' '), has = v => L.includes(v);
+  [['7.2 V', 0.3 * 24], ['14.4 V', 0.6 * 24], ['13.15 V', Math.sqrt(0.3) * 24], ['6 A', 0.5 * 24 / 2]].forEach(([t, v]) => { if (!has(t) || Math.abs(parseFloat(t) - +v.toFixed(2)) > 0.006) bad.push(t + ' vs ' + v); });
+  const src = COMPONENTS.find(c => c.id === 'pwm').render.toString(); if (!/V = 24, R = 2,/.test(src)) bad.push('the bench is not 24 V and 2 Ω');
+  const ctl = COMPONENTS.find(c => c.id === 'pwm').controls, fq = ctl.find(c => c.id === 'freq'); if (!(fq.min <= 1)) bad.push('the bench cannot go down to 1 kHz');
+  const P = Object.fromEntries(ANIMS.pwmr.params.map(p => [p[0], p])); if (!(P.f[2] <= 5 && P.f[3] >= 20 && P.D[2] <= 0.1 && P.D[3] >= 0.9)) bad.push('the animation does not cover f 5–20 kHz and D 0.1–0.9');
+  return bad; });
+ok(!LOOK.length, 'the numbers in the panel are the ones the bench and the animation show (' + LOOK.join(' | ') + ')');
+{ const q = await b.newPage({ viewport: { width: 1440, height: 900 } }); q.on('pageerror', e => errs.push(e.message)); await q.goto(url.pathToFileURL(path.join(ROOT, 'index.html')).href); await q.waitForTimeout(400);
+  const SB = await q.evaluate(async () => { BV.ch = 'b6'; BV.exam = null; go('zoom', 'book'); document.querySelector('[data-tbpar="6.1"]').click(); await new Promise(r => setTimeout(r, 300));
+    const dr = document.getElementById('fhDrawer').getBoundingClientRect(), sh = document.getElementById('sheet').getBoundingClientRect(), eq = document.querySelector('.tb-eq[data-eq="6.2"]').getBoundingClientRect();
+    return { side: dr.left === 0 && dr.width >= 400 && sh.left >= dr.right && eq.width > 300 }; });
+  ok(SB.side, 'on a wide screen the panel stands beside the text and the text moves over, so nothing is covered');
+  await q.setViewportSize({ width: 390, height: 844 }); await q.waitForTimeout(300);
+  const SM = await q.evaluate(() => { const dr = document.getElementById('fhDrawer').getBoundingClientRect(); return { sheet: dr.top > innerHeight * 0.4 && dr.bottom <= innerHeight + 1 && dr.width >= innerWidth - 1, over: document.documentElement.scrollWidth - innerWidth }; });
+  ok(SM.sheet && SM.over <= 1, 'on a phone the panel is a sheet under the text, so both are on the screen together');
+  await q.close(); }
 ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agrees, the Fourier and the time-domain ripple agree, the approximation is the limit of the exact solution (' + NUM.join(' | ') + ')');
 
 await b.close();

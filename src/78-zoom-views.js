@@ -76,54 +76,6 @@ function zTreeView() {
 }
 
 /* ---- 3D stack of the scales ---- */
-const Z3 = { rot: true, focus: 0, dist: 14, hits: [], hover: null };
-function z3dView() {
-  content.innerHTML = zSubnav('3d') + `<h2>שכבות הזום בתלת-ממד</h2>
-    <p class="lead">חמש הרמות כמשטחים זה מעל זה. במרכז, ציר הגרעין שעובר דרך כל הרמות. כל קוביה היא נושא, והקווים מחברים כל חלק לשלם שהוא בנוי ממנו. גרור כדי לסובב, גלגל כדי להתקרב, ולחץ על נושא כדי להיכנס אליו.</p>
-    <div class="z3bar"><button type="button" id="z3rot" aria-pressed="${Z3.rot}">${Z3.rot ? '❚❚ עצור סיבוב' : '▶ סיבוב'}</button><button type="button" id="z3reset">איפוס</button>
-      <label>מרחק <input type="range" id="z3dist" min="10" max="28" step="0.5" value="${Z3.dist}"></label>
-      <span>${[[0, 'הכל'], ...ZLEVELS.map(l => [l[0], 'רמה ' + l[0]])].map(([l, t]) => `<button type="button" data-zf="${l}" aria-pressed="${Z3.focus === l}">${t}</button>`).join('')}</span></div>
-    <div class="z3stage"><canvas id="z3c" width="1100" height="720" tabindex="0" aria-label="Five zoom scales stacked in 3D; click a topic to open it"></canvas></div>
-    <p class="note">משטח לכל רמה · קוביה מודגשת עם שם = גרעין · מעבר עם העכבר מציג את שם הנושא · בחירת רמה מציגה את כל השמות בה · קו מקווקו = "בנוי מ".</p>`;
-  zWireSub();
-  const cv = $('#z3c'), ink = cssv('--ink'), live = cssv('--live'), mech = cssv('--mech') || '#7B5A3C', line = cssv('--line'), text = cssv('--text'), sheet = cssv('--sheet'), tint = cssv('--tint');
-  const V = view3(cv, { yaw: -0.6, pitch: 0.38, dist: Z3.dist, fov: 640, oy: -25, onView: () => draw() });
-  const planeCol = { 5: ink, 4: live, 3: tint, 2: mech, 1: text };
-  const pos = {};
-  ZLEVELS.forEach(([l]) => { const ns = zVis().filter(z => z.level === l).sort((a, b) => ZCORE.has(b.id) - ZCORE.has(a.id)); const z = (l - 3) * 1.9;
-    ns.forEach((n, i) => { const core = ZCORE.has(n.id), R = core ? 1.0 + (i % 2) * 0.5 : 2.3 + (i % 3) * 0.6, a = i * 2.39996 + l * 0.7; pos[n.id] = [R * Math.cos(a), R * Math.sin(a), z]; }); });
-  function draw() {
-    V.st.dist = Z3.dist; const ctx = V.ctx; ctx.clearRect(0, 0, cv.width, cv.height); const P = [];
-    ZLEVELS.forEach(([l]) => { const z = (l - 3) * 1.9, on = !Z3.focus || Z3.focus === l; P.push({ pts: [[-4.2, -4.2, z], [4.2, -4.2, z], [4.2, 4.2, z], [-4.2, 4.2, z]], fill: planeCol[l], alpha: on ? 0.16 : 0.05, stroke: line }); });
-    tBox(P, -0.12, 0.12, -0.12, 0.12, -4.0, 4.0, live, 0.5, null);
-    zVis().forEach(n => { const [x, y, z] = pos[n.id], s = ZCORE.has(n.id) ? 0.2 : 0.14, on = !Z3.focus || Z3.focus === n.level; tBox(P, x - s, x + s, y - s, y + s, z, z + 2 * s, ZCORE.has(n.id) ? live : sheet, on ? 0.95 : 0.25, ink); });
-    paint3(V, P);
-    ctx.lineWidth = 1; zVis().forEach(n => n.parts.forEach(c => { const a = V.proj(pos[n.id]), b = V.proj(pos[c]); const on = !Z3.focus || Z3.focus === n.level || Z3.focus === zNode(c).level; ctx.strokeStyle = line; ctx.globalAlpha = on ? 0.7 : 0.15; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); }));
-    ctx.setLineDash([]); ctx.globalAlpha = 1; Z3.hits = [];
-    ctx.direction = 'rtl'; ctx.textAlign = 'center';
-    zVis().forEach(n => { const c = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.15]); if (!Z3.focus || Z3.focus === n.level) Z3.hits.push([c[0] - 10, c[1] - 10, 20, 20, n.id]); });
-    zVis().forEach(n => { if (Z3.focus && Z3.focus !== n.level) return; const core = ZCORE.has(n.id); if (!Z3.focus && !core && Z3.hover !== n.id) return; const q = V.proj([pos[n.id][0], pos[n.id][1], pos[n.id][2] + 0.5]);
-      ctx.font = `${core ? '600 ' : ''}12px system-ui, sans-serif`; const w = Math.min(190, ctx.measureText(n.t).width + 14), h = 20;
-      ctx.fillStyle = sheet; ctx.globalAlpha = 0.92; ctx.fillRect(q[0] - w / 2, q[1] - h, w, h); ctx.globalAlpha = 1; ctx.strokeStyle = core ? live : line; ctx.strokeRect(q[0] - w / 2, q[1] - h, w, h);
-      ctx.fillStyle = text; ctx.fillText(n.t.length > 28 ? n.t.slice(0, 27) + '…' : n.t, q[0], q[1] - 6); Z3.hits.push([q[0] - w / 2, q[1] - h, w, h, n.id]); });
-    ctx.direction = 'ltr'; ctx.textAlign = 'left'; ctx.font = '12px system-ui, sans-serif'; ctx.fillStyle = text;
-    ZLEVELS.forEach(([l, t]) => { const q = V.proj([4.3, -4.2, (l - 3) * 1.9]); ctx.fillText(`L${l} · ${t}`, q[0] + 6, q[1]); });
-  }
-  let down = null, t0 = performance.now();
-  cv.addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
-  cv.addEventListener('pointerup', e => { if (!down) return; const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]); down = null; if (moved > 4) return; const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; const h = Z3.hits.slice().reverse().find(([a, b, w, hh]) => x >= a && x <= a + w && y >= b && y <= b + hh); if (h) { ZS.dir = 1; go('zoom', h[4]); } });
-  cv.addEventListener('pointermove', e => { if (down) return; const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * cv.width / r.width, y = (e.clientY - r.top) * cv.height / r.height; const h = Z3.hits.slice().reverse().find(([a, b, w, hh]) => x >= a && x <= a + w && y >= b && y <= b + hh); Z3.hover = h ? h[4] : null; cv.style.cursor = h ? 'pointer' : 'grab'; });
-  cv.addEventListener('wheel', e => { e.preventDefault(); Z3.dist = Math.max(10, Math.min(28, Z3.dist + Math.sign(e.deltaY) * 0.6)); const s = $('#z3dist'); if (s) s.value = Z3.dist; draw(); }, { passive: false });
-  $('#z3rot').addEventListener('click', () => { Z3.rot = !Z3.rot; z3dView(); });
-  $('#z3reset').addEventListener('click', () => { Z3.dist = 14; Z3.focus = 0; Z3.rot = true; z3dView(); });
-  $('#z3dist').addEventListener('input', e => { Z3.dist = +e.target.value; draw(); });
-  content.querySelectorAll('[data-zf]').forEach(b => b.addEventListener('click', () => { Z3.focus = +b.dataset.zf; z3dView(); }));
-  window.zHit3d = id => { const h = Z3.hits.find(x => x[4] === id); return h ? [h[0] + h[2] / 2, h[1] + h[3] / 2] : null; };
-  const tick = now => { if (!document.body.contains(cv)) return; if (Z3.rot && !down && !matchMedia('(prefers-reduced-motion: reduce)').matches) { V.st.yaw += (now - t0) / 1000 * 0.12; } t0 = now; draw(); requestAnimationFrame(tick); };
-  draw(); requestAnimationFrame(tick);
-  setTitle('זום', 'שכבות בתלת-ממד', '5 רמות');
-}
-
 /* ---- duplicates report ---- */
 const ZDEDUP = [
   ['DEDUP-01', 'אופטיקה מול רכיבים: שבעה דפים זהים בשתי לשוניות', 'line-scan, סטרוב, עדשה, הטיה, תרמי, fiducials ולייזר הופיעו גם בלשונית הרכיבים וגם בלשונית האופטיקה, באותו עומק בדיוק.', 'לכל אחד בית אחד בזום (טריגר וסטרוב, אופטיקה, רישום, מקור הלייזר). כתובות האופטיקה נשארו ככינוי לאותו תוכן, ולא כעותק.', 'trig'],
@@ -150,7 +102,6 @@ function zDedupView() {
 
 /* ---- route the zoom tab ---- */
 ZVIEW.add('tree', { group: 'back', order: 1, title: 'עץ נושאים לפי רמות', render: () => zTreeView() });
-ZVIEW.add('3d', { group: 'back', order: 2, title: 'שכבות בתלת-ממד', render: () => z3dView() });
 ZVIEW.add('dedup', { group: 'back', order: 3, title: 'דו"ח כפילויות ושיבוץ', render: () => zDedupView() });
 
 /* ---- about the project ---- */
@@ -181,7 +132,7 @@ const ZTOUR = [
   [() => go('zoom', 'relay'), 'מעגל קטן: הממסר. למעלה, "חלק מ": אותו ממסר משמש גם את ה-interlock של הדלת ואת כרטיסי הפלט.'],
   [() => go('zoom', 'coil'), 'הרכיב: הסליל. מכאן הכול מתחיל, ומכאן אפשר לעלות חזרה עד התהליך.'],
   [() => go('zoom', 'tree'), 'העץ המלא: כל הנושאים לפי רמות, גרעין והרחבה, עם סינון לפי מכונה וענף.'],
-  [() => { Z3.rot = true; go('zoom', '3d'); }, 'אותו עץ כשכבות בתלת-ממד. אפשר לסובב, להתקרב וללחוץ על נושא.'],
+  [() => go('zoom', 'world'), 'מפת העולם: כל הנושאים והקשרים ביניהם, מסתדרים לבד במרחב כמו מוח שני. מסובבים, מושכים נקודה, ולחיצה פותחת כרטיס.'],
   [() => { go('zoom', 'dedup'); setTimeout(() => { const b = document.getElementById('zRun'); if (b) b.click(); }, 150); }, 'משמעת הנדסית: בדיקת כפילויות חיה. כל חלון בבית אחד, ואותו תוכן לא מופיע פעמיים.'],
   [() => go('about'), 'מי בנה ואיך: הארכיטקטורה והאימות שלי, ו-AI כשותף לכתיבת קוד.']
 ];

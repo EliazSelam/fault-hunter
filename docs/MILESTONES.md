@@ -30,6 +30,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.70.0](#v2700) | 22 Nov 2026 | Finding things and moving between them | 3.88 MB |
 | [v2.71.0](#v2710) | 22 Nov 2026 | Direction, meaning and clarity | 3.90 MB |
 | [v2.72.0](#v2720) | 22 Nov 2026 | A chapter as a textbook, and two maps to choose between | 3.96 MB |
+| [v2.73.0](#v2730) | 22 Nov 2026 | The world map as a second brain, and a chapter read beside its simulations | 3.95 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -164,6 +165,12 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.72.0 metro](milestones/v2.72.0-metro.png)
 
 **What changed:** chapter 6 is written as a textbook (model, full derivation, worked example, an advanced section, solved problems that open step by step, exercises by level), with the simulations as a layer on top. And two versions of the world map to choose between: a galaxy of the book's parts, and a metro map of the learning tracks with the central subjects as interchanges.
+
+## v2.73.0
+![v2.73.0](milestones/v2.73.0.png)
+![v2.73.0 book](milestones/v2.73.0-book.png)
+
+**What changed:** the world map became a second brain. Every topic is a node and every link a line, and the nodes find their own places in three dimensions; the space turns, any node can be pulled and springs back, and hovering lights a topic with everything linked to it. And chapter 6 is read beside its simulations: the panel at the side follows the section being read, and says for each equation what to do in the simulation and what to see. The galaxy, the metro map and the 3D layers were set aside as ideas.
 
 ## From the first version to now, in numbers
 

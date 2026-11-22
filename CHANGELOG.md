@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.73.0] — 2026-11-22
+
+The world map becomes a second brain, and chapter 6 is read beside its simulations.
+
+- **The world map is a second brain**: every topic is a node and every link in the data a line, and the nodes find their own places in three dimensions: links pull, every node pushes the others away, and the topics of a part of the book drift together. Drag the background to turn the space (with Shift, to pan), the wheel or a pinch to come closer, and pull any node to see its neighbours follow and spring back. Hovering lights a topic and its neighbours; a click opens its card (chapter, share opened, central subjects, the way in); a double click opens the topic; the local graph keeps one topic and its neighbours. Colour is the part of the book, fill is how much was opened, a ring pulses on the next topic. Perspective, depth fog and a floor under the web give the space; the index and the text specification stay one tab away.
+- **The galaxy, the metro map, the old 3D world map and the 3D layers view are retired** and described, with pictures and how to bring them back, in `docs/IDEAS.md`. The tour's 3D step now shows the world map.
+- **Chapter 6 is read beside its simulations**: a button by every section heading, and every pointer to a window, opens a panel beside the text (under it on a narrow screen) with the section's windows as tabs, and for each equation what to do in the simulation and what to see. The panel follows the section being read, an equation leads from the panel to the text and back, and the choice to read this way is kept for the next chapter written this way.
+- A glossary meaning was written inside equation 6.5; equations are now kept free of glossary notes.
+- Found by the graph: two topics, digital logic and statistics and quality, have no link in the data (noted in `docs/IDEAS.md`).
+- Tests: suite `maps` is replaced by `brain` (44 checks); the book suite checks reading beside the simulation (151 checks). 23 suites.
+
 ## [2.72.0] — 2026-11-22
 
 A chapter written as a textbook, and two new maps of the course to choose between.

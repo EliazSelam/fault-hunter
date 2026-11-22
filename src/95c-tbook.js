@@ -9,7 +9,7 @@
 const TBOOK = {};
 const tbN = (x, d = 2) => { const v = Math.abs(x) < 1e-12 ? 0 : x; return (+v.toFixed(d)).toLocaleString('en-US', { maximumFractionDigits: d }); };
 /* a numbered equation; on a narrow screen it breaks only before an = or a ;, the way a printed derivation goes on the next line */
-const tbEq = (id, html) => `<div class="tb-eq" data-eq="${id}"><span class="tb-m">${html.split(/ (?=[=;] )/).map(x => `<span class="tb-seg">${x}</span>`).join(' ')}</span><span class="tb-n">(${id})</span></div>`;
+const tbEq = (id, html) => `<div class="tb-eq nogl" data-eq="${id}"><span class="tb-m">${html.split(/ (?=[=;] )/).map(x => `<span class="tb-seg">${x}</span>`).join(' ')}</span><span class="tb-n">(${id})</span></div>`;
 const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את זה עובד</b> <span>${txt}</span> ${refs.map(([w, t]) => `<button type="button" class="linkbtn" data-tbw="${w}">${t}</button>`).join(' · ')}</aside>`;
 
 (function () {
@@ -62,7 +62,7 @@ const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את ז�
       <div class="tb-ex"><p class="tb-exh">דוגמה 6.2</p><p>עומס <bdi>R = ${R2} Ω</bdi>, <bdi>L = ${L2 * 1e3} mH</bdi>, בלי מתח נגדי, <bdi>V<sub>s</sub> = ${Vs} V</bdi>, <bdi>D = ${D2}</bdi>, <bdi>f = ${f2 / 1e3} kHz</bdi>.</p>
         <p><bdi>τ = L/R = ${tbN(tau2 * 1e3, 2)} ms</bdi> ו-<bdi>T = ${tbN(T2 * 1e6, 0)} µs</bdi>, כלומר <bdi>τ/T = ${tbN(tau2 / T2, 0)}</bdi>, והקירוב תקף. לפי 6.6: <bdi>⟨i⟩ = ${D2} · ${Vs} / ${R2} = ${tbN(I2)} A</bdi>. לפי 6.8: <bdi>Δi = ${Vs} · ${D2} · ${1 - D2} / (${L2 * 1e3}·10⁻³ · ${f2 / 1e3}·10³) = ${tbN(dI2, 3)} A</bdi>, כלומר <bdi>${tbN(dI2 / I2 * 100, 1)}%</bdi> מהממוצע.</p>
         <p>ב-<bdi>${f2b / 1e3} kHz</bdi> הגליות גדלה פי עשרה, ל-<bdi>${tbN(dI2b, 2)} A</bdi> לפי הקירוב. כאן <bdi>τ/T = 1</bdi>, והחישוב המדויק (סעיף 6.4) נותן <bdi>${tbN(dI2bx, 2)} A</bdi>: הקירוב מגזים ב-<bdi>${tbN((dI2b / dI2bx - 1) * 100, 1)}%</bdi> בלבד.</p></div>
-      ${tbFig([['anim:pwmr', 'הזרם במנוע: ממוצע וגליות'], ['c:pwm:tryit', 'נסו בעצמכם']], 'משנים תדר והשראות ורואים את הגליות.')}` },
+      ${tbFig([['c:pwm:bench', 'הספסל: הזרם והגליות'], ['anim:pwmr', 'הפיתוח המונפש: גליות'], ['c:pwm:tryit', 'נסו בעצמכם']], 'משנים תדר והשראות ורואים את הגליות.')}` },
     { id: '6.3', t: 'גשר H: כיוון, בלימה ו-shoot-through', html: `
       <p><b>המודל.</b> ארבעה מתגים: <bdi>S1</bdi> (עליון שמאלי) ו-<bdi>S2</bdi> (תחתון שמאלי) הם "רגל" אחת, ו-<bdi>S3</bdi> ו-<bdi>S4</bdi> הם הרגל הימנית. העומס מחובר בין נקודות האמצע <bdi>A</bdi> ו-<bdi>B</bdi>. כל רגל מחברת את נקודת האמצע שלה או ל-<bdi>V<sub>s</sub></bdi> או לאדמה.</p>
       <table class="tb-tab"><thead><tr><th>מתגים סגורים</th><th>v<sub>AB</sub></th><th>מה קורה</th></tr></thead><tbody>
@@ -131,12 +131,33 @@ const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את ז�
   };
 })();
 
+/* ---- reading beside the simulation (v2.73) ----
+   Each section has the windows that show it working and, for its equations, what to do in them and what to see. The
+   windows open in a panel beside the text (below it on a narrow screen), and the panel follows the section being read. */
+TBOOK.b6.side = {
+  '6.1': { win: [['c:pwm:bench', 'הספסל: duty cycle ומתח ממוצע'], ['anim:pwmr', 'הפיתוח המונפש']],
+    look: [['6.1', 'בגרף העליון של הספסל המתח קופץ רק בין 0 ל-24 V. אין בו שום ערך באמצע.'],
+      ['6.2', 'קבעו Duty cycle של 30% וקראו את "מתח ממוצע": <bdi>7.2 V</bdi>, כמו בדוגמה 6.1. ב-60% הוא מוכפל ל-<bdi>14.4 V</bdi>, כי הממוצע ליניארי ב-D.'],
+      ['6.3', 'הספסל מראה רק את הממוצע. ה-RMS גבוה ממנו תמיד: ב-30% הוא <bdi>13.15 V</bdi>, כמעט פי 2, וזה מה שקובע את החימום.'],
+      ['6.4', 'בפיתוח המונפש הזיזו את D ובדקו ש-<bdi>⟨v⟩ = D · 24</bdi> בכל ערך. ההספק בנגד לפי 6.4 גדל באותו יחס, כי גם הוא ליניארי ב-D.']] },
+  '6.2': { win: [['c:pwm:bench', 'הספסל: הזרם והגליות'], ['anim:pwmr', 'הפיתוח המונפש: גליות'], ['c:pwm:tryit', 'נסו בעצמכם']],
+    look: [['6.5', 'בגרף התחתון של הספסל הזרם עולה כשהמתח דולק ויורד כשהוא כבוי. זו <bdi>L · di/dt + R · i = v</bdi> בפעולה.'],
+      ['6.6', 'הקו המקווקו הוא <bdi>⟨i⟩</bdi>. בספסל <bdi>R = 2 Ω</bdi> ואין E, ולכן ב-Duty 50% הוא <bdi>0.5 · 24 / 2 = 6 A</bdi>.'],
+      ['6.8', 'בפיתוח המונפש הזיזו את f מ-5 ל-20 kHz: הגליות קטנה פי 4. הכפילו את L, והיא קטנה פי 2.'],
+      ['6.9', 'הזיזו את D מ-0.1 ל-0.9 ועצרו ב-0.5: שם הגליות הכי גדולה, כמו שהמכפלה <bdi>D(1 − D)</bdi> צופה.'],
+      ['6.15', 'בספסל הורידו את התדר ל-1 kHz: הזרם כבר לא קו ישר אלא עקומה מעריכית. זה התחום שבו צריך את הפתרון המדויק של סעיף 6.4.']] },
+  '6.3': { win: [['c:pwm:schematic', 'הסכמה של הגשר'], ['c:pwm:parts', 'מה יש בפנים']],
+    look: [['6.10', 'בסכמה המתגים נקראים Q1–Q4, באותו סדר כמו S1–S4 בטקסט. החץ מראה את Q1 ו-Q4 סגורים: הזרם עובר במנוע משמאל לימין, ו-<bdi>v<sub>AB</sub> = +V<sub>s</sub></bdi>. עם Q3 ו-Q2 המסלול מתהפך.'],
+      ['6.12', 'עקבו אחרי Q1 ו-Q2, שניהם ברגל השמאלית: אם הם סגורים יחד, יש מסלול ישיר מ-+V bus ל-0V בלי המנוע. זה ה-shoot-through שזמן המת מונע.'],
+      ['6.12', 'ב"מה יש בפנים": הדיודה המובנית בכל MOSFET היא הדרך של הזרם בזמן המת. לכן בזמן הזה המתח נקבע לפי כיוון הזרם ולא לפי הפקודה.']] }
+};
+
 /* the chapter's body when it is written as a textbook */
 function tbookBody(c, L) {
   const T = TBOOK[c.id], lvT = { basic: 'בסיסי, עם תשובה', adv: 'מתקדם', ext: 'הרחבה' };
   let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${c.why}</p><p><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
-    <p class="note">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. ההדמיות הן שכבה מעל הטקסט: כל סעיף מצביע על החלונות שמראים אותו עובד, והחלונות עצמם נמצאים בסוף הפרק.</p></section>`;
-  h += T.sections.map(s => `<section class="bk-topic tb-sec${s.adv ? ' tb-adv' : ''}" id="${BKID('tb:' + s.id)}"><h3>${s.adv ? '★ ' : ''}${s.id} ${s.t}</h3>${s.html}</section>`).join('');
+    <p class="note">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. את הפיתוח קוראים לצד ההדמיה: הכפתור 🎛️ שליד כותרת הסעיף פותח פאנל בצד הטקסט, והפאנל מתחלף עם הסעיף שקוראים. בפאנל, לכל משוואה כתוב מה לעשות בהדמיה ומה לראות. כל החלונות של הנושא נמצאים גם בסוף הפרק.</p></section>`;
+  h += T.sections.map(s => `<section class="bk-topic tb-sec${s.adv ? ' tb-adv' : ''}" id="${BKID('tb:' + s.id)}" data-tbs="${s.id}"><h3>${s.adv ? '★ ' : ''}${s.id} ${s.t}${T.side && T.side[s.id] ? ` <button type="button" class="tb-parbtn" data-tbpar="${s.id}">🎛️ קריאה לצד ההדמיה</button>` : ''}</h3>${s.html}</section>`).join('');
   h += `<section class="bk-box tb-sum" id="${BKID('tb:sum')}"><h3>${c.n}.5 סיכום ודף נוסחאות</h3><table class="tb-tab"><thead><tr><th>נוסחה</th><th>מה היא נותנת</th><th>משוואה</th></tr></thead><tbody>${T.summary.map(([f, t, n]) => `<tr><td><bdi>${f}</bdi></td><td>${t}</td><td><button type="button" class="linkbtn" data-tbeq="${n}">(${n})</button></td></tr>`).join('')}</tbody></table></section>`;
   h += `<section class="bk-box tb-solved" id="${BKID('tb:solved')}"><h3>${c.n}.6 בעיות פתורות</h3><p class="note">כל בעיה נפתחת צעד אחר צעד. את הצעד האחרון עושים לבד, ורק אז רואים את הפתרון.</p>${T.solved.map((p, i) => `<div class="tb-prob" data-tbp="${i}"><p class="tb-exh">${p.t}</p><p>${p.q}</p>
       <ol class="tb-steps">${p.steps.map(([t, x], j) => `<li class="tb-st"${j ? ' hidden' : ''}><b>${t}.</b> ${x}</li>`).join('')}<li class="tb-st tb-last" hidden><b>הצעד האחרון לבד:</b> ${p.last[0]}<textarea class="bk-ans" rows="2" aria-label="הפתרון שלי" placeholder="כותבים את החישוב כאן"></textarea><button type="button" class="pth-go" data-tbr="1">הראה את הפתרון</button><p class="tb-lastans" hidden>${p.last[1]}</p></li></ol>
@@ -151,7 +172,60 @@ function tbookWire(A) {
   A.querySelectorAll('.tb-prob').forEach(p => { const next = p.querySelector('[data-tbn]'), st = [...p.querySelectorAll('.tb-st')];
     next.addEventListener('click', () => { const h = st.find(x => x.hidden); if (h) h.hidden = false; if (!st.some(x => x.hidden)) next.hidden = true; });
     p.querySelector('[data-tbr]').addEventListener('click', e => { p.querySelector('.tb-lastans').hidden = false; e.target.hidden = true; }); });
-  A.querySelectorAll('[data-tbw]').forEach(b => b.addEventListener('click', () => { const el = A.querySelector(`.bk-win[data-w="${b.dataset.tbw}"]`) || document.getElementById(BKID(b.dataset.tbw)); if (!el) return;
+  const T = TBOOK[BV.ch] || {};
+  A.querySelectorAll('[data-tbpar]').forEach(b => b.addEventListener('click', () => tbSideOpen(A, b.dataset.tbpar, null, true)));
+  /* an equation that a simulation shows gets a button to it, beside its number */
+  Object.entries(T.side || {}).forEach(([sid, S]) => [...new Set(S.look.map(x => x[0]))].forEach(eq => { const e = A.querySelector(`.tb-eq[data-eq="${eq}"] .tb-n`); if (e && !e.querySelector('[data-tbse]')) e.insertAdjacentHTML('afterbegin', `<button type="button" class="tb-eqsim" data-tbse="${sid}|${eq}" title="לראות את זה בהדמיה" aria-label="משוואה ${eq} בהדמיה">🎛️</button>`); }));
+  A.querySelectorAll('[data-tbse]').forEach(b => b.addEventListener('click', () => { const [sid, eq] = b.dataset.tbse.split('|'); tbSideOpen(A, sid, null, true); tbSideMark(eq); }));
+  tbSideFollow(A);
+  A.querySelectorAll('[data-tbw]').forEach(b => b.addEventListener('click', () => { const sec = b.closest('[data-tbs]'), sid = sec && sec.dataset.tbs; if (sid && T.side && T.side[sid] && T.side[sid].win.some(x => x[0] === b.dataset.tbw)) return tbSideOpen(A, sid, b.dataset.tbw, true);
+    const el = A.querySelector(`.bk-win[data-w="${b.dataset.tbw}"]`) || document.getElementById(BKID(b.dataset.tbw)); if (!el) return;
     const m = el.querySelector('[data-mount]'); if (m) m.click(); el.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); el.classList.add('tb-flash'); setTimeout(() => el.classList.remove('tb-flash'), 1600); }));
   A.querySelectorAll('[data-tbeq]').forEach(b => b.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${b.dataset.tbeq}"]`); if (e) { e.scrollIntoView({ block: 'center' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); } }));
 }
+
+/* ---- the panel beside the text ---- */
+/* a reader who opened the panel reads that way: the choice is kept (fh-tbpar), and the next textbook chapter opens its panel by itself */
+const TBS = { sid: null, w: null, A: null, box: null, follow: true, obs: null, t: 0, get auto() { try { return localStorage.getItem('fh-tbpar') === '1'; } catch (e) { return false; } }, set auto(v) { try { localStorage.setItem('fh-tbpar', v ? '1' : '0'); } catch (e) { } } };
+function tbSideKill() { const b = TBS.box; try { if (b && b.act && b.act.destroy) b.act.destroy(); } catch (e) { } TBS.box = null; }
+function tbSideOpen(A, sid, w, byHand) {
+  const S = ((TBOOK[BV.ch] || {}).side || {})[sid]; if (!S) return; w = w || (TBS.sid === sid && TBS.w) || S.win[0][0];
+  const d = drawerEl(), open = !d.hidden && d.classList.contains('tb-par');
+  if (open && TBS.sid === sid && TBS.w === w) return;
+  if (!open) { drawerClose(); }
+  tbSideKill(); TBS.sid = sid; TBS.w = w; TBS.A = A;
+  /* the same window open in the text below is closed, so it runs once */
+  const dup = A.querySelector(`.bk-win.bk-open[data-w="${w}"]`); if (dup) bookUnmount(dup);
+  const sec = (TBOOK[BV.ch].sections.find(x => x.id === sid) || {}).t || '';
+  d.querySelector('#drwT').textContent = `🎛️ ${sid} ${sec}`;
+  const b = d.querySelector('#drwB');
+  b.innerHTML = `<div class="tbs-tabs" role="tablist">${S.win.map(([x, t]) => `<button type="button" role="tab" data-tbsw="${x}" aria-selected="${x === w}">${t}</button>`).join('')}</div>
+    <div class="tbs-win"></div>
+    <div class="tbs-look"><h4>משוואה מול הדמיה</h4><ul>${S.look.map(([eq, t]) => `<li data-tbsl="${eq}"><button type="button" class="tbs-eq" data-tbseq="${eq}" title="למשוואה בטקסט">(${eq})</button> ${t}</li>`).join('')}</ul></div>
+    <label class="tbs-follow"><input type="checkbox"${TBS.follow ? ' checked' : ''}> 📌 ההדמיה מתחלפת עם הסעיף שאני קורא</label>
+    <p class="note tbs-note">הפאנל ייפתח לבד בפרקים הבאים שכתובים כך. סגירה ב-✕ מפסיקה את זה.</p>`;
+  d.hidden = false; d.classList.add('tb-par'); document.body.classList.add('drw-on', 'tb-par-on'); b.scrollTop = 0;
+  const box = b.querySelector('.tbs-win'); TBS.box = box; try { zMount(w, box); } catch (e) { box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
+  b.querySelectorAll('[data-tbsw]').forEach(x => x.addEventListener('click', () => tbSideOpen(A, sid, x.dataset.tbsw)));
+  b.querySelectorAll('[data-tbseq]').forEach(x => x.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${x.dataset.tbseq}"]`); if (!e) return; TBS.t = Date.now(); e.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); }));
+  b.querySelector('.tbs-follow input').addEventListener('change', e => { TBS.follow = e.target.checked; });
+  if (byHand) { TBS.auto = true; d.querySelector('.drw-x').focus({ preventScroll: true }); }
+}
+/* an equation's own line in the panel is marked for a moment */
+function tbSideMark(eq) { const li = document.querySelector(`#drwB [data-tbsl="${eq}"]`); if (!li) return; li.scrollIntoView({ block: 'nearest' }); li.classList.add('tb-flash'); setTimeout(() => li.classList.remove('tb-flash'), 1600); }
+/* following the reading: when a section with simulations crosses the middle of the screen, the panel moves to it */
+function tbSideFollow(A) {
+  if (TBS.obs) TBS.obs.disconnect(); if (typeof IntersectionObserver === 'undefined') return; let timer = 0;
+  TBS.obs = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting || !A.isConnected) return; const sid = e.target.dataset.tbs, d = document.getElementById('fhDrawer');
+    const open = d && !d.hidden && d.classList.contains('tb-par'), auto = !(d && !d.hidden) && TBS.auto;
+    if (!TBS.follow || !(open || auto) || sid === TBS.sid || Date.now() - TBS.t < 1200 || !(((TBOOK[BV.ch] || {}).side || {})[sid])) return;
+    clearTimeout(timer); timer = setTimeout(() => { if (A.isConnected) tbSideOpen(A, sid); }, 350); }), { rootMargin: '-45% 0px -50% 0px' });
+  A.querySelectorAll('.tb-sec[data-tbs]').forEach(s => TBS.obs.observe(s));
+}
+/* closing the drawer stops the window in it; leaving the chapter closes the panel */
+const _drawerCloseTb = drawerClose;
+document.addEventListener('click', e => { if (TBS.sid && e.target.closest && e.target.closest('#fhDrawer .drw-x')) TBS.auto = false; }, true);
+drawerClose = function () { tbSideKill(); const d = document.getElementById('fhDrawer'); if (d) d.classList.remove('tb-par'); document.body.classList.remove('tb-par-on'); TBS.sid = null; TBS.w = null; _drawerCloseTb(); };
+const _drawerOpenTb = drawerOpen;
+drawerOpen = function (...a) { if (TBS.sid) { tbSideKill(); const d = document.getElementById('fhDrawer'); if (d) d.classList.remove('tb-par'); document.body.classList.remove('tb-par-on'); TBS.sid = null; TBS.w = null; } return _drawerOpenTb(...a); };
+addEventListener('hashchange', () => { if (TBS.sid && TBS.A && !TBS.A.isConnected) drawerClose(); });
