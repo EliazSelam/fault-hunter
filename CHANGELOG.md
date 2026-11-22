@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.74.0] — 2026-11-22
+
+Part A of the book is written as a textbook: chapters 1 to 4, each read beside its topics' 3D labs.
+
+- **Chapter 1, voltage, current, resistance and the source**: Ohm's law, power and the heat a resistor sheds; Kirchhoff's laws, series, parallel and the voltage divider, with loading; the real source, cable drop, 0V and protective earth; ★ Thevenin, heating in time and the temperature coefficient. 19 equations.
+- **Chapter 2, switches, fuses and connectors**: NO, NC and contact bounce, with the RC and Schmitt design derived; the fuse's time curve and I²t from a heat balance; contact resistance and finding an open by voltages; ★ selectivity, cable protection and the runaway of a hot contact. 15 equations.
+- **Chapter 3, capacitor, coil and transformer**: charge and discharge, the coil's spike and the flyback diode, the transformer from Faraday's law and why DC burns it; ★ rectifier ripple, the RC filter and a coil's release time. 17 equations.
+- **Chapter 4, diode, LED and transistor**: Shockley's equation, the load line, LED and zener design, the MOSFET as a switch and the half-on state that burns it; ★ the diode as a thermometer, gate charge and avalanche energy. 17 equations.
+- Every chapter has three solved problems revealed step by step and six exercises at three levels, and every section opens its topic's 3D lab beside the text, with what to do in the lab for each equation.
+- The numbers the panel quotes are computed from the labs' own models, so the text and the lab cannot disagree.
+- Tests: the book suite checks the shape of every textbook chapter and recomputes Part A from the physics, including closed forms against numerical integration, the diode's operating point by Newton's method and the MOSFET's worst power against a sweep (173 checks).
+
 ## [2.73.0] — 2026-11-22
 
 The world map becomes a second brain, and chapter 6 is read beside its simulations.

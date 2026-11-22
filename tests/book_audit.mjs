@@ -243,6 +243,69 @@ ok(!LOOK.length, 'the numbers in the panel are the ones the bench and the animat
   await q.close(); }
 ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agrees, the Fourier and the time-domain ripple agree, the approximation is the limit of the exact solution (' + NUM.join(' | ') + ')');
 
+/* ---- v2.74: Part A written as a textbook (chapters 1 to 4): the same shape as chapter 6 for every chapter, the panel beside the
+   text with each topic's 3D lab, and every number recomputed here from the physics, independently of the chapters' code ---- */
+for (const id of ['b1', 'b2', 'b3', 'b4']) {
+  await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
+  const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
+    const order = [`${n}.0 `, `${n}.1 `, `${n}.2 `, `${n}.3 `, `★ ${n}.4 `, `${n}.5 `, `${n}.6 `, `${n}.7 `, '🎛️'].map(at);
+    const eqs = [...A.querySelectorAll('.tb-eq')].map(e => e.dataset.eq), want = Array.from({ length: eqs.length }, (_, i) => n + '.' + (i + 1));
+    const links = [...A.querySelectorAll('[data-tbeq]')].map(b => b.dataset.tbeq), ptr = [...A.querySelectorAll('[data-tbw]')].map(b => b.dataset.tbw);
+    /* the practice cards (pq:) live in the chapter's own questions, and a page window is embedded by its route */
+    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"]`)).length;
+    const side = T.side || {}, sideWins = Object.values(side).flatMap(x => x.win.map(w => w[0])), looks = Object.values(side).flatMap(x => x.look.map(l => l[0]));
+    return { order, seq: eqs.join() === want.join(), neq: eqs.length, links: links.every(l => eqs.includes(l)), ptr: ptr.length >= 6 && ptr.every(w => ws.includes(w)), inCh, ws: ws.length,
+      probs: A.querySelectorAll('.tb-prob').length, ex: A.querySelectorAll('.tb-x details').length, levels: ['basic', 'adv', 'ext'].every(l => T.exercises.some(e => e.l === l)), risk: bidiRisk(A).length, whyOnce: A.querySelectorAll('#bk-why').length,
+      par: [...A.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(side).join() && Object.keys(side).length === 3, sideWins: sideWins.every(w => ws.includes(w)), labs: Object.values(side).every(x => x.win[0][0].startsWith('3d:')),
+      looks: looks.every(eq => eqs.includes(eq)), marks: [...new Set(looks)].every(eq => A.querySelector(`.tb-eq[data-eq="${eq}"] [data-tbse]`)), bad: /NaN|undefined|Infinity|\$\{/.test(A.innerHTML), sum: T.summary.every(r => eqs.includes(r[2])) }; }, id);
+  ok(X.order.every((x, i) => x >= 0 && (i === 0 || x > X.order[i - 1])), `textbook ${id}: opening, three sections, an advanced section, summary, solved problems, exercises and the layer, in that order (${X.order})`);
+  ok(X.seq && X.neq >= 15 && X.links && X.sum, `textbook ${id}: ${X.neq} equations numbered in order, and every link and summary row finds its equation`);
+  ok(X.ptr && X.inCh === X.ws, `textbook ${id}: every pointer is to a window of the chapter's topics, and all ${X.ws} of them are still in the chapter`);
+  ok(X.probs === 3 && X.ex >= 6 && X.levels && X.risk === 0 && X.whyOnce === 1 && !X.bad, `textbook ${id}: three solved problems, six exercises at three levels with hidden answers, no formula out of order, nothing unfilled`);
+  ok(X.par && X.sideWins && X.labs && X.looks && X.marks, `textbook ${id}: every section reads beside its topic's 3D lab, and every equation named has its line and its button`);
+}
+/* the panel mounts a 3D lab and stops it on close */
+const LAB = await ev(async () => { BV.ch = 'b3'; go('zoom', 'book'); content.querySelector('[data-tbpar="3.2"]').click(); await new Promise(r => setTimeout(r, 900)); const w = document.querySelector('#drwB .tbs-win'), o = { mounted: !!w.querySelector('canvas') && !!w.act, sid: TBS.sid };
+  const act = w.act; let stopped = false; const d0 = act.destroy; act.destroy = () => { stopped = true; d0(); }; drawerClose(); o.stopped = stopped; localStorage.removeItem('fh-tbpar'); return o; });
+ok(LAB.mounted && LAB.sid === '3.2' && LAB.stopped, 'the panel runs the 3D lab beside the text, and closing it stops the lab');
+const NA = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  /* chapter 1 */
+  const c1 = TBOOK.b1.check, par = (a, b) => a * b / (a + b), rho = 1.72e-8;
+  near('I = V/R', c1.I1, 12 / 470); near('P = V²/R', c1.P1w, 144 / 470); near('¼ W share', c1.k14, 144 / 470 / 0.25); near('divider', c1.Vd, 9.6);
+  const Vl = 24 * par(10e3, 100e3) / (15e3 + par(10e3, 100e3)); near('loaded divider', c1.Vdl, Vl); near('Thevenin = loaded divider', c1.Vthl, Vl);   /* two derivations, one answer */
+  near('wire', c1.Rw, rho * 15 / 0.75e-6); near('cable drop', c1.dVc, 3 * 2 * rho * 15 / 0.75e-6); near('max power', c1.Pmax, 72); near('body T', c1.T1, 25 + 85 * (144 / 470) / 0.25);
+  near('heater at 21.6 V', c1.PB1.Plow, 21.6 ** 2 / 9.6); near('cross-section', c1.PB2.Aneed * 1e6, 2 * rho * 25 * 4 / 2.4 * 1e6); near('ADC error', c1.PB3.err, (1e5 / (1e5 + par(68e3, 10e3)) - 1) * 100); near('parallel', c1.Rp3, 1 / (1 / 100 + 1 / 220 + 1 / 330));
+  /* the maximum of P_L(R_L) really is at R_L = r: a sweep */
+  { const E = 12, r = 0.5; let best = [0, 0]; for (let RL = 0.01; RL < 5; RL += 0.001) { const P = E * E * RL / (RL + r) ** 2; if (P > best[1]) best = [RL, P]; } near('sweep of 1.11', best[0], r, 0.01); near('sweep max', best[1], E * E / (4 * r), 1e-4); }
+  /* chapter 2 */
+  const c2 = TBOOK.b2.check; near('debounce τ', c2.tauMin, 0.2 / Math.log(1.5), 1e-6); near('ln 2.5', c2.lnD, Math.log(2.5));
+  if (!c2.sw.every(x => (x.tau >= c2.tauMin) === (x.nOut === 1))) bad.push('the lab passes exactly the τ that 2.4 allows: ' + JSON.stringify(c2.sw));
+  near('fast at 3In', c2.k3F, -0.05 * Math.log(1 - 2.25 / 9)); near('slow at 3In', c2.k3T, -2 * Math.log(1 - 2.25 / 9)); near('I²t fast', c2.I2tF, 0.45); near('I²t slow', c2.I2tT, 18);
+  /* 2.7 against a numerical integration of 2.5 */
+  { let th = 0, t = 0; const h = 1e-6; while (th < 2.25) { th += (9 - th) / 0.05 * h; t += h; } near('2.7 vs integration', c2.k3F, t, 1e-3); }
+  { let th = 0.64, t = 0; const h = 1e-7; while (th < 2.25) { th += (100 - th) / 0.05 * h; t += h; } near('inrush blow', c2.tblowF, t, 1e-3); }
+  near('slow fuse after inrush', c2.thT, 100 + (0.64 - 100) * Math.exp(-0.005 / 2)); near('loose contact T', c2.loose.T, 25 + 40 * 25 * 0.15); near('cable I²t', c2.wire075, (115 * 0.75) ** 2); near('runaway current', c2.Istar, 1 / Math.sqrt(0.004 * 0.15 * 40));
+  near('hot terminal', c2.PB3.r.dT, 4 * 0.45 * 40 / (1 - 0.004 * 4 * 0.45 * 40));
+  /* chapter 3 */
+  const c3 = TBOOK.b3.check; near('τ = RC', c3.tau, 1); near('v(τ)', c3.v1, 10 * (1 - Math.exp(-1))); near('½CV²', c3.W1, 0.5 * 1e-4 * 100); near('τ = L/R', c3.tauL, 1 / 48); near('spike', c3.spike, 24 + 0.5 * 2000); near('with diode', c3.vd, 24.7);
+  { let v = 0; const h = 1e-5; for (let t = 0; t < 1; t += h) v += (10 - v) / 1 * h; near('3.3 vs integration', c3.v1, v, 1e-4); }
+  { const L = 1, R = 48, Vc = 0.7; let i = 0.5, t = 0; const h = 1e-7; while (i > 0) { i += (-i * R - Vc) / L * h; t += h; } near('3.17 vs integration', c3.toffD, t, 1e-4); }
+  near('secondary', c3.Vs, 230 / 9.6); near('primary current', c3.Ip, 230 / 9.6 / 10 / 9.6); near('saturation time', c3.tsat, 1.2 * 230 * Math.SQRT2 / (2 * Math.PI * 50) / 230); near('ripple', c3.rip, 2 / (2 * 50 * 4700e-6)); near('corner', c3.fc, 1 / (2 * Math.PI * 1e-3));
+  near('reset delay', c3.PB1.t, Math.log(1 / 0.3)); near('zener release', c3.PB2.tz, 0.5 / 48 * Math.log(1 + 24 / 33));
+  /* chapter 4: Shockley and the load line solved here by Newton's method, the MOSFET by the quadratic formula */
+  const c4 = TBOOK.b4.check, VT = 1.380649e-23 * 300 / 1.602176634e-19; near('V_T', c4.VT, VT); near('decade', c4.dec, VT * Math.LN10);
+  const solve = (Vin, R, Is, nn) => { let V = 0.6 * nn; for (let k = 0; k < 200; k++) { const e = Is * Math.exp(V / (nn * VT)), f = (Vin - V) / R - (e - Is), df = -1 / R - e / (nn * VT); V -= f / df; } return { V, I: (Vin - V) / R }; };
+  const s1 = solve(5, 1000, 1e-14, 1), led = solve(5, 330, 1.6e-19, 2); near('silicon point', c4.s1.Vd, s1.V, 1e-3); near('silicon current', c4.s1.I, s1.I, 1e-3); near('LED point', c4.led.Vd, led.V, 1e-3); near('LED current', c4.led.I, led.I, 1e-3);
+  const K = 2.67, Vth = 2.5, Vdd = 24, RL = 12, ov = 10 - Vth, a = K / 2, bq = K * ov + 1 / RL, cq = Vdd / RL, Vds10 = (bq - Math.sqrt(bq * bq - 4 * a * cq)) / (2 * a);
+  near('MOSFET at 10 V', c4.m10.Vds, Vds10, 1e-6); near('MOSFET at 3.3 V', c4.m33.Id, K / 2 * 0.8 ** 2); near('power at 3.3 V', c4.P33, (K / 2 * 0.64) * (Vdd - RL * K / 2 * 0.64)); near('Rds(on)', c4.Rds10, 1 / (K * ov));
+  { let mx = 0; for (let g = 0; g <= 10; g += 0.0005) { const s = mosSolve(g); mx = Math.max(mx, s.Id * s.Vds); } near('4.13 against a sweep', mx, c4.Pmx, 1e-3); near('4.13', c4.Pmx, 12); }
+  near('zener power', c4.PB2.Pz, 5.1 * (28 - 5.1) / 820); near('heatsink', c4.PB3.th, 100 / ((K / 2 * 0.64) * (Vdd - RL * K / 2 * 0.64)));
+  /* the panel says what the lab shows */
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ');
+  [['b1', '25.5 mA'], ['b1', '123%'], ['b2', '14.4 ms'], ['b2', '175 °C'], ['b3', '1,024 V'], ['b3', '24.7 V'], ['b3', '23.96 V'], ['b4', '0.693 V'], ['b4', '11.7 W']].forEach(([id, t]) => { if (!look(id).includes(t)) bad.push(id + ' panel lacks ' + t); });
+  return bad; });
+ok(!NA.length, 'Part A: every number recomputed from the physics agrees, the closed forms agree with numerical integration, and the panel quotes what the labs show (' + NA.join(' | ') + ')');
+
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));
 console.log(`book: 29 chapters, ${n} checks`);
