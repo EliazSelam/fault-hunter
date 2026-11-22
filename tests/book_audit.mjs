@@ -157,6 +157,43 @@ ok(Z.levels === 5, 'chapter 0: the five scales with their chapters');
 const X = await ev(() => { const c = bookCh().b28, cards = bookExamCards(c, 'z'); return { n: cards.length, stages: new Set(cards.map(x => x.stage)).size }; });
 ok(X.n === 20 && X.stages >= 15, 'the final exam: 20 cards from at least 15 different stages (' + JSON.stringify(X) + ')');
 ok(await ev(() => ZVIEW.list.filter(v => v[2] === 'main')[0][0] === 'book'), 'the book is first in the views bar');
+/* ---- v2.72: a chapter written as a textbook (chapter 6). The shape, the numbered equations, the layer of windows, the guided
+   solutions, and the numbers: each one recomputed here from the stated values, independently of the chapter's own code ---- */
+await ev(() => { BV.ch = 'b6'; BV.exam = null; go('zoom', 'book'); }); await pg.waitForTimeout(500);
+const TB = await ev(() => { const A = content, h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim());
+  const at = t => h3.findIndex(x => x.startsWith(t)), order = ['6.0 ', '6.1 ', '6.2 ', '6.3 ', '★ 6.4 ', '6.5 ', '6.6 ', '6.7 ', '🎛️'].map(at);
+  const eqs = [...A.querySelectorAll('.tb-eq')].map(e => e.dataset.eq), want = Array.from({ length: eqs.length }, (_, i) => '6.' + (i + 1));
+  const links = [...A.querySelectorAll('[data-tbeq]')].map(b => b.dataset.tbeq), layer = [...A.querySelectorAll('[data-tbw]')].map(b => b.dataset.tbw);
+  const ws = zWindows(zNode('pwm')), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"]`)).length;
+  return { order, eqs: eqs.join(), seq: eqs.join() === want.join(), links: links.every(l => eqs.includes(l)), layer: layer.length >= 4 && layer.every(w => !!A.querySelector(`.bk-win[data-w="${w}"]`)), inCh, ws: ws.length,
+    probs: A.querySelectorAll('.tb-prob').length, ex: [...A.querySelectorAll('.tb-x')].map(x => x.closest('section').contains(x) && !!x.querySelector('details')).filter(Boolean).length, risk: bidiRisk(A).length, whyOnce: A.querySelectorAll('#bk-why').length }; });
+ok(TB.order.every((x, i) => x >= 0 && (i === 0 || x > TB.order[i - 1])), 'textbook chapter: opening, numbered sections, an advanced section, summary, solved problems, exercises, then the layer of windows, in that order (' + TB.order + ')');
+ok(TB.seq && TB.eqs.split(',').length >= 12, 'textbook chapter: equations numbered 6.1, 6.2, … in order (' + TB.eqs + ')');
+ok(TB.links && TB.layer, 'textbook chapter: every link to an equation and every pointer to a window finds it in the chapter');
+ok(TB.inCh === TB.ws, `textbook chapter: every window of the topic is still in the chapter, in the layer (${TB.inCh}/${TB.ws})`);
+ok(TB.probs === 3 && TB.ex >= 6 && TB.risk === 0 && TB.whyOnce === 1, 'textbook chapter: three solved problems, six exercises with hidden answers, no formula out of order, one opening');
+const G = await ev(() => { const p = content.querySelector('.tb-prob'), st = [...p.querySelectorAll('.tb-st')], seen = [], h0 = location.hash;
+  for (let i = 0; i < st.length + 1; i++) { seen.push(st.filter(x => !x.hidden).length); const n = p.querySelector('[data-tbn]'); if (!n.hidden) n.click(); }
+  const before = p.querySelector('.tb-lastans').hidden; p.querySelector('[data-tbr]').click(); const after = !p.querySelector('.tb-lastans').hidden;
+  const w = content.querySelector('[data-tbw]'); w.click(); const mounted = !!content.querySelector(`.bk-win[data-w="${w.dataset.tbw}"] .bk-wb > :not([data-mount])`) || !content.querySelector(`.bk-win[data-w="${w.dataset.tbw}"] [data-mount]`);
+  return { seen, before, after, mounted, stay: location.hash === h0 }; });
+ok(G.seen.join() === Array.from({ length: G.seen.length }, (_, i) => Math.min(i + 1, G.seen.length - 1)).join() && G.before && G.after, 'a solved problem opens one step per press, and its last step shows only on request (' + G.seen + ')');
+ok(G.mounted && G.stay, 'a pointer to a window opens that window inside the chapter, without leaving it');
+const NUM = await ev(() => { const c = TBOOK.b6.check, Vs = 24, near = (a, b, t = 1e-6) => Math.abs(a - b) <= t * Math.max(1, Math.abs(b)), bad = [];
+  const tri = (V, D, L, f) => V * D * (1 - D) / (L * f), exact = (V, R, T, tau, D) => { const a = Math.exp(-D * T / tau), b = Math.exp(-(1 - D) * T / tau); return V / R * (1 - a) * (1 - b) / (1 - a * b); };
+  [['avg', c.avg1, 0.3 * 24], ['rms', c.rms1, 24 * Math.sqrt(0.3)], ['P', c.Pr, 0.3 * 576 / 12], ['I2', c.I2, 3], ['dI2', c.dI2, tri(24, .5, 2e-3, 20e3)], ['dI2 exact', c.dI2x, exact(24, 4, 5e-5, 5e-4, .5)],
+   ['shoot', c.Ish, 240], ['deadtime', c.dVt, 0.24], ['bipolar', c.dIbp, 2 * tri(24, .5, 2e-3, 20e3)], ['A1', c.A1, 48 / Math.PI], ['Psw', c.Psw, 0.072],
+   ['P1.D', c.P1.D, 0.5], ['P1.dI', c.P1.dI, 0.125], ['P2.f', c.P2.f, 30000], ['P3.got', c.P3.got, 2.4 - 0.48], ['E5', c.E5, 48 / Math.PI * Math.SQRT1_2]].forEach(([k, a, b]) => { if (!near(a, b)) bad.push(k + ' ' + a + ' ≠ ' + b); });
+  /* two derivations that must agree: the fundamental of the current from the Fourier series (6.14) and from the triangle of 6.8 */
+  if (!near(c.I1h, c.Ifund, 1e-9)) bad.push('Fourier ≠ triangle ' + c.I1h + ' ' + c.Ifund);
+  /* the approximation is the limit of the exact ripple: at τ/T = 100 they agree to 0.1% */
+  const e = exact(24, 4, 5e-6, 5e-4, .5), a = tri(24, .5, 2e-3, 2e5); if (Math.abs(a / e - 1) > 1e-3) bad.push('limit ' + a + ' vs ' + e);
+  /* the optimum of P(f) = a/f² + k f: the derivative vanishes there */
+  const { a: A6, k: K6, f: F6 } = c.E6, dP = -2 * A6 / F6 ** 3 + K6; if (Math.abs(dP) > 1e-9 * K6 * 1e3) bad.push('optimum ' + dP);
+  const txt = content.textContent; [c.avg1, c.dI2, c.P2.f / 1e3].forEach(v => { const s = (+v.toFixed(3)).toString(); if (!txt.includes(s)) bad.push('not in the text: ' + s); });
+  return bad; });
+ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agrees, the Fourier and the time-domain ripple agree, the approximation is the limit of the exact solution (' + NUM.join(' | ') + ')');
+
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));
 console.log(`book: 29 chapters, ${n} checks`);

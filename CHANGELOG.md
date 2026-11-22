@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.72.0] — 2026-11-22
+
+A chapter written as a textbook, and two new maps of the course to choose between.
+
+- **Chapter 6 (PWM and the H-bridge) is the first chapter written as a textbook**: 6.0 opening (what and why, the mathematical tools, four goals), then three sections that each go model → full derivation → interpretation → worked example: 6.1 the PWM signal (average and RMS value), 6.2 an inductive load (average current and ripple, with the exact ripple checked against the approximation), 6.3 the H-bridge (direction, braking, shoot-through and dead time); ★ 6.4 advanced: the Fourier series of PWM, the exact periodic solution and switching losses. Then 6.5 a summary with a formula sheet, 6.6 three solved problems that open step by step and leave the last step to you, and 6.7 exercises by level (basic, advanced, extension) with answers. Sixteen numbered equations; every number in the text is recomputed by the test.
+- **The simulations are a layer on top of the text**: each section ends with a pointer to the windows that show it working, opening them in place, and all fourteen windows of the topic follow the text as section 6.8.
+- **Equations on a phone break only before an = or a ;**, the way a printed derivation goes on to the next line.
+- **Two versions of the world map, to compare**: A, a galaxy (each part of the book is a constellation, each topic a star; size is how much there is in it, light is how much of it you opened, the next topic pulses), and B, a metro map (each learning track is a line, each topic a station in the book's order, the central subjects are the interchanges, a pin marks where you are). Both pan and zoom with a mouse or a finger, keep their labels readable at any zoom, open the same card for a topic (its chapter, how much is open, the central subjects it joins, the way in), and fit a phone (the galaxy stands upright, the metro opens at the start of the lines). A bar on the 3D world map and on both versions switches between the three.
+- A deep link to a map drawn while the page was still loading stopped the rest of the page from loading; the maps and the dashboard are now drawn again once the page has loaded.
+- Tests: new suite `maps` (55 checks); the book suite checks the textbook chapter. 23 suites.
+
 ## [2.71.0] — 2026-11-22
 
 Direction, meaning and clarity, from the review of v2.70.

@@ -113,7 +113,7 @@ syncGroup((document.querySelector('nav.sheets [aria-selected="true"]') || {}).da
 
 /* ---- 5. the views bar is complete on the first page; a deep link to the dashboard opens it ---- */
 (function () {
-  if (/^#\/zoom\/progress\b/.test(location.hash)) { go('zoom', 'progress'); return; }
+  const deep = /^#\/zoom\/(progress|galaxy|metro)\b/.exec(location.hash); if (deep) { go('zoom', deep[1]); return; }
   const s = content.querySelector('nav.zsub'); if (!s || s.querySelector('[data-zv="progress"]')) return;
   const cur = (s.querySelector('[aria-current="page"]') || {}).dataset?.zv, t = document.createElement('div'); t.innerHTML = zSubnav(cur); const n = t.firstElementChild; s.replaceWith(n);
   n.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));

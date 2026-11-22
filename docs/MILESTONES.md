@@ -27,6 +27,9 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.67.0](#v2670) | 22 Nov 2026 | Live figures for the algorithms | 3.82 MB |
 | [v2.68.0](#v2680) | 22 Nov 2026 | The AOI to AOS chain as one simulation | 3.85 MB |
 | [v2.69.0](#v2690) | 22 Nov 2026 | Progress, measured: the dashboard | 3.87 MB |
+| [v2.70.0](#v2700) | 22 Nov 2026 | Finding things and moving between them | 3.88 MB |
+| [v2.71.0](#v2710) | 22 Nov 2026 | Direction, meaning and clarity | 3.90 MB |
+| [v2.72.0](#v2720) | 22 Nov 2026 | A chapter as a textbook, and two maps to choose between | 3.96 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -144,6 +147,23 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.69.0 charts](milestones/v2.69.0-charts.png)
 
 **What changed:** progress, measured. A forecast of days to finish at the current pace, six cards, a ring per learning track (opened, and still in memory), an engineering profile, cumulative progress over 7, 30 or 90 days, a five-week activity heatmap, and bars by level, question topic and book chapter, all from what the course already keeps in the browser.
+
+## v2.70.0
+![v2.70.0](milestones/v2.70.0.png)
+
+**What changed:** finding things. The search knows every topic, chapter, view, central subject and simulation; every topic says where it sits in the book and leads to the topic before and after it; every topic has something to see first and questions at the end.
+
+## v2.71.0
+![v2.71.0](milestones/v2.71.0.png)
+
+**What changed:** direction and meaning. Formulas keep their order inside Hebrew text on every page, every abbreviation spells out its letters, one scale of headings, and the engineer level reads as an outline: each step's title and equation in view, its explanation folded.
+
+## v2.72.0
+![v2.72.0 book](milestones/v2.72.0-book.png)
+![v2.72.0 galaxy](milestones/v2.72.0.png)
+![v2.72.0 metro](milestones/v2.72.0-metro.png)
+
+**What changed:** chapter 6 is written as a textbook (model, full derivation, worked example, an advanced section, solved problems that open step by step, exercises by level), with the simulations as a layer on top. And two versions of the world map to choose between: a galaxy of the book's parts, and a metro map of the learning tracks with the central subjects as interchanges.
 
 ## From the first version to now, in numbers
 

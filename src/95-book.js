@@ -290,20 +290,22 @@ function bookChapter(A, B, c) {
   embClose('live'); BKL.el = null; BKID.reset();
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why, L = bookLayout(c);
   if (c.final) L.rest = bookAssets(c.id).filter(x => !/^(q|scn):/.test(x.key));
-  let h = bookHead(c, B) + bookRecap(c) + `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
-    ${bookLinksHtml(c)}</section>`;
+  const TB = typeof TBOOK !== 'undefined' && !!TBOOK[c.id];   /* a textbook chapter opens with its own section 0 */
+  let h = bookHead(c, B) + bookRecap(c) + (TB ? '' : `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
+    ${bookLinksHtml(c)}</section>`);
   if (c.final) h += bookFinalBody(B);
   else if (C) h += C.items.map((it, k) => `<section class="bk-topic" id="${BKID('c:' + it.id)}"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-side="route:zoom/${n}" data-st="${bkAttr(zNode(n).t)}">📖 ${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
+  else if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) h += tbookBody(c, L);   /* a chapter written as a textbook (95c, v2.72) */
   else h += c.nodes.map((node, k) => bookTopicHtml(c, node, k, L)).join('');
   const rest = L.rest.filter(x => !L.seen.has(x.key));
   if (rest.length) { const lv = BK_LV.map(() => []); rest.forEach(x => lv[Math.min(7, x.level)].push(bookEmbItem(x.ref)));
     h += `<section class="bk-topic" id="bk-rest"><h3>${c.n}.${(c.nodes || []).length + (C ? C.items.length : 0) + 1} עוד בפרק</h3><p class="note">מקומות באתר שהבית שלהם בפרק הזה ולא בנושא אחד שלו. כל אחד נפתח כאן.</p>${bookLevels(lv)}</section>`; }
-  if (!c.final) h += bookEndHtml(c, L);
+  if (!c.final) { const end = bookEndHtml(c, L); h += TB ? end.replace(/<section class="bk-box bk-sum" id="bk-sum">[\s\S]*?<\/section>/, '').replace('<h3>✏️ תרגילים</h3>', '<h3>✏️ תרגילים נוספים מהמאגר</h3>') : end; }   /* a textbook chapter has its own summary */
   if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
   if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
   if (!c.final) h += `<section class="bk-box bk-end" id="bk-test"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
     <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
-  A.innerHTML = h; A.insertAdjacentHTML('beforeend', bookIndexHtml(A)); bookWire(A, B, c);
+  A.innerHTML = h; A.insertAdjacentHTML('beforeend', bookIndexHtml(A)); bookWire(A, B, c); if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) tbookWire(A);
 }
 const bookCard = id => Object.values(PCARD_CACHE).flat().find(x => x.id === id);
 /* an answer to an exercise: mine beside the book's, the solution step by step, the intuition and the trap, and how it went */

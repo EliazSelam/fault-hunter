@@ -692,6 +692,53 @@ nav.sheets.one{display:none}
 /* v2.71: the engineer level as an outline */
 .engstep>details.engmore{margin:4px 0 2px}.engstep>details.engmore>summary{cursor:pointer;font-size:13px;color:#3078B0;list-style:none;display:inline-block;padding:1px 0}
 .engstep>details.engmore>summary::before{content:'▸ ';}.engstep>details.engmore[open]>summary::before{content:'▾ ';}
+/* v2.72: a chapter written as a textbook */
+.tb-eq{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 16px;background:#F6F9FC;border-inline-start:3px solid #3078B0;border-radius:6px}
+.tb-eq .tb-m{flex:1;direction:ltr;unicode-bidi:isolate;text-align:center;font-family:'STIX Two Math','Cambria Math','Times New Roman',serif;font-size:18px;color:#1B2F5A}
+.tb-seg{display:inline-block;white-space:nowrap}
+.tb-eq .tb-n{direction:ltr;color:#4A4540;font-variant-numeric:tabular-nums;font-size:14px}
+.tb-ex,.tb-prob,.tb-x{border:1px solid #D6E8F7;border-radius:10px;padding:10px 16px;margin:12px 0;background:#fff}.tb-exh{font-weight:700;color:#1B2F5A;margin:0 0 6px}
+.tb-layer{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin:14px 0 4px;padding:8px 14px;border:1px dashed #3078B0;border-radius:10px;background:#F3F8FD;font-size:14px}
+.tb-adv{border-inline-start:3px solid #7B5A3C;padding-inline-start:12px}.tb-adv>h3{color:#7B5A3C}
+.tb-tab{border-collapse:collapse;width:100%;margin:8px 0;font-size:15px}.tb-tab th,.tb-tab td{border-bottom:1px solid #D6E8F7;padding:6px 8px;text-align:start}.tb-tab th{color:#1B2F5A}
+.tb-steps{padding-inline-start:20px}.tb-steps li{margin:8px 0}.tb-last textarea{display:block;width:100%;margin:6px 0}.tb-lastans{background:#EEF5FB;border-radius:8px;padding:8px 12px}
+.tb-flash{outline:3px solid #3078B0;outline-offset:3px;transition:outline-color .6s}
+bdi.nw{white-space:nowrap}
+/* v2.72: the two map versions (galaxy, metro) and the bar that switches between them */
+.maps-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;font-size:14px;color:var(--muted)}
+.maps-bar button{font:inherit;font-size:14px;padding:5px 13px;border:1.5px dashed var(--line);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer}
+.maps-bar button[aria-pressed="true"]{border-style:solid;background:var(--tint);border-color:var(--live)}
+.maps-h h2{margin:0 0 4px}.maps-h p{margin:0 0 12px;max-width:70ch}
+.maps-stage{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.maps-stage svg{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;cursor:grab;user-select:none}
+.maps-stage svg text{direction:rtl;unicode-bidi:plaintext}
+.maps-stage svg:active{cursor:grabbing}
+.maps-tools{position:absolute;top:10px;inset-inline-end:10px;display:flex;flex-direction:column;gap:6px}
+.maps-tools button{font:inherit;font-size:15px;min-width:36px;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer;box-shadow:0 2px 6px rgba(27,47,90,.15)}
+.maps-card{position:absolute;bottom:12px;inset-inline-start:12px;max-width:min(340px,calc(100% - 24px));background:var(--sheet);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 16px;box-shadow:0 8px 24px rgba(27,47,90,.25)}
+.maps-list{list-style:none;margin:6px 0 0;padding:0;max-height:38vh;overflow:auto}.maps-list li{margin:2px 0}.maps-list small{color:var(--muted)}
+.maps-card h3{margin:0 0 4px;font-size:18px;color:var(--ink);padding-inline-end:22px}.maps-card p{margin:4px 0}
+.maps-x{position:absolute;top:6px;inset-inline-end:8px;border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer}
+.maps-stage.gx{background:radial-gradient(ellipse at 50% 50%,#2B4A7A 0%,#1B2F5A 45%,#0F1C38 100%);border-color:#2B4A7A}
+.gx-l{stroke:#8FB6DA;stroke-width:1}.gx-l.in{opacity:.32}.gx-l.out{opacity:.14;stroke-dasharray:4 5}
+.gx-s{cursor:pointer}.gx-core{fill:#D6E8F7}.gx-glow{fill:#8FB6DA}.gx-s.ex .gx-core{fill:#EEE9E0}
+.gx-s:hover .gx-core,.gx-s:focus .gx-core{fill:#fff}.gx-s:focus{outline:none}.gx-s:focus .gx-glow{opacity:.6}
+.gx-ring{fill:none;stroke:#D6E8F7;stroke-width:1.5;animation:gxpulse 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes gxpulse{0%{opacity:.9;transform:scale(.8)}100%{opacity:0;transform:scale(1.6)}}
+.gx-t{fill:#D6E8F7;font-size:calc(11px / var(--k,1));text-anchor:middle;opacity:0;transition:opacity .2s;pointer-events:none}
+svg.zin .gx-t,.gx-s:hover .gx-t,.gx-s:focus .gx-t,.gx-s.nx .gx-t{opacity:.9}
+.gx-c{fill:#EEE9E0;font-size:calc(15px / var(--k,1));font-weight:700;text-anchor:middle;cursor:pointer;opacity:.85;letter-spacing:.02em}.gx-c:hover,.gx-c:focus{opacity:1;text-decoration:underline;outline:none}
+.gx-core-t{fill:#D6E8F7;font-size:12px;text-anchor:middle;opacity:.7}
+.maps-stage.mt{background:var(--sheet);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:37px 37px}
+.mt-line{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.mt-x{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:3 4;opacity:.55}
+.mt-s{cursor:pointer}.mt-c{fill:var(--sheet);stroke-width:3}.mt-s:hover .mt-c,.mt-s:focus .mt-c{stroke-width:5}.mt-s:focus{outline:none}
+.mt-t{fill:var(--ink);font-size:calc(11.5px / var(--k,1));paint-order:stroke;stroke:var(--sheet);stroke-width:calc(3px / var(--k,1));stroke-linejoin:round;text-anchor:middle;pointer-events:none}
+.mt-lab text{fill:#fff;font-size:13px;font-weight:700;text-anchor:middle}.mt-labi{transform:scale(min(1, 1 / var(--k,1)))}
+.mt-pin path{fill:#7B5A3C}.mt-pin{animation:mtpin 1.6s ease-in-out infinite alternate}
+@keyframes mtpin{to{transform:translateY(-4px)}}
+@media (prefers-reduced-motion: reduce){.gx-ring,.mt-pin{animation:none}}
+@media (max-width:640px){.maps-stage.mt svg{aspect-ratio:auto!important;height:min(66vh,540px);max-height:none}.maps-card{inset-inline-start:8px;bottom:8px}.maps-tools{top:auto;bottom:8px;inset-inline-end:8px;flex-direction:row;gap:4px}.maps-tools button{min-width:32px;height:32px;font-size:14px;padding:0 8px}}
 </style>
 </head>
 <body>

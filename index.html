@@ -692,6 +692,53 @@ nav.sheets.one{display:none}
 /* v2.71: the engineer level as an outline */
 .engstep>details.engmore{margin:4px 0 2px}.engstep>details.engmore>summary{cursor:pointer;font-size:13px;color:#3078B0;list-style:none;display:inline-block;padding:1px 0}
 .engstep>details.engmore>summary::before{content:'▸ ';}.engstep>details.engmore[open]>summary::before{content:'▾ ';}
+/* v2.72: a chapter written as a textbook */
+.tb-eq{display:flex;align-items:center;gap:12px;margin:10px 0;padding:10px 16px;background:#F6F9FC;border-inline-start:3px solid #3078B0;border-radius:6px}
+.tb-eq .tb-m{flex:1;direction:ltr;unicode-bidi:isolate;text-align:center;font-family:'STIX Two Math','Cambria Math','Times New Roman',serif;font-size:18px;color:#1B2F5A}
+.tb-seg{display:inline-block;white-space:nowrap}
+.tb-eq .tb-n{direction:ltr;color:#4A4540;font-variant-numeric:tabular-nums;font-size:14px}
+.tb-ex,.tb-prob,.tb-x{border:1px solid #D6E8F7;border-radius:10px;padding:10px 16px;margin:12px 0;background:#fff}.tb-exh{font-weight:700;color:#1B2F5A;margin:0 0 6px}
+.tb-layer{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin:14px 0 4px;padding:8px 14px;border:1px dashed #3078B0;border-radius:10px;background:#F3F8FD;font-size:14px}
+.tb-adv{border-inline-start:3px solid #7B5A3C;padding-inline-start:12px}.tb-adv>h3{color:#7B5A3C}
+.tb-tab{border-collapse:collapse;width:100%;margin:8px 0;font-size:15px}.tb-tab th,.tb-tab td{border-bottom:1px solid #D6E8F7;padding:6px 8px;text-align:start}.tb-tab th{color:#1B2F5A}
+.tb-steps{padding-inline-start:20px}.tb-steps li{margin:8px 0}.tb-last textarea{display:block;width:100%;margin:6px 0}.tb-lastans{background:#EEF5FB;border-radius:8px;padding:8px 12px}
+.tb-flash{outline:3px solid #3078B0;outline-offset:3px;transition:outline-color .6s}
+bdi.nw{white-space:nowrap}
+/* v2.72: the two map versions (galaxy, metro) and the bar that switches between them */
+.maps-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 12px;font-size:14px;color:var(--muted)}
+.maps-bar button{font:inherit;font-size:14px;padding:5px 13px;border:1.5px dashed var(--line);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer}
+.maps-bar button[aria-pressed="true"]{border-style:solid;background:var(--tint);border-color:var(--live)}
+.maps-h h2{margin:0 0 4px}.maps-h p{margin:0 0 12px;max-width:70ch}
+.maps-stage{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+.maps-stage svg{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;cursor:grab;user-select:none}
+.maps-stage svg text{direction:rtl;unicode-bidi:plaintext}
+.maps-stage svg:active{cursor:grabbing}
+.maps-tools{position:absolute;top:10px;inset-inline-end:10px;display:flex;flex-direction:column;gap:6px}
+.maps-tools button{font:inherit;font-size:15px;min-width:36px;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer;box-shadow:0 2px 6px rgba(27,47,90,.15)}
+.maps-card{position:absolute;bottom:12px;inset-inline-start:12px;max-width:min(340px,calc(100% - 24px));background:var(--sheet);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px 16px;box-shadow:0 8px 24px rgba(27,47,90,.25)}
+.maps-list{list-style:none;margin:6px 0 0;padding:0;max-height:38vh;overflow:auto}.maps-list li{margin:2px 0}.maps-list small{color:var(--muted)}
+.maps-card h3{margin:0 0 4px;font-size:18px;color:var(--ink);padding-inline-end:22px}.maps-card p{margin:4px 0}
+.maps-x{position:absolute;top:6px;inset-inline-end:8px;border:0;background:none;font-size:20px;line-height:1;color:var(--muted);cursor:pointer}
+.maps-stage.gx{background:radial-gradient(ellipse at 50% 50%,#2B4A7A 0%,#1B2F5A 45%,#0F1C38 100%);border-color:#2B4A7A}
+.gx-l{stroke:#8FB6DA;stroke-width:1}.gx-l.in{opacity:.32}.gx-l.out{opacity:.14;stroke-dasharray:4 5}
+.gx-s{cursor:pointer}.gx-core{fill:#D6E8F7}.gx-glow{fill:#8FB6DA}.gx-s.ex .gx-core{fill:#EEE9E0}
+.gx-s:hover .gx-core,.gx-s:focus .gx-core{fill:#fff}.gx-s:focus{outline:none}.gx-s:focus .gx-glow{opacity:.6}
+.gx-ring{fill:none;stroke:#D6E8F7;stroke-width:1.5;animation:gxpulse 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes gxpulse{0%{opacity:.9;transform:scale(.8)}100%{opacity:0;transform:scale(1.6)}}
+.gx-t{fill:#D6E8F7;font-size:calc(11px / var(--k,1));text-anchor:middle;opacity:0;transition:opacity .2s;pointer-events:none}
+svg.zin .gx-t,.gx-s:hover .gx-t,.gx-s:focus .gx-t,.gx-s.nx .gx-t{opacity:.9}
+.gx-c{fill:#EEE9E0;font-size:calc(15px / var(--k,1));font-weight:700;text-anchor:middle;cursor:pointer;opacity:.85;letter-spacing:.02em}.gx-c:hover,.gx-c:focus{opacity:1;text-decoration:underline;outline:none}
+.gx-core-t{fill:#D6E8F7;font-size:12px;text-anchor:middle;opacity:.7}
+.maps-stage.mt{background:var(--sheet);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:37px 37px}
+.mt-line{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}
+.mt-x{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:3 4;opacity:.55}
+.mt-s{cursor:pointer}.mt-c{fill:var(--sheet);stroke-width:3}.mt-s:hover .mt-c,.mt-s:focus .mt-c{stroke-width:5}.mt-s:focus{outline:none}
+.mt-t{fill:var(--ink);font-size:calc(11.5px / var(--k,1));paint-order:stroke;stroke:var(--sheet);stroke-width:calc(3px / var(--k,1));stroke-linejoin:round;text-anchor:middle;pointer-events:none}
+.mt-lab text{fill:#fff;font-size:13px;font-weight:700;text-anchor:middle}.mt-labi{transform:scale(min(1, 1 / var(--k,1)))}
+.mt-pin path{fill:#7B5A3C}.mt-pin{animation:mtpin 1.6s ease-in-out infinite alternate}
+@keyframes mtpin{to{transform:translateY(-4px)}}
+@media (prefers-reduced-motion: reduce){.gx-ring,.mt-pin{animation:none}}
+@media (max-width:640px){.maps-stage.mt svg{aspect-ratio:auto!important;height:min(66vh,540px);max-height:none}.maps-card{inset-inline-start:8px;bottom:8px}.maps-tools{top:auto;bottom:8px;inset-inline-end:8px;flex-direction:row;gap:4px}.maps-tools button{min-width:32px;height:32px;font-size:14px;padding:0 8px}}
 </style>
 </head>
 <body>
@@ -13539,6 +13586,174 @@ nodeSection('mastery', 35, { html: ({ id }) => pathStages()[id] ? `<section clas
   wire: ({ id }) => { const b = document.querySelector('[data-npr]'); if (b) b.addEventListener('click', () => { PV.sess = pathSession('stage', id); if (PV.sess.done) PV.sess = null; go('zoom', 'path'); });
     const bk = document.querySelector('[data-nbook]'); if (bk) bk.addEventListener('click', () => { BV.ch = bk.dataset.nbook; BV.exam = null; go('zoom', 'book'); });
     const p = document.querySelector('[data-npath]'); if (p) p.addEventListener('click', () => { PV.sess = null; PV.tab = 'map'; PV.open = id; go('zoom', 'path'); }); } });
+/* ============ v2.72: two maps of the same course, to choose between (A/B) ============
+   A, a galaxy: each part of the book is a constellation and each topic a star in it. A star's size is how much there is in
+   the topic, its light is how much of it you opened; the next topic to learn pulses. Drag to move, wheel or buttons to zoom,
+   a constellation's name flies to it, a star opens a card.
+   B, a metro map: each learning track is a line and each topic a station on it, in the book's order from right to left.
+   The four central subjects are the interchanges: a dashed transfer joins the stations they share. A filled station is
+   one you explored; a pin marks where you are.
+   Both read only what the course already has (the book, the tracks, the links, what was opened), and both open the same
+   card for a topic. They sit beside the 3D world map, which stays as it is until one of them is chosen. */
+const MAPS = { pick: null };
+function mapsBar(cur) {
+  const b = [['world', 'המפה הנוכחית'], ['galaxy', 'A · גלקסיה'], ['metro', 'B · מפת רכבת']];
+  return `<nav class="maps-bar" aria-label="גרסאות המפה"><span>גרסאות להשוואה:</span>${b.map(([k, t]) => `<button type="button" data-mapv="${k}" aria-pressed="${k === cur}">${t}</button>`).join('')}</nav>`;
+}
+function mapsWireBar(root) { root.querySelectorAll('[data-mapv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.mapv))); }
+/* what each topic is in the course: its part, its chapter, how much of it is open, and whether it is next */
+function mapsFacts() {
+  /* a deep link draws the map while the page is still loading, before the record of opened windows exists: then nothing counts as opened, and the map is drawn again once everything is loaded (99e) */
+  const C = bookCh(), part = {}, chOf = {}, seen = w => { try { return tocWinSeen(w); } catch (e) { return false; } }, ex = zExplored();
+  BOOK.forEach((p, pi) => p.ch.forEach(c => (c.nodes || []).forEach(n => { if (!(n in part)) { part[n] = pi; chOf[n] = c.id; } })));
+  const { seq } = zSeq(), F = {};
+  ZOOM.forEach(z => { const ws = zWindows(z), s = ws.filter(seen).length; F[z.id] = { id: z.id, t: z.t, part: part[z.id] ?? BOOK.length - 1, ch: chOf[z.id], n: ws.length, open: ws.length ? s / ws.length : 0, explored: ex.has(z.id), cen: [] }; });
+  PCENTRAL.forEach(C => C.items.forEach(it => it.nodes.forEach(n => { if (F[n] && !F[n].cen.includes(C)) F[n].cen.push(C); })));
+  const next = seq.find(id => !F[id].explored); if (next) F[next].next = true;
+  return F;
+}
+/* the card a topic opens, in either map */
+function mapsCard(root, id) {
+  const F = mapsFacts()[id], c = F.ch ? bookCh()[F.ch] : null, box = root.querySelector('.maps-card');
+  box.innerHTML = `<button type="button" class="maps-x" aria-label="סגור">×</button><h3>${F.t}</h3>${c ? `<p class="note">פרק ${c.n}: ${c.t}</p>` : ''}
+    <p><b>${Math.round(F.open * 100)}%</b> מהחלונות נפתחו · ${F.n} חלונות${F.explored ? ' · ✓ ביקרת' : ''}${F.next ? ' · ★ הבא בתור' : ''}</p>
+    ${F.cen.length ? `<p>🔁 תחנת מעבר אל: ${F.cen.map(C => `<button type="button" class="linkbtn" data-mcen="${C.id}">${C.icon} ${C.t}</button>`).join(' · ')}</p>` : ''}
+    <p><button type="button" class="pth-go" data-mgo="${id}">פתח את הנושא ←</button>${c ? ` <button type="button" class="linkbtn" data-mch="${F.ch}">📖 פרק ${c.n} בספר</button>` : ''}</p>`;
+  box.hidden = false;
+  box.querySelector('.maps-x').addEventListener('click', () => { box.hidden = true; });
+  box.querySelector('[data-mgo]').addEventListener('click', () => go('zoom', id));
+  box.querySelectorAll('[data-mcen]').forEach(b => b.addEventListener('click', () => { PV.central = b.dataset.mcen; go('zoom', 'central'); }));
+  const ch = box.querySelector('[data-mch]'); if (ch) ch.addEventListener('click', () => { BV.ch = ch.dataset.mch; BV.exam = null; go('zoom', 'book'); });
+}
+/* the card of a whole part of the book: its topics, each with how much of it is open, each opening its own card */
+function mapsPartCard(root, c, F) {
+  const box = root.querySelector('.maps-card'), ex = c.ids.filter(id => F[id].explored).length;
+  box.innerHTML = `<button type="button" class="maps-x" aria-label="סגור">×</button><h3>${c.t}</h3><p class="note">${c.ids.length} נושאים · ${ex} ביקרת</p>
+    <ul class="maps-list">${c.ids.map(id => `<li><button type="button" class="linkbtn" data-mtop="${id}">${F[id].explored ? '✓ ' : F[id].next ? '★ ' : ''}${F[id].t}</button> <small>${Math.round(F[id].open * 100)}%</small></li>`).join('')}</ul>`;
+  box.hidden = false;
+  box.querySelector('.maps-x').addEventListener('click', () => { box.hidden = true; });
+  box.querySelectorAll('[data-mtop]').forEach(b => b.addEventListener('click', () => mapsCard(root, b.dataset.mtop)));
+}
+/* pan and zoom on an SVG by its viewBox: drag, wheel, pinch, and buttons; fly() moves to a box smoothly. The box always has
+   the shape of the drawing on screen, so a point under the finger stays under it; --k is screen pixels per unit, so labels
+   can keep one size on screen at any zoom. */
+function mapsPanZoom(svg, W, H, start) {
+  const asp = () => (svg.clientHeight || H) / (svg.clientWidth || W);
+  const fit = ([x, y, w, h]) => { const a = asp(), cx = x + w / 2, cy = y + h / 2; if (h / w > a) w = h / a; else h = w * a; return [cx - w / 2, cy - h / 2, w, h]; };
+  let vb = [0, 0, W, H], anim = 0;
+  const set = v => { vb = v; svg.setAttribute('viewBox', v.map(x => x.toFixed(1)).join(' ')); svg.style.setProperty('--k', ((svg.clientWidth || W) / v[2]).toFixed(3)); svg.classList.toggle('zin', v[2] < W * 0.62); };
+  const zoom = (k, cx = vb[0] + vb[2] / 2, cy = vb[1] + vb[3] / 2) => { const w = Math.min(Math.max(W, H / asp()) * 1.25, Math.max(W / 9, vb[2] * k)), h = w * asp(); set([cx - (cx - vb[0]) * w / vb[2], cy - (cy - vb[1]) * h / vb[3], w, h]); };
+  const pt = e => { const r = svg.getBoundingClientRect(); return [vb[0] + (e.clientX - r.left) / r.width * vb[2], vb[1] + (e.clientY - r.top) / r.height * vb[3]]; };
+  svg.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = pt(e); zoom(e.deltaY > 0 ? 1.15 : 1 / 1.15, x, y); }, { passive: false });
+  let drag = null; const ptrs = new Map();
+  svg.addEventListener('pointerdown', e => { if (e.target.closest('[data-star],[data-stn],[data-cst]')) return; ptrs.set(e.pointerId, [e.clientX, e.clientY]); drag = { x: e.clientX, y: e.clientY, vb: vb.slice() }; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointermove', e => { if (!drag || !ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+    const r = svg.getBoundingClientRect(); if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (drag.d) zoom(drag.d / d); drag.d = d; return; }
+    set([drag.vb[0] - (e.clientX - drag.x) / r.width * drag.vb[2], drag.vb[1] - (e.clientY - drag.y) / r.height * drag.vb[3], drag.vb[2], drag.vb[3]]); });
+  const up = e => { ptrs.delete(e.pointerId); if (!ptrs.size) drag = null; }; svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
+  const fly = (box, ms = 650) => { cancelAnimationFrame(anim); const to = fit(box), from = vb.slice(), t0 = performance.now(), reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const step = t => { const k = reduce ? 1 : Math.min(1, (t - t0) / ms), e = k < .5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2; set(from.map((v, i) => v + (to[i] - v) * e)); if (k < 1) anim = requestAnimationFrame(step); }; anim = requestAnimationFrame(step); };
+  const home = () => fit([0, 0, W, H]);
+  set(start ? fit(start) : home());
+  const onResize = () => { if (!svg.isConnected) return removeEventListener('resize', onResize); set(fit(vb)); }; addEventListener('resize', onResize);
+  return { zoom, fly, reset: () => fly(home()), get vb() { return vb; } };
+}
+const mapsNarrow = () => matchMedia('(max-width: 640px)').matches;
+const mapsName = t => t.split(/[:,(]/)[0].trim();
+/* a station's name: a long one breaks at the space nearest its middle, and grows away from the line */
+function mapsLabel(t, y) {
+  const sp = [...t.matchAll(/ /g)].map(m => m.index), cut = t.length > 14 && sp.length ? sp.reduce((a, b) => Math.abs(b - t.length / 2) < Math.abs(a - t.length / 2) ? b : a) : -1;
+  const L = cut < 0 ? [t] : [t.slice(0, cut), t.slice(cut + 1)];
+  return `<text y="${y}" class="mt-t">${L.map((l, i) => `<tspan x="0" dy="${i ? '1.15em' : y < 0 ? -(L.length - 1) * 1.15 + 'em' : '0'}">${l}</tspan>`).join('')}</text>`;
+}
+
+/* ---- A: the galaxy ---- */
+function zGalaxyView() {
+  const F = mapsFacts(), tall = mapsNarrow(), W = tall ? 760 : 1200, H = tall ? 1200 : 760, cx = W / 2, cy = H / 2;
+  const rnd = (s => () => (s = (s * 16807) % 2147483647) / 2147483647)(7);
+  /* the parts of the book around the core, in reading order clockwise from the top; the stars of each on a golden-angle disc.
+     On a phone the ring stands upright, so the whole galaxy fits the screen. */
+  const parts = BOOK.map((p, i) => ({ i, t: p.t, ids: ZOOM.filter(z => F[z.id].part === i).map(z => z.id) })).filter(c => c.ids.length), P = parts.length, rx = tall ? 245 : 440, ry = tall ? 465 : 255;
+  const cons = parts.map((c, j) => { const a = -Math.PI / 2 + j * 2 * Math.PI / P; return Object.assign(c, { x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry }); });
+  const pos = {}; cons.forEach(c => c.ids.forEach((id, k) => { const a = k * 2.39996 + c.i, r = k ? (14 + 17 * Math.sqrt(k)) * (tall ? 1.1 : 1) : 0; pos[id] = [c.x + Math.cos(a) * r, c.y + Math.sin(a) * r]; }));
+  const bg = Array.from({ length: 240 }, () => `<circle cx="${(rnd() * W).toFixed(0)}" cy="${(rnd() * H).toFixed(0)}" r="${(rnd() * 1.2 + .2).toFixed(2)}" fill="#D6E8F7" opacity="${(rnd() * .5 + .1).toFixed(2)}"/>`).join('');
+  const links = zLinks().filter(e => pos[e.a] && pos[e.b]).map(e => { const [x1, y1] = pos[e.a], [x2, y2] = pos[e.b], same = F[e.a].part === F[e.b].part;
+    return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="gx-l ${same ? 'in' : 'out'} k-${e.k}"/>`; }).join('');
+  /* a star's name stands outside it, on the side away from the middle of its constellation, so close stars do not cover each other's names */
+  const lab = (id, c, r) => { const dx = pos[id][0] - c.x, dy = pos[id][1] - c.y, d = Math.hypot(dx, dy); if (d < 1) return `y="${(r + 14).toFixed(0)}"`;
+    const ux = dx / d, uy = dy / d, x = ux * (r + 5), y = uy * (r + 5) + 4; return `x="${x.toFixed(1)}" y="${y.toFixed(1)}" style="text-anchor:${ux > .35 ? 'end' : ux < -.35 ? 'start' : 'middle'}"${Math.abs(ux) <= .35 ? ` dy="${uy > 0 ? 8 : -4}"` : ''}`; };
+  const conOf = Object.fromEntries(cons.flatMap(c => c.ids.map(id => [id, c])));
+  const sr = tall ? 1.25 : 1;
+  const stars = ZOOM.filter(z => pos[z.id]).map(z => { const f = F[z.id], [x, y] = pos[z.id], r = (5 + 2.4 * Math.sqrt(f.n)) * sr, lum = f.explored ? 1 : 0.35 + 0.65 * f.open;
+    return `<g class="gx-s${f.explored ? ' ex' : ''}${f.next ? ' nx' : ''}" data-star="${z.id}" tabindex="0" role="button" aria-label="${z.t}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})">
+      <circle r="${(r * 2.4).toFixed(1)}" class="gx-glow" opacity="${(lum * .35).toFixed(2)}"/><circle r="${r.toFixed(1)}" class="gx-core" opacity="${(0.45 + .55 * lum).toFixed(2)}"/>${f.next ? `<circle r="${(r + 7).toFixed(1)}" class="gx-ring"/>` : ''}
+      <text ${lab(z.id, conOf[z.id], r)} class="gx-t">${mapsName(z.t)}</text></g>`; }).join('');
+  const box = c => { const xs = c.ids.map(id => pos[id][0]), ys = c.ids.map(id => pos[id][1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; };
+  /* a constellation's name over it; at the sides of the ring it is aligned to the edge of the constellation that faces outward, so it stays inside the picture */
+  const labels = cons.map((c, j) => { const [x0, y0, x1] = box(c), side = c.x > cx + 60 ? 1 : c.x < cx - 60 ? -1 : 0;
+    return `<text x="${(side > 0 ? x1 + 30 : side < 0 ? x0 - 30 : c.x).toFixed(0)}" y="${(y0 - 34).toFixed(0)}" class="gx-c" style="text-anchor:${side > 0 ? 'start' : side < 0 ? 'end' : 'middle'}" data-cst="${j}" tabindex="0" role="button">${tall ? c.t.split(':')[0] : c.t}<title>${c.t}</title></text>`; }).join('');
+  const core = `<circle cx="${cx}" cy="${cy}" r="70" fill="url(#gxcore)"/><text x="${cx}" y="${cy + 5}" class="gx-core-t">המכונה</text>`;
+  const ex = Object.values(F).filter(f => f.explored).length, nx = Object.keys(F).find(i => F[i].next && pos[i]);
+  content.innerHTML = zSubnav('world') + `<div class="maps nogl">${mapsBar('galaxy')}
+    <header class="maps-h"><h2>הגלקסיה של הקורס</h2><p>כל חלק בספר הוא קבוצת כוכבים, וכל נושא הוא כוכב. גודל הכוכב הוא כמה יש בנושא, והאור שלו הוא כמה ממנו פתחת. ★ הכוכב הבא שלך פועם. גוררים כדי לזוז, גלגלת או כפתורים לזום, ושם של קבוצה טס אליה.</p></header>
+    <div class="maps-stage gx"><svg viewBox="0 0 ${W} ${H}" style="aspect-ratio:${W}/${H}" role="img" aria-label="גלקסיית הנושאים"><defs><radialGradient id="gxcore"><stop offset="0" stop-color="#D6E8F7" stop-opacity=".55"/><stop offset="1" stop-color="#1B2F5A" stop-opacity="0"/></radialGradient></defs>${bg}${core}<g class="gx-links">${links}</g>${labels}${stars}</svg>
+      <div class="maps-tools"><button type="button" data-mz="in" aria-label="זום פנימה">+</button><button type="button" data-mz="out" aria-label="זום החוצה">−</button><button type="button" data-mz="home" aria-label="כל הגלקסיה">⌂</button>${nx ? '<button type="button" data-mz="next">★ הבא</button>' : ''}</div>
+      <div class="maps-card" hidden></div></div>
+    <p class="note">${Object.keys(pos).length} כוכבים ב-${P} קבוצות · ${ex} ביקרת · קו רציף: קשר בתוך חלק; קו מקווקו: קשר בין חלקים.</p></div>`;
+  zWireSub(); mapsWireBar(content);
+  const root = content.querySelector('.maps-stage'), svg = root.querySelector('svg'), pz = mapsPanZoom(svg, W, H);
+  root.querySelectorAll('[data-star]').forEach(g => { const open = () => mapsCard(root, g.dataset.star); g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
+  root.querySelectorAll('[data-cst]').forEach(t => { const fly = () => { const [x0, y0, x1, y1] = box(cons[+t.dataset.cst]), m = 90; pz.fly([x0 - m, y0 - m, x1 - x0 + 2 * m, y1 - y0 + 2 * m]); };
+    const go2 = () => { fly(); mapsPartCard(root, cons[+t.dataset.cst], F); };
+    t.addEventListener('click', go2); t.addEventListener('keydown', e => { if (e.key === 'Enter') go2(); }); });
+  root.querySelectorAll('[data-mz]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.mz; if (k === 'in') pz.zoom(1 / 1.4); else if (k === 'out') pz.zoom(1.4); else if (k === 'home') pz.reset();
+    else { const [x, y] = pos[nx]; pz.fly([x - 240, y - 160, 480, 320]); mapsCard(root, nx); } }));
+  MAPS.galaxy = { pos, cons, pz, W, H };
+}
+
+/* ---- B: the metro ---- */
+const METRO_C = ['#1B2F5A', '#3078B0', '#7B5A3C', '#4A4540', '#8FB6DA', '#A68A6D'];
+function zMetroView() {
+  const F = mapsFacts(), { seq } = zSeq(), order = Object.fromEntries(seq.map((id, i) => [id, i])), T = PTRACKS;
+  const step = 80, R = 220, Lm = 70, rowH = 96, top = 74, cols = Math.max(...T.map(t => t.stages.filter(zNode).length));
+  const W = R + (cols - 1) * step + step / 2 + Lm, H = top + (T.length - 1) * rowH + 70;
+  /* each line: its stations in the book's order, from right to left; every other line is shifted half a station, so the
+     names above and below the lines do not stand on each other */
+  const st = {}; T.forEach((t, i) => t.stages.filter(zNode).sort((a, b) => order[a] - order[b]).forEach((id, k) => { st[id] = { x: W - R - k * step - (i % 2) * step / 2, y: top + i * rowH, line: i, k }; }));
+  const path = i => Object.entries(st).filter(([, s]) => s.line === i).sort((a, b) => a[1].k - b[1].k).map(([, s], k) => `${k ? 'L' : 'M'}${s.x} ${s.y}`).join(' ');
+  /* interchanges: a central subject joins stations on different lines */
+  const xfer = new Map(); PCENTRAL.forEach(C => C.items.forEach(it => { const ns = [...new Set(it.nodes)].filter(n => st[n]);
+    for (let a = 0; a < ns.length; a++) for (let b = a + 1; b < ns.length; b++) if (st[ns[a]].line !== st[ns[b]].line) { const key = [ns[a], ns[b]].sort().join('~'); if (!xfer.has(key)) xfer.set(key, { a: ns[a], b: ns[b], C: new Set() }); xfer.get(key).C.add(C.t); } }));
+  const xset = new Set([...xfer.values()].flatMap(x => [x.a, x.b]));
+  const xl = [...xfer.values()].map(({ a, b, C }) => { const A = st[a], B = st[b], my = (A.y + B.y) / 2; return `<path d="M${A.x} ${A.y} C${A.x} ${my} ${B.x} ${my} ${B.x} ${B.y}" class="mt-x"><title>מעבר: ${[...C].join(', ')}</title></path>`; }).join('');
+  const lines = T.map((t, i) => `<path d="${path(i)}" class="mt-line" stroke="${METRO_C[i]}"/><g class="mt-lab" transform="translate(${W - R + 26} ${top + i * rowH})"><g class="mt-labi"><rect x="0" y="-16" width="${R - 40}" height="32" rx="16" fill="${METRO_C[i]}"/><text x="${(R - 40) / 2}" y="5">${t.icon} ${t.t}</text></g></g>`).join('');
+  const here = seq.find(id => st[id] && !F[id].explored);
+  const stations = Object.entries(st).map(([id, s]) => { const f = F[id], big = xset.has(id), c = METRO_C[s.line];
+    return `<g class="mt-s${f.explored ? ' ex' : ''}${big ? ' xc' : ''}" data-stn="${id}" tabindex="0" role="button" aria-label="${f.t}" transform="translate(${s.x} ${s.y})">
+      ${big ? `<rect x="-12" y="-10" width="24" height="20" rx="10" class="mt-c" stroke="${c}"/>` : `<circle r="9" class="mt-c" stroke="${c}"/>`}
+      ${f.explored ? `<circle r="4.5" fill="${c}"/>` : f.open ? `<circle r="${(7 * f.open).toFixed(1)}" fill="${c}" opacity=".45"/>` : ''}
+      ${mapsLabel(mapsName(f.t), s.k % 2 || id === here ? 28 : -18)}${id === here ? '<g class="mt-pin"><path d="M0 -36 C-9 -36 -12 -28 -12 -24 C-12 -16 0 -8 0 -8 C0 -8 12 -16 12 -24 C12 -28 9 -36 0 -36Z"/><circle cy="-25" r="4" fill="#EEE9E0"/></g>' : ''}</g>`; }).join('');
+  const ex = Object.keys(st).filter(id => F[id].explored).length;
+  content.innerHTML = zSubnav('world') + `<div class="maps nogl">${mapsBar('metro')}
+    <header class="maps-h"><h2>מפת הקווים של הקורס</h2><p>כל מסלול למידה הוא קו, וכל נושא תחנה עליו, בסדר של הספר מימין לשמאל. הנושאים המרכזיים (כיול, רעש, חום, חקר כשל) הם תחנות מעבר: קו מקווקו מחבר תחנות שהם חולקים בין קווים. ● תחנה מלאה: ביקרת. 📍 התחנה הבאה שלך.</p></header>
+    <div class="maps-stage mt"><svg viewBox="0 0 ${W} ${H}" style="aspect-ratio:${W}/${H}" role="img" aria-label="מפת הקווים"><g>${xl}</g>${lines}${stations}</svg>
+      <div class="maps-tools"><button type="button" data-mz="in" aria-label="זום פנימה">+</button><button type="button" data-mz="out" aria-label="זום החוצה">−</button><button type="button" data-mz="home" aria-label="כל המפה">⌂</button>${here ? '<button type="button" data-mz="next">📍 הבא</button>' : ''}</div>
+      <div class="maps-card" hidden></div></div>
+    <p class="note">${T.length} קווים · ${Object.keys(st).length} תחנות · ${xset.size} תחנות מעבר · ${ex} ביקרת</p></div>`;
+  zWireSub(); mapsWireBar(content);
+  const root = content.querySelector('.maps-stage'), svg = root.querySelector('svg');
+  /* on a phone the map opens at the start of the lines, big enough to read, and moves with a finger */
+  const pz = mapsPanZoom(svg, W, H, mapsNarrow() ? (w => [W - w, 0, w, H])((svg.clientWidth || 360) / 0.85) : null);
+  root.querySelectorAll('[data-stn]').forEach(g => { const open = () => mapsCard(root, g.dataset.stn); g.addEventListener('click', open); g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }); });
+  root.querySelectorAll('[data-mz]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.mz; if (k === 'in') pz.zoom(1 / 1.4); else if (k === 'out') pz.zoom(1.4); else if (k === 'home') pz.reset();
+    else { const s = st[here]; pz.fly([s.x - 420, s.y - 200, 840, 400]); mapsCard(root, here); } }));
+  MAPS.metro = { st, xfer, xset, pz, W, H, here };
+}
+ZVIEW.add('galaxy', { group: 'hidden', parent: 'world', title: 'גלקסיה', render: () => zGalaxyView() });
+ZVIEW.add('metro', { group: 'hidden', parent: 'world', title: 'מפת רכבת', render: () => zMetroView() });
+/* the 3D world map gets the same bar, so the three can be compared from any of them */
+const _zWorldViewMaps = zWorldView;
+zWorldView = function () { _zWorldViewMaps(); const s = content.querySelector('.zsub'); if (s) s.insertAdjacentHTML('afterend', mapsBar('world')); else content.insertAdjacentHTML('afterbegin', mapsBar('world')); mapsWireBar(content); };
 /* ============ Two systems that work, in 3D (v2.47) ============
    The vacuum table and the safety chain were taught as steps over a drawing. Here each one runs: you press, it acts,
    and every number on the screen comes from the same model as the rest of the book (vacCalc for the vacuum, stopCalc
@@ -15097,20 +15312,22 @@ function bookChapter(A, B, c) {
   embClose('live'); BKL.el = null; BKID.reset();
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why, L = bookLayout(c);
   if (c.final) L.rest = bookAssets(c.id).filter(x => !/^(q|scn):/.test(x.key));
-  let h = bookHead(c, B) + bookRecap(c) + `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
-    ${bookLinksHtml(c)}</section>`;
+  const TB = typeof TBOOK !== 'undefined' && !!TBOOK[c.id];   /* a textbook chapter opens with its own section 0 */
+  let h = bookHead(c, B) + bookRecap(c) + (TB ? '' : `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
+    ${bookLinksHtml(c)}</section>`);
   if (c.final) h += bookFinalBody(B);
   else if (C) h += C.items.map((it, k) => `<section class="bk-topic" id="${BKID('c:' + it.id)}"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-side="route:zoom/${n}" data-st="${bkAttr(zNode(n).t)}">📖 ${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
+  else if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) h += tbookBody(c, L);   /* a chapter written as a textbook (95c, v2.72) */
   else h += c.nodes.map((node, k) => bookTopicHtml(c, node, k, L)).join('');
   const rest = L.rest.filter(x => !L.seen.has(x.key));
   if (rest.length) { const lv = BK_LV.map(() => []); rest.forEach(x => lv[Math.min(7, x.level)].push(bookEmbItem(x.ref)));
     h += `<section class="bk-topic" id="bk-rest"><h3>${c.n}.${(c.nodes || []).length + (C ? C.items.length : 0) + 1} עוד בפרק</h3><p class="note">מקומות באתר שהבית שלהם בפרק הזה ולא בנושא אחד שלו. כל אחד נפתח כאן.</p>${bookLevels(lv)}</section>`; }
-  if (!c.final) h += bookEndHtml(c, L);
+  if (!c.final) { const end = bookEndHtml(c, L); h += TB ? end.replace(/<section class="bk-box bk-sum" id="bk-sum">[\s\S]*?<\/section>/, '').replace('<h3>✏️ תרגילים</h3>', '<h3>✏️ תרגילים נוספים מהמאגר</h3>') : end; }   /* a textbook chapter has its own summary */
   if (typeof bookFrameHtml === 'function') h += bookFrameHtml(c, B);
   if (c.final && typeof bookCertHtml === 'function') h += bookCertHtml(B);
   if (!c.final) h += `<section class="bk-box bk-end" id="bk-test"><h3>מבחן הפרק</h3><p>${Math.min(BEXAM, bookCards(c, 'x').length)} שאלות מהנושאים של הפרק. עוברים ב-${BPASS * 100}% ומעלה. התשובות נכנסות לחזרות המרווחות.</p>
     <p><button type="button" class="pth-go" data-bx="${c.id}">${bookStatus(B, c.id) === 'done' ? '↻ מבחן חוזר' : '▶ למבחן הפרק'}</button></p>${bookBridge(c)}</section>`;
-  A.innerHTML = h; A.insertAdjacentHTML('beforeend', bookIndexHtml(A)); bookWire(A, B, c);
+  A.innerHTML = h; A.insertAdjacentHTML('beforeend', bookIndexHtml(A)); bookWire(A, B, c); if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) tbookWire(A);
 }
 const bookCard = id => Object.values(PCARD_CACHE).flat().find(x => x.id === id);
 /* an answer to an exercise: mine beside the book's, the solution step by step, the intuition and the trap, and how it went */
@@ -15243,6 +15460,163 @@ function bookFinalBody(B) { const done = bookOrder().filter(id => id !== 'b0' &&
   <section class="bk-box bk-end"><h3>המבחן המסכם</h3><p><button type="button" class="pth-go" data-bx="b28">${bookStatus(B, 'b28') === 'done' ? '↻ מבחן חוזר' : '▶ למבחן המסכם'}</button></p></section>`; }
 
 ZVIEW.add('book', { group: 'main', order: 0.5, title: '📖 הספר', render: arg => zBookView(arg) });
+/* ============ v2.72: a chapter written as a textbook (pilot: chapter 6, PWM and the H-bridge) ============
+   The shape follows engineering textbooks (Ogata: numbered sections, then example problems with solutions, then problems;
+   Oppenheim: problems by level, basic ones with answers): an opening (what and why, goals, what it rests on), numbered
+   sections that state the physical model, derive it in full with numbered equations, read the result and solve an example;
+   an advanced section; a summary with the formula sheet; solved problems revealed one step at a time with the last step left
+   to the reader; exercises by level. The site's simulations are a layer on top: each section names the windows that show
+   it working, and the topic's windows follow the text, not replace it.
+   Every number in the text is computed here from the stated values, so the arithmetic is the formula's. */
+const TBOOK = {};
+const tbN = (x, d = 2) => { const v = Math.abs(x) < 1e-12 ? 0 : x; return (+v.toFixed(d)).toLocaleString('en-US', { maximumFractionDigits: d }); };
+/* a numbered equation; on a narrow screen it breaks only before an = or a ;, the way a printed derivation goes on the next line */
+const tbEq = (id, html) => `<div class="tb-eq" data-eq="${id}"><span class="tb-m">${html.split(/ (?=[=;] )/).map(x => `<span class="tb-seg">${x}</span>`).join(' ')}</span><span class="tb-n">(${id})</span></div>`;
+const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את זה עובד</b> <span>${txt}</span> ${refs.map(([w, t]) => `<button type="button" class="linkbtn" data-tbw="${w}">${t}</button>`).join(' · ')}</aside>`;
+
+(function () {
+  /* the numbers of the chapter, in one place */
+  const Vs = 24, D1 = 0.3, R1 = 12;                                   /* 6.1 */
+  const avg1 = D1 * Vs, rms1 = Math.sqrt(D1) * Vs, Pr = D1 * Vs * Vs / R1, Pdc = avg1 * avg1 / R1;
+  const R2 = 4, L2 = 2e-3, f2 = 20e3, D2 = 0.5, T2 = 1 / f2, tau2 = L2 / R2;  /* 6.2 */
+  const I2 = D2 * Vs / R2, dI2 = Vs * D2 * (1 - D2) / (L2 * f2);
+  const ex = (T, tau, D) => { const a = Math.exp(-D * T / tau), b = Math.exp(-(1 - D) * T / tau); return (Vs / R2) * (1 - a) * (1 - b) / (1 - a * b); };
+  const dI2x = ex(T2, tau2, D2), f2b = 2e3, dI2b = Vs * D2 * (1 - D2) / (L2 * f2b), dI2bx = ex(1 / f2b, tau2, D2);
+  const Rds = 0.05, Ish = Vs / (2 * Rds), td = 500e-9, dVt = Vs * td * f2;  /* 6.3 */
+  const Dbp = 0.5, dIbp = 2 * Vs * Dbp * (1 - Dbp) / (L2 * f2);
+  const A1 = 2 * Vs / Math.PI * Math.sin(Math.PI * 0.5), I1h = A1 / (2 * Math.PI * f2 * L2), Ifund = (8 / Math.PI ** 2) * dI2 / 2;   /* 6.4 */
+  const Iload = 3, tsw = 100e-9, Psw = 0.5 * Vs * Iload * tsw * f2, Psw200 = 0.5 * Vs * Iload * tsw * 200e3;
+  /* solved problems */
+  const P1 = { R: 1.5, L: 3e-3, E: 9, I: 2, f: 16e3 }; P1.D = (P1.E + P1.R * P1.I) / Vs; P1.dI = Vs * P1.D * (1 - P1.D) / (P1.L * P1.f);
+  const P2 = { V: 48, L: 1e-3, I: 4, k: 0.1 }; P2.f = P2.V / (4 * P2.L * P2.k * P2.I);
+  const P3 = { Rds: 0.04, td: 1e-6, f: 20e3, D: 0.1 }; P3.I = Vs / (2 * P3.Rds); P3.dV = Vs * P3.td * P3.f; P3.cmd = P3.D * Vs; P3.got = P3.cmd - P3.dV;
+  /* exercises */
+  const E1 = { V: 12, D: 0.75 }, E2 = { V: 24, D: 0.25, L: 1e-3, f: 10e3 }, E3 = { V: 24, D: 0.6 };
+  const E4 = (() => { const T = 1, a = Math.exp(-0.5), ab = Math.exp(-1), exact = (1 - a) ** 2 / (1 - ab), approx = 0.25 * T; return { exact, approx, err: (approx / exact - 1) * 100 }; })();
+  const E5 = 2 * 24 / Math.PI * Math.sin(Math.PI * 0.25);
+  const E6 = (() => { const R = 1, V = 24, D = 0.5, L = 1e-3, I = 3, ts = 100e-9, a = R * (V * D * (1 - D) / L) ** 2 / 12, k = 0.5 * V * I * ts; return { a, k, f: Math.cbrt(2 * a / k) }; })();
+
+  const sections = [
+    { id: '6.1', t: 'אות PWM: המתח הממוצע והמתח האפקטיבי', html: `
+      <p><b>המודל.</b> מתג אלקטרוני מחבר את העומס למקור <bdi>V<sub>s</sub></bdi> או מנתק אותו, במחזור קבוע <bdi>T = 1/f</bdi>. בחלק <bdi>D</bdi> מהמחזור (ה-duty cycle, <bdi>0 ≤ D ≤ 1</bdi>) המתח על העומס הוא <bdi>V<sub>s</sub></bdi>, ובשאר הזמן אפס. מניחים מתג אידאלי: מעבר מיידי, ובלי מפל מתח כשהוא סגור.</p>
+      ${tbEq('6.1', 'v(t) = V<sub>s</sub>,  0 ≤ t &lt; DT ;   v(t) = 0,  DT ≤ t &lt; T')}
+      <p><b>הפיתוח.</b> הממוצע של אות מחזורי הוא האינטגרל על מחזור אחד חלקי אורך המחזור:</p>
+      ${tbEq('6.2', '⟨v⟩ = (1/T) ∫<sub>0</sub><sup>T</sup> v(t) dt = (1/T) · (V<sub>s</sub> · DT + 0 · (1 − D)T) = D · V<sub>s</sub>')}
+      <p>המתח האפקטיבי (RMS) הוא השורש של ממוצע הריבוע, והוא מה שקובע חימום של נגד:</p>
+      ${tbEq('6.3', 'V<sub>rms</sub> = √( (1/T) ∫<sub>0</sub><sup>T</sup> v²(t) dt ) = √( D · V<sub>s</sub>² ) = √D · V<sub>s</sub>')}
+      ${tbEq('6.4', 'P<sub>R</sub> = V<sub>rms</sub>² / R = D · V<sub>s</sub>² / R')}
+      <p><b>פרשנות.</b> שני ממוצעים שונים לאותו אות, ולכל עומס הממוצע שלו. מנוע מגיב לממוצע <bdi>⟨v⟩</bdi>, כי המהירות שלו נקבעת על ידי איזון בין המתח הממוצע למתח הנגדי. נגד וגוף חימום מגיבים ל-<bdi>V<sub>rms</sub></bdi>, כי ההספק תלוי בריבוע. ההספק בנגד ליניארי ב-<bdi>D</bdi> (משוואה 6.4), לא ריבועי, כי בכל רגע הנגד מקבל או את כל <bdi>V<sub>s</sub></bdi> או אפס.</p>
+      <div class="tb-ex"><p class="tb-exh">דוגמה 6.1</p><p>PWM של <bdi>${Vs} V</bdi> עם <bdi>D = ${D1}</bdi>, על נגד חימום של <bdi>${R1} Ω</bdi>.</p>
+        <p>לפי 6.2: <bdi>⟨v⟩ = ${D1} · ${Vs} = ${tbN(avg1)} V</bdi>. לפי 6.3: <bdi>V<sub>rms</sub> = √${D1} · ${Vs} = ${tbN(rms1)} V</bdi>. לפי 6.4: <bdi>P = ${D1} · ${Vs}² / ${R1} = ${tbN(Pr)} W</bdi>.</p>
+        <p>אילו היינו מזינים מתח ישר של <bdi>${tbN(avg1)} V</bdi>, ההספק היה <bdi>${tbN(avg1)}² / ${R1} = ${tbN(Pdc)} W</bdi> בלבד: פי <bdi>${tbN(Pr / Pdc, 1)}</bdi> פחות. הממוצע לא מספיק כדי לחשב חימום.</p></div>
+      ${tbFig([['c:pwm:bench', 'הספסל: duty cycle ומתח ממוצע'], ['anim:pwmr', 'הפיתוח המונפש']], 'משנים את D ורואים את הממוצע זז.')}` },
+    { id: '6.2', t: 'עומס השראתי: הזרם הממוצע והגליות', html: `
+      <p><b>המודל.</b> מנוע או סליל הם, בקירוב ראשון, נגד <bdi>R</bdi> בטור עם השראות <bdi>L</bdi>, ולעיתים גם מתח נגדי <bdi>E</bdi> של מנוע מסתובב. כשהמתג נפתח, הזרם בסליל ממשיך לזרום דרך דיודת חופש, והמתח על העומס כמעט אפס (מזניחים את מפל הדיודה). משוואת המעגל, לפי חוק המתחים של קירכהוף:</p>
+      ${tbEq('6.5', 'L · di/dt + R · i + E = v(t)')}
+      <p><b>הזרם הממוצע.</b> במצב יציב מחזורי הזרם חוזר לאותו ערך בסוף כל מחזור, <bdi>i(T) = i(0)</bdi>, ולכן הממוצע של <bdi>L·di/dt</bdi> על מחזור הוא <bdi>(L/T)·(i(T) − i(0)) = 0</bdi>. ממצעים את 6.5 ומקבלים:</p>
+      ${tbEq('6.6', 'R · ⟨i⟩ + E = ⟨v⟩ = D · V<sub>s</sub>  ⇒  ⟨i⟩ = (D · V<sub>s</sub> − E) / R')}
+      <p><b>הגליות (ריפל).</b> כשקבוע הזמן <bdi>τ = L/R</bdi> ארוך בהרבה מהמחזור <bdi>T</bdi>, הזרם כמעט קבוע בתוך מחזור, ולכן <bdi>R·i + E ≈ R⟨i⟩ + E = D·V<sub>s</sub></bdi>. כשהמתג סגור, המתח על ההשראות קבוע והזרם עולה בקו ישר:</p>
+      ${tbEq('6.7', 'L · di/dt ≈ V<sub>s</sub> − D · V<sub>s</sub> = V<sub>s</sub>(1 − D)')}
+      ${tbEq('6.8', 'Δi = (V<sub>s</sub>(1 − D) / L) · DT = V<sub>s</sub> · D(1 − D) / (L · f)')}
+      <p>המכפלה <bdi>D(1 − D)</bdi> מקסימלית ב-<bdi>D = 0.5</bdi>, ושם:</p>
+      ${tbEq('6.9', 'Δi<sub>max</sub> = V<sub>s</sub> / (4 · L · f)')}
+      <p><b>פרשנות.</b> הממוצע (6.6) לא תלוי בתדר ולא בהשראות: הוא נקבע רק על ידי <bdi>D</bdi>. הגליות (6.8) קטנה כמו <bdi>1/f</bdi> וכמו <bdi>1/L</bdi>. זו הסיבה שמעלים את התדר: הזרם חלק יותר, והמנוע לא "שר" בתדר שהאוזן שומעת. המחיר יבוא בסעיף 6.4: הפסדי מיתוג שגדלים עם <bdi>f</bdi>. המתח הנגדי <bdi>E</bdi> לא משנה את 6.8, כי הוא כבר כלול באיזון <bdi>R⟨i⟩ + E = D·V<sub>s</sub></bdi>.</p>
+      <div class="tb-ex"><p class="tb-exh">דוגמה 6.2</p><p>עומס <bdi>R = ${R2} Ω</bdi>, <bdi>L = ${L2 * 1e3} mH</bdi>, בלי מתח נגדי, <bdi>V<sub>s</sub> = ${Vs} V</bdi>, <bdi>D = ${D2}</bdi>, <bdi>f = ${f2 / 1e3} kHz</bdi>.</p>
+        <p><bdi>τ = L/R = ${tbN(tau2 * 1e3, 2)} ms</bdi> ו-<bdi>T = ${tbN(T2 * 1e6, 0)} µs</bdi>, כלומר <bdi>τ/T = ${tbN(tau2 / T2, 0)}</bdi>, והקירוב תקף. לפי 6.6: <bdi>⟨i⟩ = ${D2} · ${Vs} / ${R2} = ${tbN(I2)} A</bdi>. לפי 6.8: <bdi>Δi = ${Vs} · ${D2} · ${1 - D2} / (${L2 * 1e3}·10⁻³ · ${f2 / 1e3}·10³) = ${tbN(dI2, 3)} A</bdi>, כלומר <bdi>${tbN(dI2 / I2 * 100, 1)}%</bdi> מהממוצע.</p>
+        <p>ב-<bdi>${f2b / 1e3} kHz</bdi> הגליות גדלה פי עשרה, ל-<bdi>${tbN(dI2b, 2)} A</bdi> לפי הקירוב. כאן <bdi>τ/T = 1</bdi>, והחישוב המדויק (סעיף 6.4) נותן <bdi>${tbN(dI2bx, 2)} A</bdi>: הקירוב מגזים ב-<bdi>${tbN((dI2b / dI2bx - 1) * 100, 1)}%</bdi> בלבד.</p></div>
+      ${tbFig([['anim:pwmr', 'הזרם במנוע: ממוצע וגליות'], ['c:pwm:tryit', 'נסו בעצמכם']], 'משנים תדר והשראות ורואים את הגליות.')}` },
+    { id: '6.3', t: 'גשר H: כיוון, בלימה ו-shoot-through', html: `
+      <p><b>המודל.</b> ארבעה מתגים: <bdi>S1</bdi> (עליון שמאלי) ו-<bdi>S2</bdi> (תחתון שמאלי) הם "רגל" אחת, ו-<bdi>S3</bdi> ו-<bdi>S4</bdi> הם הרגל הימנית. העומס מחובר בין נקודות האמצע <bdi>A</bdi> ו-<bdi>B</bdi>. כל רגל מחברת את נקודת האמצע שלה או ל-<bdi>V<sub>s</sub></bdi> או לאדמה.</p>
+      <table class="tb-tab"><thead><tr><th>מתגים סגורים</th><th>v<sub>AB</sub></th><th>מה קורה</th></tr></thead><tbody>
+        <tr><td><bdi>S1, S4</bdi></td><td><bdi>+V<sub>s</sub></bdi></td><td>זרם בכיוון אחד</td></tr>
+        <tr><td><bdi>S3, S2</bdi></td><td><bdi>−V<sub>s</sub></bdi></td><td>זרם בכיוון ההפוך</td></tr>
+        <tr><td><bdi>S2, S4</bdi></td><td><bdi>0</bdi></td><td>העומס מקוצר דרך שני המתגים התחתונים: הזרם דועך, ומנוע מסתובב נבלם (בלימה דינמית)</td></tr>
+        <tr><td><bdi>S1, S2</bdi> או <bdi>S3, S4</bdi></td><td>—</td><td>אסור: קצר ישיר מהמקור לאדמה (shoot-through)</td></tr></tbody></table>
+      <p><b>מתח ממוצע, שתי שיטות.</b> בשיטה החד-קוטבית (sign-magnitude) רגל אחת קבועה והשנייה ממותגת, כך ש-<bdi>v<sub>AB</sub> ∈ {+V<sub>s</sub>, 0}</bdi>, והממוצע הוא 6.2. בשיטה הדו-קוטבית (locked anti-phase) הגשר עובר בין <bdi>+V<sub>s</sub></bdi> ל-<bdi>−V<sub>s</sub></bdi>:</p>
+      ${tbEq('6.10', '⟨v<sub>AB</sub>⟩ = D · V<sub>s</sub> + (1 − D)(−V<sub>s</sub>) = (2D − 1) · V<sub>s</sub>')}
+      <p>הגליות בשיטה הדו-קוטבית: כשהגשר במצב <bdi>+V<sub>s</sub></bdi>, המתח על ההשראות הוא <bdi>V<sub>s</sub> − (2D − 1)V<sub>s</sub> = 2V<sub>s</sub>(1 − D)</bdi>, למשך <bdi>DT</bdi>, ולכן:</p>
+      ${tbEq('6.11', 'Δi<sub>bipolar</sub> = 2 · V<sub>s</sub> · D(1 − D) / (L · f)')}
+      <p>פי שניים מ-6.8. היתרון של השיטה הדו-קוטבית: המעבר דרך אפס חלק, ואין "שטח מת" ליד מהירות אפס. החיסרון: גם במנוחה (<bdi>D = 0.5</bdi>, ממוצע אפס) זורמת גליות מלאה.</p>
+      <p><b>shoot-through וזמן מת.</b> אם שני המתגים של רגל אחת סגורים יחד, הזרם מוגבל רק על ידי התנגדויות המתגים: <bdi>I ≈ V<sub>s</sub> / (2 · R<sub>ds(on)</sub>)</bdi>. עם <bdi>R<sub>ds(on)</sub> = ${Rds * 1e3} mΩ</bdi> זה <bdi>${tbN(Ish, 0)} A</bdi>, ומספיק מחזור אחד כדי לשרוף את הרגל. לכן הבקר מכניס זמן מת <bdi>t<sub>d</sub></bdi> שבו שני המתגים פתוחים, והזרם ממשיך דרך דיודות הגוף. בזמן הזה המתח נקבע לפי כיוון הזרם ולא לפי הפקודה, ולכן כל רגל מאבדת בערך:</p>
+      ${tbEq('6.12', 'ΔV ≈ V<sub>s</sub> · t<sub>d</sub> · f')}
+      <div class="tb-ex"><p class="tb-exh">דוגמה 6.3</p><p><bdi>V<sub>s</sub> = ${Vs} V</bdi>, <bdi>t<sub>d</sub> = ${td * 1e9} ns</bdi>, <bdi>f = ${f2 / 1e3} kHz</bdi>: <bdi>ΔV ≈ ${Vs} · ${td * 1e9}·10⁻⁹ · ${f2 / 1e3}·10³ = ${tbN(dVt, 2)} V</bdi>, כלומר <bdi>${tbN(dVt / Vs * 100, 1)}%</bdi> מהמקור. זניח במהירות גבוהה, אבל במהירות נמוכה זו כבר טעות משמעותית בפקודה (בעיה 6.3).</p>
+        <p>בשיטה הדו-קוטבית עם <bdi>D = ${Dbp}</bdi>: הממוצע לפי 6.10 הוא אפס, אבל לפי 6.11 <bdi>Δi = ${tbN(dIbp, 2)} A</bdi> (עם <bdi>L = ${L2 * 1e3} mH</bdi>), לעומת אפס בשיטה החד-קוטבית במנוחה.</p></div>
+      ${tbFig([['c:pwm:schematic', 'הסכמה של הגשר'], ['c:pwm:parts', 'מה יש בפנים']], 'עוקבים אחרי הזרם בכל מצב של המתגים.')}` },
+    { id: '6.4', adv: true, t: 'פיתוח מתקדם: PWM בתדר, פתרון מדויק והפסדים', html: `
+      <p><b>טור פורייה של אות PWM.</b> המקדמים המרוכבים של רכבת פולסים ברוחב <bdi>DT</bdi>, עם <bdi>ω<sub>0</sub> = 2π/T</bdi>:</p>
+      ${tbEq('6.13', 'c<sub>n</sub> = (1/T) ∫<sub>0</sub><sup>DT</sup> V<sub>s</sub> e<sup>−jnω₀t</sup> dt = V<sub>s</sub> · (1 − e<sup>−j2πnD</sup>) / (j2πn) = V<sub>s</sub> · e<sup>−jπnD</sup> · sin(πnD) / (πn)')}
+      <p>הרכיב הקבוע הוא <bdi>c<sub>0</sub> = D·V<sub>s</sub></bdi> (שוב 6.2), ולכל הרמוניה <bdi>n ≥ 1</bdi> יש משרעת ממשית:</p>
+      ${tbEq('6.14', 'A<sub>n</sub> = 2|c<sub>n</sub>| = (2V<sub>s</sub> / (πn)) · |sin(πnD)|')}
+      <p>עומס <bdi>RL</bdi> הוא מסנן מעביר-נמוכים: ההרמוניה ה-<bdi>n</bdi> יוצרת זרם <bdi>A<sub>n</sub> / |R + jnω₀L|</bdi>, וכשמתקיים <bdi>nω₀L ≫ R</bdi> זה בקירוב <bdi>A<sub>n</sub>/(nω₀L)</bdi>. לכן הזרם הוא הממוצע ועוד גליות שנשלטת בעיקר על ידי ההרמוניה הראשונה. בדיקת עקביות עם 6.8: ב-<bdi>D = 0.5</bdi>, <bdi>A<sub>1</sub> = 2V<sub>s</sub>/π = ${tbN(A1, 2)} V</bdi>, והזרם שלה <bdi>A<sub>1</sub>/(2πfL) = ${tbN(I1h, 4)} A</bdi>. גל משולש בגובה פסגה-לפסגה <bdi>Δi</bdi> מכיל הרמוניה ראשונה במשרעת <bdi>(8/π²)·(Δi/2)</bdi>, ועם <bdi>Δi = ${tbN(dI2, 3)} A</bdi> מתוך 6.8 מקבלים <bdi>${tbN(Ifund, 4)} A</bdi>. שתי הדרכים נותנות את אותו מספר.</p>
+      <p><b>הפתרון המדויק של 6.5.</b> בלי הקירוב <bdi>τ ≫ T</bdi>, הזרם עולה ויורד באקספוננטים. כשהמתג סגור <bdi>i(t) = V<sub>s</sub>/R + (i<sub>min</sub> − V<sub>s</sub>/R)e<sup>−t/τ</sup></bdi>, וכשהוא פתוח <bdi>i(t) = i<sub>max</sub> e<sup>−t/τ</sup></bdi> (כאן <bdi>E = 0</bdi>). מסמנים <bdi>a = e<sup>−DT/τ</sup></bdi> ו-<bdi>b = e<sup>−(1−D)T/τ</sup></bdi>, ומתנאי המחזוריות (<bdi>i<sub>min</sub> = b · i<sub>max</sub></bdi>):</p>
+      ${tbEq('6.15', 'i<sub>max</sub> = (V<sub>s</sub>/R) · (1 − a) / (1 − ab) ,  Δi = i<sub>max</sub>(1 − b) = (V<sub>s</sub>/R) · (1 − a)(1 − b) / (1 − ab)')}
+      <p>כש-<bdi>T ≪ τ</bdi>: <bdi>1 − a ≈ DT/τ</bdi>, <bdi>1 − b ≈ (1 − D)T/τ</bdi> ו-<bdi>1 − ab ≈ T/τ</bdi>, ו-6.15 מצטמצמת ל-6.8. לכן 6.8 הוא חסם עליון שמדויק כשהתדר גבוה.</p>
+      <p><b>הפסדים במתג.</b> מתג סגור מפסיד <bdi>P<sub>cond</sub> = I<sub>rms</sub>² · R<sub>ds(on)</sub></bdi>. בכל מעבר המתח והזרם על המתג גבוהים יחד לזמן קצר, ובקירוב של מעבר ליניארי:</p>
+      ${tbEq('6.16', 'P<sub>sw</sub> ≈ ½ · V<sub>s</sub> · I · (t<sub>r</sub> + t<sub>f</sub>) · f')}
+      <p>עם <bdi>I = ${Iload} A</bdi> ו-<bdi>t<sub>r</sub> + t<sub>f</sub> = ${tsw * 1e9} ns</bdi>: ב-<bdi>20 kHz</bdi> מקבלים <bdi>${tbN(Psw, 3)} W</bdi>, וב-<bdi>200 kHz</bdi> <bdi>${tbN(Psw200, 2)} W</bdi>. הגליות יורדת כמו <bdi>1/f</bdi> והפסדי המיתוג עולים כמו <bdi>f</bdi>: בחירת התדר היא פשרה (תרגיל 6.6).</p>` }
+  ];
+
+  const summary = [['⟨v⟩ = D · V<sub>s</sub>', 'מתח ממוצע', '6.2'], ['V<sub>rms</sub> = √D · V<sub>s</sub>', 'מתח אפקטיבי, לחימום', '6.3'], ['⟨i⟩ = (D·V<sub>s</sub> − E) / R', 'זרם ממוצע בעומס RL', '6.6'],
+    ['Δi = V<sub>s</sub> · D(1 − D) / (L · f)', 'גליות פסגה-לפסגה, כש-τ ≫ T', '6.8'], ['Δi<sub>max</sub> = V<sub>s</sub> / (4Lf)', 'הגליות הגדולה ביותר, ב-D = 0.5', '6.9'],
+    ['⟨v<sub>AB</sub>⟩ = (2D − 1) · V<sub>s</sub>', 'גשר H דו-קוטבי', '6.10'], ['ΔV ≈ V<sub>s</sub> · t<sub>d</sub> · f', 'טעות של זמן מת לכל רגל', '6.12'],
+    ['A<sub>n</sub> = (2V<sub>s</sub>/πn)|sin πnD|', 'משרעת ההרמוניה ה-n', '6.14'], ['P<sub>sw</sub> ≈ ½ V<sub>s</sub> I (t<sub>r</sub> + t<sub>f</sub>) f', 'הפסדי מיתוג', '6.16']];
+
+  const solved = [
+    { t: 'בעיה 6.1: לבחור duty cycle למנוע מסתובב', q: `מנוע DC עם <bdi>R = ${P1.R} Ω</bdi> ו-<bdi>L = ${P1.L * 1e3} mH</bdi> מסתובב כך שהמתח הנגדי שלו <bdi>E = ${P1.E} V</bdi>. רוצים זרם ממוצע של <bdi>${P1.I} A</bdi> מ-<bdi>V<sub>s</sub> = ${Vs} V</bdi> ב-<bdi>${P1.f / 1e3} kHz</bdi>. איזה <bdi>D</bdi>, ומה הגליות?`,
+      steps: [['מה ידוע ומה מבקשים', `ידועים <bdi>R, L, E, V<sub>s</sub>, f</bdi> והזרם הממוצע הרצוי. מבקשים <bdi>D</bdi> ו-<bdi>Δi</bdi>. המשוואה שקושרת ממוצעים היא 6.6.`],
+        ['פותרים את 6.6 עבור D', `<bdi>D · V<sub>s</sub> = E + R⟨i⟩</bdi>, ולכן <bdi>D = (E + R⟨i⟩) / V<sub>s</sub> = (${P1.E} + ${P1.R} · ${P1.I}) / ${Vs} = ${tbN(P1.D, 3)}</bdi>.`],
+        ['בודקים את תנאי הקירוב', `<bdi>τ = L/R = ${tbN(P1.L / P1.R * 1e3, 1)} ms</bdi> ו-<bdi>T = ${tbN(1e6 / P1.f, 1)} µs</bdi>. היחס <bdi>${tbN(P1.L / P1.R * P1.f, 0)}</bdi> גדול מ-1, ולכן מותר להשתמש ב-6.8. המתח הנגדי לא משנה אותה, כי הוא כלול באיזון.`]],
+      last: ['חשבו את Δi לפי 6.8.', `<bdi>Δi = ${Vs} · ${tbN(P1.D, 3)} · ${tbN(1 - P1.D, 3)} / (${P1.L * 1e3}·10⁻³ · ${P1.f / 1e3}·10³) = ${tbN(P1.dI, 3)} A</bdi>, כלומר <bdi>${tbN(P1.dI / P1.I * 100, 1)}%</bdi> מהממוצע.`], ans: P1.dI },
+    { t: 'בעיה 6.2: לבחור תדר לפי דרישת גליות', q: `עומס עם <bdi>L = ${P2.L * 1e3} mH</bdi> מוזן מ-<bdi>${P2.V} V</bdi>, בזרם ממוצע של <bdi>${P2.I} A</bdi>. הדרישה: גליות של לכל היותר <bdi>${P2.k * 100}%</bdi> מהממוצע, בכל <bdi>D</bdi>. מה התדר המינימלי?`,
+      steps: [['מתרגמים את הדרישה למספר', `<bdi>Δi ≤ ${P2.k} · ${P2.I} = ${tbN(P2.k * P2.I, 2)} A</bdi>.`],
+        ['"בכל D" פירושו המקרה הגרוע', `הגליות מקסימלית ב-<bdi>D = 0.5</bdi> (משוואה 6.9), ולכן מספיק לדרוש <bdi>V<sub>s</sub>/(4Lf) ≤ ${tbN(P2.k * P2.I, 2)} A</bdi>.`]],
+      last: ['בודדו את f.', `<bdi>f ≥ V<sub>s</sub> / (4 · L · Δi) = ${P2.V} / (4 · ${P2.L * 1e3}·10⁻³ · ${tbN(P2.k * P2.I, 2)}) = ${tbN(P2.f / 1e3, 1)} kHz</bdi>. בוחרים תדר תקני מעל זה, למשל <bdi>32 kHz</bdi>, ובודקים את הפסדי המיתוג לפי 6.16.`], ans: P2.f },
+    { t: 'בעיה 6.3: shoot-through וזמן מת במהירות נמוכה', q: `גשר H מ-<bdi>${Vs} V</bdi> עם <bdi>R<sub>ds(on)</sub> = ${P3.Rds * 1e3} mΩ</bdi>, זמן מת <bdi>${P3.td * 1e6} µs</bdi> ו-<bdi>${P3.f / 1e3} kHz</bdi>. (א) מה הזרם ב-shoot-through? (ב) הפקודה היא <bdi>D = ${P3.D}</bdi>, בשיטה החד-קוטבית: מה המתח הממוצע בפועל?`,
+      steps: [['(א) מה מגביל את הזרם', `בקצר דרך רגל אחת יש רק שני מתגים בטור: <bdi>I ≈ ${Vs} / (2 · ${P3.Rds}) = ${tbN(P3.I, 0)} A</bdi>. זה הרבה מעבר לדירוג של מתג טיפוסי, ולכן אסור שזה יקרה אפילו לרגע.`],
+        ['(ב) כמה מאבד הזמן המת', `לפי 6.12, לרגל הממותגת: <bdi>ΔV ≈ ${Vs} · ${P3.td * 1e6}·10⁻⁶ · ${P3.f / 1e3}·10³ = ${tbN(P3.dV, 2)} V</bdi>.`]],
+      last: ['השוו לפקודה.', `הפקודה: <bdi>${P3.D} · ${Vs} = ${tbN(P3.cmd, 2)} V</bdi>. בפועל, כשהזרם חיובי: בערך <bdi>${tbN(P3.cmd, 2)} − ${tbN(P3.dV, 2)} = ${tbN(P3.got, 2)} V</bdi>, כלומר טעות של <bdi>${tbN(P3.dV / P3.cmd * 100, 0)}%</bdi>. לכן בקרים מפצים על הזמן המת, וזה אחד הגורמים לחוסר ליניאריות במהירויות נמוכות.`], ans: P3.got }];
+
+  const exercises = [
+    { l: 'basic', q: `PWM של <bdi>${E1.V} V</bdi> עם <bdi>D = ${E1.D}</bdi>. מה <bdi>⟨v⟩</bdi> ומה <bdi>V<sub>rms</sub></bdi>?`, a: `<bdi>⟨v⟩ = ${tbN(E1.D * E1.V, 2)} V</bdi>, <bdi>V<sub>rms</sub> = √${E1.D} · ${E1.V} = ${tbN(Math.sqrt(E1.D) * E1.V, 2)} V</bdi>.` },
+    { l: 'basic', q: `<bdi>V<sub>s</sub> = ${E2.V} V</bdi>, <bdi>D = ${E2.D}</bdi>, <bdi>L = ${E2.L * 1e3} mH</bdi>, <bdi>f = ${E2.f / 1e3} kHz</bdi>. מה הגליות?`, a: `<bdi>Δi = ${E2.V} · ${E2.D} · ${1 - E2.D} / (${E2.L * 1e3}·10⁻³ · ${E2.f / 1e3}·10³) = ${tbN(E2.V * E2.D * (1 - E2.D) / (E2.L * E2.f), 3)} A</bdi>.` },
+    { l: 'basic', q: `גשר H דו-קוטבי מ-<bdi>${E3.V} V</bdi> עם <bdi>D = ${E3.D}</bdi>. מה המתח הממוצע על המנוע?`, a: `לפי 6.10: <bdi>(2 · ${E3.D} − 1) · ${E3.V} = ${tbN((2 * E3.D - 1) * E3.V, 2)} V</bdi>.` },
+    { l: 'adv', q: 'ב-<bdi>T/τ = 1</bdi> ו-<bdi>D = 0.5</bdi>, בכמה אחוזים מגזים הקירוב 6.8 לעומת הפתרון המדויק 6.15?', a: `ביחידות של <bdi>V<sub>s</sub>/R</bdi>: המדויק <bdi>(1 − e<sup>−0.5</sup>)² / (1 − e<sup>−1</sup>) = ${tbN(E4.exact, 4)}</bdi>, הקירוב <bdi>D(1 − D)·T/τ = ${tbN(E4.approx, 4)}</bdi>. הפער: <bdi>${tbN(E4.err, 1)}%</bdi>.` },
+    { l: 'adv', q: 'מה המשרעת של ההרמוניה הראשונה של PWM מ-<bdi>24 V</bdi> עם <bdi>D = 0.25</bdi>?', a: `לפי 6.14: <bdi>(2 · 24 / π) · sin(π/4) = ${tbN(E5, 2)} V</bdi>.` },
+    { l: 'ext', q: `הרחבה: הגליות מייצרת בהתנגדות הסליל הפסד <bdi>R · Δi² / 12</bdi> (ה-RMS של גל משולש הוא <bdi>Δi/√12</bdi>), והמיתוג מוסיף <bdi>k·f</bdi> לפי 6.16. הראו שהתדר שממזער את הסכום הוא <bdi>f* = (2a/k)<sup>1/3</sup></bdi>, עם <bdi>a = R (V<sub>s</sub>D(1 − D)/L)² / 12</bdi>, וחשבו אותו עבור <bdi>R = 1 Ω</bdi>, <bdi>V<sub>s</sub> = 24 V</bdi>, <bdi>D = 0.5</bdi>, <bdi>L = 1 mH</bdi>, <bdi>I = 3 A</bdi>, <bdi>t<sub>r</sub> + t<sub>f</sub> = 100 ns</bdi>.`,
+      a: `הסכום <bdi>P(f) = a/f² + k·f</bdi>. נגזרת: <bdi>−2a/f³ + k = 0</bdi>, ולכן <bdi>f* = (2a/k)<sup>1/3</sup></bdi>. כאן <bdi>a = ${tbN(E6.a, 0)} W·Hz²</bdi> ו-<bdi>k = ${tbN(E6.k * 1e6, 2)}·10⁻⁶ W/Hz</bdi>, ולכן <bdi>f* ≈ ${tbN(E6.f / 1e3, 1)} kHz</bdi>. בפועל בוחרים מעל <bdi>20 kHz</bdi> בגלל השמיעה, ומקבלים הפסד מעט גדול מהמינימום.` }];
+
+  TBOOK.b6 = {
+    open: { math: 'ממוצע של אות מחזורי, משוואה דיפרנציאלית מסדר ראשון (מעגל RL), וטור פורייה בסעיף המתקדם',
+      goals: ['לגזור את המתח הממוצע והמתח האפקטיבי של PWM, ולדעת לאיזה עומס כל אחד קובע', 'לגזור את הזרם הממוצע והגליות בעומס השראתי, ולבחור תדר לפיהם', 'להסביר את מצבי גשר H, את ה-shoot-through ואת השפעת הזמן המת', 'לקשור את PWM לטור פורייה ולהפסדי המיתוג'] },
+    sections, summary, solved, exercises,
+    check: { avg1, rms1, Pr, I2, dI2, dI2x, dI2bx, Ish, dVt, dIbp, A1, I1h, Ifund, Psw, P1, P2, P3, E4, E5, E6 }
+  };
+})();
+
+/* the chapter's body when it is written as a textbook */
+function tbookBody(c, L) {
+  const T = TBOOK[c.id], lvT = { basic: 'בסיסי, עם תשובה', adv: 'מתקדם', ext: 'הרחבה' };
+  let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${c.why}</p><p><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
+    <p class="note">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. ההדמיות הן שכבה מעל הטקסט: כל סעיף מצביע על החלונות שמראים אותו עובד, והחלונות עצמם נמצאים בסוף הפרק.</p></section>`;
+  h += T.sections.map(s => `<section class="bk-topic tb-sec${s.adv ? ' tb-adv' : ''}" id="${BKID('tb:' + s.id)}"><h3>${s.adv ? '★ ' : ''}${s.id} ${s.t}</h3>${s.html}</section>`).join('');
+  h += `<section class="bk-box tb-sum" id="${BKID('tb:sum')}"><h3>${c.n}.5 סיכום ודף נוסחאות</h3><table class="tb-tab"><thead><tr><th>נוסחה</th><th>מה היא נותנת</th><th>משוואה</th></tr></thead><tbody>${T.summary.map(([f, t, n]) => `<tr><td><bdi>${f}</bdi></td><td>${t}</td><td><button type="button" class="linkbtn" data-tbeq="${n}">(${n})</button></td></tr>`).join('')}</tbody></table></section>`;
+  h += `<section class="bk-box tb-solved" id="${BKID('tb:solved')}"><h3>${c.n}.6 בעיות פתורות</h3><p class="note">כל בעיה נפתחת צעד אחר צעד. את הצעד האחרון עושים לבד, ורק אז רואים את הפתרון.</p>${T.solved.map((p, i) => `<div class="tb-prob" data-tbp="${i}"><p class="tb-exh">${p.t}</p><p>${p.q}</p>
+      <ol class="tb-steps">${p.steps.map(([t, x], j) => `<li class="tb-st"${j ? ' hidden' : ''}><b>${t}.</b> ${x}</li>`).join('')}<li class="tb-st tb-last" hidden><b>הצעד האחרון לבד:</b> ${p.last[0]}<textarea class="bk-ans" rows="2" aria-label="הפתרון שלי" placeholder="כותבים את החישוב כאן"></textarea><button type="button" class="pth-go" data-tbr="1">הראה את הפתרון</button><p class="tb-lastans" hidden>${p.last[1]}</p></li></ol>
+      <p><button type="button" class="pth-go" data-tbn="1">הצעד הבא ▸</button></p></div>`).join('')}</section>`;
+  h += `<section class="bk-box tb-exs" id="${BKID('tb:ex')}"><h3>${c.n}.7 תרגילים לפי רמה</h3>${['basic', 'adv', 'ext'].map(l => { const xs = T.exercises.map((e, i) => [e, i]).filter(([e]) => e.l === l); return `<h4>${lvT[l]}</h4>${xs.map(([e, i]) => `<div class="tb-x" data-tbx="${i}"><p><b>תרגיל ${c.n}.${i + 1}.</b> ${e.q}</p><details><summary>תשובה</summary><p>${e.a}</p></details></div>`).join('')}`; }).join('')}</section>`;
+  h += `<section class="bk-topic tb-layerall" id="${BKID('tb:layer')}"><h3>🎛️ שכבת ההמחשה: כל החלונות של הנושא</h3><p class="note">ההדמיות, הסכמה, השאלות והקריאה הנוספת של הנושא, באותו סדר כמו בעמוד הנושא. הטקסט שמעל הוא הבסיס, וכאן רואים אותו עובד.</p>
+    ${c.nodes.map((node, k) => bookTopicHtml(c, node, 7 + k, L)).join('')}</section>`;
+  return h;
+}
+function tbookWire(A) {
+  A.querySelectorAll('.tb-sec bdi, .tb-prob bdi, .tb-x bdi, .tb-tab bdi').forEach(b => { if (b.textContent.length <= 48) b.classList.add('nw'); });   /* a short formula never breaks across lines */
+  A.querySelectorAll('.tb-prob').forEach(p => { const next = p.querySelector('[data-tbn]'), st = [...p.querySelectorAll('.tb-st')];
+    next.addEventListener('click', () => { const h = st.find(x => x.hidden); if (h) h.hidden = false; if (!st.some(x => x.hidden)) next.hidden = true; });
+    p.querySelector('[data-tbr]').addEventListener('click', e => { p.querySelector('.tb-lastans').hidden = false; e.target.hidden = true; }); });
+  A.querySelectorAll('[data-tbw]').forEach(b => b.addEventListener('click', () => { const el = A.querySelector(`.bk-win[data-w="${b.dataset.tbw}"]`) || document.getElementById(BKID(b.dataset.tbw)); if (!el) return;
+    const m = el.querySelector('[data-mount]'); if (m) m.click(); el.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); el.classList.add('tb-flash'); setTimeout(() => el.classList.remove('tb-flash'), 1600); }));
+  A.querySelectorAll('[data-tbeq]').forEach(b => b.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${b.dataset.tbeq}"]`); if (e) { e.scrollIntoView({ block: 'center' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); } }));
+}
 /* ============ Questions for the book and the path: intuition and calculation (v2.51) ============
    Two kinds, keyed by topic:
    - mc:   [question, options, answer index, the intuitive answer, optional why-not per option]. The intuitive answer explains with
@@ -16987,7 +17361,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.71.0';
+const APP_VERSION = '2.72.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);
@@ -17335,7 +17709,7 @@ syncGroup((document.querySelector('nav.sheets [aria-selected="true"]') || {}).da
 
 /* ---- 5. the views bar is complete on the first page; a deep link to the dashboard opens it ---- */
 (function () {
-  if (/^#\/zoom\/progress\b/.test(location.hash)) { go('zoom', 'progress'); return; }
+  const deep = /^#\/zoom\/(progress|galaxy|metro)\b/.exec(location.hash); if (deep) { go('zoom', deep[1]); return; }
   const s = content.querySelector('nav.zsub'); if (!s || s.querySelector('[data-zv="progress"]')) return;
   const cur = (s.querySelector('[aria-current="page"]') || {}).dataset?.zv, t = document.createElement('div'); t.innerHTML = zSubnav(cur); const n = t.firstElementChild; s.replaceWith(n);
   n.querySelectorAll('[data-zv]').forEach(b => b.addEventListener('click', () => go('zoom', b.dataset.zv === 'node' ? (ZS.node || 'proc') : b.dataset.zv)));
