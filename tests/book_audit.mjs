@@ -245,29 +245,45 @@ ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agre
 
 /* ---- v2.74: Part A written as a textbook (chapters 1 to 4): the same shape as chapter 6 for every chapter, the panel beside the
    text with each topic's 3D lab, and every number recomputed here from the physics, independently of the chapters' code ---- */
-for (const id of ['b1', 'b2', 'b3', 'b4']) {
+/* v2.75: every chapter written so (chapter 6, the pilot, is checked above), and the panel's first window is live: a 3D lab, a simulation, an
+   animation, an interactive figure, a scene or a lab page; every 3D lab of the chapter's topics opens first in at least one panel */
+const TBIDS = await ev(() => Object.keys(TBOOK).filter(id => id !== 'b6'));
+ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9'].every(id => TBIDS.includes(id)), 'Parts A and B are written as a textbook (' + TBIDS + ')');
+for (const id of TBIDS) {
   await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
   const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
     const order = [`${n}.0 `, `${n}.1 `, `${n}.2 `, `${n}.3 `, `★ ${n}.4 `, `${n}.5 `, `${n}.6 `, `${n}.7 `, '🎛️'].map(at);
     const eqs = [...A.querySelectorAll('.tb-eq')].map(e => e.dataset.eq), want = Array.from({ length: eqs.length }, (_, i) => n + '.' + (i + 1));
     const links = [...A.querySelectorAll('[data-tbeq]')].map(b => b.dataset.tbeq), ptr = [...A.querySelectorAll('[data-tbw]')].map(b => b.dataset.tbw);
     /* the practice cards (pq:) live in the chapter's own questions, and a page window is embedded by its route */
-    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"]`)).length;
+    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"], .bk-win[data-w="${w.replace(/:[^:]+$/, ':*')}"]`)).length;   /* a family of a topic's windows (t:pwr:math:*) is one window in the chapter */
     const side = T.side || {}, sideWins = Object.values(side).flatMap(x => x.win.map(w => w[0])), looks = Object.values(side).flatMap(x => x.look.map(l => l[0]));
     return { order, seq: eqs.join() === want.join(), neq: eqs.length, links: links.every(l => eqs.includes(l)), ptr: ptr.length >= 6 && ptr.every(w => ws.includes(w)), inCh, ws: ws.length,
       probs: A.querySelectorAll('.tb-prob').length, ex: A.querySelectorAll('.tb-x details').length, levels: ['basic', 'adv', 'ext'].every(l => T.exercises.some(e => e.l === l)), risk: bidiRisk(A).length, whyOnce: A.querySelectorAll('#bk-why').length,
-      par: [...A.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(side).join() && Object.keys(side).length === 3, sideWins: sideWins.every(w => ws.includes(w)), labs: Object.values(side).every(x => x.win[0][0].startsWith('3d:')),
+      par: [...A.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(side).join() && Object.keys(side).length === 3, sideWins: sideWins.every(w => ws.includes(w)), labs: Object.values(side).every(x => { const w = x.win[0][0]; return w.startsWith('3d:') || w.startsWith('p:lab/') || ['sim', 'anim', 'figure', 'scene'].includes(zInfo(w).kind); }) && ws.filter(w => w.startsWith('3d:')).every(w => Object.values(side).some(x => x.win[0][0] === w)),
       looks: looks.every(eq => eqs.includes(eq)), marks: [...new Set(looks)].every(eq => A.querySelector(`.tb-eq[data-eq="${eq}"] [data-tbse]`)), bad: /NaN|undefined|Infinity|\$\{/.test(A.innerHTML), sum: T.summary.every(r => eqs.includes(r[2])) }; }, id);
   ok(X.order.every((x, i) => x >= 0 && (i === 0 || x > X.order[i - 1])), `textbook ${id}: opening, three sections, an advanced section, summary, solved problems, exercises and the layer, in that order (${X.order})`);
   ok(X.seq && X.neq >= 15 && X.links && X.sum, `textbook ${id}: ${X.neq} equations numbered in order, and every link and summary row finds its equation`);
   ok(X.ptr && X.inCh === X.ws, `textbook ${id}: every pointer is to a window of the chapter's topics, and all ${X.ws} of them are still in the chapter`);
   ok(X.probs === 3 && X.ex >= 6 && X.levels && X.risk === 0 && X.whyOnce === 1 && !X.bad, `textbook ${id}: three solved problems, six exercises at three levels with hidden answers, no formula out of order, nothing unfilled`);
-  ok(X.par && X.sideWins && X.labs && X.looks && X.marks, `textbook ${id}: every section reads beside its topic's 3D lab, and every equation named has its line and its button`);
+  ok(X.par && X.sideWins && X.labs && X.looks && X.marks, `textbook ${id}: every section reads beside a live window of its topics (each 3D lab first in a panel), and every equation named has its line and its button`);
 }
 /* the panel mounts a 3D lab and stops it on close */
 const LAB = await ev(async () => { BV.ch = 'b3'; go('zoom', 'book'); content.querySelector('[data-tbpar="3.2"]').click(); await new Promise(r => setTimeout(r, 900)); const w = document.querySelector('#drwB .tbs-win'), o = { mounted: !!w.querySelector('canvas') && !!w.act, sid: TBS.sid };
   const act = w.act; let stopped = false; const d0 = act.destroy; act.destroy = () => { stopped = true; d0(); }; drawerClose(); o.stopped = stopped; localStorage.removeItem('fh-tbpar'); return o; });
 ok(LAB.mounted && LAB.sid === '3.2' && LAB.stopped, 'the panel runs the 3D lab beside the text, and closing it stops the lab');
+/* v2.75: a lab page of the site opens in the drawer's own frame beside the text, and leaves with it */
+const EMBP = await ev(async () => { const w8 = ms => new Promise(r => setTimeout(r, ms)); BV.ch = 'b7'; go('zoom', 'book'); await w8(300); tbSideOpen(content, '7.3'); await w8(400);
+  const o = { frame: !!document.querySelector('#drwB .tbs-win iframe.emb'), slot: !!EMBX.side, src: (document.querySelector('#drwB iframe.emb') || {}).src || '' };
+  tbSideOpen(content, '7.2'); await w8(500); o.gone = !document.querySelector('#drwB iframe.emb') && !EMBX.side; o.lab = !!document.querySelector('#drwB .tbs-win canvas');
+  tbSideOpen(content, '7.3', 'p:lab/s-bridge'); await w8(300); drawerClose(); o.closed = !document.querySelector('iframe.emb') && !EMBX.side; localStorage.removeItem('fh-tbpar'); return o; });
+/* the page in the frame is only the page: no tabs, no search, no topic list around it */
+{ await ev(async () => { BV.ch = 'b7'; go('zoom', 'book'); await new Promise(r => setTimeout(r, 300)); tbSideOpen(content, '7.3'); }); await pg.waitForTimeout(1800);
+  const fr = pg.frames().find(f => /embed=1/.test(f.url()) && /lab\/s-temp/.test(f.url()));
+  const IN = fr ? await fr.evaluate(() => ({ chrome: [...document.querySelectorAll('.navbar,.gsearch,#toc,#tocBtn,header.top,nav.sheets,footer')].filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0; }).map(e => e.className || e.id || e.tagName), page: !!document.querySelector('#content h2'), bench: document.querySelectorAll('#content input, #content select').length })) : null;
+  await ev(() => { drawerClose(); localStorage.removeItem('fh-tbpar'); });
+  ok(IN && IN.page && IN.bench > 0 && !IN.chrome.length, 'the lab page in the panel shows only the page and its bench, none of the site around it (' + JSON.stringify(IN) + ')'); }
+ok(EMBP.frame && EMBP.slot && /embed=1/.test(EMBP.src) && /lab\/s-temp/.test(EMBP.src) && EMBP.gone && EMBP.lab && EMBP.closed, 'a lab page opens in the panel in its own frame, gives way to the next section\'s 3D lab, and closes with the panel (' + JSON.stringify(EMBP) + ')');
 const NA = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
   /* chapter 1 */
   const c1 = TBOOK.b1.check, par = (a, b) => a * b / (a + b), rho = 1.72e-8;
@@ -305,6 +321,70 @@ const NA = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (
   [['b1', '25.5 mA'], ['b1', '123%'], ['b2', '14.4 ms'], ['b2', '175 °C'], ['b3', '1,024 V'], ['b3', '24.7 V'], ['b3', '23.96 V'], ['b4', '0.693 V'], ['b4', '11.7 W']].forEach(([id, t]) => { if (!look(id).includes(t)) bad.push(id + ' panel lacks ' + t); });
   return bad; });
 ok(!NA.length, 'Part A: every number recomputed from the physics agrees, the closed forms agree with numerical integration, and the panel quotes what the labs show (' + NA.join(' | ') + ')');
+/* ---- v2.75: Part B (chapters 5, 7, 8, 9) recomputed independently: the relay figure's own constants and its own sweep, the labs' own steps
+   run here, the transients and the buck integrated in time, the gates iterated to rest, and the panel quoting what each window shows ---- */
+const NB = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  /* chapter 5: the figure's constants, read from the figure itself */
+  const Mf = JSON.parse(ANATOMY_HTML.relay.match(/const M = (\{[^}]*\})/)[1]);
+  if (!(Mf.VS === TB_RLY.VS && Mf.RC === TB_RLY.RC && Mf.VTH === TB_RLY.VTH && Mf.K === TB_RLY.K && Mf.PULL_IN === TB_RLY.PI && Mf.DROP_OUT === TB_RLY.DO)) bad.push('the relay figure changed: ' + JSON.stringify(Mf));
+  const c5 = TBOOK.b5.check, cur = v => Math.min(Mf.VS / Mf.RC, Mf.K * Math.max(0, v - Mf.VTH) ** 2);
+  near('coil current', c5.I0, 0.05); near('coil power', c5.P0, 1.2); near('pull-in current', c5.Ipi, 18 / 480); near('drop-out current', c5.Ido, 2.4 / 480); near('force margin', c5.mF, (0.05 / 0.0375) ** 2);
+  { let closed = false, up = null, dn = null, pmax = 0, vpm = 0, full = null; for (let v = 0; v <= 5; v += 1e-5) { const i = cur(v), vc = i * Mf.RC, pq = (Mf.VS - vc) * i; if (!closed && vc >= Mf.PULL_IN) { closed = true; up = v; } if (pq > pmax) { pmax = pq; vpm = v; } if (full == null && i >= Mf.VS / Mf.RC - 1e-12) full = v; }
+    for (let v = 5; v >= 0; v -= 1e-5) { if (closed && cur(v) * Mf.RC <= Mf.DROP_OUT) { closed = false; dn = v; break; } }
+    near('pull-in gate, the figure swept up', c5.VGpi, up, 1e-4); near('drop-out gate, swept down', c5.VGdo, dn, 1e-4); near('the transistor\'s heat, swept', c5.PQmax, pmax, 1e-6); near('gate at the most heat', c5.VGpq, vpm, 1e-4); near('gate for the full current', c5.VGon, full, 1e-4); }
+  const rel = Vc => { let i = 0.05, t = 0; const h = 1e-8; while (i > 2.4 / 480) { i += -(480 * i + Vc) / 0.2 * h; t += h; } return t; };
+  near('5.13 with a diode vs 5.11 integrated', c5.tdD, rel(0.7), 1e-4); near('5.13 with a 24 V zener', c5.tdZ, rel(24.7), 1e-4); near('the animation, no clamp', c5.td0, rel(0), 1e-4); near('problem 5.3, 33 V zener', c5.PB3.t, rel(33.7), 1e-4);
+  near('the animation\'s spike', c5.spike, ANIMS.coil.calc({ R: 480, L: 0.2, D: 1 }).spike); near('spike', c5.spike, 0.2 * 0.05 / 1e-6); near('stored energy', c5.W, 0.5 * 0.2 * 0.05 ** 2);
+  { let i = 0, t = 0; const h = 1e-8; while (i < 18 / 480) { i += (24 - 480 * i) / 0.2 * h; t += h; } near('5.16 vs integration', c5.tpi, t, 1e-4); }
+  near('hot pull-in at 85 °C', c5.V85, 18 * (1 + 0.00393 * 65)); if (!(c5.PB2.I < 18 / 480 && c5.PB2.V > 21.6)) bad.push('the hot relay must not pull in at 21.6 V');
+  near('base resistor', c5.PB1.Rb, (3.3 - 0.75) / (2 * 0.05 / 50)); near('E12 below', c5.PB1.R, 1200);
+  { const L = 0.2, R = 480, N = 200, h = 1 / 20e3 / N; let i = 0.05, si = 0, sp = 0, n = 0; for (let k = 0; k < N * 400; k++) { const on = (k % N) < N / 2; i += ((on ? 24 : 0) - R * i) / L * h; if (i < 0) i = 0; if (k >= N * 300) { si += i; sp += on ? 24 * i : 0; n++; } }
+    near('PWM hold: mean current of the switched coil', c5.IH, si / n, 3e-3); near('PWM hold: power from the supply', c5.PH, sp / n, 6e-3); }
+  /* chapter 7: the proximity lab run with its own step */
+  const c7 = TBOOK.b7.check, prox = P => { const L = LABS.prox, S = { x: {}, P: Object.assign({}, L.P, P), t: 0 }; L.init(S); const h = 2e-5; for (let k = 0; k < 0.3 / h; k++) { L.step(S, h); S.t += h; } return L.calc(S.P, S); };
+  near('Sr', c7.Sr, 4); near('Sa', c7.Sa, 3.24); near('Sr aluminium', c7.SrAl, 1.6); near('teeth frequency', c7.f0, 60); near('n max', c7.nmax, 4000);
+  { const st = prox({}), al = prox({ mat: 'al' }), far = prox({ gap: 3.5 }), fast = prox({ rpm: 4500 });
+    near('the lab measures the speed', st.rpmM, 300, 0.01); if (!(al.rpmM === 0 && !al.inRange)) bad.push('aluminium at 2 mm should not be seen'); if (!(far.inRange && !far.safe)) bad.push('3.5 mm: in range, without margin'); if (!fast.fast) bad.push('4,500 rpm is over the sensor'); }
+  near('input current', c7.Iin, (24 - 2 - 1.2) / 4700);
+  near('loading 100 kΩ', c7.c1.err, -1e5 / (1e5 + 2e7)); near('reading', c7.c1.Vm, 10 * 1e7 / (1e5 + 2e7)); near('DMM at 1 MΩ', c7.eM.dmm, -1 / 21); near('scope ×1', c7.eM.x1, -1 / 3); near('analog', c7.eM.an, -1e6 / (1e6 + 4e5));
+  near('half at R/2 = Rm', measCalc(4e5, 2e5).Vm, 2.5); near('probe rise', c7.tr1, 2.2 * 5e4 * 100e-12); near('PT100', c7.Pt100, 138.5); near('2-wire error', c7.dTerr, 2 * 1.72e-8 * 10 / 0.5e-6 / 0.385);
+  near('quarter bridge', c7.Vq, 10 * (1.002 / 2.002 - 0.5)); near('full bridge', c7.Vfb, 0.02);
+  { const st = document.createElement('div'), out = document.createElement('div'), says = (S, v, t) => { SENS_BENCH[S].render(v, st, out); if (!out.textContent.includes(t)) bad.push(S + ' page shows ' + out.textContent.slice(0, 60) + ', not ' + t); };
+    says('temp', { T: 100, cj: 25, cjc: 'on' }, '138.5 Ω'); says('temp', { T: 25, cj: 25, cjc: 'on' }, '109.6 Ω'); says('bridge', { p: 5, vx: 10, f: 'ok' }, '10.00 mV'); says('bridge', { p: 5, vx: 5, f: 'ok' }, '5.00 mV'); says('hall', { d: 6, pol: 'n' }, '3.7 mT'); says('hall', { d: 6, pol: 'n' }, '2.59 V'); says('hall', { d: 3, pol: 'n' }, '29.6 mT'); }
+  { let ps = 0, pn = 0; for (let k = 0; k < 200000; k++) { const x = 0.4999 * Math.sin(2 * Math.PI * k * 0.0123456789), q = Math.round(x * 4096) / 4096; ps += x * x; pn += (q - x) ** 2; }
+    near('SNR of a quantized sine', c7.SNR, 10 * Math.log10(ps / pn), 5e-3); near('quantization noise', c7.sq, 10 * Math.sqrt(pn / 200000), 2e-2); }
+  { let same = true; for (let m = 0; m < 100; m++) same = same && Math.abs(Math.cos(2 * Math.PI * 60 * m / 50) - Math.cos(2 * Math.PI * c7.fa * m / 50)) < 1e-9; if (!same || c7.fa !== 10) bad.push('60 Hz sampled at 50 Hz is ' + c7.fa + ' Hz'); }
+  near('high-impedance node, DMM', c7.PB2.eD, -(1e6 * 470e3 / 1.47e6) / (1e6 * 470e3 / 1.47e6 + 1e7));
+  /* chapter 8: the gates iterated to rest, the counter lab run with its own step */
+  const c8 = TBOOK.b8.check, nor = (a, b) => (a | b) ? 0 : 1;
+  for (const [S, R] of [[0, 0], [0, 1], [1, 0]]) for (const Q0 of [0, 1]) { let Q = Q0, Qb = 1 - Q0; for (let k = 0; k < 8; k++) { Q = nor(R, Qb); Qb = nor(S, Q); } if (Q !== (S | ((1 - R) & Q0))) bad.push(`NOR latch S${S} R${R} Q${Q0} rests at ${Q}, not 8.3`); }
+  for (const EN of [0, 1]) for (const D of [0, 1]) for (const Q of [0, 1]) { const S = D & EN, R = (1 - D) & EN; if ((S | ((1 - R) & Q)) !== ((EN & D) | ((1 - EN) & Q))) bad.push('8.4 is not 8.3 with its gates'); }
+  for (const a of [0, 1]) for (const b2 of [0, 1]) if ((1 - (a | b2)) !== ((1 - a) & (1 - b2)) || (1 - (a & b2)) !== ((1 - a) | (1 - b2))) bad.push('De Morgan');
+  { const L = LABS.counter, S = { x: {}, P: { f: 1, tpd: 'on' }, t: 0 }; L.init(S); S.x.q = [1, 1, 0]; S.x.seen = []; const tt = []; for (let k = 0; k < 1100; k++) { const n0 = S.x.seen.length; L.step(S, 1e-3); S.t += 1e-3; if (S.x.seen.length > n0) tt.push(S.t); }
+    if (S.x.seen.slice(0, 3).join() !== '2,0,4') bad.push('the lab passes ' + S.x.seen.slice(0, 3) + ' from 3 to 4'); near('ripple settles in 3 tpd', tt[2] - tt[0] + LOG3.tpd, c8.tset, 1e-2); }
+  near('Q2 of the lab', LABS.counter.calc({ f: 1 }, { x: { q: [0, 0, 0], ev: [], clk: 1 } }).f2, c8.f2); near('fmax', c8.fmx, 1 / 18e-9); if (c8.nTrig !== 10 || 2 ** 9 >= 1000) bad.push('n for 1000');
+  near('MTBF one stage', c8.mt1, Math.exp(4) / 50); near('MTBF two stages', c8.mt2, Math.exp(34) / 50);
+  { const g = b => b ^ (b >> 1); for (let k = 0; k < 8; k++) { const x = g(k) ^ g((k + 1) % 8); if (x & (x - 1)) bad.push('Gray ' + k); } if (c8.g3 !== 2 || c8.g4 !== 6) bad.push('Gray 3, 4'); }
+  near('ripple read error', c8.PB3.frac, 0.0375); near('sync counter', c8.PB2.f, 1 / 15e-9);
+  /* chapter 9: the buck in time, to steady state, in CCM and in DCM */
+  const c9 = TBOOK.b9.check, buck = RL => { const L = 47e-6, C = 100e-6, N = 400, h = 1e-5 / N; let i = 0, v = 0, vs = 0, n = 0, hi = -1, lo = 1e9; for (let p = 0; p < 6000; p++) for (let k = 0; k < N; k++) { const on = k < N / 2; i += ((on ? 24 : 0) - v) / L * h; if (i < 0) i = 0; v += (i - v / RL) / C * h; if (p >= 5950) { vs += v; n++; hi = Math.max(hi, i); lo = Math.min(lo, i); } } return { Vo: vs / n, dI: hi - lo }; };
+  { const a = buck(5), d = buck(47); near('buck in CCM, simulated', c9.bk.Vo, a.Vo, 5e-3); near('ripple, simulated', c9.bk.dI, a.dI, 2e-2); near('buck in DCM, simulated', c9.Md * 24, d.Vo, 1e-2); near('the lab in DCM', c9.bk47.Vo, c9.Md * 24); }
+  near('ripple', c9.bk.dI, 12 * 0.5 / (47e-6 * 1e5)); near('voltage ripple', c9.bk.dV, 12 * 0.5 / (47e-6 * 1e5) / 80); near('CCM boundary', c9.Rb, 18.8); if (!(c9.bk18.ccm && !c9.bk22.ccm)) bad.push('CCM at 18 Ω, DCM at 22 Ω');
+  { const K = c9.Kd, D = 0.5; let a = 0, z = 1; for (let k = 0; k < 80; k++) { const m = (a + z) / 2; (K * m * m + D * D * m - D * D > 0) ? z = m : a = m; } near('9.20 vs the quadratic', c9.Md, a, 1e-9); }
+  near('cable drop', c9.dr.Vend, 24 - 2 * 2 * 0.0175 * 12 / 0.75); near('max length', c9.dr.Lmax, 2.4 * 0.75 / (2 * 0.0175 * 2)); near('bench', c9.psuB.V, 24 - 2 * 4 * 0.0175 * 8 / 0.75); near('supply load', c9.pw.Itot, 7.5); near('from the mains', c9.pw.Pin, 200);
+  { let th = 0, t = 0; const h = 1e-6, k2 = (11 / 4) ** 2; while (th < 2.25) { th += (k2 - th) / 0.05 * h; t += h; } near('fuse in a short under the current limit', c9.tF, t, 1e-3); }
+  near('inrush as a capacitor', c9.Ceq, 14 * 0.02 / 24); near('soft start', c9.tss, 14 * 0.02 / 3.5);
+  { let V = 230 * Math.SQRT2, t = 0; const h = 1e-6; while (V > 250) { V -= 200 / (220e-6 * V) * h; t += h; } near('hold-up vs integration', c9.HU.t, t, 1e-3); }
+  near('efficiency', c9.LS.eta, 28.8 / (28.8 + 2.4 ** 2 * 0.02 * 0.5 + 0.5 * 2.4 * 0.5 + 0.5 * 24 * 2.4 * 40e-9 * 1e5)); near('hold-up capacitor', c9.PB3.Cmin, 2 * 240 / 0.9 * 0.02 / (2 * 230 ** 2 - 250 ** 2));
+  /* the panel says what each window shows */
+  const Rl = LABS.loading.calc(LABS.loading.P), Rk = LABS.buck.calc(LABS.buck.P, { t: 0 }), Ad = Object.fromEntries(ANIMS.drop.params.map(p => [p[0], p[5]])), Vd = ANIMS.drop.calc(Ad), Ac = Object.fromEntries(ANIMS.coil.params.map(p => [p[0], p[5]]));
+  const shown = [['b7', LABS.loading.stats.slice(0, 3).map(s => s[2](Rl))], ['b9', LABS.buck.stats.slice(0, 3).map(s => s[2](Rk))], ['b9', ['0.560 Ω', '1.12 V', '22.88 V', '25.7 m'].filter(t => ANIMS.drop.steps.map(f => f(Ad, Vd)).join(' ').includes(t))],
+    ['b5', [ANIMS.coil.steps[1](Ac, ANIMS.coil.calc(Ac)).match(/[\d.]+ ms/)[0]]], ['b8', ['0.500 Hz', '0.125 Hz', '8.00 s']], ['b9', ['22.51 V', '7.5 A', '14 A']], ['b7', ['138.5 Ω', '10.00 mV', '2.59 V', '1.60 mm', '-4.8%', '-33.3%', '-71.4%']], ['b8', ['3 → 2 → 0 → 4', '55.6 MHz']], ['b5', ['50 mA', '0.30 W', '−0.7 V']]];
+  shown.forEach(([id, ts]) => ts.forEach(t => { if (!look(id).includes(t)) bad.push(id + ' panel lacks ' + t); }));
+  if (shown[2][1].length !== 4) bad.push('the drop animation shows ' + shown[2][1]);
+  return bad; });
+ok(!NB.length, 'Part B: every number recomputed from the physics and from the windows\' own models agrees, the transients, the PWM hold and the buck agree with integration in time, and the panel quotes what each window shows (' + NB.join(' | ') + ')');
 
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));

@@ -32,6 +32,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.72.0](#v2720) | 22 Nov 2026 | A chapter as a textbook, and two maps to choose between | 3.96 MB |
 | [v2.73.0](#v2730) | 22 Nov 2026 | The world map as a second brain, and a chapter read beside its simulations | 3.95 MB |
 | [v2.74.0](#v2740) | 22 Nov 2026 | Part A as a textbook, each chapter beside its 3D labs | 4.04 MB |
+| [v2.75.0](#v2750) | 24 Nov 2026 | Part B as a textbook, a lab page read beside the text | 4.14 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -177,6 +178,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.74.0](milestones/v2.74.0.png)
 
 **What changed:** the first part of the book, chapters 1 to 4, written as a textbook: Ohm and Kirchhoff, the real source and the cable, contacts, fuses and terminals, the capacitor, the coil and the transformer, the diode and the MOSFET, each derived in full with a worked example, an advanced section, solved problems and exercises. Every section opens its topic's 3D lab beside the text, and the numbers the panel quotes come from the lab's own model.
+
+## v2.75.0
+![v2.75.0](milestones/v2.75.0.png)
+
+**What changed:** the second part of the book, chapters 5, 7, 8 and 9, written as a textbook: the relay from Ampère's law to its driver and its release, the proximity sensor and the instrument that loads what it measures, PT100, the bridge and the Hall sensor, the latch derived from its gates, counting, timing and metastability, the buck converter from the volt-second balance and the 24 V distribution down to a short in one branch. Each section reads beside its topic's live window: a 3D lab, the relay's interactive figure, an animation, the 24 V scene, or, new here, a lab page of the site in the panel's own frame.
 
 ## From the first version to now, in numbers
 

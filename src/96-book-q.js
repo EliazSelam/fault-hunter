@@ -190,7 +190,7 @@ const BQ = {
       'כמו בבית: לכל חדר מפסק משלו. כשמשהו נשרף במטבח, הסלון ממשיך לעבוד, ואתה יודע מיד איפה לחפש. בלי ענפים, קצר בחיישן אחד היה מכבה את כל הבקרה.']],
     calc: [
       { t: 'נפילת מתח בכבל', gen: r => { const I = qv(r, 0.6, 6.5, 2), L = qv(r, 4, 45, 1), A = [0.25, 0.5, 0.75, 1, 1.5][Math.floor(r() * 5)], R = 2 * PW.rho * L / A, dV = I * R;
-        return { q: `ענף של ${qb(I + ' A')} בכבל נחושת באורך ${qb(L + ' m')} וחתך ${qb(A + ' mm²')} (${qb('ρ = ' + PW.rho + ' Ω·mm²/m')}). כמה מתח נופל בכבל?`, unit: 'V', ans: dV,
+        return { q: `ענף של ${qb(I + ' A')} בכבל נחושת באורך ${qb(L + ' m')} וחתך ${qb(A + ' mm²')}, עם ${qb('ρ = ' + PW.rho + ' Ω·mm²/m')}. כמה מתח נופל בכבל?`, unit: 'V', ans: dV,
           steps: [`הזרם הולך וחוזר: אורך הנחושת 2L = ${qn(2 * L, 4)} m`, `R = ρ · 2L / A = ${PW.rho} · ${qn(2 * L, 4)} / ${A} = ${qn(R, 4)} Ω`, `ΔV = I · R = ${I} · ${qn(R, 4)} = ${qn(dV, 4)} V, ובקצה נשארים ${qn(PW.V - dV, 4)} V`] }; } }] },
   /* from here on the topics have their own multiple-choice questions; these add the calculations */
   motor: { calc: [

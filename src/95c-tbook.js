@@ -155,8 +155,8 @@ TBOOK.b6.side = {
 /* the chapter's body when it is written as a textbook */
 function tbookBody(c, L) {
   const T = TBOOK[c.id], lvT = { basic: 'בסיסי, עם תשובה', adv: 'מתקדם', ext: 'הרחבה' };
-  let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${c.why}</p><p><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
-    <p class="note">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. את הפיתוח קוראים לצד ההדמיה: הכפתור 🎛️ שליד כותרת הסעיף פותח פאנל בצד הטקסט, והפאנל מתחלף עם הסעיף שקוראים. בפאנל, לכל משוואה כתוב מה לעשות בהדמיה ומה לראות. כל החלונות של הנושא נמצאים גם בסוף הפרק.</p></section>`;
+  let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${c.why}</p><p class="nogl"><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
+    <p class="note nogl">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. את הפיתוח קוראים לצד ההדמיה: הכפתור 🎛️ שליד כותרת הסעיף פותח פאנל בצד הטקסט, והפאנל מתחלף עם הסעיף שקוראים. בפאנל, לכל משוואה כתוב מה לעשות בהדמיה ומה לראות. כל החלונות של הנושא נמצאים גם בסוף הפרק.</p></section>`;
   h += T.sections.map(s => `<section class="bk-topic tb-sec${s.adv ? ' tb-adv' : ''}" id="${BKID('tb:' + s.id)}" data-tbs="${s.id}"><h3>${s.adv ? '★ ' : ''}${s.id} ${s.t}${T.side && T.side[s.id] ? ` <button type="button" class="tb-parbtn" data-tbpar="${s.id}">🎛️ קריאה לצד ההדמיה</button>` : ''}</h3>${s.html}</section>`).join('');
   h += `<section class="bk-box tb-sum" id="${BKID('tb:sum')}"><h3>${c.n}.5 סיכום ודף נוסחאות</h3><table class="tb-tab"><thead><tr><th>נוסחה</th><th>מה היא נותנת</th><th>משוואה</th></tr></thead><tbody>${T.summary.map(([f, t, n]) => `<tr><td><bdi>${f}</bdi></td><td>${t}</td><td><button type="button" class="linkbtn" data-tbeq="${n}">(${n})</button></td></tr>`).join('')}</tbody></table></section>`;
   h += `<section class="bk-box tb-solved" id="${BKID('tb:solved')}"><h3>${c.n}.6 בעיות פתורות</h3><p class="note">כל בעיה נפתחת צעד אחר צעד. את הצעד האחרון עושים לבד, ורק אז רואים את הפתרון.</p>${T.solved.map((p, i) => `<div class="tb-prob" data-tbp="${i}"><p class="tb-exh">${p.t}</p><p>${p.q}</p>
@@ -187,7 +187,7 @@ function tbookWire(A) {
 /* ---- the panel beside the text ---- */
 /* a reader who opened the panel reads that way: the choice is kept (fh-tbpar), and the next textbook chapter opens its panel by itself */
 const TBS = { sid: null, w: null, A: null, box: null, follow: true, obs: null, t: 0, get auto() { try { return localStorage.getItem('fh-tbpar') === '1'; } catch (e) { return false; } }, set auto(v) { try { localStorage.setItem('fh-tbpar', v ? '1' : '0'); } catch (e) { } } };
-function tbSideKill() { const b = TBS.box; try { if (b && b.act && b.act.destroy) b.act.destroy(); } catch (e) { } TBS.box = null; }
+function tbSideKill() { const b = TBS.box; if (b && EMBX.side && EMBX.side.box === b) embClose('side'); try { if (b && b.act && b.act.destroy) b.act.destroy(); } catch (e) { } TBS.box = null; }
 function tbSideOpen(A, sid, w, byHand) {
   const S = ((TBOOK[BV.ch] || {}).side || {})[sid]; if (!S) return; w = w || (TBS.sid === sid && TBS.w) || S.win[0][0];
   const d = drawerEl(), open = !d.hidden && d.classList.contains('tb-par');
@@ -205,7 +205,9 @@ function tbSideOpen(A, sid, w, byHand) {
     <label class="tbs-follow"><input type="checkbox"${TBS.follow ? ' checked' : ''}> 📌 ההדמיה מתחלפת עם הסעיף שאני קורא</label>
     <p class="note tbs-note">הפאנל ייפתח לבד בפרקים הבאים שכתובים כך. סגירה ב-✕ מפסיקה את זה.</p>`;
   d.hidden = false; d.classList.add('tb-par'); document.body.classList.add('drw-on', 'tb-par-on'); b.scrollTop = 0;
-  const box = b.querySelector('.tbs-win'); TBS.box = box; try { zMount(w, box); } catch (e) { box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
+  const box = b.querySelector('.tbs-win'); TBS.box = box;
+  /* a page of the site (a lab bench, a hub page) opens in the drawer's own frame, beside the text, like the 3D labs */
+  try { if (zInfo(w).kind === 'page') { if (!embOpen(box, w, (S.win.find(x => x[0] === w) || [, ''])[1], 'side')) box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; } else zMount(w, box); } catch (e) { box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
   b.querySelectorAll('[data-tbsw]').forEach(x => x.addEventListener('click', () => tbSideOpen(A, sid, x.dataset.tbsw)));
   b.querySelectorAll('[data-tbseq]').forEach(x => x.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${x.dataset.tbseq}"]`); if (!e) return; TBS.t = Date.now(); e.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); }));
   b.querySelector('.tbs-follow input').addEventListener('change', e => { TBS.follow = e.target.checked; });

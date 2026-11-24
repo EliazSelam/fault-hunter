@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.75.0] — 2026-11-24
+
+Part B of the book is written as a textbook: chapters 5, 7, 8 and 9 (chapter 6 was the pilot), each read beside its topics' live windows.
+
+- **Chapter 5, the relay and its driver**: the electromagnet from Ampère's law to the pull force and the hysteresis of pull-in and drop-out; the MOSFET driver, the gate it needs and the half-on heat, and the NPN base resistor; the release through a diode or a zener and the voltage the transistor sees; ★ the pull-in time, a hot coil that no longer pulls in at 21.6 V, and holding with PWM. 18 equations.
+- **Chapter 7, sensors and measurement**: the inductive proximity sensor, its range by material, counting teeth and its maximum speed, PNP and NPN at the input; the instrument as part of the circuit, loading from Thevenin, the average a multimeter shows and the rise time a scope and its probe allow; PT100 and its wires, the bridge and the Hall sensor; ★ sampling, aliasing, quantization noise and averaging. 26 equations.
+- **Chapter 8, digital logic**: noise margins, De Morgan, the SR and D latches derived from their gates and the D flip-flop; T and JK flip-flops, dividing and counting; propagation delay, the ripple counter's passing values and the synchronous counter's maximum frequency and hold; ★ metastability and the second flip-flop, debouncing in software and the Gray code. 18 equations.
+- **Chapter 9, the supply and the distribution of 24 V**: the linear regulator against the buck converter, derived from the volt-second balance with its ripple and the edge of continuous conduction; the cable, the branch, the supply's load and a short in a branch that drags the whole bus down while its fuse blows; inrush, soft start and hold-up; ★ conduction and switching losses and the buck in discontinuous conduction. 20 equations.
+- The panel beside the text opens each topic's live window first: the 3D labs (proximity, loading, the counter, the buck), the relay's interactive figure and its animation, the cable-drop animation and the 24 V scene. **A lab page of the site now opens in the panel too**, in the drawer's own frame (PT100, the bridge, the Hall sensor, the multimeter, the scope, the digital-logic pages).
+- A page of the site opened in a frame, in a chapter or in the panel, showed the site's tabs and search above it (since the navigation bar of v2.65); the frame now shows only the page.
+- The glossary no longer explains a word that means something else in the chapter (the "OL" of a level, "NM" of a noise margin, a conductor that conducts); the mathematical tools and the note about the panel are kept free of it in every textbook chapter.
+- Tests: the book suite checks the shape of every textbook chapter, that every panel opens a live window first and every 3D lab of the chapter's topics first in one panel, and that a lab page opens in the panel's frame and leaves with it. It recomputes Part B independently: the relay figure's constants are read from the figure and its hysteresis and heat swept, the release and pull-in integrated in time, the PWM hold switched for hundreds of periods, the proximity and counter labs run with their own step, the NOR latch iterated to rest, a quantized sine measured, the buck simulated to steady state in CCM and in DCM, and every value the panel quotes compared with what the window shows (197 checks).
+
 ## [2.74.0] — 2026-11-22
 
 Part A of the book is written as a textbook: chapters 1 to 4, each read beside its topics' 3D labs.
