@@ -248,7 +248,7 @@ ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agre
 /* v2.75: every chapter written so (chapter 6, the pilot, is checked above), and the panel's first window is live: a 3D lab, a simulation, an
    animation, an interactive figure, a scene or a lab page; every 3D lab of the chapter's topics opens first in at least one panel */
 const TBIDS = await ev(() => Object.keys(TBOOK).filter(id => id !== 'b6'));
-ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9'].every(id => TBIDS.includes(id)), 'Parts A and B are written as a textbook (' + TBIDS + ')');
+ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13'].every(id => TBIDS.includes(id)), 'Parts A, B and C are written as a textbook (' + TBIDS + ')');
 for (const id of TBIDS) {
   await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
   const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
@@ -256,7 +256,7 @@ for (const id of TBIDS) {
     const eqs = [...A.querySelectorAll('.tb-eq')].map(e => e.dataset.eq), want = Array.from({ length: eqs.length }, (_, i) => n + '.' + (i + 1));
     const links = [...A.querySelectorAll('[data-tbeq]')].map(b => b.dataset.tbeq), ptr = [...A.querySelectorAll('[data-tbw]')].map(b => b.dataset.tbw);
     /* the practice cards (pq:) live in the chapter's own questions, and a page window is embedded by its route */
-    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"], .bk-win[data-w="${w.replace(/:[^:]+$/, ':*')}"]`)).length;   /* a family of a topic's windows (t:pwr:math:*) is one window in the chapter */
+    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"], .bk-win[data-emb="${bookWinTarget(w)}"], .bk-win[data-w="${w.replace(/:[^:]+$/, ':*')}"]`)).length;   /* a family of a topic's windows (t:pwr:math:*) is one window in the chapter, and a page sits at its place (p:s2/servo at s2:servo#zero) */
     const side = T.side || {}, sideWins = Object.values(side).flatMap(x => x.win.map(w => w[0])), looks = Object.values(side).flatMap(x => x.look.map(l => l[0]));
     return { order, seq: eqs.join() === want.join(), neq: eqs.length, links: links.every(l => eqs.includes(l)), ptr: ptr.length >= 6 && ptr.every(w => ws.includes(w)), inCh, ws: ws.length,
       probs: A.querySelectorAll('.tb-prob').length, ex: A.querySelectorAll('.tb-x details').length, levels: ['basic', 'adv', 'ext'].every(l => T.exercises.some(e => e.l === l)), risk: bidiRisk(A).length, whyOnce: A.querySelectorAll('#bk-why').length,
@@ -385,6 +385,63 @@ const NB = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (
   if (shown[2][1].length !== 4) bad.push('the drop animation shows ' + shown[2][1]);
   return bad; });
 ok(!NB.length, 'Part B: every number recomputed from the physics and from the windows\' own models agrees, the transients, the PWM hold and the buck agree with integration in time, and the panel quotes what each window shows (' + NB.join(' | ') + ')');
+/* ---- v2.76: Part C (chapters 10 to 13) recomputed independently: the motor, brake, screw, fit and axis labs run with their own step or action,
+   the start of a motor, a coil's decay and a step response integrated in time, the quadrature decoder driven through whole turns, the
+   interpolation error swept, the servo simulation run with the faults the chapter names, and the panel quoting what each window shows ---- */
+const NCc = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  const run = (id, P, T, h, act) => { const L = LABS[id], S = { x: {}, P: Object.assign({}, L.P, P), t: 0 }; L.init(S); if (act) L.act[act](S); for (let k = 0; k < T / h; k++) { L.step(S, h); S.t += h; } return { S, R: L.calc(S.P, S) }; };
+  /* chapter 10: the 3D motor run from rest with its own step */
+  const c10 = TBOOK.b10.check, M = MOT3;
+  { const L = LABS.dcmotor, S = { x: {}, P: Object.assign({}, L.P), t: 0 }; L.init(S); const h = 5e-5; let t63 = null; for (let k = 0; k < 1.2 / h; k++) { L.step(S, h); S.t += h; if (t63 == null && S.x.w >= 0.632 * c10.wss) t63 = S.t; }
+    const R = L.calc(S.P, S); near('the motor settles at 10.6', c10.wss, R.w, 2e-3); near('and at its current', c10.Iss, R.i, 3e-3); near('63% at τm', c10.taum, t63, 2e-2);
+    const shown = L.stats.map(x => x[2](R)).join(' '); [c10.wss, c10.Iss].length; if (!look('b10').includes(lf(c10.wss * 60 / (2 * Math.PI), 0) + ' rpm') || !shown.includes(lf(R.rpm, 0) + ' rpm')) bad.push('b10 speed quoted ' + shown); }
+  near('stall current', c10.Is, 12 / 1.2); near('stall torque', c10.Ts, 0.05 * 12 / 1.2);
+  { let pm = 0; for (let T = 0; T <= c10.Ts; T += 1e-5) pm = Math.max(pm, T * (12 / 0.05 - 1.2 * T / 0.0025)); near('Pmax by sweep', c10.Pmax, pm, 1e-6); }
+  { const J = M.J, R = M.R, K = M.K; let w = 0, W = 0; const h = 1e-6; while (w < 0.999999 * 12 / K) { const i = (12 - K * w) / R; W += i * i * R * h; w += K * i / J * h; if (w > 0.9999 * 12 / K) break; } near('10.13: heat of a start, integrated', c10.WR, W, 2e-3); }
+  { const J = M.J, R = M.R, K = M.K; let w = 0, t = 0; const h = 1e-6; while ((12 - K * w) / R > 3) { w += (K * 3 - 0.05 - M.b * w) / J * h; t += h; } near('10.14: time at the current limit', c10.t1, t, 5e-3); }
+  near('the simulation, default', c10.ml.Pm, 54); near('its maximum', c10.mlP.Pm, 24 * 24 / (4 * 2)); if (!c10.mlS.stall) bad.push('1.2 N·m stalls the simulated motor');
+  near('synchronous speed', c10.ind.ns, 1500); near('slip', c10.ind.s, 0.04); near('VFD speed', c10.PB3.n2, 1980); near('microstep', c10.st.dx, 5 / 3200 * 1000);
+  /* chapter 11: the quadrature decoder of 11.4 driven forward and back through whole turns */
+  const c11 = TBOOK.b11.check;
+  { const N = 50, st = p => [[0, 0], [1, 0], [1, 1], [0, 1]][((p % 4) + 4) % 4]; let c = 0, pos = 0, pr = st(0); const moves = [600, -250, 1000, -1350];
+    moves.forEach(m => { for (let k = 0; k < Math.abs(m); k++) { pos += Math.sign(m); const [A, B] = st(pos); c += (pr[1] ^ A) - (pr[0] ^ B); pr = [A, B]; } }); if (c !== pos) bad.push('11.4 counts ' + c + ' for ' + pos); }
+  near('resolution', c11.q.res, 10 * 1000 / (4 * 2500)); near('channel A', c11.q.fA, 2500 * 1500 / 60 / 1000); near('counts', c11.q.fc, 4 * 2500 * 1500 / 60 / 1000);
+  const dec = Vc => { let i = 0.5, t = 0; const h = 1e-7; while (i > 0.15) { i += -(48 * i + Vc) / 0.8 * h; t += h; } return t + 0.010; };
+  near('brake with a diode, integrated', c11.tD, dec(0.7), 1e-4); near('with a varistor', c11.tV, dec(48), 1e-4); near('fall', c11.zD, 0.5 * 9.81 * c11.tD ** 2);
+  { const r = run('brake', {}, 0.2, 1e-5, 'loss'); near('the brake lab closes at 11.10', c11.tD, r.R.tEng, 3e-3); near('and the axis falls 11.11', c11.zD * 1000, r.R.drop, 2e-2);
+    const v = (() => { const L = LABS.brake, S = { x: {}, P: Object.assign({}, L.P, { sup: 'var' }), t: 0 }; L.init(S); L.act.loss(S); for (let k = 0; k < 0.2 / 1e-5; k++) { L.step(S, 1e-5); S.t += 1e-5; } return L.calc(S.P, S); })(); near('with the varistor', c11.tV, v.tEng, 5e-3); }
+  { let m = 0; for (let th = 0; th < 2 * Math.PI; th += 1e-4) { let d = Math.atan2(1.01 * Math.sin(th), Math.cos(th)) - th; d = Math.atan2(Math.sin(d), Math.cos(d)); m = Math.max(m, Math.abs(d)); } near('11.14 swept', c11.ip.err, m, 1.5e-2); }
+  near('speed step', c11.dwr, 60 / (4 * 2500 * 1e-3)); near('holding torque', c11.hold.T, 10 * 9.81 * 0.01 / (2 * Math.PI)); near('wrong sequence sag', c11.bb.sagBad, 5);
+  /* chapter 12: the fit lab's own random pairs, and the screw lab reversed */
+  const c12 = TBOOK.b12.check;
+  if (!(c12.g6.mn === 7 && c12.g6.mx === 41 && c12.k6.mn === -15 && c12.k6.mx === 19 && c12.p6.mn === -35 && c12.p6.mx === -1)) bad.push('fits');
+  if (Math.round(c12.IT6) !== 13 || Math.round(c12.IT7) !== 21) bad.push('IT grades ' + c12.IT6 + ' ' + c12.IT7);
+  { const L = LABS.fit, S = { x: {}, P: { sh: 'k6' }, t: 0 }; L.init(S); for (let k = 0; k < 4000; k++) L.act.sample(S); near('k6 pairs that need force, sampled by the lab', c12.Pk6, S.x.ni / S.x.n, 6e-2); }
+  near('screw torque', c12.T10, 200 * 0.01 / (2 * Math.PI * 0.9)); near('half the lead', c12.T5, c12.T10 / 2); near('reflected inertia', c12.J10, 5 * (0.01 / (2 * Math.PI)) ** 2);
+  { const L = LABS.screw, S = { x: {}, P: Object.assign({}, L.P), t: 0 }; L.init(S); let eUp = null, eDn = null; const h = 1e-3; for (let k = 0; k < 8 / h; k++) { L.step(S, h); S.t += h; const ph = (0.25 * S.t) % 1; if (Math.abs(ph - 0.2) < 1e-6) eUp = S.x.xt - S.x.xm; if (Math.abs(ph - 0.7) < 1e-6) eDn = S.x.xt - S.x.xm; }
+    near('backlash: going up', eUp, -0.025, 1e-3); near('going down', eDn, 0.025, 1e-3); }
+  near('shrink fit', c12.sh.dT, 45e-6 / (11.7e-6 * 0.025)); near('screw stiffness', c12.stf.k, 210e9 * Math.PI * 0.013 ** 2 / 4 / 0.5); near('thermal growth', c12.th.dL, 11.7e-6 * 0.5 * 5);
+  /* chapter 13: a step response integrated, the servo simulation with and without I, the 3D axis with a low gain, and a reversed encoder */
+  const c13 = TBOOK.b13.check;
+  near('ωn', c13.wn, 200); near('ζ', c13.z, 0.61);
+  { let x = 0, v = 0, mx = 0; const h = 1e-6; for (let k = 0; k < 0.1 / h; k++) { const a = (2e5 * (1 - x) - 1220 * v) / 5; v += a * h; x += v * h; mx = Math.max(mx, x); } near('overshoot, integrated', c13.Mp, mx - 1, 1e-3); }
+  near('the animation', c13.as.Mp / 100, c13.Mp, 1e-3); near('profile', svProfile(c13.Tp)[0], 0.1, 1e-9); near('accel distance', svProfile(c13.ta)[0], c13.sa, 1e-9);
+  { const pd = svSim({ Ki: 0, T: 0.2 }); near('13.7 at 0.06 s, simulated', c13.eA06, pd.eAcc, 4e-2); const noI = svSim({ Ki: 0 }), wI = svSim(); near('13.8 without I', c13.eSS, Math.abs(noI.final - 0.1), 6e-2); if (!(Math.abs(wI.final - 0.1) < 2e-6)) bad.push('with I the axis ends at ' + wI.final); }
+  { const L = LABS.axis, go = P => { const S = { x: {}, P: Object.assign({}, L.P, P), t: 0 }; L.init(S); L.act.move(S); for (let k = 0; k < 1.0 / 1e-4; k++) { L.step(S, 1e-4); S.t += 1e-4; } return L.calc(S.P, S); };
+    const ok0 = go({}), low = go({ kp: 0.1, ki: 'off' }), noI = go({ ki: 'off' }); if (ok0.fault || ok0.ts == null) bad.push('the axis should settle at its defaults'); if (!low.fault) bad.push('Kp ×0.1 without I should stop with FE'); near('the 3D axis without I keeps 13.8', c13.eSS * 1e6, noI.e, 2e-2); if (noI.ts != null) bad.push('without I it never comes in position'); }
+  { let x = 1e-6, v = 0, t = 0, tFE = null, x15 = 0, x25 = 0; const h = 1e-6; for (let k = 1; k <= 0.03 / h; k++) { v += ((1200 - 20) * v + 2e5 * x) / 5 * h; x += v * h; t = k * h; if (tFE == null && x >= 5e-4) tFE = t; if (k === 15000) x15 = x; if (k === 25000) x25 = x; }
+    near('reversed encoder: growth rate, integrated', c13.rev, Math.log(x25 / x15) / 0.01, 5e-3); near('and the time to the limit', c13.PB3.t, tFE, 3e-2); if (!svSim({ encSign: -1 }).alarm) bad.push('the servo simulation with a reversed encoder should alarm'); }
+  near('aliasing', aliasF(9, 10), 1); near('above fs', aliasF(11, 10), 1); near('Kd for 5%', Math.exp(-Math.PI * c13.PB1.z / Math.sqrt(1 - c13.PB1.z ** 2)), 0.05, 1e-9);
+  /* the panel says what each window shows */
+  const AQ = Object.fromEntries(ANIMS.quad.params.map(p => [p[0], p[5]])), qs = ANIMS.quad.steps.map(f => f(AQ, ANIMS.quad.calc(AQ))).join(' '), sv = { Kp: SV.Kp, Kd: SV.Kd }, ss = ANIMS.servo.steps.map(f => f(sv, ANIMS.servo.calc(sv))).join(' ').replace(/<[^>]+>/g, '');
+  const shown = [['b11', ['1.00 µm', '62.5 kHz', '250.0 kHz'].filter(t => qs.replace(/<[^>]+>/g, '').includes(t))], ['b13', ['200.0 rad/s', '0.61', '32.8 ms'].filter(t => ss.includes(t))],
+    ['b10', ['3.00 A', '54.0 W', '72.0 W', '12.0 A', 'I = V/R = 10 A', '1.04 A', '10.7 V']], ['b11', [lf(brakeEngage('diode') * 1000, 1) + ' ms', lf(brakeEngage('var') * 1000, 1) + ' ms', '48 ספירות', '100 ms', '5.00 mm']],
+    ['b12', ['0.354 N·m', '0.177 N·m', '±25 µm', 'Clearance', 'Transition', 'Interference']], ['b13', ['1.0 kHz', '50 µm']]];
+  shown.forEach(([id, ts]) => ts.forEach(t => { if (!look(id).includes(t)) bad.push(id + ' panel lacks ' + t); }));
+  if (shown[0][1].length !== 3 || shown[1][1].length !== 3) bad.push('the animations show ' + shown[0][1] + ' / ' + shown[1][1]);
+  return bad; });
+ok(!NCc.length, 'Part C: every number recomputed from the physics and from the windows\' own models agrees, the motor start, the brake, the step response and the faulted servo agree with integration in time, and the panel quotes what each window shows (' + NCc.join(' | ') + ')');
 
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));

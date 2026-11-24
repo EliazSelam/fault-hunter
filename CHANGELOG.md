@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.76.0] — 2026-11-24
+
+Part C of the book is written as a textbook: chapters 10 to 13, motion from the motor to the closed loop, each read beside its topics' live windows.
+
+- **Chapter 10, motors**: the DC motor from the force on a wire and Faraday's law to the speed-torque line; power, efficiency and the maximum; the start, the mechanical time constant, why the starting current is high and why a start burns exactly the kinetic energy it gives; ★ the stepper, the induction motor and its slip, and the synchronous servo motor as a DC motor under field-oriented control. 17 equations.
+- **Chapter 11, the encoder and the brake**: two channels, counting by four and the direction from the order of the edges; speed from counts, its step at low speed, and noise counted as motion against a differential line; the holding brake, its closing time with a diode or a varistor, the fall of a vertical axis and the order of brake and torque; ★ sin/cos interpolation and its error, and the absolute encoder. 15 equations.
+- **Chapter 12, mechanics**: fits from the tolerance zones of ISO 286, the tolerance grades and the share of transition-fit pairs that need force; tolerance chains, worst case against root sum square; the ball screw, its torque, backlash and how it is measured, and the inertia the motor sees; ★ stiffness, thermal growth, preload and shrink fitting. 15 equations.
+- **Chapter 13, the control loop and the servo axis**: the carriage under PD control as a second-order system, its natural frequency, damping, overshoot and settling; the trapezoid profile, following error in acceleration, at speed and at rest, and saturation; the loop in discrete time, the delay of sampling and the digital filter; ★ feedforward, windup and the runaway of a reversed encoder. 15 equations.
+- The panel beside the text opens the 3D labs of the motor, the brake, the fits, the ball screw and the servo axis, and the animations of the encoder, the loop and aliasing.
+- Tests: the book suite recomputes Part C independently: the motor, brake, screw, fit and axis labs run with their own step or action, the start of a motor, the heat of a start and the time at a current limit integrated, the quadrature decoder driven through whole turns in both directions, the interpolation error swept, the step response integrated, the servo simulation run with and without I and with a reversed encoder, and every value the panel quotes compared with what the window shows (218 checks). A topic's page counts as in its chapter at the place it opens.
+
 ## [2.75.0] — 2026-11-24
 
 Part B of the book is written as a textbook: chapters 5, 7, 8 and 9 (chapter 6 was the pilot), each read beside its topics' live windows.

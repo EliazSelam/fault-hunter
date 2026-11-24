@@ -33,6 +33,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.73.0](#v2730) | 22 Nov 2026 | The world map as a second brain, and a chapter read beside its simulations | 3.95 MB |
 | [v2.74.0](#v2740) | 22 Nov 2026 | Part A as a textbook, each chapter beside its 3D labs | 4.04 MB |
 | [v2.75.0](#v2750) | 24 Nov 2026 | Part B as a textbook, a lab page read beside the text | 4.14 MB |
+| [v2.76.0](#v2760) | 24 Nov 2026 | Part C as a textbook: from the motor to the closed loop | 4.23 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -183,6 +184,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.75.0](milestones/v2.75.0.png)
 
 **What changed:** the second part of the book, chapters 5, 7, 8 and 9, written as a textbook: the relay from Ampère's law to its driver and its release, the proximity sensor and the instrument that loads what it measures, PT100, the bridge and the Hall sensor, the latch derived from its gates, counting, timing and metastability, the buck converter from the volt-second balance and the 24 V distribution down to a short in one branch. Each section reads beside its topic's live window: a 3D lab, the relay's interactive figure, an animation, the 24 V scene, or, new here, a lab page of the site in the panel's own frame.
+
+## v2.76.0
+![v2.76.0](milestones/v2.76.0.png)
+
+**What changed:** the third part of the book, chapters 10 to 13, written as a textbook: the DC motor from the force on a wire to its speed-torque line and its start, the stepper, induction and servo motors; the encoder counted by four and the holding brake with its closing time; fits, tolerance chains and the ball screw with its backlash; and the servo axis as a second-order system, its following error, the loop in discrete time and the runaway of a reversed encoder. Each section reads beside its 3D lab or animation: in the picture, the servo axis moving beside the derivation of its following error.
 
 ## From the first version to now, in numbers
 
