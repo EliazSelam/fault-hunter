@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.77.0] — 2026-11-25
+
+Part D of the book is written as a textbook: chapters 14 to 17, the optics, the trigger, the camera and the laser, each read beside its topics' live windows.
+
+- **Chapter 14, optics**: the numerical aperture, Rayleigh's resolution and the depth of field from the cone of light, the blur of a defocused point and the depth a pixel allows; tilt from two shims, the field it leaves sharp and the tilt a lens allows; a lens mount that grows with heat and the warming a mount can take; ★ the magnification error of a non-telecentric lens and the cutoff frequency. 15 equations.
+- **Chapter 15, the trigger and the strobe**: the line rate from the encoder, the stretch of an image triggered by a clock (a > 1 compresses, a < 1 stretches), the divider and its accumulator, the speed a camera allows; motion blur and the longest exposure; the strobe's duty, average power and the focus it keeps, and the overlap of a pulse with the exposure; ★ gray level, flat field, jitter, photon noise and dynamic range. 15 equations.
+- **Chapter 16, the camera, registration and fitting**: the pixel, the number of strips, the scan time and the seam; two fiducials giving offset, angle and scale, the error left without correction and the angle noise √2σ/D; the centroid and the pull of the background toward the middle of the window, least squares and the noise estimate; ★ the normal equations, the affine fit with four fiducials and the accuracy of a slope. 15 equations.
+- **Chapter 17, the laser and the scan head**: the Gaussian fluence, its peak from the pulse energy by integration, the crater's diameter, its depth and the diameter cut through the copper; the beam waist, the Rayleigh length, a dirty window and an aging source, the spots a bridge needs and the damage under them; the two mirrors and the f-theta lens, the spot, the field and the error of a mirror; ★ beam quality M² and the laser's depth of field. 17 equations.
+- The panel beside the text opens the 3D labs of the fiducials and of the scan head, the 3D scan simulation, the crater in 3D, the line-scan and laser figures and the optics animations, and the lens, tilt, thermal, line-scan, strobe, fiducial and laser benches.
+- The glossary's "pulse" covers a laser pulse as well as an electrical one, and chapter 16 no longer gets the meaning of tilt for the bias of a centroid.
+- Tests: the book suite recomputes Part D independently: each bench is rendered at the setting its line in the panel names and must show what the line says; the animations' own steps and the fiducial lab's own calc; the sharp share of a tilted field and the overlap of a strobe pulse sampled; the encoder divider's accumulator run; the fewest strips checked; the two-fiducial solution recovering a known pose, and its angle noise and a slope's accuracy by Monte Carlo; the centroid's background pull exactly; the Gaussian integrated back to the pulse energy; the crater swept radially; the coverage of a bridge checked point by point; and the spot position traced through the scan head's mirrors against f·2θ.
+
 ## [2.76.0] — 2026-11-24
 
 Part C of the book is written as a textbook: chapters 10 to 13, motion from the motor to the closed loop, each read beside its topics' live windows.

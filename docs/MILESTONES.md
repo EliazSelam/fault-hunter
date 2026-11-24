@@ -34,6 +34,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.74.0](#v2740) | 22 Nov 2026 | Part A as a textbook, each chapter beside its 3D labs | 4.04 MB |
 | [v2.75.0](#v2750) | 24 Nov 2026 | Part B as a textbook, a lab page read beside the text | 4.14 MB |
 | [v2.76.0](#v2760) | 24 Nov 2026 | Part C as a textbook: from the motor to the closed loop | 4.23 MB |
+| [v2.77.0](#v2770) | 25 Nov 2026 | Part D as a textbook: optics, the camera and the laser | 4.32 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -189,6 +190,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.76.0](milestones/v2.76.0.png)
 
 **What changed:** the third part of the book, chapters 10 to 13, written as a textbook: the DC motor from the force on a wire to its speed-torque line and its start, the stepper, induction and servo motors; the encoder counted by four and the holding brake with its closing time; fits, tolerance chains and the ball screw with its backlash; and the servo axis as a second-order system, its following error, the loop in discrete time and the runaway of a reversed encoder. Each section reads beside its 3D lab or animation: in the picture, the servo axis moving beside the derivation of its following error.
+
+## v2.77.0
+![v2.77.0](milestones/v2.77.0.png)
+
+**What changed:** the fourth part of the book, chapters 14 to 17, written as a textbook: the numerical aperture and the depth of field, tilt and a lens mount that grows with heat; the line rate from the encoder, motion blur and the strobe; the scan plan, registration from two fiducials, the centroid and least squares; and the laser from its Gaussian fluence to the crater, the spots a bridge needs and the scan head that steers the beam. Each section reads beside its live window: in the picture, the 3D scan head beside the derivation of its spot and its field.
 
 ## From the first version to now, in numbers
 

@@ -248,7 +248,7 @@ ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agre
 /* v2.75: every chapter written so (chapter 6, the pilot, is checked above), and the panel's first window is live: a 3D lab, a simulation, an
    animation, an interactive figure, a scene or a lab page; every 3D lab of the chapter's topics opens first in at least one panel */
 const TBIDS = await ev(() => Object.keys(TBOOK).filter(id => id !== 'b6'));
-ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13'].every(id => TBIDS.includes(id)), 'Parts A, B and C are written as a textbook (' + TBIDS + ')');
+ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13', 'b14', 'b15', 'b16', 'b17'].every(id => TBIDS.includes(id)), 'Parts A, B, C and D are written as a textbook (' + TBIDS + ')');
 for (const id of TBIDS) {
   await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
   const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
@@ -442,6 +442,76 @@ const NCc = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if 
   if (shown[0][1].length !== 3 || shown[1][1].length !== 3) bad.push('the animations show ' + shown[0][1] + ' / ' + shown[1][1]);
   return bad; });
 ok(!NCc.length, 'Part C: every number recomputed from the physics and from the windows\' own models agrees, the motor start, the brake, the step response and the faulted servo agree with integration in time, and the panel quotes what each window shows (' + NCc.join(' | ') + ')');
+
+/* v2.77: Part D. Each number again from the physics, from the windows' own models (the benches rendered at the setting the panel names, the
+   animations' own steps, the labs' own calc), and against a brute-force check where one exists: a sweep, a sampled overlap, a Monte Carlo, an integral. */
+const NDd = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  const bench = (id, s) => { const C = COMPONENTS.find(c => c.id === id), st = document.createElement('div'), out = document.createElement('div'); C.render(s, st, out); return out.textContent; };
+  const steps = id => { const A = ANIMS[id], P = Object.fromEntries(A.params.map(x => [x[0], x[5]])), V = A.calc(P); return A.steps.map(f => f(P, V)).join(' ').replace(/<[^>]+>/g, ''); };
+  const has = (k, txt, ts) => ts.forEach(t => { if (!txt.includes(t)) bad.push(k + ' lacks ' + t); });
+  let seed = 11; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }, gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-12, rnd()))) * Math.cos(2 * Math.PI * rnd());
+  /* chapter 14 */
+  const c14 = TBOOK.b14.check;
+  near('Rayleigh', c14.r, 0.61 * 0.5 / 0.2); near('Airy', c14.dA, 3.05); near('DOF', c14.dof, 12.5); near('defocus', c14.bD, 12); near('pixel limit', c14.zPix, 12.2); near('quadrature', c14.b30, Math.hypot(12, 3.05));
+  near('14.4 against the cone itself', c14.bD, 2 * 30 * Math.tan(Math.asin(0.2)), 3e-2);
+  near('tilt', c14.at.theta, 0.6); near('tilt edge', c14.at.edge, 9.6); { let k = 0; const n = 100000; for (let i = 0; i <= n; i++) if (Math.abs(0.6 * (-16 + 32 * i / n)) <= 4) k++; near('sharp fraction, sampled', c14.at.frac, k / (n + 1), 1e-2); }
+  near('θmax', c14.tb.thmax, 0.5 / (0.15 ** 2 * 32)); near('θmax at 0.25', c14.tb.thmax25, 0.25); near('thermal', c14.th.dL, 18.4); near('ΔTmax', c14.th.dTmax, 6.25 / 2.3);
+  near('telecentric', c14.tc.dx, 8); near('cutoff', c14.fc, 0.8); near('NA for a pixel', c14.PB1.NA, 0.0625); near('its DOF', c14.PB1.dof, 128);
+  near('two shims', c14.PB2.th, 0.4); near('edge', c14.PB2.edge, 33); if (!(c14.PB2.th > c14.PB2.thmax)) bad.push('problem 14.2 should be over its θmax');
+  near('Al budget', c14.PB3.al, 0.5 / (2 * 0.0625) / (23e-6 * 8e4)); near('granite', c14.E5, 4.5);
+  has('lens bench', bench('lens', { dz: 0, na: 0.2 }), ['3.0 µm', '12.5 µm', '1.52 µm']); has('lens bench at 30', bench('lens', { dz: 30, na: 0.2 }), ['12.4 µm']);
+  has('tilt bench', bench('tilt', { th: 0.6, fov: 32, na: 0.15 }), ['9.6 µm', '11.1 µm', '100%']); has('tilt bench at 0.25', bench('tilt', { th: 0.6, fov: 32, na: 0.25 }), ['4.0 µm']);
+  has('thermal bench', bench('thermal', { m: 'al', L: 100, dT: 8, na: 0.2 }), ['18.4 µm']); has('Invar', bench('thermal', { m: 'inv', L: 100, dT: 8, na: 0.2 }), ['1.0 µm']); has('steel', bench('thermal', { m: 'st', L: 100, dT: 8, na: 0.2 }), ['9.6 µm']);
+  has('NA animation', steps('na'), ['1.52 µm', '12.5 µm']); has('DOF animation', steps('dof'), ['12.0 µm', '12.2 µm']); has('tilt animation', steps('tilt'), ['0.60 mrad', '9.6 µm', f1(c14.at.frac * 100) + '%']);
+  has('b14 panel', look('b14'), ['1.52 µm', '12.5 µm', '3.0 µm', '12.4 µm', '0.60 mrad', '9.6 µm', '11.1 µm', '4.0 µm', '18.4 µm', '1.0 µm', '9.6 µm']);
+  /* chapter 15 */
+  const c15 = TBOOK.b15.check;
+  near('line rate', c15.LS.f, 20); near('blur', c15.LS.blur, 2.8); near('vmax', c15.LS.vmax, 280); near('clock aspect', c15.LS.a280, 2);
+  has('line-scan bench', bench('linescan', { v: 140, mode: 'enc', exp: 20 }), ['20.0 kHz', '1.00', '2.8 µm = 0.40 px']); has('over the camera', bench('linescan', { v: 300, mode: 'enc', exp: 20 }), ['Over-trigger']);
+  has('at the 15.6 limit', bench('linescan', { v: 140, mode: 'enc', exp: 25 }), ['3.5 µm = 0.50 px', 'תקין']); has('too long', bench('linescan', { v: 140, mode: 'enc', exp: 40 }), ['0.80 px', 'חשיפה ארוכה מדי']); has('clock', bench('linescan', { v: 280, mode: 'time', exp: 20 }), ['2.00']);
+  near('strobe duty', c15.st.duty, 0.2); near('strobe avg', c15.st.Pavg, 3); near('mount, flash', c15.st.zf, 23e-6 * 0.1 * 1.5 * 1e6); near('mount, continuous', c15.st.zc, 23e-6 * 0.1 * 7.5 * 1e6);
+  has('strobe animation', steps('strobe'), [f1(c15.st.duty * 100) + '%', f1(c15.st.Pavg, 1) + ' W', f1(c15.st.zf, 1) + ' µm', f1(c15.st.zc, 1) + ' µm']);
+  { let k = 0; const h = 1e-3; for (let t = 0; t < 50; t += h) if (t < 20 && t >= 2 && t < 17) k++; near('15.10, sampled', c15.SB.ov, k * h, 1e-3); }
+  has('strobe bench', bench('strobe', { mode: 'pulse', I: 5, pw: 15, dl: 2 }), ['15 µs', '15.0%', '3.0 W', '3.4 µm']); has('late pulse', bench('strobe', { mode: 'pulse', I: 5, pw: 15, dl: 20 }), [': 0 µs']);
+  { let acc = 0, prev = 0, sz = new Set(), tot = 0; for (let i = 1; i <= 1000; i++) { acc += c15.dv.k; const c = Math.floor(acc + 1e-9); sz.add(c - prev); tot += c - prev; prev = c; } near('the DDA averages 15.3', tot / 1000, 48.8, 1e-3); if ([...sz].sort().join() !== '48,49') bad.push('the divider steps ' + [...sz]); }
+  near('jitter', c15.jit.dx, 0.0125); near('SNR', c15.sn.snr, Math.sqrt(2e4)); near('DR', c15.sn.dr, 60); near('vmax 15.1', c15.PB1.vmax, 244); near('clock stretch', c15.PB2.len, 1.4);
+  near('flash at 20 kHz', c15.PB3.dz, 23e-6 * 1e5 * 0.5 * 3.2); if (!(c15.PB3.dz < c15.PB3.half && c15.PB3.dzc > c15.PB3.half)) bad.push('problem 15.3: the flash should be inside the DOF and the continuous light outside');
+  has('b15 panel', look('b15'), ['20.0 kHz', '2.8 µm = 0.40 px', '3.5 µm = 0.50 px', '0.80 px', '20.0%', '3.0 W', '15.0%']);
+  /* chapter 16 */
+  const c16 = TBOOK.b16.check;
+  near('strips', c16.sp.N, 14); near('scan time', c16.sp.time, 14 * 610 / 250 + 13 * 0.4); near('seam', c16.sp.gap, 1); near('no seam at 3 mm', c16.sp3.gap, 0); near('same strips', c16.sp3.N, 14); near('30 mm field', c16.sp30.N, 19);
+  [c16.sp, c16.sp3, c16.sp30].forEach((q, i) => { const fov = q.step + [2, 3, 3][i]; if (!(fov + (q.N - 1) * q.step >= 510 && fov + (q.N - 2) * q.step < 510)) bad.push('16.2 is not the fewest strips for ' + fov); });
+  { const e = 1e-4, th = 1.5e-4, p = [250, 200], q = [(1 + e) * (p[0] * Math.cos(th) - p[1] * Math.sin(th)), (1 + e) * (p[0] * Math.sin(th) + p[1] * Math.cos(th))]; near('16.7 against the transform', c16.fe.e, Math.hypot(q[0] - p[0], q[1] - p[1]) * 1000, 1e-3); }
+  { const o = { th: 0.003, s: 1 + 2e-4, dx: 1.2, dy: -0.7 }, D = 400, sol = regSolve(D, regPose(o, [-D / 2, 0]), regPose(o, [D / 2, 0])), Q = REG3.Q, a = sol.map(Q), b = regPose(o, Q);
+    near('16.6 angle', sol.th, o.th, 1e-9); near('16.6 scale', sol.s, o.s, 1e-12); near('16.6 offset', sol.d[0], o.dx, 1e-9); near('the pad', Math.hypot(a[0] - b[0], a[1] - b[1]), 0, 1e-9); }
+  { const D = 400, sg = 5e-3, n = 6000; let s1 = 0, s2 = 0; for (let k = 0; k < n; k++) { const t = regSolve(D, [-D / 2 + sg * gauss(), sg * gauss()], [D / 2 + sg * gauss(), sg * gauss()]).th; s1 += t; s2 += t * t; } near('16.8, Monte Carlo', c16.dth4, Math.sqrt(s2 / n - (s1 / n) ** 2), 4e-2); }
+  { const L = LABS.fiducials, S = { x: {}, P: Object.assign({}, L.P), t: 0 }; L.init(S); near('the lab\'s own √2σ/D', L.calc(S.P, S).dth, c16.dth4); }
+  near('pad from the angle', c16.PB2.e, c16.dth4 * Math.hypot(150, 120) * 1e3);
+  near('16.10 exactly', c16.ac.raw, (4 * c16.ac.B + c16.ac.sub * c16.ac.S) / (c16.ac.B + c16.ac.S), 1e-12); if (!(Math.abs(c16.ac.sub - c16.ac.c) < 2e-3)) bad.push('the subtracted centroid ' + c16.ac.sub); if (!(c16.ac.raw40 < c16.ac.raw)) bad.push('more background pulls harder');
+  { const x = c16.al.xs, y = c16.al.ys, n = x.length, Sx = x.reduce((a, b) => a + b), Sy = y.reduce((a, b) => a + b), Sxy = x.reduce((a, v, i) => a + v * y[i], 0), Sxx = x.reduce((a, v) => a + v * v, 0), a = (n * Sxy - Sx * Sy) / (n * Sxx - Sx * Sx), b = (Sy - a * Sx) / n;
+    near('16.13 slope', a, c16.al.a, 1e-9); near('16.13 intercept', b, c16.al.b, 1e-9); near('16.12', c16.al.sh, Math.sqrt(c16.al.S / (n - 2)), 1e-9); }
+  { const mc = n => { const x = Array.from({ length: n }, (_, i) => 10 * i / (n - 1)), xm = 5, Sxx = x.reduce((a, v) => a + (v - xm) ** 2, 0); let s1 = 0, s2 = 0; const K = 4000; for (let k = 0; k < K; k++) { let sxy = 0; x.forEach(v => { sxy += (v - xm) * (0.8 * v + 2 + gauss()); }); const a = sxy / Sxx; s1 += a; s2 += a * a; } return [Math.sqrt(s2 / K - (s1 / K) ** 2), 1 / Math.sqrt(Sxx)]; };
+    const m8 = mc(8), m32 = mc(32); near('16.15, Monte Carlo', m8[0], m8[1], 5e-2); const r = m8[1] / m32[1]; if (!(r > 1.7 && r < 2)) bad.push('four times the points: ' + r); }
+  has('fiducial bench', bench('fid', { ppm: 100, urad: 150, sig: 1, mode: 'none' }), [fmt(c16.FCn, 1) + ' µm']); has('affine', bench('fid', { ppm: 100, urad: 150, sig: 1, mode: 'affine' }), ['2.7 µm', '1.4 µm']);
+  has('centroid animation', steps('centroid'), [c16.ac.raw.toFixed(3), c16.ac.sub.toFixed(3)]); has('lsq animation', steps('lsq'), [c16.al.a.toFixed(3), c16.al.b.toFixed(3), c16.al.S.toFixed(2), c16.al.sh.toFixed(2)]);
+  has('b16 panel', look('b16'), ['38.00 mm', '39.4 s', '1.00 mm', '4.88 µm', lf(c16.dth4 * 1e6, 1) + ' µrad', '2.7 µm', '1.4 µm', c16.ac.raw.toFixed(3), c16.al.a.toFixed(3)]);
+  /* chapter 17 */
+  const c17 = TBOOK.b17.check, w = 6;
+  near('17.2', c17.L0.F0, 2 * 4e-6 / (Math.PI * (w * 1e-4) ** 2)); { let E = 0; const dr = 1e-3; for (let r = dr / 2; r < 40; r += dr) E += c17.L0.F0 * Math.exp(-2 * r * r / (w * w)) * 2 * Math.PI * r * dr; near('17.2, integrated', E * 1e-8 * 1e6, 4, 1e-5); }
+  { let rD = 0, rC = 0; for (let r = 0; r < 20; r += 1e-4) { const F = c17.L0.F0 * Math.exp(-2 * r * r / (w * w)); if (F > 1.5) rD = r; if (10 * 0.4 * Math.log(F / 1.5) >= 5) rC = r; } near('17.3, swept', c17.L0.D, 2 * rD, 1e-3); near('17.5, swept', c17.L0.Dc, 2 * rC, 1e-3); }
+  near('17.4', c17.L0.depth, 10 * 0.4 * Math.log(c17.L0.F0 / 1.5)); near('Rayleigh', LZ.zr, Math.PI * 36 / 0.355); near('17.6', c17.Lz.w, 6 * Math.sqrt(1 + (320 / LZ.zr) ** 2)); near('dirty', c17.Ld.Ee, 2.4);
+  near('one spot for the bridge', laserCalc(c17.PB1.E, 0, 10, 'none').Dc, 10, 1e-6); near('17.10 is the center depth past the copper', c17.PB1.dmg5, c17.L5.depth - 5, 1e-9);
+  { const Dc = c17.L5.Dc, n = c17.PB1.c5.n, cov = k => { if (k < 2) return Dc >= 10; const c = Array.from({ length: k }, (_, i) => Dc / 2 + i * (10 - Dc) / (k - 1)); for (let x = 0; x <= 10; x += 1e-3) if (!c.some(q => Math.abs(x - q) <= Dc / 2 + 1e-9)) return false; return true; };
+    if (!(cov(n) && !cov(n - 1))) bad.push('17.9: ' + n + ' spots is not the fewest that cover'); }
+  near('compensated', c17.PB2.D, c17.L0.D, 1e-9); near('mirror drift', c17.PB3.dx, 4);
+  near('spot', c17.sh.w0, 2 * 0.355e-3 * 100 / (Math.PI * 3.75) * 1e3); near('field', c17.sh.field, 2 * 100 * 2 * 7.2 * Math.PI / 180); [1, 3, 5, 7].forEach(a => near('17.12 in the traced head at ' + a + '°', shTrace(a, 0).mm[0], 100 * 2 * a * Math.PI / 180, 1e-6));
+  near('2 µJ', c17.E1, 3.5368, 1e-4); near('5°', c17.E3, 17.4533, 1e-4); near('at zR', c17.E4.F0, c17.L0.F0 / 2, 1e-9);
+  has('crater animation', steps('crater'), ['7.07 J/cm²', '10.6 µm', '6.2 µm', '4.7 µm']);
+  has('laser bench, dirty', bench('laser', { E: 4, dz: 0, N: 10, fault: 'dirty' }), ['2.40 µJ', '4.24 J/cm²', '8.7 µm']); has('laser bench, defocus', bench('laser', { E: 4, dz: 320, N: 10, fault: 'none' }), ['8.50 µm', '11.1 µm', '3.4 µm']);
+  has('b17 panel', look('b17'), ['7.07 J/cm²', '10.6 µm', '4.7 µm', '2.40 µJ', '4.24 J/cm²', '8.7 µm', '8.50 µm', '6.0 µm', '50.3 mm', '14.0 mm']);
+  return bad; });
+ok(!NDd.length, 'Part D: every number recomputed from the physics and from the windows\' own models agrees, the benches show what the panel says at the setting it names, and the sweeps, sampled overlaps, Monte Carlo runs and the integral agree (' + NDd.join(' | ') + ')');
 
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));
