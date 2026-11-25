@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.83.0] — 2026-11-25
+
+The appendices are on the world map with their real links. Digital logic, measurement, statistics and reliability are not parts of the machine, so the machine's tree leaves them out; until now that also cut them off the map, and digital logic and statistics had no link at all.
+
+- A sixth kind of link, "leans on an appendix", from the relations the topics already declare: the trigger, the I/O cards and serial communication lean on digital logic (dividers, counters, shift registers); bring-up and ATP on measurement and statistics; the I/O cards on measurement; safety on reliability; statistics on measurement.
+- The map draws them as a dashed brown line, they can be switched off like the other kinds, and the map's text view lists them for each topic.
+- Tests: the zoom suite checks that every such relation is a line on the map and stays out of the machine's parts, and that no topic is left without a link.
+
 ## [2.82.0] — 2026-11-25
 
 The numbers in the panels beside the chapters set their simulations: an instruction such as "set 12 V and 470 Ω" or "raise the load to 0.60 N·m" is now a button, and pressing it puts the simulation in the panel at those values.

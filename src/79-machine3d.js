@@ -3,6 +3,8 @@
    Every part is a zoom node; clicking it flies to the part and opens its windows, simulations first, theory after.
    Topics that are not part of the machine are appendices. */
 /* appendices leave the machine tree: they are no longer parts of anything */
+/* an appendix is not a part of the machine, so it leaves the parts lists; but which topic leans on which appendix is kept, for the map (v2.83) */
+const ZAPPX_USE = ZOOM.flatMap(n => n.parts.filter(p => ZAPPX.has(p)).map(p => [n.id, p]));
 ZOOM.forEach(n => { n.parts = n.parts.filter(p => !ZAPPX.has(p)); });
 const MPARTS = [
   /* id, node, name, boxes [x0,x1,y0,y1,z0,z1,colour], explode direction */

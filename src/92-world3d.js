@@ -7,7 +7,7 @@
    keeps only the chosen topic and its neighbours. Colour is the part of the book, fill is how much of the topic was opened, and a ring
    pulses on the next topic in the book's order. Drawn as SVG projected from 3D, so every node is a real focusable button.
    Two more views of the same data: a collapsible index and a full text specification. */
-const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה'], ['central', 'נושא מרכזי משותף', 'כיול, רעש, חום או חקר כשל עוברים דרך שניהם, בסדר הטיפוסי']];
+const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה'], ['central', 'נושא מרכזי משותף', 'כיול, רעש, חום או חקר כשל עוברים דרך שניהם, בסדר הטיפוסי'], ['uses', 'נשען על נספח', 'הנושא משתמש בכלים של נספח: לוגיקה ספרתית, מדידה, סטטיסטיקה או אמינות']];
 const zTopicNode = tid => ZOOM.find(n => zWindows(n).some(w => w.startsWith('t:' + tid + ':'))) || null;
 function zRouteNode(r) {
   if (r.startsWith('topic/')) return zTopicNode(r.slice(6));
@@ -23,6 +23,8 @@ function zLinks() {
     (Array.isArray(T.integ) && Array.isArray(T.integ[4]) ? T.integ[4] : []).forEach(x => { const m = zTopicNode(x); if (m) add(n.id, m.id, 'works'); });
     [...JSON.stringify(T.faults).matchAll(/"go":"([^"]+)"/g)].forEach(m => { const q = zRouteNode(m[1]); if (q) add(n.id, q.id, 'fault'); });
     (((typeof SUBJECTS !== 'undefined' && SUBJECTS[T.id]) || {}).pages || []).forEach(pg => { const q = zRouteNode(pg[0]); if (q) add(n.id, q.id, 'page'); }); });
+  /* the appendices each topic leans on (kept when 79-machine3d takes them out of the parts lists) */
+  (typeof ZAPPX_USE !== 'undefined' ? ZAPPX_USE : []).forEach(([a, b]) => add(a, b, 'uses'));
   /* the central subjects (93-path.js): each item's topics are linked, and each item to the next one in the subject's order */
   (typeof PCENTRAL !== 'undefined' ? PCENTRAL : []).forEach(C => C.items.forEach((it, i) => { it.nodes.slice(1).forEach(x => add(it.nodes[0], x, 'central')); const nx = C.items[i + 1]; if (nx) add(it.nodes[0], nx.nodes[0], 'central'); }));
   return (ZLINKS = out);
@@ -32,7 +34,7 @@ function zWorldSpec() {
   const ctxT = { AOI: 'AOI בלבד', AOS: 'AOS בלבד', SHARED: 'משותף לשתי המכונות' }, out = ['# מפת הנושאים: מהרכיב למכונה', '', `> ${ZOOM.length} נושאים ב-5 רמות · ${L.length} קשרים: ${ZLINK_KINDS.map(([k, t]) => `${t} ${L.filter(e => e.k === k).length}`).join(' · ')}`, '> בכל רמה, הנושאים בנויים מהנושאים שברמה שמתחתיה.', ''];
   [5, 4, 3, 2, 1].forEach(l => { const ts = ZOOM.filter(z => z.level === l); out.push(`## רמה ${l}: ${zLevelName(l)} (${ts.length} נושאים)`, '');
     ts.forEach(t => { const ws = zWindows(t), by = HUBS.map(h => [h[1], ws.filter(w => hubOf(w) === h[0]).length]).filter(x => x[1]); out.push(`### ${t.t}${ZAPPX.has(t.id) ? ' (נספח)' : ''}`, `- הקשר: ${ctxT[zCtx(t.id)]}`);
-      const row = (label, list) => { if (list.length) out.push(`- ${label}: ${list.join(', ')}`); }; row('בנוי מ', of(t.id, 'made', 'out')); row('חלק מ', of(t.id, 'made', 'in')); row('עובד יחד עם', of(t.id, 'works')); row('תקלה כאן מובילה אל', of(t.id, 'fault', 'out')); row('תקלה שם מובילה לכאן', of(t.id, 'fault', 'in')); row('נלמד גם דרך', of(t.id, 'page', 'out')); row('מסביר גם את', of(t.id, 'page', 'in'));
+      const row = (label, list) => { if (list.length) out.push(`- ${label}: ${list.join(', ')}`); }; row('בנוי מ', of(t.id, 'made', 'out')); row('חלק מ', of(t.id, 'made', 'in')); row('עובד יחד עם', of(t.id, 'works')); row('תקלה כאן מובילה אל', of(t.id, 'fault', 'out')); row('תקלה שם מובילה לכאן', of(t.id, 'fault', 'in')); row('נלמד גם דרך', of(t.id, 'page', 'out')); row('מסביר גם את', of(t.id, 'page', 'in')); row('נשען על נספח', of(t.id, 'uses', 'out')); row('נספח שמשמש את', of(t.id, 'uses', 'in'));
       out.push(`- חלונות: ${ws.length} (${by.map(([n, c]) => `${n} ${c}`).join(' · ')})`, ''); }); });
   return out.join('\n');
 }

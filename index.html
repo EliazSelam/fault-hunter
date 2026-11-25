@@ -533,7 +533,7 @@ canvas.mgl{position:absolute;top:0;left:0;pointer-events:none}canvas.mtop{positi
 .mrunhud{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:2;max-width:92%;padding:7px 16px;border-radius:999px;background:rgba(238,233,224,.94);border:1px solid rgba(27,47,90,.3);color:#1B2F5A;font-size:13.5px;font-weight:600;box-shadow:0 6px 20px rgba(13,24,48,.35);text-align:center}.mbar #mRun{background:var(--live);color:#fff;border-color:var(--live);font-weight:700}.mbar #mRun[hidden]{display:none}
 .wviews{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:var(--tint);margin:4px 0 12px}.wviews button{font:inherit;font-size:14px;padding:7px 16px;border-radius:999px;border:0;background:transparent;color:var(--ink);cursor:pointer}.wviews button[aria-selected="true"]{background:var(--ink);color:var(--sheet);font-weight:700}
 .wkinds button,.wtools #wRot,.wtools #wNames,.wtools #wHome{font:inherit;font-size:13px;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);cursor:pointer}.wkinds button[aria-pressed="false"]{opacity:.45}.wtools [aria-pressed="true"]#wRot,.wtools [aria-pressed="true"]#wNames{background:var(--ink);color:var(--sheet)}
-.wkinds i{display:inline-block;width:22px;height:0;border-top:2px solid #4A4540;margin-inline-end:6px;vertical-align:middle}.wkinds i.wk-works{border-top:2px dashed #3078B0}.wkinds i.wk-fault{border-top-color:#7B5A3C}.wkinds i.wk-page{border-top:2px dotted #4A4540}.wkinds i.wk-central{border-top:3px dotted #3078B0}
+.wkinds i{display:inline-block;width:22px;height:0;border-top:2px solid #4A4540;margin-inline-end:6px;vertical-align:middle}.wkinds i.wk-works{border-top:2px dashed #3078B0}.wkinds i.wk-fault{border-top-color:#7B5A3C}.wkinds i.wk-page{border-top:2px dotted #4A4540}.wkinds i.wk-central{border-top:3px dotted #3078B0}.wkinds i.wk-uses{border-top:2px dashed #7B5A3C}
 .wlist details{border:1px solid var(--line);border-radius:14px;padding:8px 14px;margin:8px 0;background:var(--sheet)}.wlist summary{cursor:pointer;font-weight:700;color:var(--ink)}.wlist summary small,.wlist li small{font-weight:400;color:var(--muted)}.wlist ul{margin:8px 0 4px;padding-inline-start:18px}.wlist li{margin:8px 0}.wlist .wtop{font-weight:700}.wrow{font-size:13.5px;margin:2px 0}.wrow span{color:var(--muted)}
 .wspec{white-space:pre-wrap;font-size:13px;line-height:1.6;background:var(--tint);border-radius:14px;padding:14px 18px;max-height:70vh;overflow:auto;text-align:right;border-inline-start:4px solid var(--live)}.wsize::before{display:none!important}
 footer{color:var(--muted);font-size:13px;margin-top:18px;padding:0 4px}
@@ -709,7 +709,7 @@ bdi.nw{white-space:nowrap}
 .wb .wmap.dim .wcity:not(.nb):not(.hot):not(.sel) text{opacity:0}.wb .wmap.dim .wcity.sel{opacity:1}
 .wb .wnext{fill:none;stroke:var(--live);stroke-width:2;animation:wpulse 2s ease-out infinite;transform-box:fill-box;transform-origin:center;pointer-events:none}
 @keyframes wpulse{0%{opacity:.9;transform:scale(.85)}100%{opacity:0;transform:scale(1.7)}}
-.wb .wedges line{stroke:var(--muted);stroke-opacity:var(--o,.3);stroke-width:1}.wb .wedges line.wk-works{stroke:#3078B0;stroke-dasharray:6 4}.wb .wedges line.wk-fault{stroke:#7B5A3C}.wb .wedges line.wk-page{stroke-dasharray:2 4}.wb .wedges line.wk-central{stroke:#3078B0;stroke-width:2;stroke-dasharray:.1 5;stroke-linecap:round}
+.wb .wedges line{stroke:var(--muted);stroke-opacity:var(--o,.3);stroke-width:1}.wb .wedges line.wk-works{stroke:#3078B0;stroke-dasharray:6 4}.wb .wedges line.wk-fault{stroke:#7B5A3C}.wb .wedges line.wk-page{stroke-dasharray:2 4}.wb .wedges line.wk-central{stroke:#3078B0;stroke-width:2;stroke-dasharray:.1 5;stroke-linecap:round}.wb .wedges line.wk-uses{stroke:#7B5A3C;stroke-dasharray:5 3}
 .wb .wmap.dim .wedges line{stroke-opacity:.04}.wb .wmap.dim .wedges line.hot{stroke-opacity:.9;stroke-width:1.8}
 .wb .wcity.far,.wb .wedges line.far{display:none}
 .wb .wfloor{fill:var(--tint);fill-opacity:.4;stroke:var(--line);stroke-dasharray:3 6;pointer-events:none}.wb .wfloor.f2{fill:none}
@@ -11504,6 +11504,8 @@ WIN.add({ id: 'formk', test: w => /^f:/.test(w), info: w => ({ kind: 'formulas',
    Every part is a zoom node; clicking it flies to the part and opens its windows, simulations first, theory after.
    Topics that are not part of the machine are appendices. */
 /* appendices leave the machine tree: they are no longer parts of anything */
+/* an appendix is not a part of the machine, so it leaves the parts lists; but which topic leans on which appendix is kept, for the map (v2.83) */
+const ZAPPX_USE = ZOOM.flatMap(n => n.parts.filter(p => ZAPPX.has(p)).map(p => [n.id, p]));
 ZOOM.forEach(n => { n.parts = n.parts.filter(p => !ZAPPX.has(p)); });
 const MPARTS = [
   /* id, node, name, boxes [x0,x1,y0,y1,z0,z1,colour], explode direction */
@@ -13514,7 +13516,7 @@ GO_BEFORE.push(mFaultClose);
    keeps only the chosen topic and its neighbours. Colour is the part of the book, fill is how much of the topic was opened, and a ring
    pulses on the next topic in the book's order. Drawn as SVG projected from 3D, so every node is a real focusable button.
    Two more views of the same data: a collapsible index and a full text specification. */
-const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה'], ['central', 'נושא מרכזי משותף', 'כיול, רעש, חום או חקר כשל עוברים דרך שניהם, בסדר הטיפוסי']];
+const ZLINK_KINDS = [['made', 'בנוי מ', 'קו מלא'], ['works', 'עובדים יחד', 'שאלת אינטגרציה קושרת ביניהם'], ['fault', 'תקלה כאן מובילה לשם', 'עץ תקלות שמפנה לנושא האחר'], ['page', 'נלמד גם דרך', 'עמוד של הנושא האחר שמסביר את זה'], ['central', 'נושא מרכזי משותף', 'כיול, רעש, חום או חקר כשל עוברים דרך שניהם, בסדר הטיפוסי'], ['uses', 'נשען על נספח', 'הנושא משתמש בכלים של נספח: לוגיקה ספרתית, מדידה, סטטיסטיקה או אמינות']];
 const zTopicNode = tid => ZOOM.find(n => zWindows(n).some(w => w.startsWith('t:' + tid + ':'))) || null;
 function zRouteNode(r) {
   if (r.startsWith('topic/')) return zTopicNode(r.slice(6));
@@ -13530,6 +13532,8 @@ function zLinks() {
     (Array.isArray(T.integ) && Array.isArray(T.integ[4]) ? T.integ[4] : []).forEach(x => { const m = zTopicNode(x); if (m) add(n.id, m.id, 'works'); });
     [...JSON.stringify(T.faults).matchAll(/"go":"([^"]+)"/g)].forEach(m => { const q = zRouteNode(m[1]); if (q) add(n.id, q.id, 'fault'); });
     (((typeof SUBJECTS !== 'undefined' && SUBJECTS[T.id]) || {}).pages || []).forEach(pg => { const q = zRouteNode(pg[0]); if (q) add(n.id, q.id, 'page'); }); });
+  /* the appendices each topic leans on (kept when 79-machine3d takes them out of the parts lists) */
+  (typeof ZAPPX_USE !== 'undefined' ? ZAPPX_USE : []).forEach(([a, b]) => add(a, b, 'uses'));
   /* the central subjects (93-path.js): each item's topics are linked, and each item to the next one in the subject's order */
   (typeof PCENTRAL !== 'undefined' ? PCENTRAL : []).forEach(C => C.items.forEach((it, i) => { it.nodes.slice(1).forEach(x => add(it.nodes[0], x, 'central')); const nx = C.items[i + 1]; if (nx) add(it.nodes[0], nx.nodes[0], 'central'); }));
   return (ZLINKS = out);
@@ -13539,7 +13543,7 @@ function zWorldSpec() {
   const ctxT = { AOI: 'AOI בלבד', AOS: 'AOS בלבד', SHARED: 'משותף לשתי המכונות' }, out = ['# מפת הנושאים: מהרכיב למכונה', '', `> ${ZOOM.length} נושאים ב-5 רמות · ${L.length} קשרים: ${ZLINK_KINDS.map(([k, t]) => `${t} ${L.filter(e => e.k === k).length}`).join(' · ')}`, '> בכל רמה, הנושאים בנויים מהנושאים שברמה שמתחתיה.', ''];
   [5, 4, 3, 2, 1].forEach(l => { const ts = ZOOM.filter(z => z.level === l); out.push(`## רמה ${l}: ${zLevelName(l)} (${ts.length} נושאים)`, '');
     ts.forEach(t => { const ws = zWindows(t), by = HUBS.map(h => [h[1], ws.filter(w => hubOf(w) === h[0]).length]).filter(x => x[1]); out.push(`### ${t.t}${ZAPPX.has(t.id) ? ' (נספח)' : ''}`, `- הקשר: ${ctxT[zCtx(t.id)]}`);
-      const row = (label, list) => { if (list.length) out.push(`- ${label}: ${list.join(', ')}`); }; row('בנוי מ', of(t.id, 'made', 'out')); row('חלק מ', of(t.id, 'made', 'in')); row('עובד יחד עם', of(t.id, 'works')); row('תקלה כאן מובילה אל', of(t.id, 'fault', 'out')); row('תקלה שם מובילה לכאן', of(t.id, 'fault', 'in')); row('נלמד גם דרך', of(t.id, 'page', 'out')); row('מסביר גם את', of(t.id, 'page', 'in'));
+      const row = (label, list) => { if (list.length) out.push(`- ${label}: ${list.join(', ')}`); }; row('בנוי מ', of(t.id, 'made', 'out')); row('חלק מ', of(t.id, 'made', 'in')); row('עובד יחד עם', of(t.id, 'works')); row('תקלה כאן מובילה אל', of(t.id, 'fault', 'out')); row('תקלה שם מובילה לכאן', of(t.id, 'fault', 'in')); row('נלמד גם דרך', of(t.id, 'page', 'out')); row('מסביר גם את', of(t.id, 'page', 'in')); row('נשען על נספח', of(t.id, 'uses', 'out')); row('נספח שמשמש את', of(t.id, 'uses', 'in'));
       out.push(`- חלונות: ${ws.length} (${by.map(([n, c]) => `${n} ${c}`).join(' · ')})`, ''); }); });
   return out.join('\n');
 }
@@ -20713,7 +20717,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.82.0';
+const APP_VERSION = '2.83.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

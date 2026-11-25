@@ -40,6 +40,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.80.0](#v2800) | 25 Nov 2026 | Serial links animated: UART, I2C, SPI and CAN | 4.54 MB |
 | [v2.81.0](#v2810) | 25 Nov 2026 | Image processing in depth: equalization, sharpening, median, Canny, Harris, k-means | 4.60 MB |
 | [v2.82.0](#v2820) | 25 Nov 2026 | Numbers in the panels set their simulations: 139 buttons | 4.61 MB |
+| [v2.83.0](#v2830) | 25 Nov 2026 | The appendices linked on the world map: no topic without a link | 4.61 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -225,6 +226,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.82.0](milestones/v2.82.0.png)
 
 **What changed:** an instruction in the panel beside a chapter, such as "set 12 V and 470 Ω", is a button that sets the simulation to those values: 139 of them, in 3D labs, animations, benches and system simulations. In the picture, chapter 1 with the resistor lab, just after pressing "back to 12 V".
+
+## v2.83.0
+![v2.83.0](milestones/v2.83.0.png)
+
+**What changed:** digital logic, measurement, statistics and reliability are appendices, out of the machine's tree, and that had cut them off the world map. Now they are linked to the topics that lean on them, with a link kind of their own, and no topic is left without a link. In the picture, digital logic lit up with the trigger, the I/O cards and serial communication.
 
 ## From the first version to now, in numbers
 
