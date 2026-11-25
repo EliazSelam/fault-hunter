@@ -37,6 +37,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.77.0](#v2770) | 25 Nov 2026 | Part D as a textbook: optics, the camera and the laser | 4.32 MB |
 | [v2.78.0](#v2780) | 25 Nov 2026 | Parts E to G as a textbook: from the vacuum table to the production line | 4.44 MB |
 | [v2.79.0](#v2790) | 25 Nov 2026 | Part H as a textbook: calibration, noise, heat and failure analysis | 4.52 MB |
+| [v2.80.0](#v2800) | 25 Nov 2026 | Serial links animated: UART, I2C, SPI and CAN | 4.54 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -207,6 +208,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.79.0](milestones/v2.79.0.png)
 
 **What changed:** the last part of the book, the four central chapters, written as a textbook: calibration from the reference to the laser's spot measured in craters; noise from a shared return to CMRR; heat from a half-on MOSFET to thermal runaway; and failure analysis from the meter that loads the circuit to Bayes and the rule of three. With this, every chapter but the final exam is a textbook chapter. In the picture, the 3D MOSFET beside the derivation of the power it burns.
+
+## v2.80.0
+![v2.80.0](milestones/v2.80.0.png)
+
+**What changed:** the serial links animated step by step: a UART frame from START to STOP, an I2C transaction with its address, ACK and STOP, an SPI exchange in its four modes, and CAN arbitration with bit stuffing, each with its own numbers, in the serial topic and in the panel beside chapter 20. In the picture, the I2C animation at the ninth clock, where the device at 0x48 answers ACK, beside the section on UART and the other three buses.
 
 ## From the first version to now, in numbers
 

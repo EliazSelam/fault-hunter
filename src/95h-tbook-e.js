@@ -234,6 +234,7 @@
   const ec = ecatCalc(), ecx = ecatCalc({ bytes: 10500 }), ec2 = ecatCalc({ bytes: 10500, Tcyc: 2e-3 }), Bmax = (0.8 * EC.Tcyc - ec.n * EC.tNode) * EC.rate / 8 - EC.hdr - ec.data; const AF = tbAnimP('frame'), af = ANIMS.frame.calc(AF);
   const i2c = { R: 4700, C: 100e-12 }; i2c.tr = 0.8473 * i2c.R * i2c.C * 1e9; i2c.Rmax = 300e-9 / (0.8473 * i2c.C); i2c.Rmin = (3.3 - 0.4) / 3e-3;
   const PB2 = { tot: u115.err - 0.02 }; const PB3 = { tf2: ec2.util };
+  const uf = ANIMS.uartf.calc(tbAnimP('uartf')), ufe = ANIMS.uartf.calc(Object.assign(tbAnimP('uartf'), { par: 1 })), ufr = uf.d.reduce((a, b, i) => a + (b << (7 - i)), 0), i2 = { addr: tbAnimP('i2c').addr }; i2.v = ANIMS.i2c.calc(tbAnimP('i2c')); const cn = ANIMS.can.calc(tbAnimP('can'));
   const E1 = (20 - IO3.Vf) / IO3.R * 1000, E2 = (8 - 4) / 16 * 10, E3 = 1e6 / 9600, E4 = 0.5 / 10.5 * 100;
 
   const sections = [
@@ -264,9 +265,10 @@
       <p>הבקר מייצר את הקצב מחלוקה שלמה של השעון שלו, עם דגימה פי 16:</p>
       ${tbEq('20.9', 'UBRR = f<sub>clk</sub> / (16 · f<sub>baud</sub>) − 1   ,   f<sub>act</sub> = f<sub>clk</sub> / (16 · (UBRR + 1))')}
       <p><b>פרשנות.</b> Δ<sub>max</sub> הוא התקציב של שני הצדדים יחד: שגיאה של צד אחד ועוד שגיאה הפוכה של השני. קצב שלא מתחלק יפה בשעון נותן שגיאות framing רק לפעמים, רק עם מכשיר מסוים, וזו התקלה הקשה ביותר למצוא.</p>
+      <p><b>שלושת האחרים.</b> I2C ו-SPI פותרים את בעיית השעון בחוט שעון משותף, ולכן אין להם סבלנות קצב. ב-I2C שני חוטים: כתובת לכל רכיב, ו-ACK אחרי כל בייט. ב-SPI ארבעה חוטים: שני אוגרים שמתחלפים בכל פעימה, ו-CS לכל רכיב. CAN נשאר בלי שעון, ומתמודד עם 20.8 בכך שהוא מסתנכרן מחדש על כל קצה. לכן אחרי חמישה ביטים זהים הוא מוסיף ביט הפוך, ביט מילוי. והקו שלו הוא AND, כך שהמזהה הנמוך ביותר מנצח בלי שאף הודעה נהרסת.</p>
       <div class="tb-ex"><p class="tb-exh">דוגמה 20.2</p><p>ב-<bdi>${ub.f}</bdi>, לפי 20.6: <bdi>t<sub>bit</sub> = ${tbN(ub.tb, 2)} µs</bdi>, ומסגרת של 10 ביטים <bdi>${tbN(ub.Tf, 1)} µs</bdi>. לפי 20.7: <bdi>η = 80%</bdi>. לפי 20.8: <bdi>Δ<sub>max</sub> = ${tbN(ab.lim, 2)}%</bdi>.</p>
         <p>שעון של <bdi>16 MHz</bdi> וקצב של <bdi>9600</bdi>, לפי 20.9: <bdi>${tbN(u96.x, 2)}</bdi>, מעגלים ל-<bdi>${u96.n}</bdi>, ושגיאה של <bdi>${tbN(u96.err * 100, 2)}%</bdi>. אותו שעון ב-<bdi>115200</bdi>: <bdi>${tbN(u115.x, 2)}</bdi>, מעגלים ל-<bdi>${u115.n}</bdi>, ושגיאה של <bdi>${tbN(u115.err * 100, 1)}%</bdi>.</p></div>
-      ${tbFig([['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']], 'מגדילים את שגיאת הקצב ורואים את הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט.')}`),
+      ${tbFig([['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['anim:uartf', 'UART: מסגרת של בייט'], ['anim:i2c', 'I2C: כתובת ו-ACK'], ['anim:spi', 'SPI: שני אוגרים בטבעת'], ['anim:can', 'CAN: בוררות וביטי מילוי'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']], 'מגדילים את שגיאת הקצב ורואים את הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט. ואז אותו בייט באפיקים האחרים.')}`),
     tbSec('20.3', 'EtherCAT: מסגרת אחת, מחזור ובדיקת עיבוד', `
       <p><b>המודל.</b> ב-EtherCAT מסגרת אחת יוצאת מהבקר בכל מחזור ועוברת דרך כל הסלייבים בטבעת. כל אחד קורא וכותב את החלק שלו בזמן שהמסגרת עוברת, בלי לעצור אותה. זמן המסגרת הוא זמן השידור ועוד השהיה קטנה בכל צומת:</p>
       ${tbEq('20.10', 't<sub>frame</sub> = 8 (B<sub>hdr</sub> + Σ B<sub>i</sub>) / R + n · t<sub>node</sub>')}
@@ -314,16 +316,20 @@
       { l: 'adv', q: 'מה סבלנות הקצב ב-8E1, עם ביט זוגיות?', a: `<bdi>N = 11</bdi>, ולפי 20.8: <bdi>${tbN(E4, 2)}%</bdi>. ביט נוסף מקטין את התקציב.` },
       { l: 'adv', q: `WKC צפוי של <bdi>${ec.n}</bdi>, וחוזר <bdi>4</bdi>. מה זה אומר, ואיך ממשיכים?`, a: 'לפי 20.12, שני סלייבים לא עיבדו. אם הם האחרונים בטבעת, המסגרת לא הגיעה אליהם: נתק או מחבר בין הרביעי לחמישי. מסתכלים על נוריות ה-link בכל סלייב, ועל מוני השגיאות שלו, מהבקר הלאה.' },
       { l: 'ext', q: 'הרחבה: למה משדרים בתעשייה משתמשים ב-4–20 mA ולא ב-0–10 V?', a: 'במתח, כל התנגדות בכבל מורידה מתח, והבקר קורא פחות ממה שנשלח. בזרם, אותו זרם עובר בכל הלולאה, והנפילה בכבל רק לוקחת ממרווח המתח של הספק. 4 mA כאפס נותן "אפס חי": 0 mA הוא תקלה, חוט קרוע או משדר מת, ולא "אפס בר". והזרם הזה מספיק כדי להזין משדר דו-חוטי מאותם שני חוטים. בנוסף, לולאה בהתנגדות נמוכה, 250 Ω, פחות רגישה לרעש מושרה מאשר כניסת מתח בהתנגדות גבוהה.' }],
-    check: { I24, Vth, f12, loop, ub, ab, u96, u115, u115x, ec: { t: ec.tFrame, u: ec.util, n: ec.n, data: ec.data }, ecx: { t: ecx.tFrame, u: ecx.util }, ec2: ec2.util, Bmax, af, i2c, PB2, E1, E2, E3, E4 },
+    check: { uf: { n: uf.n, T: uf.T, eff: uf.eff, back: uf.back, d: uf.d }, ufe: { n: ufe.n, eff: ufe.eff, p: ufe.p }, ufr, i2: { first: i2.v.first, clocks: i2.v.clocks, found: i2.v.found, t: i2.v.t }, cn: { wid: cn.wid, nst: cn.nst, winner: cn.A.winner, raw: cn.raw, out: cn.st.out }, I24, Vth, f12, loop, ub, ab, u96, u115, u115x, ec: { t: ec.tFrame, u: ec.util, n: ec.n, data: ec.data }, ecx: { t: ecx.tFrame, u: ecx.util }, ec2: ec2.util, Bmax, af, i2c, PB2, E1, E2, E3, E4 },
     side: {
       '20.1': { win: [['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['c:loop:bench', 'הספסל: לולאת 4–20 mA'], ['s:card', 'כרטיס I/O: נקודות מדידה']],
         look: [['20.1', `בתלת-ממד, ב-24 V: <bdi>זרם בנורית ${amp(I24)}</bdi>. ההודעה כותבת את החישוב של 20.1.`],
           ['20.3', 'הורידו את המתח ל-12 V והפעילו רעש: בגרף, המתח חוצה את הסף פעמיים בכל מחזור, והביט אחרי המסנן מקפץ איתו. ב-24 V עם אותו רעש הוא יציב.'],
           ['20.4', `בספסל, בברירת המחדל: <bdi>זרם בלולאה ${fmt(loop.I, 2)} mA</bdi> ו-<bdi>מתח על הנגד ${fmt(loop.V, 2)} V</bdi>, והבקר מחשב <bdi>${fmt(loop.P, 2)} bar</bdi>. בחרו "חוט קרוע": 0 mA, מתחת ל-4.`]] },
-      '20.2': { win: [['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']],
+      '20.2': { win: [['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['anim:uartf', 'UART: מסגרת של בייט'], ['anim:i2c', 'I2C: כתובת ו-ACK'], ['anim:spi', 'SPI: שני אוגרים בטבעת'], ['anim:can', 'CAN: בוררות וביטי מילוי'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']],
         look: [['20.8', `בהנפשה, בברירת המחדל: <bdi>Δ = ${AB.err}%</bdi>. בצעד 3, ההזזה בביט ה-<span class="nogl">STOP</span>: <bdi>${f1(ab.shift, 2)}</bdi> ביט. בצעד 4, הגבול: <bdi>${f1(ab.lim, 2)}%</bdi>.`],
           ['20.8', 'הזיזו את Δ ל-6%: הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט, והמקלט קורא שגיאת framing.'],
-          ['20.9', `בנוסחאות: <bdi>16 MHz</bdi> ו-<bdi>9600</bdi>, <bdi>${tbN(u96.x, 2)}</bdi> שמעוגל ל-${u96.n}.`]] },
+          ['20.9', `בנוסחאות: <bdi>16 MHz</bdi> ו-<bdi>9600</bdi>, <bdi>${tbN(u96.x, 2)}</bdi> שמעוגל ל-${u96.n}.`],
+          ['20.6', `בהנפשת המסגרת, בצעד 4: <bdi>${uf.n}</bdi> ביטים, <bdi>T = ${uf.T.toFixed(1)} µs</bdi>, יעילות של <bdi>${uf.eff.toFixed(0)}%</bdi>. קבעו זוגיות even: <bdi>${ufe.n}</bdi> ביטים, <bdi>${ufe.eff.toFixed(0)}%</bdi>.`],
+          ['20.7', `בצעד 5 המקלט מרכיב מהנמוך לגבוה ומקבל <bdi>${hx2(uf.back)}</bdi>. מקלט שמרכיב מהגבוה קורא <bdi>${hx2(ufr)}</bdi>: אותה מסגרת, בייט אחר.`],
+          ['20.6', `בהנפשת I2C: הכתובת ${hx2(i2.addr)} עם כתיבה היא הבייט <bdi>${hx2(i2.v.first)}</bdi>, ו-<bdi>${i2.v.clocks}</bdi> פעימות ב-100 kHz, ועם START ו-STOP כ-<bdi>${i2.v.t.toFixed(0)} µs</bdi>. שנו את הכתובת ל-0x50: NACK בפעימה התשיעית.`],
+          ['20.8', `ב-SPI ובאפיק CAN: ב-SPI השעון בחוט, ואין סבלנות קצב. ב-CAN אין שעון, ולכן ביטי מילוי: במזהה של המנצח, ${hx3(cn.wid)}, <bdi>${cn.nst}</bdi> ביט מילוי אחרי חמישה אפסים.`]] },
       '20.3': { win: [['anim:frame', 'EtherCAT: כמה זמן לוקחת מסגרת אחת'], ['t:ecat:scene', 'EtherCAT: הסצנה'], ['t:ecat:math:2', 'גזירה: Working Counter']],
         look: [['20.10', `בהנפשה, צעד 3: <bdi>t = ${f1(af.tF)} µs</bdi>. בצעד 4: <bdi>${f1(af.util)}%</bdi> מהמחזור.`],
           ['20.11', `הזיזו את הנתונים ל-10,500 בתים: <bdi>${f1(ecx.tFrame * 1e6, 0)} µs</bdi>, מעל 80%. הגדילו את זמן המחזור ל-2 ms: חוזר מתחת.`],

@@ -2,6 +2,18 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.80.0] — 2026-11-25
+
+The serial links are animated: a UART frame, an I2C transaction, an SPI exchange and CAN arbitration with bit stuffing, each step by step with its own numbers, in the serial topic and beside chapter 20.
+
+- **UART frame**: one byte between START and STOP, LSB first, with or without parity; the frame's bits, its time at 115200 and its efficiency; the receiver samples each bit in its middle and assembles the byte (and a receiver that assembles from the top reads 0x82 for 0x41).
+- **I2C**: idle on the pull-ups, START, seven address bits and R/W, the ninth clock where a device pulls ACK or nobody does (NACK), a data byte and STOP; SDA changes only while SCL is low, except at START and STOP. The bus is the serial lab's own: devices at 0x3C, 0x48 and 0x68.
+- **SPI**: two 8-bit registers in a ring exchange their bytes in eight clocks; the four modes with the clock's idle level, the edge that samples and the edge that shifts, and dots where each side samples.
+- **CAN**: CANH and CANL, dominant and recessive; three nodes send their identifiers at once on a wired AND, and each leaves at the bit where it sent 1 and read 0; the lowest identifier wins unharmed. Then the winner's SOF and identifier with the stuff bits a sender inserts after five equal bits.
+- Chapter 20, section 20.2: a paragraph on the other three buses (the clock on a wire for I2C and SPI, stuffing for CAN), the four animations in the panel beside the section, and lines that say what each shows at its default.
+- An animation in a drawer reads as one column with its picture first, so it is large enough to read beside the text.
+- Tests: the book suite checks the animations by other routes: the UART frame built by hand for all 256 bytes and three parities; the I2C lines for every address and both directions decoded back into the first byte and the data byte, with SDA moving under a high SCL only at START and STOP and the clocks counted; the SPI registers against a closed form and the waveform sampled at its own edges in all four modes; the CAN winner and each loser's bit from the lowest identifier alone; and the stuffing redone by searching the stream for five equal bits, for all 2048 identifiers.
+
 ## [2.79.0] — 2026-11-25
 
 Part H of the book is written as a textbook: the four central chapters, 24 to 27, calibration, noise and grounding, heat, and failure analysis. Every chapter of the book but the final exam is now a textbook chapter.

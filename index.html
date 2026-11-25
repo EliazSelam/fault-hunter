@@ -724,6 +724,8 @@ bdi.nw{white-space:nowrap}
 .tb-parbtn{font:inherit;font-size:13px;font-weight:600;margin-inline-start:10px;padding:4px 12px;border:1px solid #3078B0;border-radius:999px;background:var(--sheet);color:#3078B0;cursor:pointer;vertical-align:middle}.tb-parbtn:hover{background:var(--tint)}
 .tb-eqsim{font:inherit;font-size:14px;border:0;background:none;cursor:pointer;padding:0 4px;margin-inline-end:4px;opacity:.75}.tb-eqsim:hover,.tb-eqsim:focus-visible{opacity:1}
 .drw.tb-par{width:min(520px,38vw)}
+/* an animation in a drawer (at most 520px wide) reads as one column, its picture first; the bottom sheet between 821 and 1099px is wide and low, so it keeps two */
+.drw .anim{grid-template-columns:1fr}.drw .anim canvas{order:-1}@media (min-width:821px) and (max-width:1099px){.drw.tb-par .anim{grid-template-columns:minmax(260px,1fr) minmax(0,1.4fr)}.drw.tb-par .anim canvas{order:0}}
 .tbs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.tbs-tabs button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.tbs-tabs button[aria-selected="true"]{background:#1B2F5A;color:#EEE9E0;border-color:#1B2F5A}
 .tbs-win{min-height:120px}
 .tbs-look{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.tbs-look ul{padding-inline-start:18px;margin:4px 0}.tbs-look li{margin:6px 0;line-height:1.55;border-radius:8px;padding:2px 4px}
@@ -12164,6 +12166,127 @@ ANIMS.baud = { node: 'serial', t: 'UART: שגיאת קצב והדגימה שזז
   } };
 { const n = zNode('serial'); if (n && !n.around.includes('anim:baud')) n.around.unshift('anim:baud'); }
 INNER.ecat.push(IB('serial', 'פורטי שירות (UART) ושבב CAN', [-0.9, -0.55, -0.3, 0.3, 0, 0.15], [-1.0, 0, 0], 'text'));
+/* ============ v2.80: serial links animated: a UART frame, an I2C transaction, an SPI exchange, CAN arbitration and bit stuffing ============
+   Each is an animation window of the serial topic, built on the serial hub's own models (uartFrame, canArb) and on the same buses as its
+   labs (I2C devices at 0x3C, 0x48 and 0x68; three CAN nodes). Inside a step the bits come out one by one with the step's time. */
+const SERA = { i2cDev: [0x3C, 0x48, 0x68], baud: 115200, i2c: 100e3 };
+const hx2 = v => '0x' + v.toString(16).toUpperCase().padStart(2, '0'), hx3 = v => '0x' + v.toString(16).toUpperCase().padStart(3, '0'), bin8 = v => v.toString(2).padStart(8, '0');
+/* CAN bit stuffing: after five equal bits the sender inserts one of the other value; returns the stuffed sequence and where the stuff bits went */
+function canStuff(bits) { const out = [], at = []; let run = 0, last = null; bits.forEach(b => { out.push(b); if (b === last) run++; else { run = 1; last = b; } if (run === 5) { const s = 1 - b; out.push(s); at.push(out.length - 1); last = s; run = 1; } }); return { out, at }; }
+/* a trace on the canvas: bits over slots, high at y1, low at y0 */
+const serTrace = (ctx, bits, x0, w, y1, y0, col, upto) => { ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.beginPath(); bits.slice(0, upto == null ? bits.length : upto).forEach((b, i) => { const y = b ? y1 : y0; if (i === 0) ctx.moveTo(x0, y); else ctx.lineTo(x0 + i * w, y); ctx.lineTo(x0 + (i + 1) * w, y); }); ctx.stroke(); ctx.lineWidth = 1; };
+const serText = (ctx, t, x, y, col, al, f) => { ctx.fillStyle = col || AC.text; ctx.textAlign = al || 'left'; ctx.font = f || '12px system-ui, sans-serif'; ctx.fillText(t, x, y); };
+
+/* ---- UART: one byte, LSB first, between START and STOP ---- */
+ANIMS.uartf = { node: 'serial', t: 'UART: מסגרת של בייט אחד, מהביט הנמוך',
+  params: [['byte', 'הבייט', 0, 255, 1, 65, ''], ['par', 'זוגיות: 0 ללא · 1 even · 2 odd', 0, 2, 1, 0, '']],
+  calc: P => { const par = [null, 'even', 'odd'][P.par | 0], f = uartFrame(P.byte | 0, 8, par, 1), d = f.bits.slice(2, 10), ones = d.reduce((a, b) => a + b, 0), tb = 1e6 / SERA.baud;
+    return { f, par, d, ones, p: par ? f.bits[10] : null, n: f.n, tb, T: f.n * tb, eff: 8 / f.n * 100, back: d.reduce((a, b, i) => a + (b << i), 0) }; },
+  steps: [(P, V) => `הקו במנוחה גבוה (1). ביט ה-START יורד ל-0, והקצה הזה מסנכרן את השעון של המקלט.`,
+    (P, V) => `שמונה ביטי הנתונים יוצאים מהנמוך לגבוה: <b>${hx2(P.byte | 0)}</b> = ${bin8(P.byte | 0)}, ועל הקו <b>${V.d.join(' ')}</b>.`,
+    (P, V) => V.par ? `ביט זוגיות ${V.par}: יש ${V.ones} אחדות בנתונים, ולכן <b>P = ${V.p}</b>, כדי שמספר האחדות יחד איתו יהיה ${V.par === 'even' ? 'זוגי' : 'אי-זוגי'}.` : `בלי ביט זוגיות: אחרי הנתונים מגיע ישר ה-STOP. שגיאת ביט אחד לא תתגלה בשכבה הזו.`,
+    (P, V) => `STOP חוזר ל-1. מסגרת של <b>${V.n}</b> ביטים, וב-${SERA.baud}: <b>T = ${V.T.toFixed(1)} µs</b>, יעילות של <b>${V.eff.toFixed(0)}%</b>.`,
+    (P, V) => `המקלט דוגם כל ביט באמצעו ומרכיב מהנמוך לגבוה: קיבל <b>${hx2(V.back)}</b>${V.back >= 32 && V.back < 127 ? ` = '${String.fromCharCode(V.back)}'` : ''}.`],
+  draw(ctx, W, H, P, V, s, tm) { const b = V.f.bits, w = (W - 80) / b.length, x0 = 40, y1 = 120, y0 = 190, show = s === 0 ? 2 : s === 1 ? Math.min(10, 2 + Math.floor(tm / 0.35) + 1) : s === 2 ? (V.par ? 11 : 10) : b.length;
+    ctx.strokeStyle = AC.tint; for (let i = 0; i <= b.length; i++) { ctx.beginPath(); ctx.moveTo(x0 + i * w, 90); ctx.lineTo(x0 + i * w, 220); ctx.stroke(); }
+    V.f.lab.forEach((l, i) => serText(ctx, l[0], x0 + (i + .5) * w, 80, i < show ? AC.text : AC.tint, 'center'));
+    serTrace(ctx, b, x0, w, y1, y0, AC.ink, show); serText(ctx, 'TX', 14, 160, AC.ink);
+    for (let i = 2; i < Math.min(show, 10); i++) serText(ctx, String(b[i]), x0 + (i + .5) * w, 245, AC.live, 'center', '600 14px system-ui, sans-serif');
+    if (V.par && show > 10) serText(ctx, String(b[10]), x0 + 10.5 * w, 245, AC.mech, 'center', '600 14px system-ui, sans-serif');
+    if (s >= 4) { for (let i = 1; i < b.length - 1; i++) { ctx.fillStyle = AC.live; ctx.beginPath(); ctx.arc(x0 + (i + .5) * w, b[i] ? y1 : y0, 4, 0, 7); ctx.fill(); }
+      serText(ctx, `bits D0..D7 = ${V.d.join('')} → read back ${hx2(V.back)}`, x0, 300, AC.ink, 'left', '600 14px system-ui, sans-serif'); }
+    serText(ctx, `${hx2(P.byte | 0)} = ${bin8(P.byte | 0)} (MSB … LSB); on the line LSB first`, x0, 40, AC.text);
+    if (s >= 3) serText(ctx, `${V.n} bits · t_bit = ${V.tb.toFixed(2)} µs · T = ${V.T.toFixed(1)} µs at ${SERA.baud} baud`, x0, 330, AC.text); } };
+
+/* ---- I2C: START, address and R/W, ACK, a data byte, STOP ---- */
+function i2cSeq(addr, rw, data) {
+  const found = SERA.i2cDev.includes(addr), first = ((addr & 127) << 1) | rw, sda = [], scl = [], who = [], lab = [];
+  const put = (d, c, wh, l) => { sda.push(d); scl.push(c); who.push(wh); lab.push(l || ''); };
+  put(1, 1, 'idle'); put(0, 1, 'm', 'S');   /* START: SDA falls while SCL is high */
+  const byte = (v, w, tag) => { for (let i = 7; i >= 0; i--) { const b = (v >> i) & 1; put(b, 0, w); put(b, 1, w, tag(i)); } };
+  byte(first, 'm', i => i ? 'A' + (i - 1) : 'R/W'); const ack1 = found ? 0 : 1; put(ack1, 0, found ? 's' : 'none'); put(ack1, 1, found ? 's' : 'none', found ? 'ACK' : 'NACK');
+  if (found && !rw) { byte(data, 'm', i => 'D' + i); put(0, 0, 's'); put(0, 1, 's', 'ACK'); }
+  if (found && rw) { byte(data, 's', i => 'D' + i); put(1, 0, 'm'); put(1, 1, 'm', 'NACK'); }
+  put(0, 0, 'm'); put(0, 1, 'm'); put(1, 1, 'm', 'P');   /* STOP: SDA rises while SCL is high */
+  const clocks = 9 * (found ? 2 : 1);
+  return { found, first, sda, scl, who, lab, clocks, t: (clocks + 1) / SERA.i2c * 1e6 };
+}
+ANIMS.i2c = { node: 'serial', t: 'I2C: START, כתובת, ACK ו-STOP על שני חוטים',
+  params: [['addr', 'כתובת של 7 ביטים', 0, 127, 1, 72, ''], ['rw', 'פעולה: 0 כתיבה · 1 קריאה', 0, 1, 1, 0, ''], ['data', 'בייט הנתונים', 0, 255, 1, 96, '']],
+  calc: P => i2cSeq(P.addr | 0, P.rw | 0, P.data | 0),
+  steps: [(P, V) => `במנוחה SDA ו-SCL גבוהים: נגדי pull-up מושכים אותם למעלה, ואף רכיב לא מושך למטה. על האפיק רכיבים בכתובות ${SERA.i2cDev.map(hx2).join(', ')}.`,
+    (P, V) => `START: האדון מוריד את SDA כש-SCL גבוה. זה, ו-STOP, המצבים היחידים שבהם SDA משתנה כשהשעון גבוה. כל השאר משתנה כש-SCL נמוך ונדגם כשהוא גבוה.`,
+    (P, V) => `שבעה ביטי כתובת ואחריהם R/W, מהגבוה לנמוך: ${hx2(P.addr | 0)} ו-${P.rw ? 'R' : 'W'} נותנים את הבייט <b>${hx2(V.first)}</b>.`,
+    (P, V) => `בפעימה התשיעית האדון משחרר את SDA. ${V.found ? `הרכיב בכתובת ${hx2(P.addr | 0)} מושך אותו ל-0: <b>ACK</b>.` : `אף רכיב לא בכתובת הזו, ונגד ה-pull-up משאיר את הקו ב-1: <b>NACK</b>, והאדון עוצר.`}`,
+    (P, V) => `${V.found ? `${P.rw ? 'הרכיב שולח בייט, והאדון עונה NACK כדי לסיים' : 'האדון שולח את הבייט, והרכיב עונה ACK'}. ` : ''}STOP: SDA עולה כש-SCL גבוה. <b>${V.clocks}</b> פעימות ב-100 kHz, ועם START ו-STOP כ-<b>${V.t.toFixed(0)} µs</b>.`],
+  draw(ctx, W, H, P, V, s, tm) { const n = V.sda.length, w = (W - 90) / n, x0 = 70, upto = s === 0 ? 1 : s === 1 ? 2 : s === 2 ? Math.min(18, 2 + Math.floor(tm / 0.2) * 2 + 2) : s === 3 ? 20 : n;
+    serText(ctx, 'SCL', 20, 120, AC.ink, 'left', '600 13px system-ui, sans-serif'); serText(ctx, 'SDA', 20, 220, AC.ink, 'left', '600 13px system-ui, sans-serif');
+    serTrace(ctx, V.scl, x0, w, 95, 140, AC.ink, upto);
+    /* SDA changes a little after SCL falls (only START and STOP change it while SCL is high), so the edge is drawn 40% into the low slot */
+    const col = i => V.who[i] === 's' ? AC.mech : V.who[i] === 'none' ? AC.live : AC.ink;
+    for (let i = 0; i < Math.min(upto, n); i++) { const y = V.sda[i] ? 195 : 240, c = col(i), py = i ? (V.sda[i - 1] ? 195 : 240) : y, xt = x0 + i * w + (i && py !== y && !V.scl[i] ? .4 * w : 0); ctx.lineWidth = 2;
+      if (xt > x0 + i * w) { ctx.strokeStyle = col(i - 1); ctx.beginPath(); ctx.moveTo(x0 + i * w, py); ctx.lineTo(xt, py); ctx.stroke(); }
+      ctx.strokeStyle = c; ctx.beginPath(); ctx.moveTo(xt, py); ctx.lineTo(xt, y); ctx.lineTo(x0 + (i + 1) * w, y); ctx.stroke(); ctx.lineWidth = 1;
+      if (V.lab[i]) serText(ctx, V.lab[i], x0 + (i + .5) * w, 270, c, 'center', '11px system-ui, sans-serif'); }
+    serText(ctx, 'navy: master drives · brown: slave drives · blue: nobody (pull-up)', x0, 310, AC.text);
+    if (s >= 2) serText(ctx, `first byte ${hx2(V.first)} = ${bin8(V.first)} (address ${hx2(P.addr | 0)}, ${P.rw ? 'read' : 'write'})`, x0, 340, AC.ink, 'left', '600 13px system-ui, sans-serif');
+    if (s >= 3) serText(ctx, V.found ? 'ACK: a device answered' : 'NACK: no device at this address', x0, 365, V.found ? AC.mech : AC.live, 'left', '600 13px system-ui, sans-serif');
+    serText(ctx, `bus: ${SERA.i2cDev.map(hx2).join(', ')} · pull-ups to Vcc`, x0, 50, AC.text); } };
+
+/* ---- SPI: two shift registers in a ring, eight clocks exchange them ---- */
+function spiShift(m, s, k) { let M = m, S = s; for (let i = 0; i < k; i++) { const mo = (M >> 7) & 1, so = (S >> 7) & 1; M = ((M << 1) | so) & 255; S = ((S << 1) | mo) & 255; } return { M, S }; }
+/* the four lines in half-period slots: 0 idle, 1 CS low with the clock still idle, 2..17 the 16 clock halves (an edge at the start of each), 18 idle,
+   19 CS high. CPHA 0: a bit is on the wire from the trailing edge before it (from CS for the first) and is sampled at the leading edge;
+   CPHA 1: put out at the leading edge and sampled at the trailing one. samp = the slots whose starting edge samples. */
+function spiWave(m, s, cpol, cpha) {
+  const n = 20, cs = Array.from({ length: n }, (_, i) => (i === 0 || i === n - 1) ? 1 : 0), clk = Array.from({ length: n }, (_, i) => i < 2 || i > 17 ? cpol : (i % 2 === 0 ? 1 - cpol : cpol));
+  const bitAt = i => { const b = cpha ? Math.floor((i - 2) / 2) : Math.floor((i - 1) / 2); return i >= 1 && i <= 17 && b >= 0 && b <= 7 ? b : -1; };
+  const mo = [], mi = []; for (let i = 0; i < n; i++) { const b = bitAt(i); mo.push(b < 0 ? 1 : (m >> (7 - b)) & 1); mi.push(b < 0 ? 1 : (s >> (7 - b)) & 1); }
+  return { n, cs, clk, mo, mi, samp: Array.from({ length: 8 }, (_, j) => 2 + 2 * j + cpha) };
+}
+ANIMS.spi = { node: 'serial', t: 'SPI: שני אוגרים בטבעת, ושמונה פעימות שמחליפות אותם',
+  params: [['m', 'בייט האדון', 0, 255, 1, 165, ''], ['s', 'בייט הרכיב', 0, 255, 1, 60, ''], ['mode', 'mode (CPOL, CPHA)', 0, 3, 1, 0, '']],
+  calc: P => { const mode = P.mode | 0, cpol = mode >> 1, cpha = mode & 1, end = spiShift(P.m | 0, P.s | 0, 8); return { cpol, cpha, end, edge: (cpol ^ cpha) ? 'falling' : 'rising', edgeH: (cpol ^ cpha) ? 'יורד' : 'עולה' }; },
+  steps: [(P, V) => `CS יורד ל-0: הרכיב נבחר. לאדון ולרכיב יש אוגר של 8 ביטים כל אחד, מחוברים בטבעת: MOSI מהאדון לרכיב, MISO בחזרה.`,
+    (P, V) => `mode ${P.mode | 0}: השעון במנוחה ${V.cpol ? 'גבוה' : 'נמוך'} (CPOL = ${V.cpol}), ודוגמים בקצה <b>${V.edgeH}</b> (CPHA = ${V.cpha}). שני הצדדים חייבים להסכים, אחרת כל ביט נקרא בחצי פעימה הלא נכונה.`,
+    (P, V) => `בכל פעימה הביט העליון של כל אוגר יוצא לצד השני ונכנס מימין לאוגר השני. שולחים וקולטים באותו זמן.`,
+    (P, V) => `אחרי 8 פעימות הם החליפו: האדון קיבל <b>${hx2(V.end.M)}</b> והרכיב קיבל <b>${hx2(V.end.S)}</b>. אין כתובת ואין ACK: מה שיש ב-MISO נקרא, גם אם הרכיב לא מחובר.`,
+    (P, V) => `CS עולה: הרכיב משחרר את MISO. רכיב נוסף על אותו אפיק צריך CS משלו, ולכן SPI מהיר אבל צורך חוט לכל רכיב.`],
+  draw(ctx, W, H, P, V, s, tm) { const k = s < 2 ? 0 : s === 2 ? Math.min(8, Math.floor(tm / 0.4)) : 8, st = spiShift(P.m | 0, P.s | 0, k), x0 = 80, w = 52, ty = 60;
+    const reg = (x, y, v, name, col) => { serText(ctx, name, x, y - 8, col, 'left', '600 13px system-ui, sans-serif'); for (let i = 0; i < 8; i++) { ctx.strokeStyle = col; ctx.strokeRect(x + i * 26, y, 26, 26); serText(ctx, String((v >> (7 - i)) & 1), x + i * 26 + 13, y + 18, col, 'center', '14px system-ui, sans-serif'); } serText(ctx, hx2(v), x + 8 * 26 + 8, y + 18, col); };
+    reg(60, ty + 10, st.M, 'master', AC.ink); reg(380, ty + 10, st.S, 'slave', AC.mech);
+    ctx.strokeStyle = AC.live; ctx.beginPath(); ctx.moveTo(60, ty + 50); ctx.lineTo(380 + 208, ty + 50); ctx.stroke(); serText(ctx, 'MOSI: master MSB → slave LSB', 220, ty + 66, AC.live, 'center');
+    ctx.beginPath(); ctx.moveTo(380, ty + 80); ctx.lineTo(60 + 208, ty + 80); ctx.stroke(); serText(ctx, 'MISO: slave MSB → master LSB', 440, ty + 96, AC.live, 'center');
+    const { n, cs, clk, mo, mi, samp } = spiWave(P.m | 0, P.s | 0, V.cpol, V.cpha), y = r => 190 + r * 50;
+    const ww = (W - 120) / n, shown = s === 0 ? 2 : s === 1 ? 3 : s === 2 ? Math.min(18, 2 + 2 * k) : s === 3 ? 18 : n;
+    [['CS', cs, AC.ink], ['SCLK', clk, AC.ink], ['MOSI', mo, AC.live], ['MISO', mi, AC.mech]].forEach(([nm, bits, c], r) => { serText(ctx, nm, 20, y(r) + 20, c, 'left', '600 12px system-ui, sans-serif'); serTrace(ctx, bits, x0, ww, y(r), y(r) + 30, c, shown); });
+    /* the sampling instants: dots on both data lines at every sampling edge drawn so far */
+    for (const si of samp) { if (si >= shown) break; [[mo, 2, AC.live], [mi, 3, AC.mech]].forEach(([bits, r, c]) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x0 + si * ww, bits[si] ? y(r) : y(r) + 30, 3.5, 0, 7); ctx.fill(); }); }
+    serText(ctx, `mode ${P.mode | 0}: idle clock ${V.cpol ? 'high' : 'low'}, sample on the ${V.edge} edge · clocks ${k}/8`, x0, 395, AC.text); } };
+
+/* ---- CAN: the bus is a wired AND, the lowest identifier wins, and stuff bits keep the edges coming ---- */
+ANIMS.can = { node: 'serial', t: 'CAN: הזיהוי הנמוך מנצח, וביטי מילוי',
+  params: [['id1', 'מזהה Node 1', 0, 2047, 1, 0x100, ''], ['id2', 'מזהה Node 2', 0, 2047, 1, 0x1A4, ''], ['id3', 'מזהה Node 3', 0, 2047, 1, 0x2F0, '']],
+  calc: P => { const ids = [P.id1 | 0, P.id2 | 0, P.id3 | 0], A = canArb(ids), out = A.rows.map(r => r.lost.map((l, i) => l ? i : -1).filter(i => i >= 0)), drop = ids.map((_, i) => A.rows.findIndex(r => r.lost[i]));
+    const wid = ids[A.winner], raw = [0].concat(Array.from({ length: 11 }, (_, j) => (wid >> (10 - j)) & 1)), st = canStuff(raw); return { ids, A, drop, wid, raw, st, nst: st.at.length, tie: new Set(ids).size < 3 }; },
+  steps: [(P, V) => `שני קווים, CANH ו-CANL. במצב רצסיבי (1) שניהם ב-2.5 V. ביט דומיננטי (0) מושך את CANH ל-3.5 ואת CANL ל-1.5 V: ההפרש, 2 V, הוא הביט, ורעש שמגיע לשניהם יחד מתבטל.`,
+    (P, V) => `שלושה צמתים מתחילים לשדר יחד, כל אחד את המזהה שלו, מהביט הגבוה. הקו הוא AND: מספיק צומת אחד ששולח 0 כדי שהקו יהיה 0.`,
+    (P, V) => `כל צומת קורא את הקו בזמן שהוא משדר. מי ששלח 1 וקרא 0 יודע שיש הודעה חשובה ממנו, ויוצא בלי להרוס אותה: ${V.drop.map((d, i) => d >= 0 ? `Node ${i + 1} בביט ${d + 1}` : '').filter(Boolean).join(', ') || 'אף אחד'}.`,
+    (P, V) => V.tie ? 'שני צמתים עם אותו מזהה לא יכולים להכריע: זו שגיאת תכנון, ומזהים חייבים להיות שונים.' : `מנצח: <b>Node ${V.A.winner + 1}</b>, המזהה הנמוך ביותר, <b>${hx3(V.wid)}</b>. ההודעה שלו לא נפגעה ולא התעכבה, וזה מה שהופך את CAN לאפיק עם עדיפויות.`,
+    (P, V) => `ביטי מילוי: אחרי חמישה ביטים זהים השולח מוסיף ביט הפוך, כדי שיהיו מספיק קצוות לסנכרון. ב-SOF ובמזהה של המנצח: <b>${V.nst}</b> ביטי מילוי.`],
+  draw(ctx, W, H, P, V, s, tm) { const x0 = 120, w = (W - 160) / 11;
+    if (s === 0) { const lv = [1, 1, 0, 0, 1, 0, 1, 1], ww = (W - 200) / 8, yh = v => v ? 160 : 110, yl = v => v ? 160 : 210; ctx.lineWidth = 2; [[yh, AC.ink, 'CANH'], [yl, AC.mech, 'CANL']].forEach(([f, c, nm]) => { ctx.strokeStyle = c; ctx.beginPath(); lv.forEach((v, i) => { if (i === 0) ctx.moveTo(x0, f(v)); else ctx.lineTo(x0 + i * ww, f(v)); ctx.lineTo(x0 + (i + 1) * ww, f(v)); }); ctx.stroke(); serText(ctx, nm, 40, f(0) + 4, c, 'left', '600 13px system-ui, sans-serif'); }); ctx.lineWidth = 1;
+      lv.forEach((v, i) => serText(ctx, v ? '1 rec.' : '0 dom.', x0 + (i + .5) * ww, 250, AC.text, 'center')); serText(ctx, '3.5 V', x0 - 10, 114, AC.text, 'right'); serText(ctx, '2.5 V', x0 - 10, 164, AC.text, 'right'); serText(ctx, '1.5 V', x0 - 10, 214, AC.text, 'right'); return; }
+    if (s <= 3) { const nb = s === 1 ? 0 : s === 2 ? Math.min(11, 1 + Math.floor(tm / 0.3)) : 11;
+      for (let b = 0; b < 11; b++) serText(ctx, 'ID' + (10 - b), x0 + (b + .5) * w, 70, b < nb || s === 1 ? AC.text : AC.tint, 'center', '11px system-ui, sans-serif');
+      V.ids.forEach((id, i) => { serText(ctx, `Node ${i + 1} ${hx3(id)}`, 10, 110 + i * 50, AC.ink); for (let b = 0; b < 11; b++) { const r = V.A.rows[b], out = V.drop[i] >= 0 && b > V.drop[i], v = (id >> (10 - b)) & 1; if (b >= Math.max(nb, s === 1 ? 11 : 0) && s !== 1) continue; serText(ctx, out ? '·' : String(v), x0 + (b + .5) * w, 110 + i * 50, out ? AC.tint : r.lost[i] ? AC.mech : AC.ink, 'center', '600 15px system-ui, sans-serif'); } });
+      if (s >= 2) { serText(ctx, 'bus', 10, 270, AC.live, 'left', '600 13px system-ui, sans-serif'); for (let b = 0; b < nb; b++) serText(ctx, String(V.A.rows[b].bus), x0 + (b + .5) * w, 270, AC.live, 'center', '600 15px system-ui, sans-serif'); serText(ctx, 'brown: sent 1, read 0, leaves', x0, 310, AC.mech); }
+      if (s === 3) serText(ctx, V.tie ? 'tie: identifiers must differ' : `winner: Node ${V.A.winner + 1} (${hx3(V.wid)})`, x0, 345, AC.ink, 'left', '600 14px system-ui, sans-serif'); return; }
+    const ww = (W - 160) / V.st.out.length; serText(ctx, 'SOF + ID before stuffing', 10, 90, AC.text); V.raw.forEach((b, i) => serText(ctx, String(b), x0 + (i + .5) * (W - 160) / 12, 120, AC.ink, 'center', '600 15px system-ui, sans-serif'));
+    serText(ctx, 'on the bus, with stuff bits', 10, 180, AC.text); V.st.out.forEach((b, i) => serText(ctx, String(b), x0 + (i + .5) * ww, 210, V.st.at.includes(i) ? AC.mech : AC.ink, 'center', '600 15px system-ui, sans-serif'));
+    serTrace(ctx, V.st.out, x0, ww, 240, 280, AC.ink); serText(ctx, `${V.nst} stuff bit${V.nst === 1 ? '' : 's'} (brown) · never more than five equal bits in a row`, x0, 330, AC.text); } };
+/* the four are windows of the serial topic, right after the baud-error animation */
+(n => { if (!n) return; const at = n.around.indexOf('anim:baud') + 1; ['uartf', 'i2c', 'spi', 'can'].reverse().forEach(id => { if (!n.around.includes('anim:' + id)) n.around.splice(at, 0, 'anim:' + id); }); })(zNode('serial'));
 /* ============ Animations of the extra hubs (v2.64), and their place in the zoom tree and the 3D machine ============ */
 const hxPlot = (ctx, W, H) => { const x0 = 60, y0 = H - 50, w = W - 100, h = H - 110; ctx.strokeStyle = AC.text; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0, y0 - h); ctx.lineTo(x0, y0); ctx.lineTo(x0 + w, y0); ctx.stroke(); return { x0, y0, w, h }; };
 ANIMS.lsq = { node: 'fit', t: 'ריבועים פחותים: הקו שמקטין את סכום ריבועי השאריות',
@@ -17689,6 +17812,7 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
   const ec = ecatCalc(), ecx = ecatCalc({ bytes: 10500 }), ec2 = ecatCalc({ bytes: 10500, Tcyc: 2e-3 }), Bmax = (0.8 * EC.Tcyc - ec.n * EC.tNode) * EC.rate / 8 - EC.hdr - ec.data; const AF = tbAnimP('frame'), af = ANIMS.frame.calc(AF);
   const i2c = { R: 4700, C: 100e-12 }; i2c.tr = 0.8473 * i2c.R * i2c.C * 1e9; i2c.Rmax = 300e-9 / (0.8473 * i2c.C); i2c.Rmin = (3.3 - 0.4) / 3e-3;
   const PB2 = { tot: u115.err - 0.02 }; const PB3 = { tf2: ec2.util };
+  const uf = ANIMS.uartf.calc(tbAnimP('uartf')), ufe = ANIMS.uartf.calc(Object.assign(tbAnimP('uartf'), { par: 1 })), ufr = uf.d.reduce((a, b, i) => a + (b << (7 - i)), 0), i2 = { addr: tbAnimP('i2c').addr }; i2.v = ANIMS.i2c.calc(tbAnimP('i2c')); const cn = ANIMS.can.calc(tbAnimP('can'));
   const E1 = (20 - IO3.Vf) / IO3.R * 1000, E2 = (8 - 4) / 16 * 10, E3 = 1e6 / 9600, E4 = 0.5 / 10.5 * 100;
 
   const sections = [
@@ -17719,9 +17843,10 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       <p>הבקר מייצר את הקצב מחלוקה שלמה של השעון שלו, עם דגימה פי 16:</p>
       ${tbEq('20.9', 'UBRR = f<sub>clk</sub> / (16 · f<sub>baud</sub>) − 1   ,   f<sub>act</sub> = f<sub>clk</sub> / (16 · (UBRR + 1))')}
       <p><b>פרשנות.</b> Δ<sub>max</sub> הוא התקציב של שני הצדדים יחד: שגיאה של צד אחד ועוד שגיאה הפוכה של השני. קצב שלא מתחלק יפה בשעון נותן שגיאות framing רק לפעמים, רק עם מכשיר מסוים, וזו התקלה הקשה ביותר למצוא.</p>
+      <p><b>שלושת האחרים.</b> I2C ו-SPI פותרים את בעיית השעון בחוט שעון משותף, ולכן אין להם סבלנות קצב. ב-I2C שני חוטים: כתובת לכל רכיב, ו-ACK אחרי כל בייט. ב-SPI ארבעה חוטים: שני אוגרים שמתחלפים בכל פעימה, ו-CS לכל רכיב. CAN נשאר בלי שעון, ומתמודד עם 20.8 בכך שהוא מסתנכרן מחדש על כל קצה. לכן אחרי חמישה ביטים זהים הוא מוסיף ביט הפוך, ביט מילוי. והקו שלו הוא AND, כך שהמזהה הנמוך ביותר מנצח בלי שאף הודעה נהרסת.</p>
       <div class="tb-ex"><p class="tb-exh">דוגמה 20.2</p><p>ב-<bdi>${ub.f}</bdi>, לפי 20.6: <bdi>t<sub>bit</sub> = ${tbN(ub.tb, 2)} µs</bdi>, ומסגרת של 10 ביטים <bdi>${tbN(ub.Tf, 1)} µs</bdi>. לפי 20.7: <bdi>η = 80%</bdi>. לפי 20.8: <bdi>Δ<sub>max</sub> = ${tbN(ab.lim, 2)}%</bdi>.</p>
         <p>שעון של <bdi>16 MHz</bdi> וקצב של <bdi>9600</bdi>, לפי 20.9: <bdi>${tbN(u96.x, 2)}</bdi>, מעגלים ל-<bdi>${u96.n}</bdi>, ושגיאה של <bdi>${tbN(u96.err * 100, 2)}%</bdi>. אותו שעון ב-<bdi>115200</bdi>: <bdi>${tbN(u115.x, 2)}</bdi>, מעגלים ל-<bdi>${u115.n}</bdi>, ושגיאה של <bdi>${tbN(u115.err * 100, 1)}%</bdi>.</p></div>
-      ${tbFig([['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']], 'מגדילים את שגיאת הקצב ורואים את הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט.')}`),
+      ${tbFig([['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['anim:uartf', 'UART: מסגרת של בייט'], ['anim:i2c', 'I2C: כתובת ו-ACK'], ['anim:spi', 'SPI: שני אוגרים בטבעת'], ['anim:can', 'CAN: בוררות וביטי מילוי'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']], 'מגדילים את שגיאת הקצב ורואים את הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט. ואז אותו בייט באפיקים האחרים.')}`),
     tbSec('20.3', 'EtherCAT: מסגרת אחת, מחזור ובדיקת עיבוד', `
       <p><b>המודל.</b> ב-EtherCAT מסגרת אחת יוצאת מהבקר בכל מחזור ועוברת דרך כל הסלייבים בטבעת. כל אחד קורא וכותב את החלק שלו בזמן שהמסגרת עוברת, בלי לעצור אותה. זמן המסגרת הוא זמן השידור ועוד השהיה קטנה בכל צומת:</p>
       ${tbEq('20.10', 't<sub>frame</sub> = 8 (B<sub>hdr</sub> + Σ B<sub>i</sub>) / R + n · t<sub>node</sub>')}
@@ -17769,16 +17894,20 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       { l: 'adv', q: 'מה סבלנות הקצב ב-8E1, עם ביט זוגיות?', a: `<bdi>N = 11</bdi>, ולפי 20.8: <bdi>${tbN(E4, 2)}%</bdi>. ביט נוסף מקטין את התקציב.` },
       { l: 'adv', q: `WKC צפוי של <bdi>${ec.n}</bdi>, וחוזר <bdi>4</bdi>. מה זה אומר, ואיך ממשיכים?`, a: 'לפי 20.12, שני סלייבים לא עיבדו. אם הם האחרונים בטבעת, המסגרת לא הגיעה אליהם: נתק או מחבר בין הרביעי לחמישי. מסתכלים על נוריות ה-link בכל סלייב, ועל מוני השגיאות שלו, מהבקר הלאה.' },
       { l: 'ext', q: 'הרחבה: למה משדרים בתעשייה משתמשים ב-4–20 mA ולא ב-0–10 V?', a: 'במתח, כל התנגדות בכבל מורידה מתח, והבקר קורא פחות ממה שנשלח. בזרם, אותו זרם עובר בכל הלולאה, והנפילה בכבל רק לוקחת ממרווח המתח של הספק. 4 mA כאפס נותן "אפס חי": 0 mA הוא תקלה, חוט קרוע או משדר מת, ולא "אפס בר". והזרם הזה מספיק כדי להזין משדר דו-חוטי מאותם שני חוטים. בנוסף, לולאה בהתנגדות נמוכה, 250 Ω, פחות רגישה לרעש מושרה מאשר כניסת מתח בהתנגדות גבוהה.' }],
-    check: { I24, Vth, f12, loop, ub, ab, u96, u115, u115x, ec: { t: ec.tFrame, u: ec.util, n: ec.n, data: ec.data }, ecx: { t: ecx.tFrame, u: ecx.util }, ec2: ec2.util, Bmax, af, i2c, PB2, E1, E2, E3, E4 },
+    check: { uf: { n: uf.n, T: uf.T, eff: uf.eff, back: uf.back, d: uf.d }, ufe: { n: ufe.n, eff: ufe.eff, p: ufe.p }, ufr, i2: { first: i2.v.first, clocks: i2.v.clocks, found: i2.v.found, t: i2.v.t }, cn: { wid: cn.wid, nst: cn.nst, winner: cn.A.winner, raw: cn.raw, out: cn.st.out }, I24, Vth, f12, loop, ub, ab, u96, u115, u115x, ec: { t: ec.tFrame, u: ec.util, n: ec.n, data: ec.data }, ecx: { t: ecx.tFrame, u: ecx.util }, ec2: ec2.util, Bmax, af, i2c, PB2, E1, E2, E3, E4 },
     side: {
       '20.1': { win: [['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['c:loop:bench', 'הספסל: לולאת 4–20 mA'], ['s:card', 'כרטיס I/O: נקודות מדידה']],
         look: [['20.1', `בתלת-ממד, ב-24 V: <bdi>זרם בנורית ${amp(I24)}</bdi>. ההודעה כותבת את החישוב של 20.1.`],
           ['20.3', 'הורידו את המתח ל-12 V והפעילו רעש: בגרף, המתח חוצה את הסף פעמיים בכל מחזור, והביט אחרי המסנן מקפץ איתו. ב-24 V עם אותו רעש הוא יציב.'],
           ['20.4', `בספסל, בברירת המחדל: <bdi>זרם בלולאה ${fmt(loop.I, 2)} mA</bdi> ו-<bdi>מתח על הנגד ${fmt(loop.V, 2)} V</bdi>, והבקר מחשב <bdi>${fmt(loop.P, 2)} bar</bdi>. בחרו "חוט קרוע": 0 mA, מתחת ל-4.`]] },
-      '20.2': { win: [['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']],
+      '20.2': { win: [['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['anim:uartf', 'UART: מסגרת של בייט'], ['anim:i2c', 'I2C: כתובת ו-ACK'], ['anim:spi', 'SPI: שני אוגרים בטבעת'], ['anim:can', 'CAN: בוררות וביטי מילוי'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']],
         look: [['20.8', `בהנפשה, בברירת המחדל: <bdi>Δ = ${AB.err}%</bdi>. בצעד 3, ההזזה בביט ה-<span class="nogl">STOP</span>: <bdi>${f1(ab.shift, 2)}</bdi> ביט. בצעד 4, הגבול: <bdi>${f1(ab.lim, 2)}%</bdi>.`],
           ['20.8', 'הזיזו את Δ ל-6%: הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט, והמקלט קורא שגיאת framing.'],
-          ['20.9', `בנוסחאות: <bdi>16 MHz</bdi> ו-<bdi>9600</bdi>, <bdi>${tbN(u96.x, 2)}</bdi> שמעוגל ל-${u96.n}.`]] },
+          ['20.9', `בנוסחאות: <bdi>16 MHz</bdi> ו-<bdi>9600</bdi>, <bdi>${tbN(u96.x, 2)}</bdi> שמעוגל ל-${u96.n}.`],
+          ['20.6', `בהנפשת המסגרת, בצעד 4: <bdi>${uf.n}</bdi> ביטים, <bdi>T = ${uf.T.toFixed(1)} µs</bdi>, יעילות של <bdi>${uf.eff.toFixed(0)}%</bdi>. קבעו זוגיות even: <bdi>${ufe.n}</bdi> ביטים, <bdi>${ufe.eff.toFixed(0)}%</bdi>.`],
+          ['20.7', `בצעד 5 המקלט מרכיב מהנמוך לגבוה ומקבל <bdi>${hx2(uf.back)}</bdi>. מקלט שמרכיב מהגבוה קורא <bdi>${hx2(ufr)}</bdi>: אותה מסגרת, בייט אחר.`],
+          ['20.6', `בהנפשת I2C: הכתובת ${hx2(i2.addr)} עם כתיבה היא הבייט <bdi>${hx2(i2.v.first)}</bdi>, ו-<bdi>${i2.v.clocks}</bdi> פעימות ב-100 kHz, ועם START ו-STOP כ-<bdi>${i2.v.t.toFixed(0)} µs</bdi>. שנו את הכתובת ל-0x50: NACK בפעימה התשיעית.`],
+          ['20.8', `ב-SPI ובאפיק CAN: ב-SPI השעון בחוט, ואין סבלנות קצב. ב-CAN אין שעון, ולכן ביטי מילוי: במזהה של המנצח, ${hx3(cn.wid)}, <bdi>${cn.nst}</bdi> ביט מילוי אחרי חמישה אפסים.`]] },
       '20.3': { win: [['anim:frame', 'EtherCAT: כמה זמן לוקחת מסגרת אחת'], ['t:ecat:scene', 'EtherCAT: הסצנה'], ['t:ecat:math:2', 'גזירה: Working Counter']],
         look: [['20.10', `בהנפשה, צעד 3: <bdi>t = ${f1(af.tF)} µs</bdi>. בצעד 4: <bdi>${f1(af.util)}%</bdi> מהמחזור.`],
           ['20.11', `הזיזו את הנתונים ל-10,500 בתים: <bdi>${f1(ecx.tFrame * 1e6, 0)} µs</bdi>, מעל 80%. הגדילו את זמן המחזור ל-2 ms: חוזר מתחת.`],
@@ -20282,7 +20411,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.79.0';
+const APP_VERSION = '2.80.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

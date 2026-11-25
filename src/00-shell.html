@@ -724,6 +724,8 @@ bdi.nw{white-space:nowrap}
 .tb-parbtn{font:inherit;font-size:13px;font-weight:600;margin-inline-start:10px;padding:4px 12px;border:1px solid #3078B0;border-radius:999px;background:var(--sheet);color:#3078B0;cursor:pointer;vertical-align:middle}.tb-parbtn:hover{background:var(--tint)}
 .tb-eqsim{font:inherit;font-size:14px;border:0;background:none;cursor:pointer;padding:0 4px;margin-inline-end:4px;opacity:.75}.tb-eqsim:hover,.tb-eqsim:focus-visible{opacity:1}
 .drw.tb-par{width:min(520px,38vw)}
+/* an animation in a drawer (at most 520px wide) reads as one column, its picture first; the bottom sheet between 821 and 1099px is wide and low, so it keeps two */
+.drw .anim{grid-template-columns:1fr}.drw .anim canvas{order:-1}@media (min-width:821px) and (max-width:1099px){.drw.tb-par .anim{grid-template-columns:minmax(260px,1fr) minmax(0,1.4fr)}.drw.tb-par .anim canvas{order:0}}
 .tbs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}.tbs-tabs button{font:inherit;font-size:13px;padding:5px 12px;border:1px solid var(--line);border-radius:999px;background:var(--sheet);color:var(--ink);cursor:pointer}.tbs-tabs button[aria-selected="true"]{background:#1B2F5A;color:#EEE9E0;border-color:#1B2F5A}
 .tbs-win{min-height:120px}
 .tbs-look{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.tbs-look ul{padding-inline-start:18px;margin:4px 0}.tbs-look li{margin:6px 0;line-height:1.55;border-radius:8px;padding:2px 4px}

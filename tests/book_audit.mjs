@@ -653,6 +653,57 @@ const NH = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (
   return bad; });
 ok(!NH.length, 'Part H: the central chapters\' numbers recomputed from the physics and from the windows\' own models agree, and the fitted line, the RC stepped and driven, the Monte Carlo noise, the thermal loop, the bisection and the sampled Bayes update agree (' + NH.join(' | ') + ')');
 
+/* v2.80: the serial links animated (UART frame, I2C, SPI, CAN). Each checked by another route: the UART frame built from the byte by hand for all 256
+   bytes and the three parities; the I2C line levels decoded back into the first byte and the data byte, with SDA moving under a high SCL only at
+   START and STOP; the SPI registers by a closed form and the waveform sampled at its own sampling edges; the CAN winner and each loser's bit from
+   the minimum identifier alone, and the stuffing redone by searching the stream for five equal bits, for all 2048 identifiers. */
+const NS = await ev(() => { const bad = [], near = (k, a, b, t = 1e-9) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const dP = id => Object.fromEntries(ANIMS[id].params.map(x => [x[0], x[5]]));
+  const steps = (id, over) => { const A = ANIMS[id], P = Object.assign(dP(id), over || {}), V = A.calc(P); return A.steps.map(f => f(P, V)).join(' ').replace(/<[^>]+>/g, ''); };
+  /* UART */
+  for (let v = 0; v < 256; v++) for (const par of [0, 1, 2]) { const V = ANIMS.uartf.calc({ byte: v, par }), d = Array.from({ length: 8 }, (_, i) => (v >> i) & 1), ones = d.filter(Boolean).length;
+    const want = [0, ...d].concat(par ? [par === 1 ? ones % 2 : 1 - ones % 2] : []).concat([1]);
+    const line = V.f.bits.join(''), w2 = '1' + want.join('') + '1'; if (line !== w2) { bad.push('uart ' + v + '/' + par + ': ' + line + ' ≠ ' + w2 + ' (idle, frame, idle)'); break; }
+    if (V.back !== v) bad.push('uart read back ' + v); near('uart n ' + v, V.n, want.length); near('uart T ' + v, V.T, want.length / 115200 * 1e6); near('uart eff ' + v, V.eff, 800 / want.length); }
+  { const t = steps('uartf'); ['0x41', '1 0 0 0 0 0 1 0', 'T = 86.8 µs', '80%', "'A'"].forEach(x => { if (!t.includes(x)) bad.push('uart steps lack ' + x); }); }
+  /* I2C */
+  for (let a = 0; a < 128; a++) for (const rw of [0, 1]) { const data = (a * 37 + 11) & 255, V = ANIMS.i2c.calc({ addr: a, rw, data }), found = [0x3C, 0x48, 0x68].includes(a), n = V.sda.length;
+    if (V.found !== found) bad.push('i2c found ' + a); if (V.first !== a * 2 + rw) bad.push('i2c first ' + a);
+    for (let i = 1; i < n; i++) if (V.sda[i] !== V.sda[i - 1] && V.scl[i] && V.scl[i - 1]) { const ok = (i === 1 && !V.sda[i]) || (i === n - 1 && V.sda[i]); if (!ok) bad.push('i2c SDA moved under a high SCL at ' + i + ' (' + a + ')'); }
+    if (!(V.sda[0] && V.scl[0] && !V.sda[1] && V.scl[1] && V.sda[n - 1] && V.scl[n - 1])) bad.push('i2c START/STOP ' + a);
+    const hi = []; for (let i = 1; i < n; i++) if (V.scl[i] && !V.scl[i - 1]) hi.push(i); const pulses = hi.filter(i => V.scl.slice(i).includes(0)).length;
+    if (pulses !== V.clocks || V.clocks !== (found ? 18 : 9)) bad.push('i2c clocks ' + a + ': ' + pulses + '/' + V.clocks);
+    const byteAt = k => hi.slice(k, k + 8).reduce((s, i) => s * 2 + V.sda[i], 0);
+    if (byteAt(0) !== V.first) bad.push('i2c decoded first ' + a); if (V.sda[hi[8]] !== (found ? 0 : 1)) bad.push('i2c ack ' + a);
+    if (found && byteAt(9) !== data) bad.push('i2c decoded data ' + a); if (found && V.sda[hi[17]] !== (rw ? 1 : 0)) bad.push('i2c second ack/nack ' + a);
+    near('i2c t ' + a, V.t, (V.clocks + 1) / 100e3 * 1e6); }
+  { const t = steps('i2c'); ['0x90', 'ACK', '18', '190 µs'].forEach(x => { if (!t.includes(x)) bad.push('i2c steps lack ' + x); }); if (!steps('i2c', { addr: 0x50 }).includes('NACK')) bad.push('i2c 0x50 NACK'); }
+  /* SPI */
+  for (let r = 0; r < 300; r++) { const m = (r * 97 + 13) & 255, s = (r * 53 + 200) & 255; for (let k = 0; k <= 8; k++) { const st = spiShift(m, s, k); if (st.M !== (((m << k) | (s >> (8 - k))) & 255) || st.S !== (((s << k) | (m >> (8 - k))) & 255)) { bad.push('spi shift ' + m + ',' + s + ',' + k); break; } } }
+  for (const mode of [0, 1, 2, 3]) { const V = ANIMS.spi.calc({ m: 165, s: 60, mode }), w = spiWave(165, 60, V.cpol, V.cpha), want = ['rising', 'falling', 'falling', 'rising'][mode];
+    if (V.edge !== want) bad.push('spi mode ' + mode + ' edge'); if (w.clk[0] !== V.cpol) bad.push('spi idle clock ' + mode);
+    const got = [0, 0]; w.samp.forEach((i, j) => { const e = w.clk[i] > w.clk[i - 1] ? 'rising' : w.clk[i] < w.clk[i - 1] ? 'falling' : 'none'; if (e !== want) bad.push('spi mode ' + mode + ' sample ' + j + ' on ' + e);
+      if (w.cs[i] || w.mo[i] !== w.mo[i - 1] || w.mi[i] !== w.mi[i - 1]) bad.push('spi mode ' + mode + ': data moves at sample ' + j); got[0] = got[0] * 2 + w.mo[i]; got[1] = got[1] * 2 + w.mi[i]; });
+    if (got[0] !== 165 || got[1] !== 60) bad.push('spi mode ' + mode + ' sampled ' + got);
+    if (V.end.M !== 60 || V.end.S !== 165) bad.push('spi exchange ' + mode); }
+  { const t = steps('spi'); ['0x3C', '0xA5'].forEach(x => { if (!t.includes(x)) bad.push('spi steps lack ' + x); }); }
+  /* CAN: the bus carries the prefix of the lowest identifier, so a node leaves at its first bit that differs from it */
+  for (const ids of [[0x100, 0x1A4, 0x2F0], [0x123, 0x1A4, 0x2F0], [0x7FF, 0x000, 0x400], [0x555, 0x554, 0x556]]) { const V = ANIMS.can.calc({ id1: ids[0], id2: ids[1], id3: ids[2] }), mn = Math.min(...ids);
+    if (ids[V.A.winner] !== mn) bad.push('can winner ' + ids); V.A.rows.forEach((r, b) => { if (r.bus !== ((mn >> (10 - b)) & 1)) bad.push('can bus bit ' + b + ' ' + ids); });
+    ids.forEach((id, i) => { const want = id === mn ? -1 : Array.from({ length: 11 }, (_, b) => b).find(b => ((id ^ mn) >> (10 - b)) & 1); if (V.drop[i] !== want) bad.push('can drop ' + id.toString(16) + ': ' + V.drop[i] + ' ≠ ' + want); }); }
+  const stuff2 = raw => { let s = raw.join(''), k = 0, p = 0, m; const re = /00000|11111/g; for (;;) { re.lastIndex = p; m = re.exec(s); if (!m) break; const at = m.index + 5; s = s.slice(0, at) + (m[0][0] === '0' ? '1' : '0') + s.slice(at); k++; p = at; } return { s, k }; };
+  for (let id = 0; id < 2048; id++) { const raw = [0].concat(Array.from({ length: 11 }, (_, j) => (id >> (10 - j)) & 1)), A = canStuff(raw), B = stuff2(raw);
+    if (A.out.join('') !== B.s || A.at.length !== B.k) { bad.push('can stuff ' + id + ': ' + A.out.join('') + ' ≠ ' + B.s); break; }
+    if (/000000|111111/.test(B.s)) bad.push('can six equal ' + id); if (A.out.filter((_, i) => !A.at.includes(i)).join('') !== raw.join('')) bad.push('can destuff ' + id); }
+  { const t = steps('can'); ['Node 1', '0x100', 'Node 3 בביט 2', 'Node 2 בביט 4'].forEach(x => { if (!t.includes(x)) bad.push('can steps lack ' + x); }); if (ANIMS.can.calc(dP('can')).nst !== 1) bad.push('can default stuff count'); }
+  /* the chapter's panel says what the animations show */
+  const c = TBOOK.b20.check, look = TBOOK.b20.side['20.2'].look.map(l => l[1]).join(' ').replace(/<[^>]+>/g, '');
+  [`T = ${c.uf.T.toFixed(1)} µs`, `${c.uf.eff.toFixed(0)}%`, `${c.ufe.n} ביטים, ${c.ufe.eff.toFixed(0)}%`, '0x41', '0x82', '0x90', `${c.i2.clocks} פעימות`, `${c.i2.t.toFixed(0)} µs`, '0x50', '0x100', `${c.cn.nst} ביט מילוי`].forEach(x => { if (!look.includes(x)) bad.push('b20 panel lacks ' + x); });
+  near('b20 parity frame', c.ufe.n, 11); near('b20 reversed read', c.ufr, 0x82); near('b20 i2c first', c.i2.first, 0x90); near('b20 i2c time', c.i2.t, 190);
+  ['anim:uartf', 'anim:i2c', 'anim:spi', 'anim:can'].forEach(w => { if (!zNode('serial').around.includes(w)) bad.push('serial topic lacks ' + w); if (!TBOOK.b20.side['20.2'].win.some(x => x[0] === w)) bad.push('b20 20.2 panel lacks ' + w); });
+  return bad; });
+ok(!NS.length, 'Serial animations: the UART frame for every byte and parity, the I2C lines decoded back with START and STOP the only moves under a high clock, the SPI shift and the waveform sampled at its own edges in all four modes, the CAN winner and each loser from the lowest identifier, and the stuffing redone for all 2048 identifiers, agree, and the chapter\'s panel says what they show (' + NS.join(' | ') + ')');
+
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));
 console.log(`book: 29 chapters, ${n} checks`);
