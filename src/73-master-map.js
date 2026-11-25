@@ -25,7 +25,7 @@ const MASTER = [
     ['p:fit/why'], ['p:fit/ls'], ['p:fit/mat', 'p:fit/tf'], ['p:fit/aff', 'p:fit/svd', 'p:fit/dlt', 'p:fit/robust', 'p:fit/geo', 'p:fit/cal'], ['p:fit/xfer', 'p:fit/pipe'], ['p:fit/code', 'p:fit/lab'],
     ['qb:fit', 'p:fit/q'], ['x:aoi', 'x:aos']] },
   { id: 'img', track: 'found', t: 'עיבוד תמונה', L: [
-    ['p:img/why'], ['p:img/thr'], ['p:img/filt', 'p:img/edge'], ['p:img/cent', 'p:img/match', 'p:img/morph', 'p:img/af'], ['p:img/cmp', 'p:img/cc', 'p:img/scan'], ['p:img/lab'],
+    ['p:img/why'], ['p:img/thr', 'p:img/heq'], ['p:img/filt', 'p:img/edge', 'p:img/sharp', 'p:img/noise'], ['p:img/cent', 'p:img/match', 'p:img/morph', 'p:img/af', 'p:img/canny', 'p:img/harris', 'p:img/km'], ['p:img/cmp', 'p:img/cc', 'p:img/scan'], ['p:img/lab'],
     ['qb:img', 'p:img/q'], ['x:cam', 'x:aoi']] },
   { id: 'stat', track: 'found', t: 'סטטיסטיקה ואיכות', L: [
     ['p:stat/why'], ['p:stat/dist'], ['p:stat/acc', 'p:stat/unc'], ['p:stat/cap', 'p:stat/grr', 'p:stat/cls'], ['p:stat/spc'], ['p:stat/lab'],

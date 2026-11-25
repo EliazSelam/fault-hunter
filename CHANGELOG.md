@@ -2,6 +2,19 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.81.0] — 2026-11-25
+
+Image processing in depth: six new pages in the image-processing topic, each a derivation with a live figure, chosen from a university image-processing course for what an inspection machine does with its images.
+
+- **Point operations and histogram equalization**: the mapping through the cumulative histogram, why it comes out uniform, an 8-level example by hand; the figure shows that a threshold in the middle after equalization is another threshold in the original image, and how much it moves a line's measured width.
+- **Sharpening, frequency and separable filters**: the 2D DFT and the convolution theorem, the Gaussian in frequency, the unsharp mask J = I + λ(I − h∗I) and its response; its overshoot, and why it spreads the edge position (noise grows more than the slope); K² against 2K multiplications for a separable kernel.
+- **Salt and pepper and the median**: what one bright pixel does to a mean, when a median fails and how often, the 1-pixel line it erases, and the bilateral filter.
+- **Canny**: smoothing, Sobel, non-maximum suppression and hysteresis, LoG and DoG; the figure is a pad whose dull half is kept only by hysteresis.
+- **Harris and the structure tensor**: E(u, v) ≈ [u v]·A·[u v]ᵀ, the eigenvalues, R, the aperture problem and the position spread along each direction; the figure draws the ellipse for a flat patch, an edge, a corner, a cross and a circle.
+- **Clustering**: Lloyd's k-means and why it stops, why Otsu is k-means with k = 2 (σ_T² = σ_W² + σ_B²), a local minimum from a tight start, k = 3 on a board with two materials, and the boundary between two Gaussians of unequal weight.
+- Five new questions (Q125 to Q129), in chapter 16's exercises.
+- Tests: the live-figure suite checks each model by another route: equalization against ranking the pixels, the overshoot against a golden-section search and the λ(hi − lo)/2 limit, the noise gain by sampling, the Gaussian against the DFT of its kernel, the separable filter against the 2D one, the median by counting and its failure rate by sampling, Canny's Sobel in separable form and its hysteresis as connected components, Harris's eigenvalues against trace, determinant and A·v = λv, k-means against an exhaustive split, the variance identity at every threshold, and the weighted boundary by bisection.
+
 ## [2.80.0] — 2026-11-25
 
 The serial links are animated: a UART frame, an I2C transaction, an SPI exchange and CAN arbitration with bit stuffing, each step by step with its own numbers, in the serial topic and beside chapter 20.

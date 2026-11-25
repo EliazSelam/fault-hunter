@@ -8,7 +8,7 @@ const INDEX = url.pathToFileURL(path.join(ROOT, 'index.html')).href;
 const ALLOW = new Set(`Rin Rf QA QB RL IR Ke Kb Kt cos sin exp ln Ia Ra Vin Vout Iout Iin Ts Is TL Pm Pin VG VD VC VB Paul Falstad Iain Sharp Ryan
 U V W L N PE A B C D E F G H I J K M P Q R S T X Y Z II III IV es
 in on of the to and or with for at by is it
-tx ty dx dy dt dR WA res min max log round tr det diag atan`.split(/\s+/));
+tx ty dx dy dt dR WA res min max log round tr det diag atan dr ds dw ux vy Marr Hildreth Lloyd`.split(/\s+/));
 const problems = []; const seen = new Map();
 const b = await chromium.launch(); const pg = await b.newPage({ viewport: { width: 1280, height: 900 } });
 pg.on('pageerror', e => problems.push('js error: ' + e.message));

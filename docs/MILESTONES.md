@@ -38,6 +38,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.78.0](#v2780) | 25 Nov 2026 | Parts E to G as a textbook: from the vacuum table to the production line | 4.44 MB |
 | [v2.79.0](#v2790) | 25 Nov 2026 | Part H as a textbook: calibration, noise, heat and failure analysis | 4.52 MB |
 | [v2.80.0](#v2800) | 25 Nov 2026 | Serial links animated: UART, I2C, SPI and CAN | 4.54 MB |
+| [v2.81.0](#v2810) | 25 Nov 2026 | Image processing in depth: equalization, sharpening, median, Canny, Harris, k-means | 4.60 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -213,6 +214,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.80.0](milestones/v2.80.0.png)
 
 **What changed:** the serial links animated step by step: a UART frame from START to STOP, an I2C transaction with its address, ACK and STOP, an SPI exchange in its four modes, and CAN arbitration with bit stuffing, each with its own numbers, in the serial topic and in the panel beside chapter 20. In the picture, the I2C animation at the ninth clock, where the device at 0x48 answers ACK, beside the section on UART and the other three buses.
+
+## v2.81.0
+![v2.81.0](milestones/v2.81.0.png)
+
+**What changed:** image processing in depth, from the course material to what the machine does with an image: histogram equalization and the threshold it moves, sharpening in frequency and why it spreads an edge's position, the median against salt and pepper, Canny, Harris corners and the structure tensor, and k-means with its link to Otsu, each derived and with a live figure. In the picture, Canny on a pad whose dull half is kept only by hysteresis.
 
 ## From the first version to now, in numbers
 
