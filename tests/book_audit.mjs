@@ -248,7 +248,7 @@ ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agre
 /* v2.75: every chapter written so (chapter 6, the pilot, is checked above), and the panel's first window is live: a 3D lab, a simulation, an
    animation, an interactive figure, a scene or a lab page; every 3D lab of the chapter's topics opens first in at least one panel */
 const TBIDS = await ev(() => Object.keys(TBOOK).filter(id => id !== 'b6'));
-ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13', 'b14', 'b15', 'b16', 'b17', 'b18', 'b19', 'b20', 'b21', 'b22', 'b23'].every(id => TBIDS.includes(id)), 'Parts A to G are written as a textbook (' + TBIDS + ')');
+ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13', 'b14', 'b15', 'b16', 'b17', 'b18', 'b19', 'b20', 'b21', 'b22', 'b23', 'b24', 'b25', 'b26', 'b27'].every(id => TBIDS.includes(id)), 'Parts A to H, every chapter but the final exam, are written as a textbook (' + TBIDS + ')');
 for (const id of TBIDS) {
   await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
   const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
@@ -256,17 +256,19 @@ for (const id of TBIDS) {
     const eqs = [...A.querySelectorAll('.tb-eq')].map(e => e.dataset.eq), want = Array.from({ length: eqs.length }, (_, i) => n + '.' + (i + 1));
     const links = [...A.querySelectorAll('[data-tbeq]')].map(b => b.dataset.tbeq), ptr = [...A.querySelectorAll('[data-tbw]')].map(b => b.dataset.tbw);
     /* the practice cards (pq:) live in the chapter's own questions, and a page window is embedded by its route */
-    const ws = c.nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"], .bk-win[data-emb="${bookWinTarget(w)}"], .bk-win[data-w="${w.replace(/:[^:]+$/, ':*')}"]`)).length;   /* a family of a topic's windows (t:pwr:math:*) is one window in the chapter, and a page sits at its place (p:s2/servo at s2:servo#zero) */
+    const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, nodes = C ? [...new Set(C.items.flatMap(i => i.nodes))] : c.nodes;   /* a central chapter: the topics of its subject's items */
+    const ws = nodes.flatMap(x => zWindows(zNode(x))).filter(w => !PQ_WIN[w]), inCh = C ? (A.querySelectorAll('.tb-layerall .tb-item').length === C.items.length && C.items.every(it => A.querySelector(`.tb-layerall .tb-item .bk-check, .tb-layerall .tb-item [data-side]`)) ? ws.length : -1) : ws.filter(w => A.querySelector(`.bk-win[data-w="${w}"], .bk-win[data-emb="${w}"], .bk-win[data-emb="${bookWinTarget(w)}"], .bk-win[data-w="${w.replace(/:[^:]+$/, ':*')}"]`)).length;   /* a family of a topic's windows (t:pwr:math:*) is one window in the chapter, and a page sits at its place (p:s2/servo at s2:servo#zero) */
     const side = T.side || {}, sideWins = Object.values(side).flatMap(x => x.win.map(w => w[0])), looks = Object.values(side).flatMap(x => x.look.map(l => l[0]));
     return { order, seq: eqs.join() === want.join(), neq: eqs.length, links: links.every(l => eqs.includes(l)), ptr: ptr.length >= 6 && ptr.every(w => ws.includes(w)), inCh, ws: ws.length,
       probs: A.querySelectorAll('.tb-prob').length, ex: A.querySelectorAll('.tb-x details').length, levels: ['basic', 'adv', 'ext'].every(l => T.exercises.some(e => e.l === l)), risk: bidiRisk(A).length, whyOnce: A.querySelectorAll('#bk-why').length,
-      par: [...A.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(side).join() && Object.keys(side).length === 3, sideWins: sideWins.every(w => ws.includes(w)), labs: Object.values(side).every(x => { const w = x.win[0][0]; return w.startsWith('3d:') || w.startsWith('p:lab/') || ['sim', 'anim', 'figure', 'scene'].includes(zInfo(w).kind); }) && ws.filter(w => w.startsWith('3d:')).every(w => Object.values(side).some(x => x.win[0][0] === w)),
+      par: [...A.querySelectorAll('[data-tbpar]')].map(b => b.dataset.tbpar).join() === Object.keys(side).join() && Object.keys(side).length === 3, sideWins: sideWins.every(w => ws.includes(w)), labs: Object.values(side).every(x => { const w = x.win[0][0]; return w.startsWith('3d:') || w.startsWith('p:lab/') || ['sim', 'anim', 'figure', 'scene'].includes(zInfo(w).kind); }) && (C ? !ws.some(w => w.startsWith('3d:')) || Object.values(side).some(x => x.win[0][0].startsWith('3d:')) : ws.filter(w => w.startsWith('3d:')).every(w => Object.values(side).some(x => x.win[0][0] === w))),   /* a central chapter spans many topics: at least one panel opens a 3D lab */
+      ptrSide: !C || [...A.querySelectorAll('[data-tbw]')].every(b => { const sid = b.closest('[data-tbs]') && b.closest('[data-tbs]').dataset.tbs; return sid && side[sid] && side[sid].win.some(x => x[0] === b.dataset.tbw); }),   /* its windows are not in the chapter, so every pointer opens in its section's panel */
       looks: looks.every(eq => eqs.includes(eq)), marks: [...new Set(looks)].every(eq => A.querySelector(`.tb-eq[data-eq="${eq}"] [data-tbse]`)), bad: /NaN|undefined|Infinity|\$\{/.test(A.innerHTML), sum: T.summary.every(r => eqs.includes(r[2])) }; }, id);
   ok(X.order.every((x, i) => x >= 0 && (i === 0 || x > X.order[i - 1])), `textbook ${id}: opening, three sections, an advanced section, summary, solved problems, exercises and the layer, in that order (${X.order})`);
   ok(X.seq && X.neq >= 15 && X.links && X.sum, `textbook ${id}: ${X.neq} equations numbered in order, and every link and summary row finds its equation`);
   ok(X.ptr && X.inCh === X.ws, `textbook ${id}: every pointer is to a window of the chapter's topics, and all ${X.ws} of them are still in the chapter`);
   ok(X.probs === 3 && X.ex >= 6 && X.levels && X.risk === 0 && X.whyOnce === 1 && !X.bad, `textbook ${id}: three solved problems, six exercises at three levels with hidden answers, no formula out of order, nothing unfilled`);
-  ok(X.par && X.sideWins && X.labs && X.looks && X.marks, `textbook ${id}: every section reads beside a live window of its topics (each 3D lab first in a panel), and every equation named has its line and its button`);
+  ok(X.par && X.sideWins && X.labs && X.looks && X.marks && X.ptrSide, `textbook ${id}: every section reads beside a live window of its topics (each 3D lab first in a panel; in a central chapter at least one), every equation named has its line and its button, and a central chapter's pointers open in their panels`);
 }
 /* the panel mounts a 3D lab and stops it on close */
 const LAB = await ev(async () => { BV.ch = 'b3'; go('zoom', 'book'); content.querySelector('[data-tbpar="3.2"]').click(); await new Promise(r => setTimeout(r, 900)); const w = document.querySelector('#drwB .tbs-win'), o = { mounted: !!w.querySelector('canvas') && !!w.act, sid: TBS.sid };
@@ -604,6 +606,52 @@ const NG = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (
   has('b23 panel', look('b23'), ['90 /h', '45%', '120%', 'ρ = 1.20', '75 panels/h']);
   return bad; });
 ok(!NG.length, 'Part G: every number recomputed from the physics and from the windows\' own models agrees, the live scan shows what the panel says, the 3D line run for a shift slows to its bottleneck, and the Monte Carlo runs, the integrated warm-up, the numeric normal tail and the simulated queue agree (' + NG.join(' | ') + ')');
+
+/* v2.79: Part H, the central chapters. Each number from the physics and from the windows' own models (laserCalc, the laser bench, the
+   3D source, MOSFET and loading labs, measCalc, mosSolve), and against brute force: a fitted line, a step and a sine through a discrete RC,
+   noise added and averaged by Monte Carlo, a thermal loop iterated to its fixed point, a bisection counted, and a Bayes update by sampling. */
+const NH = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  const bench = (id, s) => { const C = COMPONENTS.find(c => c.id === id), st = document.createElement('div'), out = document.createElement('div'); C.render(s, st, out); return out.textContent; };
+  const has = (k, txt, ts) => ts.forEach(t => { if (!txt.includes(t)) bad.push(k + ' lacks ' + t); });
+  let seed = 13; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }, gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-12, rnd()))) * Math.cos(2 * Math.PI * rnd());
+  /* chapter 24 */
+  const c24 = TBOOK.b24.check;
+  near('pixel from the fit', c24.px.pe, 4.88, 2e-4); near('the laser spot from craters', c24.lz.w, LZ.w0, 1e-9); near('the threshold energy', c24.lz.Eth, LZ.fth * Math.PI * (LZ.w0 * 1e-4) ** 2 / 2 * 1e6, 1e-9);
+  near('24.10, the vertex', c24.fz.z0, 3, 1e-12); { let best = -1e9, zb = 0; for (let zz = -10; zz <= 10; zz += 1e-4) { const v = c24.fz.S(zz); if (v > best) { best = v; zb = zz; } } near('24.10 against a sweep', c24.fz.z0, zb, 1e-3); }
+  near('24.7', c24.emap.e, 5.2); near('24.4', c24.enc.res, 5000 / 48); near('24.9', c24.dist, -5e-9 * 4096 ** 3); near('24.14', c24.ver.tot, 1 + 2 * Math.sqrt(2.5), 1e-6);
+  has('laser bench at 2, 4, 8 µJ', [2, 4, 8].map(E => bench('laser', { E, dz: 0, N: 10, fault: 'none' })).join(' '), c24.lz.D.map(d => fmt(d, 1) + ' µm'));
+  has('b24 panel', look('b24'), ['50 µm', '±25 µm', '48', tbN(c24.dist, 1), c24.lz.D.map(d => fmt(d, 1)).join(', ')]);
+  /* chapter 25 */
+  const c25 = TBOOK.b25.check;
+  { const L = LABS.source, R = L.calc(Object.assign({}, L.P), { x: {}, P: L.P }); near('25.1 in the 3D source', R.V != null ? R.V : R.Vt, c25.src.V, 1e-9); }
+  near('25.2', c25.gnd.dV, 0.25); near('25.3', c25.cap.v, 4.8); near('25.4', c25.ind.v, 1);
+  { const RC = c25.rc.R * c25.rc.C, h = RC / 2000; let v = 0, t = 0, t1 = null, t9 = null; while (t < 8 * RC) { v += h * (1 - v) / RC; t += h; if (t1 == null && v >= 0.1) t1 = t; if (t9 == null && v >= 0.9) t9 = t; } near('25.7 by stepping the RC', t9 - t1, c25.rc.tr, 2e-3);
+    const f = 1000, hh = 1 / (f * 2000); let y = 0, mx = 0; for (let k = 0; k < 2000 * 40; k++) { const tt = k * hh; y += hh * (Math.sin(2 * Math.PI * f * tt) - y) / RC; if (k > 2000 * 30) mx = Math.max(mx, Math.abs(y)); } near('25.6 by a sine through the RC', mx, 1 / Math.sqrt(1 + (f / c25.rc.fc) ** 2), 2e-2); }
+  near('25.8 in the loading lab', c25.ld, 4.975, 1e-3); near('25.10', c25.pr.al, 1.6); near('25.11', c25.opto.IC, 0.5 * 22.8 / 4700);
+  { let s1 = 0, s2 = 0, a1 = 0, a2 = 0; const n = 40000; for (let k = 0; k < n; k++) { const e = 3 * gauss() + 4 * gauss(); s1 += e; s2 += e * e; let m = 0; for (let i = 0; i < 16; i++) m += gauss(); m /= 16; a1 += m; a2 += m * m; }
+    near('25.14 by Monte Carlo', Math.sqrt(s2 / n - (s1 / n) ** 2), 5, 2e-2); near('25.15 by Monte Carlo', Math.sqrt(a2 / n - (a1 / n) ** 2), 0.25, 3e-2); }
+  near('CMRR', c25.cm.err, 0.1); near('SNR', c25.snr.dB, 60);
+  has('b25 panel', look('b25'), ['11.4 V', '1.14 A', '0.57 V', '4.00 mm', '1.60 mm', '16.0 mV']);
+  /* chapter 26 */
+  const c26 = TBOOK.b26.check;
+  { const L = LABS.mosfet; [[10, 'none', c26.Tj10], [4, 'none', c26.Tj4]].forEach(([v, hs, T]) => near('the 3D MOSFET at ' + v + ' V', L.calc({ Vgs: v, hs }).Tj, T, 1e-12)); }
+  near('R_DS(on)', c26.Rds, 0.05, 2e-3); near('26.4 linear', c26.lin.P, 28.8); near('26.5', c26.dif.d, 16.5); near('26.6', c26.tau.t, 900); near('26.8', c26.life.L, 32000);
+  near('26.7', c26.arr.AF, Math.exp(0.7 / 8.617e-5 * (1 / 313.15 - 1 / 358.15))); near('26.9', c26.cu.Rh, 120 * (1 + 0.00393 * 60)); if (!(c26.cu.Ilo > VAL3.pin)) bad.push('the hot coil should still pull in at 21.6 V');
+  { let dT = 0; for (let k = 0; k < 400; k++) dT = c26.ru.P0 * (1 + c26.ru.k * dT) * c26.ru.R; near('26.13 at its fixed point', dT, c26.ru.dT, 1e-9); let d2 = 0; for (let k = 0; k < 60; k++) d2 = c26.ru.P0 * (1 + 0.02 * d2) * c26.ru.R; if (!(d2 > 1e6)) bad.push('at G ≥ 1 the loop should run away: ' + d2); }
+  { const tau = c26.tau.t; let T = 0, t = 0; const h = tau / 5000; while (t < tau) { T += h * (1 - T) / tau; t += h; } near('26.12 at one time constant', T, 1 - Math.exp(-1), 1e-3); }
+  near('26.11', c26.hs.sa, 110 / 3 - 2); has('b26 panel', look('b26'), [watt(c26.m10), watt(c26.m4), '> 400 °C', '18.4 µm']);
+  /* chapter 27 */
+  const c27 = TBOOK.b27.check;
+  near('27.1', c27.l0.Vm, 10 * (1e5 * 1e7 / (1e5 + 1e7)) / (1e5 + 1e5 * 1e7 / (1e5 + 1e7))); near('analog meter', c27.lan.Vm, 4); near('27.3', c27.pu.P, 4.8);
+  { let worst = 0; for (let tgt = 0; tgt < 64; tgt++) { let lo = 0, hi = 64, n = 0; while (hi - lo > 1) { const m = (lo + hi) >> 1; n++; if (tgt < m) hi = m; else lo = m; } worst = Math.max(worst, n); } near('27.5 by bisecting', worst, c27.bs.n); }
+  near('27.6', c27.mo.x, 24); near('27.7', c27.hot.dT, 10); near('27.8', c27.z.z, -3.95);
+  { let hit = [0, 0, 0], k = 0; const n = 200000; for (let i = 0; i < n; i++) { const u = rnd(), c = u < 0.3 ? 0 : u < 0.8 ? 1 : 2; if (rnd() < c27.by.lik[c]) { hit[c]++; k++; } } hit.forEach((h, i) => near('27.9 by sampling, cause ' + i, h / k, c27.by.post[i], 3e-2)); }
+  near('27.10', c27.lr.post, 4.75 / 5.75); near('27.12', (1 - 0.01) ** Math.ceil(c27.r3.n), 0.05, 2e-2); if (!((1 - 0.01) ** Math.ceil(c27.r3.n) <= 0.05)) bad.push('27.12 should reach 95%');
+  { let c = 0; const n = 100000; for (let i = 0; i < n; i++) if (-Math.log(1 - rnd()) / c27.inter.lam < c27.inter.T) c++; near('27.13 by sampling', c / n, c27.inter.P, 2e-2); }
+  has('b27 panel', look('b27'), ['5.000 V', '4.975 V', '-0.50%', '4.000 V', '-20.00%']);
+  return bad; });
+ok(!NH.length, 'Part H: the central chapters\' numbers recomputed from the physics and from the windows\' own models agree, and the fitted line, the RC stepped and driven, the Monte Carlo noise, the thermal loop, the bisection and the sampled Bayes update agree (' + NH.join(' | ') + ')');
 
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));

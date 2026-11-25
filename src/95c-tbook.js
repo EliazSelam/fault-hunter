@@ -154,8 +154,8 @@ TBOOK.b6.side = {
 
 /* the chapter's body when it is written as a textbook */
 function tbookBody(c, L) {
-  const T = TBOOK[c.id], lvT = { basic: 'בסיסי, עם תשובה', adv: 'מתקדם', ext: 'הרחבה' };
-  let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${c.why}</p><p class="nogl"><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
+  const T = TBOOK[c.id], C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, lvT = { basic: 'בסיסי, עם תשובה', adv: 'מתקדם', ext: 'הרחבה' };
+  let h = `<section class="bk-box tb-open" id="bk-why"><h3>${c.n}.0 פתיחה</h3><p><b>מה ולמה.</b> ${C ? C.why : c.why}</p><p class="nogl"><b>הכלים המתמטיים:</b> ${T.open.math}.</p><p><b>בסוף הפרק תדעו:</b></p><ul>${T.open.goals.map(g => `<li>${g}</li>`).join('')}</ul>${bookLinksHtml(c)}
     <p class="note nogl">הפרק כתוב כמו ספר לימוד: מודל, פיתוח, פרשנות ודוגמה בכל סעיף. את הפיתוח קוראים לצד ההדמיה: הכפתור 🎛️ שליד כותרת הסעיף פותח פאנל בצד הטקסט, והפאנל מתחלף עם הסעיף שקוראים. בפאנל, לכל משוואה כתוב מה לעשות בהדמיה ומה לראות. כל החלונות של הנושא נמצאים גם בסוף הפרק.</p></section>`;
   h += T.sections.map(s => `<section class="bk-topic tb-sec${s.adv ? ' tb-adv' : ''}" id="${BKID('tb:' + s.id)}" data-tbs="${s.id}"><h3>${s.adv ? '★ ' : ''}${s.id} ${s.t}${T.side && T.side[s.id] ? ` <button type="button" class="tb-parbtn" data-tbpar="${s.id}">🎛️ קריאה לצד ההדמיה</button>` : ''}</h3>${s.html}</section>`).join('');
   h += `<section class="bk-box tb-sum" id="${BKID('tb:sum')}"><h3>${c.n}.5 סיכום ודף נוסחאות</h3><table class="tb-tab"><thead><tr><th>נוסחה</th><th>מה היא נותנת</th><th>משוואה</th></tr></thead><tbody>${T.summary.map(([f, t, n]) => `<tr><td><bdi>${f}</bdi></td><td>${t}</td><td><button type="button" class="linkbtn" data-tbeq="${n}">(${n})</button></td></tr>`).join('')}</tbody></table></section>`;
@@ -163,8 +163,8 @@ function tbookBody(c, L) {
       <ol class="tb-steps">${p.steps.map(([t, x], j) => `<li class="tb-st"${j ? ' hidden' : ''}><b>${t}.</b> ${x}</li>`).join('')}<li class="tb-st tb-last" hidden><b>הצעד האחרון לבד:</b> ${p.last[0]}<textarea class="bk-ans" rows="2" aria-label="הפתרון שלי" placeholder="כותבים את החישוב כאן"></textarea><button type="button" class="pth-go" data-tbr="1">הראה את הפתרון</button><p class="tb-lastans" hidden>${p.last[1]}</p></li></ol>
       <p><button type="button" class="pth-go" data-tbn="1">הצעד הבא ▸</button></p></div>`).join('')}</section>`;
   h += `<section class="bk-box tb-exs" id="${BKID('tb:ex')}"><h3>${c.n}.7 תרגילים לפי רמה</h3>${['basic', 'adv', 'ext'].map(l => { const xs = T.exercises.map((e, i) => [e, i]).filter(([e]) => e.l === l); return `<h4>${lvT[l]}</h4>${xs.map(([e, i]) => `<div class="tb-x" data-tbx="${i}"><p><b>תרגיל ${c.n}.${i + 1}.</b> ${e.q}</p><details><summary>תשובה</summary><p>${e.a}</p></details></div>`).join('')}`; }).join('')}</section>`;
-  h += `<section class="bk-topic tb-layerall" id="${BKID('tb:layer')}"><h3>🎛️ שכבת ההמחשה: כל החלונות של הנושא</h3><p class="note">ההדמיות, הסכמה, השאלות והקריאה הנוספת של הנושא, באותו סדר כמו בעמוד הנושא. הטקסט שמעל הוא הבסיס, וכאן רואים אותו עובד.</p>
-    ${c.nodes.map((node, k) => bookTopicHtml(c, node, 7 + k, L)).join('')}</section>`;
+  h += `<section class="bk-topic tb-layerall" id="${BKID('tb:layer')}"><h3>🎛️ שכבת ההמחשה: ${C ? 'הנושאים של הפרק' : 'כל החלונות של הנושא'}</h3><p class="note">${C ? 'פרק מרכזי אוסף נושאים מכל הספר. כאן כל נושא עם מה שהוא אומר, איפה הוא נלמד, ושאלות בדיקה. החלונות שלו נפתחים בפאנל שליד כל סעיף, ובפרקים שבהם הם נלמדים.' : 'ההדמיות, הסכמה, השאלות והקריאה הנוספת של הנושא, באותו סדר כמו בעמוד הנושא. הטקסט שמעל הוא הבסיס, וכאן רואים אותו עובד.'}</p>
+    ${C ? C.items.map(it => `<div class="tb-item" id="${BKID('c:' + it.id)}"><h4>${it.t}</h4>${bookItemHtml(it)}</div>`).join('') : c.nodes.map((node, k) => bookTopicHtml(c, node, 7 + k, L)).join('')}</section>`;   /* a central chapter's layer is its subject's items; their windows open in the panel beside each section */
   return h;
 }
 function tbookWire(A) {

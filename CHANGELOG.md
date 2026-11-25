@@ -2,6 +2,17 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.79.0] — 2026-11-25
+
+Part H of the book is written as a textbook: the four central chapters, 24 to 27, calibration, noise and grounding, heat, and failure analysis. Every chapter of the book but the final exam is now a textbook chapter.
+
+- **Chapter 24, calibration**: error and correction, the reference that is good enough (TUR) and the order of calibration from thermal stability to the laser; axis resolution, backlash and its compensation, and the pitch-error map; pixel size from a target by least squares, lens distortion, the focus peak from three measurements, and the laser's spot and threshold from craters (D² against ln E); ★ the residual of a fit, verification on a known sample, and correcting distortion. 15 equations.
+- **Chapter 25, noise and grounding**: a real source, a shared return that lifts a sensor's 0V, capacitive and inductive coupling; the RC filter, its attenuation and its delay, and the meter that loads what it measures; hysteresis, the proximity sensor's sensing distance by material, and the optocoupler's isolation; ★ differential signals and CMRR, SNR, adding noises and averaging. 15 equations.
+- **Chapter 26, heat**: the power a MOSFET burns on and half on, junction temperature, linear against switching regulators; two materials that grow apart and the thermal time constant; Arrhenius, capacitor life, hot copper and solder fatigue; ★ the heatsink, heating in time, and thermal runaway as a loop with a gain. 15 equations.
+- **Chapter 27, failure analysis**: measuring before taking apart, meter loading, a current-limited power-up and comparison with a good board; bisection, locating a short along a trace, the hot spot and the z-score; Bayes and the likelihood ratio for the conclusion and the report; ★ when "fixed" can be said: the rule of three, catching an intermittent fault, and demonstrating an MTBF. 15 equations.
+- A central chapter spans the topics of its subject's items, so its windows live in their own chapters: every window it names opens in the panel beside its section, and its illustration layer is its subject's items, each with what it says, where it is taught, and its checks.
+- Tests: the textbook checks cover central chapters (their windows from the items' topics, every pointer opening in its panel, at least one panel opening a 3D lab), and the book suite recomputes Part H: the 3D source, MOSFET and loading labs and the laser bench at the settings the text names; a fitted line, a sweep for the focus peak, an RC stepped and driven by a sine, noise added and averaged by Monte Carlo, a thermal loop iterated to its fixed point and to runaway, a bisection counted, and a Bayes update by sampling.
+
 ## [2.78.0] — 2026-11-25
 
 Parts E, F and G of the book are written as a textbook: chapters 18 to 23, from the valve and the vacuum table to the production line, each read beside its topics' live windows.

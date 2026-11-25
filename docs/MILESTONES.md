@@ -36,6 +36,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.76.0](#v2760) | 24 Nov 2026 | Part C as a textbook: from the motor to the closed loop | 4.23 MB |
 | [v2.77.0](#v2770) | 25 Nov 2026 | Part D as a textbook: optics, the camera and the laser | 4.32 MB |
 | [v2.78.0](#v2780) | 25 Nov 2026 | Parts E to G as a textbook: from the vacuum table to the production line | 4.44 MB |
+| [v2.79.0](#v2790) | 25 Nov 2026 | Part H as a textbook: calibration, noise, heat and failure analysis | 4.52 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -201,6 +202,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.78.0](milestones/v2.78.0.png)
 
 **What changed:** parts five to seven of the book, chapters 18 to 23, written as a textbook: the solenoid valve and the vacuum balance, holding a bowed panel flat; the interlock's stopping time and safety distance, two channels and reliability; the input card, the 4–20 mA loop, the UART's baud tolerance and the EtherCAT cycle; the AOI scan and its cycle time, the defect's way to AOS and the error budget; bring-up from the ground wire to Cpk; and the line, its bottleneck, its buffer and its OEE. In the picture, the 3D vacuum table beside the derivation of the time to the switch.
+
+## v2.79.0
+![v2.79.0](milestones/v2.79.0.png)
+
+**What changed:** the last part of the book, the four central chapters, written as a textbook: calibration from the reference to the laser's spot measured in craters; noise from a shared return to CMRR; heat from a half-on MOSFET to thermal runaway; and failure analysis from the meter that loads the circuit to Bayes and the rule of three. With this, every chapter but the final exam is a textbook chapter. In the picture, the 3D MOSFET beside the derivation of the power it burns.
 
 ## From the first version to now, in numbers
 

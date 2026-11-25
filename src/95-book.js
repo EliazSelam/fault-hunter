@@ -286,6 +286,8 @@ function bookIndexHtml(A) {
   const n = Object.values(G).reduce((s, l) => s + l.length, 0); if (!n) return '';
   return `<section class="bk-box bk-idx" id="bk-idx"><details><summary>🗂️ מפתח הפרק · ${n} פריטים, כל אחד פעם אחת</summary>${Object.entries(G).map(([g, l]) => `<p class="bk-idxg"><b>${g} (${l.length}):</b> ${l.map(e => `<button type="button" class="linkbtn" data-goto="${e.id}">${e.dataset.t || ''}</button>`).join(' · ')}</p>`).join('')}</details></section>`;
 }
+/* an item of a central subject: what it says, where it is taught, and its checks */
+const bookItemHtml = it => `<p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-side="route:zoom/${n}" data-st="${bkAttr(zNode(n).t)}">📖 ${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}`;
 function bookChapter(A, B, c) {
   embClose('live'); BKL.el = null; BKID.reset();
   const C = c.central ? PCENTRAL.find(x => x.id === c.central) : null, why = C ? C.why : c.why, L = bookLayout(c);
@@ -294,8 +296,8 @@ function bookChapter(A, B, c) {
   let h = bookHead(c, B) + bookRecap(c) + (TB ? '' : `<section class="bk-box" id="bk-why"><h3>למה זה חשוב</h3><p>${why}</p><h3>בסוף הפרק תדע</h3><ul>${c.goals.map(g => `<li>${g}</li>`).join('')}</ul>
     ${bookLinksHtml(c)}</section>`);
   if (c.final) h += bookFinalBody(B);
-  else if (C) h += C.items.map((it, k) => `<section class="bk-topic" id="${BKID('c:' + it.id)}"><h3>${c.n}.${k + 1} ${it.t}</h3><p>${it.what}</p><p class="note">איפה זה נלמד: ${it.nodes.map(n => `<button type="button" class="linkbtn" data-side="route:zoom/${n}" data-st="${bkAttr(zNode(n).t)}">📖 ${zNode(n).t.split(':')[0]}</button>`).join(' · ')}</p>${bookChecks(it.id)}</section>`).join('');
-  else if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) h += tbookBody(c, L);   /* a chapter written as a textbook (95c, v2.72) */
+  else if (typeof TBOOK !== 'undefined' && TBOOK[c.id]) h += tbookBody(c, L);   /* a chapter written as a textbook (95c, v2.72); a central chapter too (v2.79) */
+  else if (C) h += C.items.map((it, k) => `<section class="bk-topic" id="${BKID('c:' + it.id)}"><h3>${c.n}.${k + 1} ${it.t}</h3>${bookItemHtml(it)}</section>`).join('');
   else h += c.nodes.map((node, k) => bookTopicHtml(c, node, k, L)).join('');
   const rest = L.rest.filter(x => !L.seen.has(x.key));
   if (rest.length) { const lv = BK_LV.map(() => []); rest.forEach(x => lv[Math.min(7, x.level)].push(bookEmbItem(x.ref)));
