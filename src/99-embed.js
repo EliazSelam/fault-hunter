@@ -19,7 +19,7 @@ if (EMB) (function () {
   const ask = () => { if (!raf) raf = requestAnimationFrame(send); };
   try { new ResizeObserver(ask).observe(document.body); } catch (e) { }
   if (content) new MutationObserver(ask).observe(content, { childList: true, subtree: true, attributes: true, attributeFilter: ['open', 'hidden', 'class', 'style'] });
-  window.addEventListener('load', ask); [60, 300, 900, 2000, 4000].forEach(t => setTimeout(ask, t)); ask();
+  window.addEventListener('load', ask); [60, 300, 900, 2000, 4000].forEach(t => setTimeout(send, t)); ask();   /* timers send directly: a frame below the fold gets no animation frames */
   window.addEventListener('message', e => { if (e.source === parent && e.data && e.data.fh === 'emb-theme') R.setAttribute('data-theme', e.data.t); });
   window.__fhEmbOk = true;   /* the whole app ran in the frame (the checks read it) */
 })();

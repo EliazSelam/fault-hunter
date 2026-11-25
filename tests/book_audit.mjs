@@ -248,7 +248,7 @@ ok(!NUM.length, 'textbook chapter: every number recomputed from the physics agre
 /* v2.75: every chapter written so (chapter 6, the pilot, is checked above), and the panel's first window is live: a 3D lab, a simulation, an
    animation, an interactive figure, a scene or a lab page; every 3D lab of the chapter's topics opens first in at least one panel */
 const TBIDS = await ev(() => Object.keys(TBOOK).filter(id => id !== 'b6'));
-ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13', 'b14', 'b15', 'b16', 'b17'].every(id => TBIDS.includes(id)), 'Parts A, B, C and D are written as a textbook (' + TBIDS + ')');
+ok(['b1', 'b2', 'b3', 'b4', 'b5', 'b7', 'b8', 'b9', 'b10', 'b11', 'b12', 'b13', 'b14', 'b15', 'b16', 'b17', 'b18', 'b19', 'b20', 'b21', 'b22', 'b23'].every(id => TBIDS.includes(id)), 'Parts A to G are written as a textbook (' + TBIDS + ')');
 for (const id of TBIDS) {
   await pg.evaluate(id => { BV.ch = id; BV.exam = null; go('zoom', 'book'); }, id); await pg.waitForTimeout(400);
   const X = await pg.evaluate(id => { const A = content, c = bookCh()[id], n = c.n, T = TBOOK[id], h3 = [...A.querySelectorAll('h3')].map(h => h.textContent.trim()), at = t => h3.findIndex(x => x.startsWith(t));
@@ -512,6 +512,98 @@ const NDd = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if 
   has('b17 panel', look('b17'), ['7.07 J/cm²', '10.6 µm', '4.7 µm', '2.40 µJ', '4.24 J/cm²', '8.7 µm', '8.50 µm', '6.0 µm', '50.3 mm', '14.0 mm']);
   return bad; });
 ok(!NDd.length, 'Part D: every number recomputed from the physics and from the windows\' own models agrees, the benches show what the panel says at the setting it names, and the sweeps, sampled overlaps, Monte Carlo runs and the integral agree (' + NDd.join(' | ') + ')');
+
+/* v2.78: Parts E and F. Each number again from the physics and from the windows' own models, and against the labs run in time (the valve
+   switching, the interlock stopping, the input card filtering), an integrated vacuum ODE, a beam integral, a Monte Carlo of a series system,
+   and a sampled UART frame. */
+const NEf = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  const steps = id => { const A = ANIMS[id], P = Object.fromEntries(A.params.map(x => [x[0], x[5]])), V = A.calc(P); return A.steps.map(f => f(P, V)).join(' ').replace(/<[^>]+>/g, ''); };
+  const bench = (id, s) => { const C = COMPONENTS.find(c => c.id === id), st = document.createElement('div'), out = document.createElement('div'); C.render(s, st, out); return out.textContent; };
+  const has = (k, txt, ts) => ts.forEach(t => { if (!txt.includes(t)) bad.push(k + ' lacks ' + t); });
+  const lab = (id, P) => { const L = LABS[id], S = { x: {}, P: Object.assign({}, L.P, P), t: 0 }; L.init(S); return { L, S, go: (T, h, f) => { for (let k = 0; k < T / h; k++) { L.step(S, h); S.t += h; if (f) f(S); } return L.calc(S.P, S); } }; };
+  let seed = 5; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+  /* chapter 18 */
+  const c18 = TBOOK.b18.check;
+  near('τ', c18.tau, 0.5 / 120); near('t_pull', c18.tpull, c18.tau * Math.log(0.2 / 0.08)); near('coil', c18.Pc, 4.8);
+  { const v = lab('valve', { out: 'on' }); v.S.x.t0 = 0; let tp = null; const R = v.go(0.12, 1e-5, S => { if (tp == null && S.x.pull) tp = S.t; });
+    near('the lab pulls in at 18.2', tp, c18.tpull, 2e-2); near('the lab fills at 18.1 + travel + 18.8-style fill', R.tr, c18.tfill, 2e-2);
+    v.S.P.out = 'off'; let td = null; const t0 = v.S.t; v.go(0.03, 1e-5, S => { if (td == null && !S.x.pull) td = S.t - t0; }); near('the lab drops out at 18.3', td, c18.tdrop, 2e-2);
+    has('valve message', v.L.msg(v.L.calc({ out: 'off', fault: 'none', p: 6 }, { x: { i: 0, s: 0, pa: 0, mo: false } }), { P: { out: 'off', fault: 'none', p: 6 } }).replace(/<[^>]+>/g, ''), ['τ = L/R = ' + lf(c18.tau * 1000, 1) + ' ms']); }
+  { const v = lab('valve', { out: 'on', p: 3 }); v.S.x.t0 = 0; const R = v.go(0.3, 1e-4); near('venturi at 3 bar in the lab', R.vac, c18.vac3, 1e-3); }
+  near('18.7', c18.v0.pss, (1.2 * 15 + 0.02 * 101.3) / 1.22); near('18.8', c18.v0.tau, 2 / 1.22);
+  { let p = 101.3, t = 0; const h = 1e-4; while (p > c18.pth && t < 20) { p += h * (-1.2 * (p - 15) + 0.02 * (101.3 - p)) / 2; t += h; } near('18.9 against the integrated 18.6', t, c18.v0.tth, 1e-3); }
+  if (!(vacCalc({ C: c18.Cmax * 0.999 }).reach && !vacCalc({ C: c18.Cmax * 1.001 }).reach)) bad.push('18.10 is not the edge'); near('the solved leak', c18.PB2.C, 0.4, 1e-6);
+  if (c18.vs.reach || c18.v3.reach) bad.push('an open zone should keep the machine waiting'); near('18.11', c18.v0.F, c18.v0.vac * VT.A);
+  { const q = 1000, E = CLAMP.E, h = 0.8e-3, L = CLAMP.L, I = h ** 3 / 12; let d = 0; const n = 20000; for (let i = 0; i < n; i++) { const x = (i + 0.5) * L / n, M = q * x * (L - x) / 2, m = x < L / 2 ? x / 2 : (L - x) / 2; d += M * m / (E * I) * L / n; }
+    near('18.12 by the unit-load integral', d, 5 * q * L ** 4 / (384 * E * I), 1e-6); near('18.13', c18.ac.qreq, 384 * E * h ** 3 * 1.6e-3 / (60 * L ** 4) / 1000); }
+  near('18.14', c18.acT.resid, 4000 * (1 - c18.acT.dP / c18.acT.qreq)); near('venturi Bernoulli', c18.ven.dp, 48); near('cylinder', c18.cyl.F, 0.6 * Math.PI * 256, 1e-9);
+  has('pump animation', steps('pump'), [f1(c18.v0.pss) + ' kPa', f1(c18.v0.tau, 2) + ' s', f1(c18.v0.tth, 2) + ' s']); has('clamp animation', steps('clamp'), [f1(c18.ac.qreq, 2) + ' kPa', f1(c18.ac.F / 1000, 1) + ' kN']);
+  has('b18 panel', look('b18'), ['4.2 ms', '200 mA', f1(c18.v0.pss) + ' kPa', f1(c18.acT.resid) + ' µm', lf(c18.vac3, 0) + ' kPa']);
+  /* chapter 19 */
+  const c19 = TBOOK.b19.check;
+  near('19.1', c19.tr, 0.04); near('19.2', c19.s, 0.045); near('19.3', c19.T, 0.14); near('19.4', c19.ik.S, 280); near('at 1 m/s', c19.ik1.S, 480); near('the fastest axis for 300 mm', ilkCalc(c19.vmax, 5, 300).S, 300, 1e-9);
+  { const r = lab('interlock', {}); r.L.act.open(r.S); const R = r.go(0.6, 1e-4); near('the lab stops at 19.3', R.tstop, c19.T, 1e-2); if (R.hit) bad.push('the hand should not reach at 0.5 m/s');
+    const r1 = lab('interlock', { v: 1 }); r1.L.act.open(r1.S); const R1 = r1.go(0.6, 1e-4); if (!R1.hit) bad.push('the hand should reach at 1 m/s'); }
+  near('19.7', c19.cc, 0.05e-3 + (0.95e-3) ** 2); near('19.9', c19.Ry, Math.exp(-2e-6 * 8760));
+  { let s = 0; const n = 40000; for (let k = 0; k < n; k++) s += Math.min(...c19.ser.l.map(l => -Math.log(1 - rnd()) / l)); near('19.12 by Monte Carlo', s / n, c19.ser.M, 2e-2); }
+  near('B10 is where R = 0.9', relWb(c19.aw.b10, 1e4, 2), 0.9, 1e-9); { const t = 5000, d = 1; near('19.13 h = −d ln R/dt', c19.aw.h, -(Math.log(relWb(t + d, 1e4, 2)) - Math.log(relWb(t - d, 1e4, 2))) / (2 * d), 1e-6); }
+  near('MTTF_D', c19.mttfdY, 2e6 / 21120); near('parallel', c19.par, 0.99); near('availability', c19.PB2.A, 50000 / 50004);
+  has('weibull animation', steps('weibull'), [f1(c19.aw.R, 3), f1(c19.aw.b10, 0)]); has('b19 panel', look('b19'), ['140 ms', '280 mm', '150 ms', '240 ms', '480 mm', '45 mm', f1(c19.aw.R, 3)]);
+  /* chapter 20 */
+  const c20 = TBOOK.b20.check;
+  near('20.1', c20.I24, 22.8 / 4700); near('20.2', c20.Vth, 10.6);
+  { const r = lab('input', { V: 12, noise: 'on' }); let on = 0, n = 0; const R = r.go(0.2, 2e-5, S => { if (S.t > 0.02) { n++; on += S.x.opto; } }); near('20.3 sampled in the lab', on / n, c20.f12, 1e-2); if (!(r.S.x.tog.length >= 15)) bad.push('the bit should chatter at 12 V: ' + r.S.x.tog.length);
+    const r2 = lab('input', { V: 24, noise: 'on' }); r2.go(0.2, 2e-5); if (r2.S.x.tog.length > 1) bad.push('the bit should be steady at 24 V'); }
+  has('loop bench', bench('loop', { p: 6, f: 'ok' }), ['13.60 mA', '3.40 V', '6.00 bar']); has('broken loop', bench('loop', { p: 6, f: 'brk' }), ['0.00 mA']);
+  { let lim = 0; for (let d = 0; d < 0.08; d += 1e-5) { let ok = true; for (let k = 0; k <= 9; k++) { const t = (k + 0.5) * (1 + d); if (t < k || t >= k + 1) ok = false; } if (ok) lim = d; } near('20.8 by sampling the frame', lim * 100, c20.ab.lim, 1e-3); }
+  near('UBRR 115200', c20.u115.act, 16e6 / 144, 1e-9); near('double speed', c20.u115x.act, 16e6 / 136, 1e-9);
+  near('20.10', c20.ec.t, 62 * 8 / 1e8 + 6e-6); near('20.13', ecatCalc({ bytes: c20.Bmax }).util, 0.8, 1e-9); near('ln(0.7/0.3)', Math.log(0.7 / 0.3), 0.8473, 1e-4);
+  has('baud animation', steps('baud'), [f1(c20.ab.shift, 2), f1(c20.ab.lim, 2)]); has('frame animation', steps('frame'), [f1(c20.af.tF) + ' µs', f1(c20.af.util) + '%']);
+  has('b20 panel', look('b20'), [amp(c20.I24), '13.60 mA', '3.40 V', f1(c20.ab.lim, 2) + '%', f1(c20.af.tF) + ' µs']);
+  return bad; });
+ok(!NEf.length, 'Parts E and F: every number recomputed from the physics and from the windows\' own models agrees, the valve, the interlock and the input card run in time where the text says, and the vacuum ODE, the beam integral, the Monte Carlo and the sampled UART frame agree (' + NEf.join(' | ') + ')');
+
+/* v2.78: Part G. The scan, the cycle and the error budget from scanCalc, scanPlan and the transfer page; bring-up, warm-up and capability
+   from the bring-up derivations and capab; the line from the 3D line's own model, run for a shift; and a Monte Carlo of the error budget,
+   an integrated warm-up, a numeric normal tail, a Monte Carlo of the sample size, and the queue simulated panel by panel. */
+const NG = await ev(() => { const bad = [], near = (k, a, b, t = 1e-6) => { if (!(Math.abs(a - b) <= t * Math.max(1, Math.abs(b)))) bad.push(k + ': ' + a + ' ≠ ' + b); };
+  const look = id => Object.values(TBOOK[id].side).flatMap(x => x.look.map(l => l[1])).join(' ').replace(/<[^>]+>/g, '');
+  const steps = id => { const A = ANIMS[id], P = Object.fromEntries(A.params.map(x => [x[0], x[5]])), V = A.calc(P); return A.steps.map(f => f(P, V)).join(' ').replace(/<[^>]+>/g, ''); };
+  const has = (k, txt, ts) => ts.forEach(t => { if (!txt.includes(t)) bad.push(k + ' lacks ' + t); });
+  let seed = 9; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; }, gauss = () => Math.sqrt(-2 * Math.log(Math.max(1e-12, rnd()))) * Math.cos(2 * Math.PI * rnd());
+  /* chapter 21 */
+  const c21 = TBOOK.b21.check, sizes = AOISCAN.defects.map(d => d.size);
+  near('21.1', c21.s0.f, 240); near('21.2', c21.s0.b, 0.6); near('t_max', c21.s0.tmax, 0.625); near('21.3', c21.s0.area, 1200 * 16384 * 5e-3 / 100); near('21.4', c21.s0.panelS, 360000 / (1200 * 81.92)); near('21.5', c21.s0.need, 2 * Math.hypot(5, 0.6));
+  near('found at 5 µm', c21.s0.n, sizes.filter(x => x >= c21.s0.need).length); near('found at 12 µm', c21.sC.n, sizes.filter(x => x >= 2 * Math.hypot(12, 0.6)).length); if (!(c21.sC.n < c21.s0.n && c21.sF.nFalse > 0)) bad.push('the coarse pixel should miss and the long pulse should add false calls');
+  near('the largest pixel for 15 µm', c21.PB1.need, 15, 1e-9); near('21.6', c21.Tc, 14 * 610 / 250 + 13 * 0.4 + 24); near('21.8', c21.Tc2, 14 * 610 / 500 + 13 * 0.4 + 24);
+  { let s1 = 0, s2 = 0; const n = 60000; for (let k = 0; k < n; k++) { const e = [3, 2, 3, 4].reduce((a, sg) => a + sg * gauss(), 0); s1 += e; s2 += e * e; } near('21.11 by Monte Carlo', Math.sqrt(s2 / n - (s1 / n) ** 2), c21.rss, 2e-2); }
+  near('expansion', c21.exp, 25); near('precision', c21.cls.P, 95 / 495); near('recall', c21.cls.R, 0.95);
+  { const el = document.createElement('div'); document.body.appendChild(el); scanMount(el); has('the live scan', el.textContent, ['240.0 kHz', '0.60 µm · 12.0%', '983.0 cm²/s', '81.9 mm', '3.7 s', '10.1 µm']); el.remove(); }
+  has('handoff animation', steps('handoff'), [f1(2, 1) + ' µm', '3 µm']); has('b21 panel', look('b21'), ['240.0 kHz', '0.60 µm · 12.0%', '983.0 cm²/s', '10.1 µm', '24.0 µm', '80.0%', '6.16 µm', '18.5 µm']);
+  /* chapter 22 */
+  const c22 = TBOOK.b22.check;
+  near('22.2', c22.d1, 3 * 2 * 0.0175 * 10 / 0.75); near('25 m', c22.d2, 5.25); near('22.3', c22.Ipsu, 5); near('22.1', c22.touch.U, 5); near('22.4', c22.th.dL, 11.7);
+  { let T = 5, t = 0; const h = 1e-3; while (T > 0.2) { T -= h * T / 40; t += h; } near('22.6 against the integrated 22.5', t, c22.wu.t, 1e-3); }
+  { const tail = z => { let s = 0; const n = 200000, hi = 12; for (let i = 0; i < n; i++) { const x = z + (i + 0.5) * (hi - z) / n; s += Math.exp(-x * x / 2) * (hi - z) / n; } return s / Math.sqrt(2 * Math.PI); };
+    near('22.10 against a numeric tail', c22.ac.ppm, 1e6 * (tail(25 / 8) + tail(35 / 8)), 2e-3); near('centred', c22.ac0.ppm, 2e6 * tail(30 / 8), 2e-3); }   /* capab's phi is an erf approximation, good to about 1e-7 absolute */
+  near('Cp', c22.ac.cp, 1.25); near('Cpk', c22.ac.cpk, 25 / 24); near('22.11', c22.ms, 2); near('%GRR', c22.grr, 20); near('U', c22.U, 2 * Math.sqrt(7.25));
+  { const ok = n => { let k = 0; const N = 20000; for (let j = 0; j < N; j++) { let m = 0; for (let i = 0; i < n; i++) m += 0.48 * gauss(); if (Math.abs(m / n) <= 0.2) k++; } return k / N; }; const nn = Math.ceil(c22.nE);
+    if (!(ok(nn) >= 0.945 && ok(Math.ceil(nn / 2)) < 0.94)) bad.push('22.14: ' + nn + ' measurements should give about 95%'); }
+  near('cable for 21.6 V', c22.PB1.A2, 2 * 0.0175 * 25 * 3 / 2.4); has('cpk animation', steps('cpk'), [c22.ac.cp.toFixed(2), c22.ac.cpk.toFixed(2), Math.round(c22.ac.ppm) + ' ppm']);
+  has('b22 panel', look('b22'), [BRING3[0][1], BRING3[2][1], c22.ac.cpk.toFixed(2), Math.round(c22.ac.ppm) + ' ppm', '11.7 µm']);
+  /* chapter 23 */
+  const c23 = TBOOK.b23.check;
+  near('23.1', c23.L0.aoi, 90); near('23.3', c23.L0.rho, 0.45); near('23.2 at 8 calls', c23.L8.line, 75); near('23.5', c23.fill8, 8 / 15); near('23.9', c23.fcMax, 40 / 6); near('23.6', c23.fpy, 0.98 * 0.99 * 0.995); near('23.14', c23.oeeX.v, 40 * 610 / 28800);
+  { const run = fc => { const L = LABS.line, S = { x: {}, P: Object.assign({}, L.P, { fc }), t: 0 }; L.init(S); let tFull = null; for (let k = 0; k < 7200 / 0.5; k++) { L.step(S, 0.5); S.t += 0.5; if (tFull == null && S.x.q.length >= LINE3.cap) tFull = S.t; } return { R: L.calc(S.P, S), tFull }; };
+    const r8 = run(8), r3 = run(3); near('the line at 8 calls, run for two hours', r8.R.meas, 75, 0.15); if (!(r8.tFull != null && r8.tFull > 600 && r8.tFull < 4000)) bad.push('the buffer should fill in about half an hour: ' + r8.tFull);
+    near('the line at 3 calls', r3.R.meas, 90, 0.1); if (r3.tFull != null) bad.push('at 3 calls the buffer should not fill'); }
+  { let sd = 3, W = 0, sum = 0; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; }, pois = m => { let L = Math.exp(-m), k = 0, q = 1; do { k++; q *= r(); } while (q > L); return k - 1; }; for (let i = 0; i < 300000; i++) { sum += W; W = Math.max(0, W + pois(6) * 6 - 40); }
+    near('the queue, simulated with another seed', sum / 300000, c23.sim6, 0.1); if (!(c23.kg6 > c23.sim6 && c23.kg5 > c23.sim5)) bad.push('Kingman should overestimate here'); }
+  { let tot = 0, wsum = 0; const lam = 90 / 3600, Wm = 40; for (let k = 0; k < 2000; k++) { wsum += Wm; } tot = lam * (wsum / 2000); near('Little', c23.little.L, tot); }
+  has('b23 panel', look('b23'), ['90 /h', '45%', '120%', 'ρ = 1.20', '75 panels/h']);
+  return bad; });
+ok(!NG.length, 'Part G: every number recomputed from the physics and from the windows\' own models agrees, the live scan shows what the panel says, the 3D line run for a shift slows to its bottleneck, and the Monte Carlo runs, the integrated warm-up, the numeric normal tail and the simulated queue agree (' + NG.join(' | ') + ')');
 
 await b.close();
 if (errs.length) P.push(...errs.map(e => 'js error: ' + e));

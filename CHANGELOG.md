@@ -2,6 +2,20 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.78.0] — 2026-11-25
+
+Parts E, F and G of the book are written as a textbook: chapters 18 to 23, from the valve and the vacuum table to the production line, each read beside its topics' live windows.
+
+- **Chapter 18, the valve and the vacuum table**: the solenoid's current as an RL circuit, its pull-in and its drop-out through the flyback diode, the cylinder's force; the vacuum balance of pumping against leaks, its steady pressure, time constant and time to the switch, and the largest leak that still reaches it; holding force and flatness, the pressure that flattens a bowed panel (h³) and the bow left; ★ the venturi from Bernoulli and the supply pressure. 16 equations.
+- **Chapter 19, the interlock and the safety chain**: response time, stopping distance and time, the minimum safety distance S = K·T and the hand's arrival; two channels, the common-cause β and the discrepancy check, NC wiring and the manual reset; reliability, MTBF, availability, series systems, Weibull, B10 and MTTF_D; ★ parallel redundancy and FMEA. 17 equations.
+- **Chapter 20, I/O cards, serial links and EtherCAT**: the optocoupler input, its threshold and the chattering bit on a low supply with noise; the 4–20 mA loop; the UART bit, frame and baud tolerance, and the error of an integer divider; the EtherCAT frame, cycle utilisation, the bytes that fit and the working counter; ★ the I2C pull-up and rise time. 15 equations.
+- **Chapter 21, the inspection and repair cycle**: line rate, strobe blur, coverage and the smallest defect of the live AOI scan; cycle time, throughput and what a faster scan is worth; the defect record from AOI to AOS through the design's coordinates, expansion and the error budget; ★ precision, recall and the cost of a threshold. 15 equations.
+- **Chapter 22, bring-up and ATP**: touch voltage, cable drop and power-supply sizing from the bottom up; thermal expansion and warm-up time; repeatability, Cp, Cpk, the parts per million out of specification, the measurement system and expanded uncertainty; ★ %GRR, the sample size and the test uncertainty ratio. 15 equations.
+- **Chapter 23, the production line**: each station's rate and the bottleneck, the verification load of false calls, Little's law and the buffer that fills; first-pass yield, OEE and DPMO; ★ the false calls allowed, the queue near full load (Kingman, against a panel-by-panel simulation), takt time and OEE from inside. 15 equations.
+- The panel beside the text opens the 3D labs of the valve, the vacuum table, the interlock, the safety chain, the input card, the bring-up and the line, the live AOI scan, and the animations and benches of these topics.
+- A page opened in a frame below the fold now reports its height too: the frame's timed height updates no longer wait for an animation frame, which the browser does not give a frame off the screen.
+- Tests: the book suite recomputes Parts E to G independently and runs the labs in time where the text says what they do: the valve pulls in, fills and drops out at the computed times; the interlock stops at T and the hand arrives only at 1 m/s; the input bit chatters at 12 V and holds at 24 V; the line, run for two hours, slows to its bottleneck and fills its buffer in about half an hour. It also integrates the vacuum balance and the warm-up, checks the beam deflection by the unit-load integral, runs Monte Carlo on a series system, an error budget and a sample size, samples a UART frame, integrates a normal tail, and simulates the verification queue panel by panel.
+
 ## [2.77.0] — 2026-11-25
 
 Part D of the book is written as a textbook: chapters 14 to 17, the optics, the trigger, the camera and the laser, each read beside its topics' live windows.

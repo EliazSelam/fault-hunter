@@ -35,6 +35,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.75.0](#v2750) | 24 Nov 2026 | Part B as a textbook, a lab page read beside the text | 4.14 MB |
 | [v2.76.0](#v2760) | 24 Nov 2026 | Part C as a textbook: from the motor to the closed loop | 4.23 MB |
 | [v2.77.0](#v2770) | 25 Nov 2026 | Part D as a textbook: optics, the camera and the laser | 4.32 MB |
+| [v2.78.0](#v2780) | 25 Nov 2026 | Parts E to G as a textbook: from the vacuum table to the production line | 4.44 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -195,6 +196,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.77.0](milestones/v2.77.0.png)
 
 **What changed:** the fourth part of the book, chapters 14 to 17, written as a textbook: the numerical aperture and the depth of field, tilt and a lens mount that grows with heat; the line rate from the encoder, motion blur and the strobe; the scan plan, registration from two fiducials, the centroid and least squares; and the laser from its Gaussian fluence to the crater, the spots a bridge needs and the scan head that steers the beam. Each section reads beside its live window: in the picture, the 3D scan head beside the derivation of its spot and its field.
+
+## v2.78.0
+![v2.78.0](milestones/v2.78.0.png)
+
+**What changed:** parts five to seven of the book, chapters 18 to 23, written as a textbook: the solenoid valve and the vacuum balance, holding a bowed panel flat; the interlock's stopping time and safety distance, two channels and reliability; the input card, the 4–20 mA loop, the UART's baud tolerance and the EtherCAT cycle; the AOI scan and its cycle time, the defect's way to AOS and the error budget; bring-up from the ground wire to Cpk; and the line, its bottleneck, its buffer and its OEE. In the picture, the 3D vacuum table beside the derivation of the time to the switch.
 
 ## From the first version to now, in numbers
 
