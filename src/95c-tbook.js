@@ -10,6 +10,8 @@ const TBOOK = {};
 const tbN = (x, d = 2) => { const v = Math.abs(x) < 1e-12 ? 0 : x; return (+v.toFixed(d)).toLocaleString('en-US', { maximumFractionDigits: d }); };
 /* a numbered equation; on a narrow screen it breaks only before an = or a ;, the way a printed derivation goes on the next line */
 const tbEq = (id, html) => `<div class="tb-eq nogl" data-eq="${id}"><span class="tb-m">${html.split(/ (?=[=;] )/).map(x => `<span class="tb-seg">${x}</span>`).join(' ')}</span><span class="tb-n">(${id})</span></div>`;
+/* a number in a panel line that sets the simulation (v2.82; tbSetApply below) */
+const tbSet = (w, P, label, o = {}) => `<button type="button" class="tb-set" data-tbw="${w}" data-tbp='${JSON.stringify(P || {})}'${o.act ? ` data-tba="${o.act}"` : ''}${o.step != null ? ` data-tbst="${o.step}"` : ''}${o.click ? ` data-tbc="${o.click.replace(/"/g, '&quot;')}"` : ''}${o.btn ? ` data-tbb="${o.btn.replace(/"/g, '&quot;')}"` : ''}${o.see ? ` data-tbsee="${String(o.see).replace(/<[^>]+>/g, '').replace(/"/g, '&quot;')}"` : ''}>${label}</button>`;
 const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את זה עובד</b> <span>${txt}</span> ${refs.map(([w, t]) => `<button type="button" class="linkbtn" data-tbw="${w}">${t}</button>`).join(' · ')}</aside>`;
 
 (function () {
@@ -137,15 +139,15 @@ const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את ז�
 TBOOK.b6.side = {
   '6.1': { win: [['c:pwm:bench', 'הספסל: duty cycle ומתח ממוצע'], ['anim:pwmr', 'הפיתוח המונפש']],
     look: [['6.1', 'בגרף העליון של הספסל המתח קופץ רק בין 0 ל-24 V. אין בו שום ערך באמצע.'],
-      ['6.2', 'קבעו Duty cycle של 30% וקראו את "מתח ממוצע": <bdi>7.2 V</bdi>, כמו בדוגמה 6.1. ב-60% הוא מוכפל ל-<bdi>14.4 V</bdi>, כי הממוצע ליניארי ב-D.'],
+      ['6.2', `${tbSet('c:pwm:bench', { c_pwm_duty: 30 }, 'קבעו Duty cycle של 30%', { see: '7.2 V' })} וקראו את "מתח ממוצע": <bdi>7.2 V</bdi>, כמו בדוגמה 6.1. ${tbSet('c:pwm:bench', { c_pwm_duty: 60 }, 'ב-60%', { see: '14.4 V' })} הוא מוכפל ל-<bdi>14.4 V</bdi>, כי הממוצע ליניארי ב-D.`],
       ['6.3', 'הספסל מראה רק את הממוצע. ה-RMS גבוה ממנו תמיד: ב-30% הוא <bdi>13.15 V</bdi>, כמעט פי 2, וזה מה שקובע את החימום.'],
       ['6.4', 'בפיתוח המונפש הזיזו את D ובדקו ש-<bdi>⟨v⟩ = D · 24</bdi> בכל ערך. ההספק בנגד לפי 6.4 גדל באותו יחס, כי גם הוא ליניארי ב-D.']] },
   '6.2': { win: [['c:pwm:bench', 'הספסל: הזרם והגליות'], ['anim:pwmr', 'הפיתוח המונפש: גליות'], ['c:pwm:tryit', 'נסו בעצמכם']],
     look: [['6.5', 'בגרף התחתון של הספסל הזרם עולה כשהמתח דולק ויורד כשהוא כבוי. זו <bdi>L · di/dt + R · i = v</bdi> בפעולה.'],
       ['6.6', 'הקו המקווקו הוא <bdi>⟨i⟩</bdi>. בספסל <bdi>R = 2 Ω</bdi> ואין E, ולכן ב-Duty 50% הוא <bdi>0.5 · 24 / 2 = 6 A</bdi>.'],
-      ['6.8', 'בפיתוח המונפש הזיזו את f מ-5 ל-20 kHz: הגליות קטנה פי 4. הכפילו את L, והיא קטנה פי 2.'],
-      ['6.9', 'הזיזו את D מ-0.1 ל-0.9 ועצרו ב-0.5: שם הגליות הכי גדולה, כמו שהמכפלה <bdi>D(1 − D)</bdi> צופה.'],
-      ['6.15', 'בספסל הורידו את התדר ל-1 kHz: הזרם כבר לא קו ישר אלא עקומה מעריכית. זה התחום שבו צריך את הפתרון המדויק של סעיף 6.4.']] },
+      ['6.8', `בפיתוח המונפש הזיזו את f מ-${tbSet('anim:pwmr', { f: 5, L: 1 }, '5')} ל-${tbSet('anim:pwmr', { f: 20, L: 1 }, '20 kHz')}: הגליות קטנה פי 4. ${tbSet('anim:pwmr', { f: 20, L: 2 }, 'הכפילו את L')}, והיא קטנה פי 2.`],
+      ['6.9', `הזיזו את D מ-${tbSet('anim:pwmr', { D: 0.1 }, '0.1')} ל-${tbSet('anim:pwmr', { D: 0.9 }, '0.9')} ועצרו ב-${tbSet('anim:pwmr', { D: 0.5 }, '0.5')}: שם הגליות הכי גדולה, כמו שהמכפלה <bdi>D(1 − D)</bdi> צופה.`],
+      ['6.15', `בספסל ${tbSet('c:pwm:bench', { c_pwm_freq: 1 }, 'הורידו את התדר ל-1 kHz')}: הזרם כבר לא קו ישר אלא עקומה מעריכית. זה התחום שבו צריך את הפתרון המדויק של סעיף 6.4.`]] },
   '6.3': { win: [['c:pwm:schematic', 'הסכמה של הגשר'], ['c:pwm:parts', 'מה יש בפנים']],
     look: [['6.10', 'בסכמה המתגים נקראים Q1–Q4, באותו סדר כמו S1–S4 בטקסט. החץ מראה את Q1 ו-Q4 סגורים: הזרם עובר במנוע משמאל לימין, ו-<bdi>v<sub>AB</sub> = +V<sub>s</sub></bdi>. עם Q3 ו-Q2 המסלול מתהפך.'],
       ['6.12', 'עקבו אחרי Q1 ו-Q2, שניהם ברגל השמאלית: אם הם סגורים יחד, יש מסלול ישיר מ-+V bus ל-0V בלי המנוע. זה ה-shoot-through שזמן המת מונע.'],
@@ -209,12 +211,31 @@ function tbSideOpen(A, sid, w, byHand) {
   /* a page of the site (a lab bench, a hub page) opens in the drawer's own frame, beside the text, like the 3D labs */
   try { if (zInfo(w).kind === 'page') { if (!embOpen(box, w, (S.win.find(x => x[0] === w) || [, ''])[1], 'side')) box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; } else zMount(w, box); } catch (e) { box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
   b.querySelectorAll('[data-tbsw]').forEach(x => x.addEventListener('click', () => tbSideOpen(A, sid, x.dataset.tbsw)));
+  b.querySelectorAll('.tb-set').forEach(x => x.addEventListener('click', () => tbSetApply(x)));
   b.querySelectorAll('[data-tbseq]').forEach(x => x.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${x.dataset.tbseq}"]`); if (!e) return; TBS.t = Date.now(); e.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); }));
   b.querySelector('.tbs-follow input').addEventListener('change', e => { TBS.follow = e.target.checked; });
   if (byHand) { TBS.auto = true; d.querySelector('.drw-x').focus({ preventScroll: true }); }
 }
 /* an equation's own line in the panel is marked for a moment */
 function tbSideMark(eq) { const li = document.querySelector(`#drwB [data-tbsl="${eq}"]`); if (!li) return; li.scrollIntoView({ block: 'nearest' }); li.classList.add('tb-flash'); setTimeout(() => li.classList.remove('tb-flash'), 1600); }
+/* ---- v2.82: a number in the panel's text sets the simulation. tbSet(w, P, label, o) is a button inside a panel line: pressing it opens window w
+   in the panel (if another is showing) and puts its parameters at P, then runs an action (o.act, a 3D lab's button) or goes to a step (o.step,
+   an animation's). A 3D lab is set through its handle (fh3d.set / act), an animation through animApi, anything else through its own inputs. ---- */
+function tbSetApply(btn) {
+  const w = btn.dataset.tbw, P0 = JSON.parse(btn.dataset.tbp || '{}'), btns = (btn.dataset.tbb || '').split('|').filter(Boolean), steps = Array.isArray(P0) ? P0 : [P0], acts = (btn.dataset.tba || '').split(',').filter(Boolean), step = btn.dataset.tbst, click = btn.dataset.tbc;
+  const idx = [...document.querySelectorAll('#drwB .tb-set')].indexOf(btn);
+  if (TBS.w !== w && TBS.A && TBS.sid) { const keep = document.getElementById('drwB'), top = keep ? keep.scrollTop : 0; tbSideOpen(TBS.A, TBS.sid, w); if (keep) keep.scrollTop = top; }
+  const box = TBS.box; if (!box) return false;
+  const setDom = P => Object.entries(P).forEach(([k, v]) => { const el = box.querySelector(`[data-k="${k}"], [data-ap="${k}"], [data-sp="${k}"], #${CSS.escape(k)}`); if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
+  steps.forEach(P => { if (box.fh3d && box.fh3d.set) { if (Object.keys(P).length) box.fh3d.set(P); } else if (box.animApi) Object.entries(P).forEach(([k, v]) => box.animApi.setParam(k, v)); else setDom(P); });
+  if (box.fh3d && box.fh3d.act) acts.forEach(a => box.fh3d.act(a));
+  if (box.animApi && step != null) box.animApi.go(+step);
+  if (click) { const c = box.querySelector(click); if (c) c.click(); }
+  btns.forEach(t => { const c = [...box.querySelectorAll('button')].find(x => x.textContent.includes(t)); if (c) c.click(); });
+  const all = [...document.querySelectorAll('#drwB .tb-set')]; all.forEach(x => x.classList.remove('on')); if (all[idx]) all[idx].classList.add('on');
+  return true;
+}
 /* following the reading: when a section with simulations crosses the middle of the screen, the panel moves to it */
 function tbSideFollow(A) {
   if (TBS.obs) TBS.obs.disconnect(); if (typeof IntersectionObserver === 'undefined') return; let timer = 0;

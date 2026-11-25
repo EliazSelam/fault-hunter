@@ -198,6 +198,28 @@ const QN = await ev(() => { localStorage.removeItem('fh-notes'); showQ('P16', ['
 ok(QN.mine === 'כי הלייזר סגור בתוך המעטפת' && QN.ans, `a bank question has a field for one's own answer, shown beside the answer (${JSON.stringify(QN)})`);
 
 /* 14. a phone: the chapter, an open frame, the drawer and the calculator fit the screen */
+/* v2.82: a number in a panel line sets the simulation. Every such button, in every chapter's panels, is pressed: it must open its own window,
+   leave that window with exactly the parameters it names (read back through the lab's state, the animation's parameters or the bench's
+   own inputs), be marked as pressed, show the reading it promises where it names one, and name only actions the lab has. */
+{ const SB = []; let nSet = 0; await pg.goto(BASE + '#/zoom/book'); await pg.waitForTimeout(700);
+  const chs = await ev(() => Object.keys(TBOOK).filter(id => TBOOK[id].side));
+  for (const ch of chs) { await ev(ch => { BV.ch = ch; BV.exam = null; zBookView(); }, ch); await pg.waitForTimeout(250);
+    for (const sid of await ev(ch => Object.keys(TBOOK[ch].side), ch)) { await ev(sid => { drawerClose(); tbSideOpen(document.getElementById('bkCh'), sid); }, sid); await pg.waitForTimeout(200);
+      const k = await ev(() => document.querySelectorAll('#drwB .tb-set').length);
+      for (let i = 0; i < k; i++) { nSet++;
+        const info = await ev(i => { const btn = document.querySelectorAll('#drwB .tb-set')[i], d = { w: btn.dataset.tbw, P: JSON.parse(btn.dataset.tbp), see: btn.dataset.tbsee, act: btn.dataset.tba || '' };
+          d.badAct = d.act.split(',').filter(Boolean).filter(a => { const L = LABS[d.w.slice(3)]; return !(L && (L.actions || []).some(x => x[1] === a)); }); btn.click(); return d; }, i);
+        await pg.waitForTimeout(info.w.startsWith('3d:') ? 600 : 200);
+        const r = await ev(info => { const box = TBS.box, last = Object.assign({}, ...(Array.isArray(info.P) ? info.P : [info.P])), off = [];
+          if (!box) return { w: TBS.w, off: ['no window'] };
+          Object.entries(last).forEach(([k, v]) => { let got; if (box.fh3d && box.fh3d.state) { const st = box.fh3d.state(); got = (st.P || st)[k]; } else if (box.animApi) got = box.animApi.P[k];
+            else { const el = box.querySelector(`[data-k="${k}"], [data-ap="${k}"], [data-sp="${k}"], #${CSS.escape(k)}`); got = el ? (el.type === 'checkbox' ? el.checked : el.value) : 'missing'; }
+            if (String(got) !== String(v) && !(Math.abs(+got - +v) < 1e-9)) off.push(k + ' = ' + got + ', not ' + v); });
+          return { w: TBS.w, off, text: box.innerText.replace(/\s+/g, ' '), on: !!document.querySelector('#drwB .tb-set.on') }; }, info);
+        const at = `${ch} ${sid} button ${i + 1} (${info.w})`;
+        if (r.w !== info.w) SB.push(at + ' opened ' + r.w); if (r.off.length) SB.push(at + ': ' + r.off.join(', ')); if (!r.on) SB.push(at + ' is not marked');
+        if (info.see && !r.text.includes(info.see)) SB.push(at + ' does not show ' + info.see); if (info.badAct.length) SB.push(at + ' names actions the lab lacks: ' + info.badAct); } } }
+  ok(nSet >= 120 && !SB.length, `${nSet} numbers in the panels set their simulations: each opens its window, leaves exactly the parameters it names, is marked, shows the reading it promises, and names only real actions (${SB.slice(0, 8).join(' | ')})`); }
 await pg.setViewportSize({ width: 390, height: 844 });
 const PH = await ev(async () => { const w = ms => new Promise(r => setTimeout(r, ms)); BV.ch = 'b20'; BV.exam = null; zBookView(); await w(60); const e = document.querySelector('#bkCh .bk-win[data-emb]'); bookMount(e); await w(400);
   const f = e.querySelector('iframe.emb'), over = document.scrollingElement.scrollWidth - document.scrollingElement.clientWidth; drawerChapter('b19'); const d = document.getElementById('fhDrawer').getBoundingClientRect(); drawerClose();

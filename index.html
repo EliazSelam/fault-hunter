@@ -730,6 +730,8 @@ bdi.nw{white-space:nowrap}
 .tbs-win{min-height:120px}
 .tbs-look{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}.tbs-look ul{padding-inline-start:18px;margin:4px 0}.tbs-look li{margin:6px 0;line-height:1.55;border-radius:8px;padding:2px 4px}
 .tbs-eq{font:inherit;font-size:13px;font-weight:700;color:#3078B0;background:var(--tint);border:0;border-radius:6px;padding:1px 6px;cursor:pointer;direction:ltr;unicode-bidi:isolate}
+/* a number in a panel line that sets the simulation */
+.tb-set{font:inherit;color:#1B2F5A;background:#D6E8F7;border:1px solid #3078B0;border-radius:6px;padding:0 6px;cursor:pointer;line-height:1.5}.tb-set::after{content:' ▸';color:#3078B0;font-size:.85em}.tb-set:hover,.tb-set:focus-visible{background:#3078B0;color:#EEE9E0}.tb-set:hover::after{color:#EEE9E0}.tb-set.on{background:#1B2F5A;color:#EEE9E0}.tb-set.on::after{content:' ✓';color:#EEE9E0}
 .tbs-follow{display:block;font-size:13px;color:var(--muted);margin-top:10px}
 @media (min-width:1100px){body.tb-par-on .wrap{padding-left:calc(min(520px,38vw) + 16px)}}
 @media (max-width:1099px){.drw.tb-par{top:auto;height:52vh;width:100vw;border-right:0;border-top:3px solid #3078B0;box-shadow:0 -6px 22px rgba(27,47,90,.22)}body.tb-par-on .wrap{padding-bottom:52vh}}
@@ -15756,6 +15758,8 @@ const TBOOK = {};
 const tbN = (x, d = 2) => { const v = Math.abs(x) < 1e-12 ? 0 : x; return (+v.toFixed(d)).toLocaleString('en-US', { maximumFractionDigits: d }); };
 /* a numbered equation; on a narrow screen it breaks only before an = or a ;, the way a printed derivation goes on the next line */
 const tbEq = (id, html) => `<div class="tb-eq nogl" data-eq="${id}"><span class="tb-m">${html.split(/ (?=[=;] )/).map(x => `<span class="tb-seg">${x}</span>`).join(' ')}</span><span class="tb-n">(${id})</span></div>`;
+/* a number in a panel line that sets the simulation (v2.82; tbSetApply below) */
+const tbSet = (w, P, label, o = {}) => `<button type="button" class="tb-set" data-tbw="${w}" data-tbp='${JSON.stringify(P || {})}'${o.act ? ` data-tba="${o.act}"` : ''}${o.step != null ? ` data-tbst="${o.step}"` : ''}${o.click ? ` data-tbc="${o.click.replace(/"/g, '&quot;')}"` : ''}${o.btn ? ` data-tbb="${o.btn.replace(/"/g, '&quot;')}"` : ''}${o.see ? ` data-tbsee="${String(o.see).replace(/<[^>]+>/g, '').replace(/"/g, '&quot;')}"` : ''}>${label}</button>`;
 const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את זה עובד</b> <span>${txt}</span> ${refs.map(([w, t]) => `<button type="button" class="linkbtn" data-tbw="${w}">${t}</button>`).join(' · ')}</aside>`;
 
 (function () {
@@ -15883,15 +15887,15 @@ const tbFig = (refs, txt) => `<aside class="tb-layer"><b>🎛️ ראו את ז�
 TBOOK.b6.side = {
   '6.1': { win: [['c:pwm:bench', 'הספסל: duty cycle ומתח ממוצע'], ['anim:pwmr', 'הפיתוח המונפש']],
     look: [['6.1', 'בגרף העליון של הספסל המתח קופץ רק בין 0 ל-24 V. אין בו שום ערך באמצע.'],
-      ['6.2', 'קבעו Duty cycle של 30% וקראו את "מתח ממוצע": <bdi>7.2 V</bdi>, כמו בדוגמה 6.1. ב-60% הוא מוכפל ל-<bdi>14.4 V</bdi>, כי הממוצע ליניארי ב-D.'],
+      ['6.2', `${tbSet('c:pwm:bench', { c_pwm_duty: 30 }, 'קבעו Duty cycle של 30%', { see: '7.2 V' })} וקראו את "מתח ממוצע": <bdi>7.2 V</bdi>, כמו בדוגמה 6.1. ${tbSet('c:pwm:bench', { c_pwm_duty: 60 }, 'ב-60%', { see: '14.4 V' })} הוא מוכפל ל-<bdi>14.4 V</bdi>, כי הממוצע ליניארי ב-D.`],
       ['6.3', 'הספסל מראה רק את הממוצע. ה-RMS גבוה ממנו תמיד: ב-30% הוא <bdi>13.15 V</bdi>, כמעט פי 2, וזה מה שקובע את החימום.'],
       ['6.4', 'בפיתוח המונפש הזיזו את D ובדקו ש-<bdi>⟨v⟩ = D · 24</bdi> בכל ערך. ההספק בנגד לפי 6.4 גדל באותו יחס, כי גם הוא ליניארי ב-D.']] },
   '6.2': { win: [['c:pwm:bench', 'הספסל: הזרם והגליות'], ['anim:pwmr', 'הפיתוח המונפש: גליות'], ['c:pwm:tryit', 'נסו בעצמכם']],
     look: [['6.5', 'בגרף התחתון של הספסל הזרם עולה כשהמתח דולק ויורד כשהוא כבוי. זו <bdi>L · di/dt + R · i = v</bdi> בפעולה.'],
       ['6.6', 'הקו המקווקו הוא <bdi>⟨i⟩</bdi>. בספסל <bdi>R = 2 Ω</bdi> ואין E, ולכן ב-Duty 50% הוא <bdi>0.5 · 24 / 2 = 6 A</bdi>.'],
-      ['6.8', 'בפיתוח המונפש הזיזו את f מ-5 ל-20 kHz: הגליות קטנה פי 4. הכפילו את L, והיא קטנה פי 2.'],
-      ['6.9', 'הזיזו את D מ-0.1 ל-0.9 ועצרו ב-0.5: שם הגליות הכי גדולה, כמו שהמכפלה <bdi>D(1 − D)</bdi> צופה.'],
-      ['6.15', 'בספסל הורידו את התדר ל-1 kHz: הזרם כבר לא קו ישר אלא עקומה מעריכית. זה התחום שבו צריך את הפתרון המדויק של סעיף 6.4.']] },
+      ['6.8', `בפיתוח המונפש הזיזו את f מ-${tbSet('anim:pwmr', { f: 5, L: 1 }, '5')} ל-${tbSet('anim:pwmr', { f: 20, L: 1 }, '20 kHz')}: הגליות קטנה פי 4. ${tbSet('anim:pwmr', { f: 20, L: 2 }, 'הכפילו את L')}, והיא קטנה פי 2.`],
+      ['6.9', `הזיזו את D מ-${tbSet('anim:pwmr', { D: 0.1 }, '0.1')} ל-${tbSet('anim:pwmr', { D: 0.9 }, '0.9')} ועצרו ב-${tbSet('anim:pwmr', { D: 0.5 }, '0.5')}: שם הגליות הכי גדולה, כמו שהמכפלה <bdi>D(1 − D)</bdi> צופה.`],
+      ['6.15', `בספסל ${tbSet('c:pwm:bench', { c_pwm_freq: 1 }, 'הורידו את התדר ל-1 kHz')}: הזרם כבר לא קו ישר אלא עקומה מעריכית. זה התחום שבו צריך את הפתרון המדויק של סעיף 6.4.`]] },
   '6.3': { win: [['c:pwm:schematic', 'הסכמה של הגשר'], ['c:pwm:parts', 'מה יש בפנים']],
     look: [['6.10', 'בסכמה המתגים נקראים Q1–Q4, באותו סדר כמו S1–S4 בטקסט. החץ מראה את Q1 ו-Q4 סגורים: הזרם עובר במנוע משמאל לימין, ו-<bdi>v<sub>AB</sub> = +V<sub>s</sub></bdi>. עם Q3 ו-Q2 המסלול מתהפך.'],
       ['6.12', 'עקבו אחרי Q1 ו-Q2, שניהם ברגל השמאלית: אם הם סגורים יחד, יש מסלול ישיר מ-+V bus ל-0V בלי המנוע. זה ה-shoot-through שזמן המת מונע.'],
@@ -15955,12 +15959,31 @@ function tbSideOpen(A, sid, w, byHand) {
   /* a page of the site (a lab bench, a hub page) opens in the drawer's own frame, beside the text, like the 3D labs */
   try { if (zInfo(w).kind === 'page') { if (!embOpen(box, w, (S.win.find(x => x[0] === w) || [, ''])[1], 'side')) box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; } else zMount(w, box); } catch (e) { box.innerHTML = '<p class="note">החלון לא נפתח כאן.</p>'; }
   b.querySelectorAll('[data-tbsw]').forEach(x => x.addEventListener('click', () => tbSideOpen(A, sid, x.dataset.tbsw)));
+  b.querySelectorAll('.tb-set').forEach(x => x.addEventListener('click', () => tbSetApply(x)));
   b.querySelectorAll('[data-tbseq]').forEach(x => x.addEventListener('click', () => { const e = A.querySelector(`.tb-eq[data-eq="${x.dataset.tbseq}"]`); if (!e) return; TBS.t = Date.now(); e.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); e.classList.add('tb-flash'); setTimeout(() => e.classList.remove('tb-flash'), 1600); }));
   b.querySelector('.tbs-follow input').addEventListener('change', e => { TBS.follow = e.target.checked; });
   if (byHand) { TBS.auto = true; d.querySelector('.drw-x').focus({ preventScroll: true }); }
 }
 /* an equation's own line in the panel is marked for a moment */
 function tbSideMark(eq) { const li = document.querySelector(`#drwB [data-tbsl="${eq}"]`); if (!li) return; li.scrollIntoView({ block: 'nearest' }); li.classList.add('tb-flash'); setTimeout(() => li.classList.remove('tb-flash'), 1600); }
+/* ---- v2.82: a number in the panel's text sets the simulation. tbSet(w, P, label, o) is a button inside a panel line: pressing it opens window w
+   in the panel (if another is showing) and puts its parameters at P, then runs an action (o.act, a 3D lab's button) or goes to a step (o.step,
+   an animation's). A 3D lab is set through its handle (fh3d.set / act), an animation through animApi, anything else through its own inputs. ---- */
+function tbSetApply(btn) {
+  const w = btn.dataset.tbw, P0 = JSON.parse(btn.dataset.tbp || '{}'), btns = (btn.dataset.tbb || '').split('|').filter(Boolean), steps = Array.isArray(P0) ? P0 : [P0], acts = (btn.dataset.tba || '').split(',').filter(Boolean), step = btn.dataset.tbst, click = btn.dataset.tbc;
+  const idx = [...document.querySelectorAll('#drwB .tb-set')].indexOf(btn);
+  if (TBS.w !== w && TBS.A && TBS.sid) { const keep = document.getElementById('drwB'), top = keep ? keep.scrollTop : 0; tbSideOpen(TBS.A, TBS.sid, w); if (keep) keep.scrollTop = top; }
+  const box = TBS.box; if (!box) return false;
+  const setDom = P => Object.entries(P).forEach(([k, v]) => { const el = box.querySelector(`[data-k="${k}"], [data-ap="${k}"], [data-sp="${k}"], #${CSS.escape(k)}`); if (!el) return;
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true })); });
+  steps.forEach(P => { if (box.fh3d && box.fh3d.set) { if (Object.keys(P).length) box.fh3d.set(P); } else if (box.animApi) Object.entries(P).forEach(([k, v]) => box.animApi.setParam(k, v)); else setDom(P); });
+  if (box.fh3d && box.fh3d.act) acts.forEach(a => box.fh3d.act(a));
+  if (box.animApi && step != null) box.animApi.go(+step);
+  if (click) { const c = box.querySelector(click); if (c) c.click(); }
+  btns.forEach(t => { const c = [...box.querySelectorAll('button')].find(x => x.textContent.includes(t)); if (c) c.click(); });
+  const all = [...document.querySelectorAll('#drwB .tb-set')]; all.forEach(x => x.classList.remove('on')); if (all[idx]) all[idx].classList.add('on');
+  return true;
+}
 /* following the reading: when a section with simulations crosses the middle of the screen, the panel moves to it */
 function tbSideFollow(A) {
   if (TBS.obs) TBS.obs.disconnect(); if (typeof IntersectionObserver === 'undefined') return; let timer = 0;
@@ -16095,16 +16118,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     check: { I1, P1w, k14, Vd, Vdl, Rth, Vthl, Rw, dVc, Pmax, T1, PB1, PB2, PB3, Rp3 },
     side: {
       '1.1': { win: [['3d:resistor', 'הנגד בתלת-ממד: זרם, הספק וחום'], ['a:נגד', 'נגד: מבנה וקוד צבעים']],
-        look: [['1.2', `קבעו <bdi>${V1} V</bdi> ו-<bdi>${R1} Ω</bdi> וקראו את הזרם: <bdi>${tbN(I1 * 1e3, 1)} mA</bdi>, בדיוק <bdi>${V1}/${R1}</bdi>.`],
-          ['1.4', `הורידו את המתח ל-<bdi>6 V</bdi> והחזירו ל-<bdi>12 V</bdi>: הזרם מוכפל, וההספק גדל פי 4.`],
-          ['1.4', `עם <bdi>${R1} Ω</bdi>, <bdi>${V1} V</bdi> ודירוג <bdi>¼ W</bdi> הנגד ב-<bdi>${tbN(k14 * 100, 0)}%</bdi> מהדירוג, והגוף מתקרב ל-<bdi>${tbN(T1, 0)} °C</bdi>. בחרו <bdi>1 W</bdi> וראו <bdi>${tbN(k1 * 100, 0)}%</bdi>.`],
+        look: [['1.2', `${tbSet('3d:resistor', { V: V1, R: R1 }, `קבעו <bdi>${V1} V</bdi> ו-<bdi>${R1} Ω</bdi>`, { see: `${tbN(I1 * 1e3, 1)} mA` })} וקראו את הזרם: <bdi>${tbN(I1 * 1e3, 1)} mA</bdi>, בדיוק <bdi>${V1}/${R1}</bdi>.`],
+          ['1.4', `${tbSet('3d:resistor', { V: 6 }, 'הורידו את המתח ל-<bdi>6 V</bdi>')} ו${tbSet('3d:resistor', { V: 12 }, 'החזירו ל-<bdi>12 V</bdi>')}: הזרם מוכפל, וההספק גדל פי 4.`],
+          ['1.4', `עם <bdi>${R1} Ω</bdi>, <bdi>${V1} V</bdi> ודירוג <bdi>¼ W</bdi> הנגד ב-<bdi>${tbN(k14 * 100, 0)}%</bdi> מהדירוג, והגוף מתקרב ל-<bdi>${tbN(T1, 0)} °C</bdi>. ${tbSet('3d:resistor', { V: V1, R: R1, Pr: 1 }, 'בחרו <bdi>1 W</bdi>', { see: `${tbN(k1 * 100, 0)}%` })} וראו <bdi>${tbN(k1 * 100, 0)}%</bdi>.`],
           ['1.18', 'הגרף של טמפרטורת הגוף עולה באקספוננט ומתייצב: זו 1.18. הקו החום הוא 155 °C, המותר.']] },
       '1.2': { win: [['3d:source', 'r ו-RL: מחלק מתח'], ['f:resistor', 'דף הנוסחאות']],
         look: [['1.9', `במעבדת המקור, <bdi>r</bdi> ו-<bdi>R<sub>L</sub></bdi> הם מחלק מתח: המתח בהדקים הוא <bdi>E · R<sub>L</sub>/(R<sub>L</sub> + r)</bdi>. עם <bdi>E = ${E} V</bdi>, <bdi>r = ${r} Ω</bdi> ו-<bdi>R<sub>L</sub> = 10 Ω</bdi>: <bdi>${tbN(Vt(10), 2)} V</bdi>.`],
           ['1.7', `<bdi>r</bdi> ו-<bdi>R<sub>L</sub></bdi> בטור: אותו זרם עובר בשניהם, <bdi>${E} / 10.5 = ${tbN(E / 10.5, 2)} A</bdi>. העמודה בלוח מחולקת לשני המתחים, והם מסתכמים ל-E.`]] },
       '1.3': { win: [['3d:source', 'מקור אמיתי: E, r ועומס'], ['a:הארקות ו-0V', 'הארקות ו-0V'], ['a:ספק ומקור מתח', 'ספק ומקור מתח']],
-        look: [['1.10', `הקטינו את <bdi>R<sub>L</sub></bdi> מ-<bdi>1000 Ω</bdi> לכ-<bdi>1 Ω</bdi>: המתח בהדקים יורד מ-<bdi>${tbN(Vt(1000), 2)} V</bdi> לכ-<bdi>${tbN(Vt(1), 1)} V</bdi>. ההפרש הוא <bdi>I·r</bdi>, העמודה החומה.`],
-          ['1.12', `קבעו <bdi>R<sub>L</sub></bdi> שווה ל-<bdi>r</bdi>: הנקודה בגרף בשיא, <bdi>E²/(4r) = ${tbN(Pmax, 0)} W</bdi>, והנצילות 50%.`],
+        look: [['1.10', `הקטינו את <bdi>R<sub>L</sub></bdi> מ-${tbSet('3d:source', { RL: 1000 }, '<bdi>1000 Ω</bdi>')} לכ-${tbSet('3d:source', { RL: 1 }, '<bdi>1 Ω</bdi>', { see: `${lf(Vt(1))} V` })}: המתח בהדקים יורד מ-<bdi>${tbN(Vt(1000), 2)} V</bdi> לכ-<bdi>${tbN(Vt(1), 1)} V</bdi>. ההפרש הוא <bdi>I·r</bdi>, העמודה החומה.`],
+          ['1.12', `${tbSet('3d:source', { RL: r }, 'קבעו <bdi>R<sub>L</sub></bdi> שווה ל-<bdi>r</bdi>', { see: '50%' })}: הנקודה בגרף בשיא, <bdi>E²/(4r) = ${tbN(Pmax, 0)} W</bdi>, והנצילות 50%.`],
           ['1.13', `ב-<bdi>R<sub>L</sub> = 10 Ω</bdi> הנצילות <bdi>${tbN(10 / 10.5 * 100, 0)}%</bdi>, וההספק בעומס רק <bdi>${tbN(PL(10), 2)} W</bdi>: כך ספק עובד.`]] }
     }
   };
@@ -16210,17 +16233,17 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     side: {
       '2.1': { win: [['3d:switch', 'לחצן: קפיצות, RC ו-Schmitt'], ['a:מתג ולחצן', 'מתג ולחצן']],
         look: [['2.1', 'במעבדה הלחצן הוא NO עם pull-up: לחוץ, הכניסה יורדת ל-0. כך מחברים רוב הכניסות.'],
-          ['2.2', `בחרו "את המגע ישירות" ולחצו "לחיצה": המגע קפץ <bdi>${sw[0].nRaw}</bdi> פעמים, והבקר ספר <bdi>${sw[0].nRaw}</bdi> לחיצות.`],
-          ['2.4', `בחרו "דרך RC ו-Schmitt" עם <bdi>τ = 0.1 ms</bdi>: הבקר עדיין ספר <bdi>${sw[0].nOut}</bdi>. ב-<bdi>0.2 ms</bdi> ספר <bdi>${sw[1].nOut}</bdi>. ב-<bdi>0.5 ms</bdi> ומעלה, מעבר אחד: <bdi>${tbN(tauMin, 2)} ms</bdi> הוא הגבול לפי 2.4.`],
+          ['2.2', `${tbSet('3d:switch', { filt: 'off' }, 'בחרו "את המגע ישירות" ולחצו "לחיצה"', { act: 'press' })}: המגע קפץ <bdi>${sw[0].nRaw}</bdi> פעמים, והבקר ספר <bdi>${sw[0].nRaw}</bdi> לחיצות.`],
+          ['2.4', `${tbSet('3d:switch', { filt: 'on', tau: 0.1 }, 'בחרו "דרך RC ו-Schmitt" עם <bdi>τ = 0.1 ms</bdi>', { act: 'press' })}: הבקר עדיין ספר <bdi>${sw[0].nOut}</bdi>. ${tbSet('3d:switch', { filt: 'on', tau: 0.2 }, 'ב-<bdi>0.2 ms</bdi>', { act: 'press' })} ספר <bdi>${sw[1].nOut}</bdi>. ${tbSet('3d:switch', { filt: 'on', tau: 0.5 }, 'ב-<bdi>0.5 ms</bdi>', { act: 'press' })} ומעלה, מעבר אחד: <bdi>${tbN(tauMin, 2)} ms</bdi> הוא הגבול לפי 2.4.`],
           ['2.3', `ב-<bdi>τ = 1 ms</bdi> המעבדה מודדת השהיה של כ-<bdi>${tbN(sw[3].tOut, 2)} ms</bdi>, יותר מ-<bdi>${tbN(td21, 2)} ms</bdi> של 2.3: בכל קפיצה הקבל נטען קצת חזרה.`]] },
       '2.2': { win: [['3d:fuse', 'פיוז: חום, מהיר מול איטי'], ['a:פיוז', 'פיוז']],
-        look: [['2.6', `קבעו <bdi>1.2×I<sub>n</sub></bdi>: החום עולה ומתייצב ב-<bdi>${tbN(th12 * 100, 0)}%</bdi> מהסף, והפיוז שלם.`],
-          ['2.7', `קבעו <bdi>3×I<sub>n</sub></bdi> בפיוז מהיר: הוא נשרף אחרי <bdi>${tbN(k3F * 1e3, 1)} ms</bdi>. לחצו "החלף פיוז", בחרו איטי: <bdi>${tbN(k3T * 1e3, 0)} ms</bdi>.`],
-          ['2.8', `ב-<bdi>0.8×I<sub>n</sub></bdi> לחצו "זרם התנעה" בפיוז מהיר: נשרף תוך <bdi>${tbN(tblowF * 1e3, 2)} ms</bdi>. החליפו לאיטי ולחצו שוב: החום מגיע רק ל-<bdi>${tbN(thT / F.melt * 100, 0)}%</bdi> מהסף.`]] },
+        look: [['2.6', `${tbSet('3d:fuse', { k: 1.2, type: 'F' }, 'קבעו <bdi>1.2×I<sub>n</sub></bdi>', { act: 'replace' })}: החום עולה ומתייצב ב-<bdi>${tbN(th12 * 100, 0)}%</bdi> מהסף, והפיוז שלם.`],
+          ['2.7', `${tbSet('3d:fuse', { k: 3, type: 'F' }, 'קבעו <bdi>3×I<sub>n</sub></bdi> בפיוז מהיר', { act: 'replace' })}: הוא נשרף אחרי <bdi>${tbN(k3F * 1e3, 1)} ms</bdi>. ${tbSet('3d:fuse', { k: 3, type: 'T' }, 'לחצו "החלף פיוז", בחרו איטי', { act: 'replace' })}: <bdi>${tbN(k3T * 1e3, 0)} ms</bdi>.`],
+          ['2.8', `${tbSet('3d:fuse', { k: 0.8, type: 'F' }, 'ב-<bdi>0.8×I<sub>n</sub></bdi> לחצו "זרם התנעה" בפיוז מהיר', { act: 'replace,inrush' })}: נשרף תוך <bdi>${tbN(tblowF * 1e3, 2)} ms</bdi>. ${tbSet('3d:fuse', { k: 0.8, type: 'T' }, 'החליפו לאיטי ולחצו שוב', { act: 'replace,inrush' })}: החום מגיע רק ל-<bdi>${tbN(thT / F.melt * 100, 0)}%</bdi> מהסף.`]] },
       '2.3': { win: [['3d:terminal', 'הדק: התנגדות מגע וחום'], ['a:הדקים ומחברים', 'הדקים ומחברים']],
         look: [['2.9', `בהתחלה <bdi>${good.I} A</bdi> ו-<bdi>${good.Rc * 1e3} mΩ</bdi>: על המגע <bdi>${tbN(good.V * 1e3, 0)} mV</bdi> ו-<bdi>${tbN(good.P, 2)} W</bdi>.`],
-          ['2.10', `לחצו "שחרר" (<bdi>${loose.Rc * 1e3} mΩ</bdi>): <bdi>${tbN(loose.P, 2)} W</bdi> במגע, והטמפרטורה מטפסת לכיוון <bdi>${tbN(loose.T, 0)} °C</bdi>.`],
-          ['2.11', 'במגע רופף לחצו "נער את הכבל": בכל ניתוק המתח על העומס צונח לאפס. באותו רגע כל 24 V על המגע הפתוח.']] }
+          ['2.10', `${tbSet('3d:terminal', {}, 'לחצו "שחרר"', { act: 'loose' })} (<bdi>${loose.Rc * 1e3} mΩ</bdi>): <bdi>${tbN(loose.P, 2)} W</bdi> במגע, והטמפרטורה מטפסת לכיוון <bdi>${tbN(loose.T, 0)} °C</bdi>.`],
+          ['2.11', `במגע רופף ${tbSet('3d:terminal', {}, 'לחצו "נער את הכבל"', { act: 'loose,wiggle' })}: בכל ניתוק המתח על העומס צונח לאפס. באותו רגע כל 24 V על המגע הפתוח.`]] }
     }
   };
 })();
@@ -16321,16 +16344,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
       '3.1': { win: [['3d:capacitor', 'קבל: טעינה ופריקה, τ = RC'], ['a:קבל אלקטרוליטי (מקוטב)', 'קבל אלקטרוליטי'], ['a:קבל קרמי (לא מקוטב)', 'קבל קרמי']],
         look: [['3.3', `המעבדה מתחילה בטעינה עם <bdi>E = ${E} V</bdi>, <bdi>R = ${R / 1e3} kΩ</bdi> ו-<bdi>C = ${C * 1e6} µF</bdi>: <bdi>τ = ${tbN(tau, 0)} s</bdi>. אחרי שנייה המד מראה כ-<bdi>${tbN(v1, 2)} V</bdi>, ואחרי חמש כ-<bdi>${tbN(v5, 2)} V</bdi>.`],
           ['3.4', `הגרף החום הוא הזרם: <bdi>${tbN(i0 * 1e3, 0)} mA</bdi> ברגע הראשון, ודועך. העבירו לפריקה: הוא הופך שלילי.`],
-          ['3.5', `קבל מלא ב-<bdi>${E} V</bdi> אוגר <bdi>${tbN(W1 * 1e3, 0)} mJ</bdi>. העלו את E ל-<bdi>20 V</bdi>: <bdi>${tbN(W2 * 1e3, 0)} mJ</bdi>, פי 4.`]] },
+          ['3.5', `קבל מלא ב-<bdi>${E} V</bdi> אוגר <bdi>${tbN(W1 * 1e3, 0)} mJ</bdi>. ${tbSet('3d:capacitor', { E: 20 }, 'העלו את E ל-<bdi>20 V</bdi>')}: <bdi>${tbN(W2 * 1e3, 0)} mJ</bdi>, פי 4.`]] },
       '3.2': { win: [['3d:coil', 'סליל: עלייה, קוץ ודיודת flyback'], ['a:סליל (משרן)', 'סליל']],
-        look: [['3.7', `סגרו את המתג עם <bdi>L = ${L} H</bdi>: הזרם עולה לאט ל-<bdi>${tbN(I0, 1)} A</bdi>, עם <bdi>τ = ${tbN(tauL * 1e3, 1)} ms</bdi>. נסו <bdi>2 H</bdi>: פי שניים לאט.`],
-          ['3.9', `הוציאו את הדיודה, סגרו ופתחו: הקוץ על המגע מגיע לכ-<bdi>${tbN(spike, 0)} V</bdi>, והמגע יורה ניצוץ.`],
-          ['3.10', `החזירו את הדיודה ופתחו שוב: על המגע רק <bdi>${tbN(vd, 1)} V</bdi>, והזרם ממשיך להסתובב ודועך.`],
+        look: [['3.7', `${tbSet('3d:coil', [{ sw: 'off' }, { L: L, sw: 'on' }], `סגרו את המתג עם <bdi>L = ${L} H</bdi>`)}: הזרם עולה לאט ל-<bdi>${tbN(I0, 1)} A</bdi>, עם <bdi>τ = ${tbN(tauL * 1e3, 1)} ms</bdi>. ${tbSet('3d:coil', [{ sw: 'off' }, { L: 2, sw: 'on' }], 'נסו <bdi>2 H</bdi>')}: פי שניים לאט.`],
+          ['3.9', `${tbSet('3d:coil', { diode: 'no' }, 'הוציאו את הדיודה')}, סגרו ופתחו: הקוץ על המגע מגיע לכ-<bdi>${tbN(spike, 0)} V</bdi>, והמגע יורה ניצוץ.`],
+          ['3.10', `${tbSet('3d:coil', { diode: 'yes' }, 'החזירו את הדיודה')} ופתחו שוב: על המגע רק <bdi>${tbN(vd, 1)} V</bdi>, והזרם ממשיך להסתובב ודועך.`],
           ['3.8', `האנרגיה <bdi>½·L·i²</bdi> כשהזרם מלא: <bdi>${tbN(WL * 1e3, 0)} mJ</bdi>. היא שהולכת לניצוץ, או לדיודה.`]] },
       '3.3': { win: [['3d:xfmr', 'שנאי: יחס ליפופים ו-DC'], ['a:שנאי', 'שנאי']],
-        look: [['3.12', `בחרו יחס <bdi>${N} : 1</bdi>: במשני <bdi>${tbN(Vs, 2)} V rms</bdi>. ב-<bdi>19.2 : 1</bdi> חצי מזה.`],
+        look: [['3.12', `${tbSet('3d:xfmr', { N: N, mode: 'ac' }, `בחרו יחס <bdi>${N} : 1</bdi>`)}: במשני <bdi>${tbN(Vs, 2)} V rms</bdi>. ${tbSet('3d:xfmr', { N: 19.2, mode: 'ac' }, 'ב-<bdi>19.2 : 1</bdi>')} חצי מזה.`],
           ['3.13', `עם <bdi>${RLx} Ω</bdi> במשני: <bdi>${tbN(Is, 2)} A</bdi> במשני וכ-<bdi>${tbN(Ip, 2)} A</bdi> בראשוני, ו-<bdi>${tbN(Pw, 1)} W</bdi>.`],
-          ['3.14', `עברו ל-"230 V DC (בטעות)": אחרי כ-<bdi>${tbN(tsat * 1e3, 1)} ms</bdi> הליבה ברוויה, המשני יורד לאפס, והזרם בראשוני קופץ ל-<bdi>${tbN(Isat, 0)} A</bdi>.`]] }
+          ['3.14', `${tbSet('3d:xfmr', { mode: 'dc' }, 'עברו ל-"230 V DC (בטעות)"')}: אחרי כ-<bdi>${tbN(tsat * 1e3, 1)} ms</bdi> הליבה ברוויה, המשני יורד לאפס, והזרם בראשוני קופץ ל-<bdi>${tbN(Isat, 0)} A</bdi>.`]] }
     }
   };
 })();
@@ -16430,16 +16453,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     side: {
       '4.1': { win: [['3d:diode', 'דיודה: עקומה וקו עומס'], ['a:דיודה', 'דיודה']],
         look: [['4.1', 'בגרף, העקומה הכחולה היא 4.1: שטוחה עד כ-0.6 V, ואז כמעט אנכית.'],
-          ['4.3', `בחרו "דיודת סיליקון", <bdi>5 V</bdi> ו-<bdi>1 kΩ</bdi>: <bdi>${tbN(s1.I * 1e3, 2)} mA</bdi> ו-<bdi>${tbN(s1.Vd, 3)} V</bdi> על הדיודה.`],
-          ['4.4', `הורידו את הנגד ל-<bdi>100 Ω</bdi>: הזרם גדל ל-<bdi>${tbN(s2.I * 1e3, 1)} mA</bdi>, כמעט פי 10, והמתח עולה רק ל-<bdi>${tbN(s2.Vd, 3)} V</bdi>, <bdi>${tbN((s2.Vd - s1.Vd) * 1e3, 0)} mV</bdi> יותר.`]] },
+          ['4.3', `${tbSet('3d:diode', { type: 'si', Vin: 5, R: 1000 }, 'בחרו "דיודת סיליקון", <bdi>5 V</bdi> ו-<bdi>1 kΩ</bdi>')}: <bdi>${tbN(s1.I * 1e3, 2)} mA</bdi> ו-<bdi>${tbN(s1.Vd, 3)} V</bdi> על הדיודה.`],
+          ['4.4', `${tbSet('3d:diode', { type: 'si', Vin: 5, R: 100 }, 'הורידו את הנגד ל-<bdi>100 Ω</bdi>')}: הזרם גדל ל-<bdi>${tbN(s2.I * 1e3, 1)} mA</bdi>, כמעט פי 10, והמתח עולה רק ל-<bdi>${tbN(s2.Vd, 3)} V</bdi>, <bdi>${tbN((s2.Vd - s1.Vd) * 1e3, 0)} mV</bdi> יותר.`]] },
       '4.2': { win: [['3d:diode', 'דיודה, LED וזנר: קו עומס'], ['a:נורית LED', 'LED'], ['a:זנר / TVS', 'זנר ו-TVS']],
         look: [['4.5', 'הקו החום המקווקו הוא 4.5: הוא מתחיל ב-V<sub>in</sub>/R על הציר האנכי ומגיע לאפס ב-V<sub>in</sub>.'],
-          ['4.6', `בחרו LED, <bdi>5 V</bdi> ו-<bdi>330 Ω</bdi>: הנקודה היא החיתוך, <bdi>${tbN(led.Vd, 2)} V</bdi> ו-<bdi>${tbN(led.I * 1e3, 1)} mA</bdi>.`],
-          ['4.8', `בחרו זנר, <bdi>−12 V</bdi> ו-<bdi>1 kΩ</bdi>: על הזנר <bdi>${tbN(-zen.Vd, 2)} V</bdi>. שנו את המתח ל-<bdi>−9 V</bdi>: המתח על הזנר כמעט לא זז, והזרם קטן.`]] },
+          ['4.6', `${tbSet('3d:diode', { type: 'led', Vin: 5, R: 330 }, 'בחרו LED, <bdi>5 V</bdi> ו-<bdi>330 Ω</bdi>')}: הנקודה היא החיתוך, <bdi>${tbN(led.Vd, 2)} V</bdi> ו-<bdi>${tbN(led.I * 1e3, 1)} mA</bdi>.`],
+          ['4.8', `${tbSet('3d:diode', { type: 'zener', Vin: -12, R: 1000 }, 'בחרו זנר, <bdi>−12 V</bdi> ו-<bdi>1 kΩ</bdi>')}: על הזנר <bdi>${tbN(-zen.Vd, 2)} V</bdi>. ${tbSet('3d:diode', { type: 'zener', Vin: -9, R: 1000 }, 'שנו את המתח ל-<bdi>−9 V</bdi>')}: המתח על הזנר כמעט לא זז, והזרם קטן.`]] },
       '4.3': { win: [['3d:mosfet', 'MOSFET כמתג'], ['a:טרנזיסטור (BJT / MOSFET)', 'טרנזיסטור']],
         look: [['4.9', `מתחת ל-<bdi>${M.Vth} V</bdi> אין תעלה: אין זרם, וכל <bdi>${M.Vdd} V</bdi> על הטרנזיסטור.`],
-          ['4.12', `ב-<bdi>V<sub>gs</sub> = 10 V</bdi>: <bdi>V<sub>ds</sub> ≈ ${tbN(m10.Vds, 2)} V</bdi>, <bdi>R<sub>ds(on)</sub> ≈ ${tbN(m10.Vds / m10.Id * 1e3, 0)} mΩ</bdi>, ובטרנזיסטור רק <bdi>${tbN(P10, 2)} W</bdi>.`],
-          ['4.10', `ב-<bdi>3.3 V</bdi>: <bdi>${tbN(m33.Id, 2)} A</bdi> ו-<bdi>${tbN(m33.Vds, 1)} V</bdi> עליו, <bdi>${tbN(P33, 1)} W</bdi>. בלי קירור הצומת מעבר ל-400 °C; עם קירור כ-<bdi>${tbN(Tj33s, 0)} °C</bdi>.`],
+          ['4.12', `${tbSet('3d:mosfet', { Vgs: 10 }, 'ב-<bdi>V<sub>gs</sub> = 10 V</bdi>')}: <bdi>V<sub>ds</sub> ≈ ${tbN(m10.Vds, 2)} V</bdi>, <bdi>R<sub>ds(on)</sub> ≈ ${tbN(m10.Vds / m10.Id * 1e3, 0)} mΩ</bdi>, ובטרנזיסטור רק <bdi>${tbN(P10, 2)} W</bdi>.`],
+          ['4.10', `${tbSet('3d:mosfet', { Vgs: 3.3 }, 'ב-<bdi>3.3 V</bdi>')}: <bdi>${tbN(m33.Id, 2)} A</bdi> ו-<bdi>${tbN(m33.Vds, 1)} V</bdi> עליו, <bdi>${tbN(P33, 1)} W</bdi>. בלי קירור הצומת מעבר ל-400 °C; עם קירור כ-<bdi>${tbN(Tj33s, 0)} °C</bdi>.`],
           ['4.13', `הזיזו את V<sub>gs</sub> לאט: העקומה החומה (ההספק) מגיעה לשיא של <bdi>${tbN(Pmx, 0)} W</bdi> כש-V<sub>ds</sub> = <bdi>${M.Vdd / 2} V</bdi>.`]] }
     }
   };
@@ -16581,9 +16604,9 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
           ['5.8', 'בשער מלא P_Q יורד ל-0: במודל של האיור הטרנזיסטור הדולק הוא מתג אידאלי.']] },
       '5.3': { win: [['anim:coil', 'עליית הזרם והקוץ בניתוק'], ['c:relay:bench', 'הספסל: דיודה תקינה, פתוחה או הפוכה']],
         look: [['5.12', `בהנפשה, בברירת המחדל: <bdi>τ = L/R = ${tbN(tau * 1e3, 2)} ms</bdi>, ואחרי הכיבוי הזרם דועך דרך הדיודה. ההנפשה מזניחה את <bdi>${VD} V</bdi> של הדיודה, ולכן אצלה הזרם מגיע ל-<bdi>${tbN(Ido * 1e3, 0)} mA</bdi> אחרי <bdi>${tbN(td0 * 1e3, 2)} ms</bdi>, ולא <bdi>${tbN(tdD * 1e3, 2)} ms</bdi> של 5.13.`],
-          ['5.15', `כבו את הדיודה בסליידר: המתח על המתג קופץ אל מחוץ לסקאלה. בצעד 4: כיבוי של 1 µs נותן <bdi>${tbN(spike / 1e3, 1)} kV</bdi>.`],
+          ['5.15', `${tbSet('anim:coil', { D: 0 }, 'כבו את הדיודה בסליידר', { step: 3 })}: המתח על המתג קופץ אל מחוץ לסקאלה. בצעד 4: כיבוי של 1 µs נותן <bdi>${tbN(spike / 1e3, 1)} kV</bdi>.`],
           ['5.14', `בספסל, עם D1 תקינה ופתיחה של S1, המתח על הסליל נעצר ב-<bdi>−${VD} V</bdi>. עם D1 פתוחה: קוץ של מאות וולטים (בספסל −320 V, להמחשה).`],
-          ['5.11', 'בספסל הלחימו את D1 הפוך וסגרו את S1: הדיודה מוליכה מ-24V ל-0V, ו-F1 נשרף מיד.']] }
+          ['5.11', `בספסל ${tbSet('c:relay:bench', { c_relay_diode: 'rev' }, 'הלחימו את D1 הפוך')} וסגרו את S1: הדיודה מוליכה מ-24V ל-0V, ו-F1 נשרף מיד.`]] }
     }
   };
 })();
@@ -16715,12 +16738,12 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '7.1': { win: [['3d:prox', 'חיישן קרבה בתלת-ממד: מרחק, חומר ותדר'], ['p:lab/s-prox', 'חיישן קרבה: השראי וקיבולי'], ['p:lab/s-wire', 'PNP מול NPN']],
         look: [['7.5', `בברירת המחדל, <bdi>${PP.rpm} rpm</bdi> ו-${S.teeth} שיניים: תדר השיניים <bdi>${tbN(f0, 0)} Hz</bdi>, והבקר מודד כ-<bdi>${PP.rpm} rpm</bdi>.`],
-          ['7.1', `החליפו לאלומיניום: מרחק הזיהוי יורד ל-<bdi>${lf(SrAl, 2)} mm</bdi>. המרווח של <bdi>${PP.gap} mm</bdi> כבר מחוץ לטווח, והבקר מודד <bdi>0 rpm</bdi>: הוא חושב שהגלגל עומד.`],
-          ['7.2', `חזרו לפלדה והרחיקו ל-<bdi>3.5 mm</bdi>: עדיין עובד, אבל מעל <bdi>S<sub>a</sub> = ${tbN(Sa, 2)} mm</bdi>, וההודעה אומרת שאין מרווח ביטחון.`],
-          ['7.6', `העלו ל-<bdi>4,500 rpm</bdi>: <bdi>${tbN(4500 * S.teeth / 60, 0)} Hz</bdi>, מעל <bdi>${S.fmax} Hz</bdi> של החיישן. לפי 7.6 הגבול הוא <bdi>${tbN(nmax, 0)} rpm</bdi>, והבקר מודד פחות ממה שקורה.`]] },
+          ['7.1', `${tbSet('3d:prox', { mat: 'al', gap: 2 }, 'החליפו לאלומיניום')}: מרחק הזיהוי יורד ל-<bdi>${lf(SrAl, 2)} mm</bdi>. המרווח של <bdi>${PP.gap} mm</bdi> כבר מחוץ לטווח, והבקר מודד <bdi>0 rpm</bdi>: הוא חושב שהגלגל עומד.`],
+          ['7.2', `${tbSet('3d:prox', { mat: 'steel', gap: 3.5 }, 'חזרו לפלדה והרחיקו ל-<bdi>3.5 mm</bdi>')}: עדיין עובד, אבל מעל <bdi>S<sub>a</sub> = ${tbN(Sa, 2)} mm</bdi>, וההודעה אומרת שאין מרווח ביטחון.`],
+          ['7.6', `${tbSet('3d:prox', { mat: 'steel', gap: 2, rpm: 4500 }, 'העלו ל-<bdi>4,500 rpm</bdi>')}: <bdi>${tbN(4500 * S.teeth / 60, 0)} Hz</bdi>, מעל <bdi>${S.fmax} Hz</bdi> של החיישן. לפי 7.6 הגבול הוא <bdi>${tbN(nmax, 0)} rpm</bdi>, והבקר מודד פחות ממה שקורה.`]] },
       '7.2': { win: [['3d:loading', 'מדידה היא נגיעה: המכשיר מעמיס'], ['p:lab/dmm', 'מולטימטר'], ['p:lab/scope', 'מחולל ואוסילוסקופ']],
         look: [['7.10', `בברירת המחדל, נגדים של <bdi>${ML.R / 1e3} kΩ</bdi> ומולטימטר: המתח באמת <bdi>${lf(c1.Vt, 3)} V</bdi>, המכשיר מראה <bdi>${lf(c1.Vm, 3)} V</bdi>, שגיאה של <bdi>${(c1.err * 100).toFixed(2)}%</bdi>.`],
-          ['7.10', `עלו ל-<bdi>1 MΩ</bdi>: <bdi>${(cM('dmm').err * 100).toFixed(1)}%</bdi>. החליפו לסקופ ×1: <bdi>${(cM('x1').err * 100).toFixed(1)}%</bdi>. למד מחוגים: <bdi>${(cM('an').err * 100).toFixed(1)}%</bdi>.`],
+          ['7.10', `${tbSet('3d:loading', { R: 1e6, inst: 'dmm' }, 'עלו ל-<bdi>1 MΩ</bdi>')}: <bdi>${(cM('dmm').err * 100).toFixed(1)}%</bdi>. ${tbSet('3d:loading', { R: 1e6, inst: 'x1' }, 'החליפו לסקופ ×1')}: <bdi>${(cM('x1').err * 100).toFixed(1)}%</bdi>. ${tbSet('3d:loading', { R: 1e6, inst: 'an' }, 'למד מחוגים')}: <bdi>${(cM('an').err * 100).toFixed(1)}%</bdi>.`],
           ['7.11', 'בגרף כל עקומה חוצה את 50% כשחצי מהנגד שווה להתנגדות המכשיר: מד המחוגים בנגדים של <bdi>400 kΩ</bdi>, והסקופ ×1 בנגדים של <bdi>2 MΩ</bdi>.']] },
       '7.3': { win: [['p:lab/s-temp', 'טמפרטורה: PT100, NTC וצמד תרמי'], ['p:lab/s-bridge', 'מד מעוות וגשר'], ['p:lab/s-hall', 'חיישן Hall']],
         look: [['7.16', `בדף הטמפרטורה קבעו <bdi>100 °C</bdi>: PT100 מראה <bdi>${tbN(Pt100, 1)} Ω</bdi>. ב-<bdi>25 °C</bdi>: <bdi>${Pt25.toFixed(1)} Ω</bdi>.`],
@@ -16835,10 +16858,10 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '8.2': { win: [['3d:counter', 'ספירה וחלוקת תדר'], ['p:dig/cnt', 'מונים ומחלקי תדר'], ['p:dig/t', 'T flip-flop']],
         look: [['8.8', `בשעון של <bdi>${CL.f} Hz</bdi>: תדר Q0 <bdi>${lf(f0, 3)} Hz</bdi>, תדר Q2 <bdi>${lf(f2, 3)} Hz</bdi>, ומחזור Q2 <bdi>${lf(1 / f2, 2)} s</bdi>.`],
           ['8.9', 'המסך מציג את הספירה, ולידה את הביטים Q2 Q1 Q0: הספירה 5 היא 101, כלומר 4 ועוד 1.'],
-          ['8.8', `העלו את השעון ל-<bdi>4 Hz</bdi>: Q2 עולה ל-<bdi>${lf(4 / 8, 3)} Hz</bdi>, תמיד שמינית מהשעון.`]] },
+          ['8.8', `${tbSet('3d:counter', { f: 4 }, 'העלו את השעון ל-<bdi>4 Hz</bdi>')}: Q2 עולה ל-<bdi>${lf(4 / 8, 3)} Hz</bdi>, תמיד שמינית מהשעון.`]] },
       '8.3': { win: [['3d:counter', 'ripple: ערכי ביניים'], ['p:dig/timing', 'שעון ותזמון']],
         look: [['8.11', `עם השהיה מוגדלת, במעבר מ-3 ל-4 המונה עובר <bdi>3 → 2 → 0 → 4</bdi>: שלוש השהיות של <bdi>${LOG3.tpd} s</bdi>, כלומר <bdi>${tbN(tset, 2)} s</bdi> של ערכים זמניים.`],
-          ['8.12', `העלו את השעון ל-<bdi>4 Hz</bdi>: מחזור של <bdi>0.25 s</bdi>, קצר מ-<bdi>${tbN(tset, 2)} s</bdi>. הספירה הבאה מתחילה לפני שהקודמת התייצבה. המונה עדיין סופר נכון, אבל אין רגע שבו בטוח לקרוא אותו.`],
+          ['8.12', `${tbSet('3d:counter', { f: 4, tpd: 'on' }, 'העלו את השעון ל-<bdi>4 Hz</bdi>')}: מחזור של <bdi>0.25 s</bdi>, קצר מ-<bdi>${tbN(tset, 2)} s</bdi>. הספירה הבאה מתחילה לפני שהקודמת התייצבה. המונה עדיין סופר נכון, אבל אין רגע שבו בטוח לקרוא אותו.`],
           ['8.14', 'בעמוד התזמון: <bdi>5 + 10 + 3 = 18 ns</bdi>, ולכן <bdi>f<sub>max</sub> ≈ 55.6 MHz</bdi>, בדיוק 8.14.']] }
     }
   };
@@ -16951,13 +16974,13 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '9.1': { win: [['3d:buck', 'ספק ממותג (buck) בתלת-ממד'], ['c:psu:schematic', 'הסכמה: ספק 24V'], ['p:mot/conv', 'ממירים']],
         look: [['9.4', `בברירת המחדל, <bdi>D = ${BL.D * 100}%</bdi>: מתח מוצא <bdi>${lf(bk.Vo)} V</bdi>, וזרם עומס <bdi>${amp(bk.Io)}</bdi> ב-<bdi>${BL.RL} Ω</bdi>.`],
-          ['9.5', `אדוות הזרם <bdi>${amp(bk.dI)}</bdi>. החליפו את הסליל ל-<bdi>100 µH</bdi>: <bdi>${amp(bk100.dI)}</bdi>, כמעט חצי, כי ΔI בהפוך ל-L.`],
+          ['9.5', `אדוות הזרם <bdi>${amp(bk.dI)}</bdi>. ${tbSet('3d:buck', { L: 0.0001, RL: BL.RL }, 'החליפו את הסליל ל-<bdi>100 µH</bdi>')}: <bdi>${amp(bk100.dI)}</bdi>, כמעט חצי, כי ΔI בהפוך ל-L.`],
           ['9.6', `בהודעה של המעבדה: <bdi>ΔV = ${lf(bk.dV * 1000, 2)} mV</bdi>, בדיוק 9.6 עם קבל של <bdi>${BUCK3.C * 1e6} µF</bdi>.`],
-          ['9.7', `הגדילו את העומס: ב-<bdi>18 Ω</bdi> עדיין CCM. ב-<bdi>22 Ω</bdi> המצב עובר ל-DCM, והמתח עולה ל-<bdi>${lf(bk22.Vo)} V</bdi> בלי ששיניתם את D.`]] },
+          ['9.7', `הגדילו את העומס: ${tbSet('3d:buck', { L: BUCK3.L, RL: 18 }, 'ב-<bdi>18 Ω</bdi>')} עדיין CCM. ${tbSet('3d:buck', { L: BUCK3.L, RL: 22 }, 'ב-<bdi>22 Ω</bdi>')} המצב עובר ל-DCM, והמתח עולה ל-<bdi>${lf(bk22.Vo)} V</bdi> בלי ששיניתם את D.`]] },
       '9.2': { win: [['anim:drop', 'נפילת מתח בכבל'], ['c:psu:bench', 'הספסל: ספק, כבל ועומס'], ['t:pwr:math:0', 'מפל המתח בכל ענף']],
         look: [['9.8', `בהנפשה, בברירת המחדל: <bdi>${Ad.I} A</bdi> בכבל של <bdi>${Ad.Lc} m</bdi> ב-<bdi>${Ad.A} mm²</bdi>, הענף של דוגמה 9.2. ההתנגדות הלוך וחזור: <bdi>${f1(dr.R, 3)} Ω</bdi>.`],
           ['9.9', `הנפילה <bdi>${f1(dr.dV, 2)} V</bdi>, ובצרכן נשארים <bdi>${f1(dr.Vend, 2)} V</bdi>.`],
-          ['9.10', `האורך המרבי בזרם ובחתך האלה: <bdi>${f1(dr.Lmax)} m</bdi>. הזיזו את L ל-<bdi>26 m</bdi>, והמתח יורד ל-<bdi>${f1(dr26.Vend, 2)} V</bdi>, מתחת ל-<bdi>${PW.Vmin} V</bdi>.`],
+          ['9.10', `האורך המרבי בזרם ובחתך האלה: <bdi>${f1(dr.Lmax)} m</bdi>. ${tbSet('anim:drop', { Lc: 26 }, 'הזיזו את L ל-<bdi>26 m</bdi>')}, והמתח יורד ל-<bdi>${f1(dr26.Vend, 2)} V</bdi>, מתחת ל-<bdi>${PW.Vmin} V</bdi>.`],
           ['9.9', `בספסל, בברירת המחדל: <bdi>${psuB.I} A</bdi> בכבל של <bdi>${psuB.L} m</bdi> ב-<bdi>${psuB.A} mm²</bdi>, ובעומס <bdi>${psuB.V.toFixed(2)} V</bdi>.`]] },
       '9.3': { win: [['t:pwr:scene', 'הספק והענפים בתלת-ממד'], ['t:pwr:math:2', 'זרם התנעה מול מגבלת הזרם'], ['t:pwr:math:3', 'Hold-up'], ['t:pwr:fault:reset', 'תקלה: כרטיסים מתאפסים']],
         look: [['9.11', `בשלב "צרכנים": <bdi>${tbN(pw.Itot, 1)} A</bdi> מתוך <bdi>${PW.Irated} A</bdi>, כלומר ${tbN(pw.Itot / PW.Irated * 100, 0)}% מהספק, עם מרווח להתנעה ולהרחבות.`],
@@ -17077,11 +17100,11 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '10.1': { win: [['3d:dcmotor', 'מנוע DC בתלת-ממד: מהירות לפי מתח, זרם לפי עומס'], ['m:why:deriv', 'הגזירה צעד אחר צעד'], ['p:mot/parts', 'חלקי המנוע']],
         look: [['10.6', `בברירת המחדל, <bdi>${V} V</bdi> ועומס של <bdi>${TL} N·m</bdi>: המהירות מתייצבת על <bdi>${lf(rpm(wss), 0)} rpm</bdi>.`],
           ['10.3', `הזרם <bdi>${lf(Iss, 2)} A</bdi> וה-back-EMF <bdi>${lf(Ess, 2)} V</bdi>: מה שחסר עד ${V} V נופל על <bdi>${M.R} Ω</bdi>.`],
-          ['10.5', `העלו את העומס ל-<bdi>0.60 N·m</bdi>, מעל <bdi>${lf(Ts, 2)} N·m</bdi>: המנוע נעצר, וההודעה מראה <bdi>I = V/R = ${lf(Is, 1)} A</bdi>.`]] },
+          ['10.5', `${tbSet('3d:dcmotor', { TL: 0.6 }, 'העלו את העומס ל-<bdi>0.60 N·m</bdi>')}, מעל <bdi>${lf(Ts, 2)} N·m</bdi>: המנוע נעצר, וההודעה מראה <bdi>I = V/R = ${lf(Is, 1)} A</bdi>.`]] },
       '10.2': { win: [['sim:mlab', 'סימולציה: קו מהירות-מומנט'], ['3d:dcmotor', 'מנוע DC בתלת-ממד'], ['m:why:formulas', 'נוסחאות המנוע']],
         look: [['10.8', `בסימולציה, בברירת המחדל: <bdi>24 V</bdi> ועומס של <bdi>0.30 N·m</bdi>. הזרם <bdi>${ml.I.toFixed(2)} A</bdi>, הספק מכני <bdi>${ml.Pm.toFixed(1)} W</bdi>, חשמלי <bdi>${ml.Pin.toFixed(1)} W</bdi>, נצילות ${(ml.eff * 100).toFixed(0)}%. זה מנוע אחר מזה של המעבדה: <bdi>R = ${DCM.R} Ω</bdi> ו-<bdi>K = ${DCM.K}</bdi>.`],
-          ['10.9', `הזיזו את העומס ל-<bdi>0.60 N·m</bdi>, חצי ממומנט העצירה: הספק מכני <bdi>${mlP.Pm.toFixed(1)} W</bdi>, המרבי, ונצילות ${(mlP.eff * 100).toFixed(0)}%.`],
-          ['10.5', `העלו ל-<bdi>1.20 N·m</bdi>: עצירה, והזרם <bdi>${mlS.I.toFixed(1)} A</bdi>.`]] },
+          ['10.9', `${tbSet('sim:mlab', { mv: 24, mt: 0.6 }, 'הזיזו את העומס ל-<bdi>0.60 N·m</bdi>')}, חצי ממומנט העצירה: הספק מכני <bdi>${mlP.Pm.toFixed(1)} W</bdi>, המרבי, ונצילות ${(mlP.eff * 100).toFixed(0)}%.`],
+          ['10.5', `${tbSet('sim:mlab', { mv: 24, mt: 1.2 }, 'העלו ל-<bdi>1.20 N·m</bdi>')}: עצירה, והזרם <bdi>${mlS.I.toFixed(1)} A</bdi>.`]] },
       '10.3': { win: [['3d:dcmotor', 'ההתנעה: הזרם קופץ ויורד'], ['m:why:simple', 'איך מנוע מסתובב']],
         look: [['10.12', `העמיסו ל-<bdi>0.60 N·m</bdi> עד שהמנוע נעצר, והחזירו ל-<bdi>${TL}</bdi>: המנוע מתניע מעמידה. בגרף הזרם מתחיל ב-<bdi>${lf(Is, 1)} A</bdi> ויורד ל-<bdi>${lf(Iss, 2)} A</bdi>.`],
           ['10.11', `המהירות בגרף מגיעה ל-63% מהסופית אחרי כ-<bdi>${tbN(taum * 1e3, 0)} ms</bdi>, קבוע הזמן של 10.11. הסיבוב בתמונה מואט פי ${MOT3.slow}; הגרף בזמן אמיתי.`]] }
@@ -17189,7 +17212,7 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
         look: [['11.1', 'בדיסק של הספסל 12 חריצים, וספירה פי 4: 48 ספירות לסיבוב.'],
           ['11.8', 'נתקו את המיגון: בזמן תנועה הבקר סופר קוצים, והשגיאה מצטברת. עצרו את הדיסק: אין קוצים ואין שגיאה חדשה, אבל מה שנצבר נשאר.']] },
       '11.3': { win: [['3d:brake', 'בלם החזקה בתלת-ממד'], ['c:brake:bench', 'רצף הכיבוי'], ['c:brake:formulas', 'נוסחאות הבלם']],
-        look: [['11.10', `לפני הניתוק ההודעה אומרת: זמן הסגירה הצפוי <bdi>${lf(tD * 1000, 1)} ms</bdi>. לחצו "הפסקת חשמל", ואחר כך החליפו לווריסטור: <bdi>${lf(tV * 1000, 1)} ms</bdi>.`],
+        look: [['11.10', `לפני הניתוק ההודעה אומרת: זמן הסגירה הצפוי <bdi>${lf(tD * 1000, 1)} ms</bdi>. ${tbSet('3d:brake', { sup: 'diode' }, 'לחצו "הפסקת חשמל"', { act: 'reset,loss' })}, ואחר כך ${tbSet('3d:brake', { sup: 'var' }, 'החליפו לווריסטור', { act: 'reset,loss' })}: <bdi>${lf(tV * 1000, 1)} ms</bdi>.`],
           ['11.11', `בזמן הזה הציר נופל: כ-<bdi>${tbN(zD * 1e3, 1)} mm</bdi> עם דיודה, כ-<bdi>${tbN(zV * 1e3, 1)} mm</bdi> עם וריסטור.`],
           ['11.12', `בספסל של הרצף: הפכו ל-"Disable קודם": <bdi>${fmt(bb.gapBad * 1000, 0)} ms</bdi> בלי החזקה, וצניחה של <bdi>${fmt(bb.sagBad, 2)} mm</bdi>.`]] }
     }
@@ -17294,13 +17317,13 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '12.1': { win: [['3d:fit', 'התאמות בתלת-ממד: מייצרים ומרכיבים'], ['c:fits:formulas', 'נוסחאות ההתאמה']],
         look: [['12.1', `בברירת המחדל, g6: ההודעה אומרת שתמיד יש מרווח, בין <bdi>${g6.mn}</bdi> ל-<bdi>${g6.mx} µm</bdi>.`],
-          ['12.1', `בחרו p6: הידוק תמיד, בין <bdi>${-p6.mx}</bdi> ל-<bdi>${-p6.mn} µm</bdi>.`],
-          ['12.3', `בחרו k6 ולחצו "ייצר והרכב" כמה פעמים: חלק מהזוגות עם מרווח וחלק עם הידוק. לפי 12.3, בערך ${tbN(Pk6 * 100, 0)}% מהם צריכים כוח.`]] },
+          ['12.1', `${tbSet('3d:fit', { sh: 'p6' }, 'בחרו p6')}: הידוק תמיד, בין <bdi>${-p6.mx}</bdi> ל-<bdi>${-p6.mn} µm</bdi>.`],
+          ['12.3', `${tbSet('3d:fit', { sh: 'k6' }, 'בחרו k6 ולחצו "ייצר והרכב"', { act: 'sample' })} כמה פעמים: חלק מהזוגות עם מרווח וחלק עם הידוק. לפי 12.3, בערך ${tbN(Pk6 * 100, 0)}% מהם צריכים כוח.`]] },
       '12.2': { win: [['c:fits:bench', 'הספסל: Ø6 H7 מול שדות הציר'], ['p:b/mech', 'שרטוט מכני'], ['p:b/mdrill', 'תרגול שרטוט']],
         look: [['12.1', `בברירת המחדל, g6: מרווח מינימלי <bdi>${bg6.mn} µm</bdi>, מרבי <bdi>${bg6.mx} µm</bdi>, Clearance.`],
-          ['12.1', `בחרו k6: מינימלי <bdi>${bk6.mn} µm</bdi>, מרבי <bdi>${bk6.mx} µm</bdi>, Transition. ובחרו p6: <bdi>${bp6.mn}</bdi> ו-<bdi>${bp6.mx} µm</bdi>, Interference.`]] },
+          ['12.1', `${tbSet('c:fits:bench', { c_fits_sh: 'k6' }, 'בחרו k6', { see: 'Transition' })}: מינימלי <bdi>${bk6.mn} µm</bdi>, מרבי <bdi>${bk6.mx} µm</bdi>, Transition. ${tbSet('c:fits:bench', { c_fits_sh: 'p6' }, 'ובחרו p6', { see: 'Interference' })}: <bdi>${bp6.mn}</bdi> ו-<bdi>${bp6.mx} µm</bdi>, Interference.`]] },
       '12.3': { win: [['3d:screw', 'בורג כדורי ו-backlash בתלת-ממד'], ['sim:bs3d', 'backlash בהיפוך כיוון'], ['c:screw:bench', 'הספסל: אנקודר מול עגלה']],
-        look: [['12.8', `בברירת המחדל: פסיעה <bdi>${SP.lead} mm</bdi> וכוח <bdi>${SP.F} N</bdi>, מומנט נדרש <bdi>${lf(T10, 3)} N·m</bdi>. החליפו לפסיעה של 5 mm: <bdi>${lf(T5, 3)} N·m</bdi>, חצי.`],
+        look: [['12.8', `בברירת המחדל: פסיעה <bdi>${SP.lead} mm</bdi> וכוח <bdi>${SP.F} N</bdi>, מומנט נדרש <bdi>${lf(T10, 3)} N·m</bdi>. ${tbSet('3d:screw', { lead: 5 }, 'החליפו לפסיעה של 5 mm', { see: `${lf(T5, 3)} N·m` })}: <bdi>${lf(T5, 3)} N·m</bdi>, חצי.`],
           ['12.9', `backlash של <bdi>${tbN(SP.b * 1e3, 0)} µm</bdi>: ההודעה אומרת שבכל היפוך המנוע מסתובב <bdi>${tbN(SP.b * 1e3, 0)} µm</bdi> לפני שהשולחן זז, ושהשגיאה <bdi>±${tbN(SP.b * 1e3 / 2, 0)} µm</bdi>.`],
           ['12.9', 'בגרף התחתון השגיאה קופצת מצד לצד בכל היפוך: זה ה-∓ של 12.9.']] }
     }
@@ -17403,14 +17426,14 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '13.1': { win: [['anim:servo', 'לולאת הסרבו: ζ, ω_n וחריגה'], ['s:servo', 'סימולציית הציר'], ['p:sig/pid', 'PID'], ['p:sig/loop', 'לולאה סגורה']],
         look: [['13.4', `בהנפשה, בברירת המחדל, בצעד 4: <bdi>ω<sub>n</sub> = ${f1(as.wn)} rad/s</bdi> ו-<bdi>ζ = ${f1(as.z, 2)}</bdi>.`],
           ['13.5', `בצעד 5: חריגה של <bdi>${f1(as.Mp)}%</bdi> והתייצבות ב-<bdi>${f1(as.ts4 * 1000)} ms</bdi>.`],
-          ['13.4', `הורידו את Kd ל-0: <bdi>ζ = ${f1(as0.z, 2)}</bdi>, והחריגה <bdi>${f1(as0.Mp)}%</bdi>. העגלה רוטטת סביב היעד.`]] },
+          ['13.4', `${tbSet('anim:servo', { Kd: 0 }, 'הורידו את Kd ל-0', { step: 3 })}: <bdi>ζ = ${f1(as0.z, 2)}</bdi>, והחריגה <bdi>${f1(as0.Mp)}%</bdi>. העגלה רוטטת סביב היעד.`]] },
       '13.2': { win: [['3d:axis', 'ציר סרבו בתלת-ממד: פקודה, עגלה ושגיאת עקיבה'], ['t:servo:scene', 'הציר שלב אחר שלב'], ['t:servo:math:2', 'שגיאת עקיבה בתאוצה'], ['t:servo:math:3', 'שגיאה קבועה, ולמה צריך I']],
-        look: [['13.7', `לפני התנועה ההודעה אומרת: בתאוצה צריך <bdi>m·a = ${S.m * S.a} N</bdi>, ושגיאה של כ-<bdi>${lf(eA0 * 1e6, 0)} µm</bdi> מספיקה ל-P. לחצו "תנועה" וראו את השגיאה גדלה בתאוצה ומתהפכת בהאטה.`],
-          ['13.8', `כבו את האינטגרל, עם הכבל הנגרר: אחרי שהכבל נתפס השגיאה נשארת סביב <bdi>${tbN(eSS * 1e6, 0)} µm</bdi>, ו-In-position לא נדלק.`],
-          ['13.7', `כבו את האינטגרל והורידו את Kp ל-×0.10: לפי 13.7 השגיאה בתאוצה כבר <bdi>${tbN((S.m * S.a + S.b * S.v * 0) / (S.Kp * 0.1) * 1e6, 0)} µm</bdi> ויותר, היא עוברת את הסף של <bdi>${S.FE * 1e6} µm</bdi>, והדרייבר עוצר עם FE. עם האינטגרל דולק הוא מספיק לתקן, והשגיאה נעצרת כ-200 µm.`]] },
+        look: [['13.7', `לפני התנועה ההודעה אומרת: בתאוצה צריך <bdi>m·a = ${S.m * S.a} N</bdi>, ושגיאה של כ-<bdi>${lf(eA0 * 1e6, 0)} µm</bdi> מספיקה ל-P. ${tbSet('3d:axis', { ki: 'on', kp: 1, kd: 1, fd: 'on' }, 'לחצו "תנועה"', { act: 'move' })} וראו את השגיאה גדלה בתאוצה ומתהפכת בהאטה.`],
+          ['13.8', `${tbSet('3d:axis', { ki: 'off', kp: 1, kd: 1, fd: 'on' }, 'כבו את האינטגרל', { act: 'move' })}, עם הכבל הנגרר: אחרי שהכבל נתפס השגיאה נשארת סביב <bdi>${tbN(eSS * 1e6, 0)} µm</bdi>, ו-In-position לא נדלק.`],
+          ['13.7', `${tbSet('3d:axis', { ki: 'off', kp: 0.1, kd: 1, fd: 'on' }, 'כבו את האינטגרל והורידו את Kp ל-×0.10', { act: 'move' })}: לפי 13.7 השגיאה בתאוצה כבר <bdi>${tbN((S.m * S.a + S.b * S.v * 0) / (S.Kp * 0.1) * 1e6, 0)} µm</bdi> ויותר, היא עוברת את הסף של <bdi>${S.FE * 1e6} µm</bdi>, והדרייבר עוצר עם FE. עם האינטגרל דולק הוא מספיק לתקן, והשגיאה נעצרת כ-200 µm.`]] },
       '13.3': { win: [['anim:alias', 'התחזות: תדר גבוה שנראה נמוך'], ['p:sig/samp', 'דגימה'], ['p:sig/filt', 'מסננים']],
         look: [['13.10', `בברירת המחדל: אות של <bdi>${Aal.f} kHz</bdi> נדגם ב-<bdi>10 kHz</bdi>, ודרך הנקודות עובר סינוס של <bdi>${fa.toFixed(1)} kHz</bdi>.`],
-          ['13.10', 'הורידו את התדר ל-<bdi>4 kHz</bdi>, מתחת ל-<bdi>5 kHz</bdi>: התדר נשמר. העלו ל-<bdi>11 kHz</bdi>: שוב <bdi>1.0 kHz</bdi>.']] }
+          ['13.10', `${tbSet('anim:alias', { f: 4 }, 'הורידו את התדר ל-<bdi>4 kHz</bdi>')}, מתחת ל-<bdi>5 kHz</bdi>: התדר נשמר. ${tbSet('anim:alias', { f: 11 }, 'העלו ל-<bdi>11 kHz</bdi>')}: שוב <bdi>1.0 kHz</bdi>.`]] }
     }
   };
 })();
@@ -17515,14 +17538,14 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
         look: [['14.2', `בהנפשה, בברירת המחדל: <bdi>NA = ${NA}</bdi> ו-<bdi>λ = ${AN.lam} µm</bdi>. בצעד 2: <bdi>r = 0.61·λ/NA = ${f1(r, 2)} µm</bdi>.`],
           ['14.5', `בצעד 4: עומק שדה של <bdi>${f1(dof)} µm</bdi>, כלומר <bdi>±${tbN(half, 2)} µm</bdi> של 14.5. בצעד 5: מכפילים NA, והוא קטן פי 4.`],
           ['14.4', `בהנפשת הטשטוש, <bdi>Δz = ${AD.dz} µm</bdi>: <bdi>b ≈ 2·NA·Δz = ${f1(bD)} µm</bdi>, ובצעד 4 הגבול לפי פיקסל, <bdi>${f1(zPix)} µm</bdi>.`],
-          ['14.6', `בספסל, <bdi>Δz = 0</bdi>: קוטר כתם <bdi>${fmt(blur(0), 1)} µm</bdi>, כתם הדיפרקציה. הזיזו ל-<bdi>30 µm</bdi>: <bdi>${fmt(b30, 1)} µm</bdi>, יותר מפיקסל של 7 µm.`]] },
+          ['14.6', `בספסל, <bdi>Δz = 0</bdi>: קוטר כתם <bdi>${fmt(blur(0), 1)} µm</bdi>, כתם הדיפרקציה. ${tbSet('c:lens:bench', { c_lens_dz: 30 }, 'הזיזו ל-<bdi>30 µm</bdi>')}: <bdi>${fmt(b30, 1)} µm</bdi>, יותר מפיקסל של 7 µm.`]] },
       '14.2': { win: [['anim:tilt', 'הטיה: שני שימים ומישור הפוקוס'], ['c:tilt:bench', 'הספסל: הטיה, שדה ו-NA']],
         look: [['14.8', `בברירת המחדל: שימים של <bdi>${AT.zL}</bdi> ו-<bdi>+${AT.zR} µm</bdi> במרחק <bdi>${at.B} mm</bdi>. בצעד 2: <bdi>θ = ${f1(at.theta, 2)} mrad</bdi>.`],
           ['14.9', `בצעד 3, בקצה השדה: <bdi>${f1(at.edge)} µm</bdi>. בצעד 4, מול <bdi>DOF/2 = ${f1(at.half)} µm</bdi>, חדים רק <bdi>${f1(at.frac * 100)}%</bdi> מהשדה.`],
-          ['14.10', `בספסל: <bdi>${tb.th} mrad</bdi>, שדה של <bdi>${tb.fov} mm</bdi> ו-<bdi>NA = ${tb.na}</bdi>. שגיאה בקצה <bdi>${fmt(tb.edge, 1)} µm</bdi> מול <bdi>DOF/2 = ${fmt(tb.half, 1)} µm</bdi>: כל השדה חד. העלו את NA ל-0.25: <bdi>DOF/2 = ${fmt(tb.half25, 1)} µm</bdi>, ורוב השדה יוצא.`]] },
+          ['14.10', `בספסל: <bdi>${tb.th} mrad</bdi>, שדה של <bdi>${tb.fov} mm</bdi> ו-<bdi>NA = ${tb.na}</bdi>. שגיאה בקצה <bdi>${fmt(tb.edge, 1)} µm</bdi> מול <bdi>DOF/2 = ${fmt(tb.half, 1)} µm</bdi>: כל השדה חד. ${tbSet('c:tilt:bench', { c_tilt_na: 0.25 }, 'העלו את NA ל-0.25')}: <bdi>DOF/2 = ${fmt(tb.half25, 1)} µm</bdi>, ורוב השדה יוצא.`]] },
       '14.3': { win: [['c:thermal:bench', 'הספסל: התפשטות תושבת מול עומק השדה'], ['c:thermal:formulas', 'נוסחאות']],
         look: [['14.11', `בברירת המחדל: אלומיניום, <bdi>${th.L} mm</bdi>, <bdi>+${th.dT} °C</bdi>: <bdi>ΔL = ${fmt(th.dL, 1)} µm</bdi>, מחוץ לעומק השדה.`],
-          ['14.13', `החליפו ל-Invar: <bdi>${fmt(th.inv, 1)} µm</bdi>, ונשאר הרבה מרווח. ובפלדה: <bdi>${fmt(th.st, 1)} µm</bdi>.`]] }
+          ['14.13', `${tbSet('c:thermal:bench', { c_thermal_m: 'inv' }, 'החליפו ל-Invar')}: <bdi>${fmt(th.inv, 1)} µm</bdi>, ונשאר הרבה מרווח. ${tbSet('c:thermal:bench', { c_thermal_m: 'st' }, 'ובפלדה')}: <bdi>${fmt(th.st, 1)} µm</bdi>.`]] }
     }
   };
 })();
@@ -17623,14 +17646,14 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '15.1': { win: [['fig:linescan', 'מצלמת line-scan על מסוע: אנקודר מול שעון'], ['c:linescan:bench', 'הספסל: מהירות, טריגר וחשיפה'], ['c:linescan:formulas', 'נוסחאות']],
         look: [['15.2', 'באיור: הזיזו את העכבר כדי לשנות מהירות, והחליפו לשעון. עם אנקודר העיגול נשאר עגול בכל מהירות. עם שעון הוא נמתח או מתכווץ.'],
           ['15.1', `בספסל, בברירת המחדל: <bdi>${LS.v} mm/s</bdi> ופיקסל של <bdi>${LS.p} µm</bdi>. קצב שורות נדרש <bdi>${fmt(LS.f, 1)} kHz</bdi>, ויחס צורה <bdi>1.00</bdi>.`],
-          ['15.4', `העלו ל-<bdi>${LS.vmax + 20} mm/s</bdi>: הקצב הנדרש עובר את <bdi>${LS.fmax} kHz</bdi> של המצלמה, והתמונה מתכווצת.`]] },
+          ['15.4', `${tbSet('c:linescan:bench', { c_linescan_v: LS.vmax + 20 }, `העלו ל-<bdi>${LS.vmax + 20} mm/s</bdi>`)}: הקצב הנדרש עובר את <bdi>${LS.fmax} kHz</bdi> של המצלמה, והתמונה מתכווצת.`]] },
       '15.2': { win: [['c:linescan:bench', 'הספסל: מריחה מול חשיפה'], ['c:linescan:formulas', 'נוסחאות']],
         look: [['15.5', `בספסל, בברירת המחדל: <bdi>${LS.exp} µs</bdi> ב-<bdi>${LS.v} mm/s</bdi>, מריחת תנועה <bdi>${fmt(LS.blur, 1)} µm = ${fmt(LS.bpx, 2)} px</bdi>.`],
-          ['15.6', `לפי 15.6 החלון המרבי ב-${LS.v} mm/s: <bdi>${LS.p} / (2 · ${LS.v}) = ${tbN(LS.tmax, 0)} µs</bdi>. הגדילו את החשיפה ל-<bdi>${LS.tmax} µs</bdi>: <bdi>${fmt(LS.v * LS.tmax / 1000, 1)} µm = ${fmt(LS.v * LS.tmax / 1000 / LS.p, 2)} px</bdi>, עדיין תקין. ב-<bdi>40 µs</bdi>: <bdi>${fmt(LS.v * 40 / 1000 / LS.p, 2)} px</bdi>, והספסל מסמן חשיפה ארוכה מדי.`]] },
+          ['15.6', `לפי 15.6 החלון המרבי ב-${LS.v} mm/s: <bdi>${LS.p} / (2 · ${LS.v}) = ${tbN(LS.tmax, 0)} µs</bdi>. ${tbSet('c:linescan:bench', { c_linescan_v: LS.v, c_linescan_exp: LS.tmax }, `הגדילו את החשיפה ל-<bdi>${LS.tmax} µs</bdi>`)}: <bdi>${fmt(LS.v * LS.tmax / 1000, 1)} µm = ${fmt(LS.v * LS.tmax / 1000 / LS.p, 2)} px</bdi>, עדיין תקין. ${tbSet('c:linescan:bench', { c_linescan_v: LS.v, c_linescan_exp: 40 }, 'ב-<bdi>40 µs</bdi>')}: <bdi>${fmt(LS.v * 40 / 1000 / LS.p, 2)} px</bdi>, והספסל מסמן חשיפה ארוכה מדי.`]] },
       '15.3': { win: [['anim:strobe', 'הבזק מול אור רציף: אור, חום ופוקוס'], ['c:strobe:bench', 'הספסל: זרם, רוחב פולס והשהיה'], ['c:strobe:formulas', 'נוסחאות']],
         look: [['15.8', `בהנפשה, בצעד 2: <bdi>duty = ${f1(st.duty * 100)}%</bdi>, ו-<bdi>P<sub>avg</sub> = ${f1(st.Pavg)} W</bdi>. בצעד 3, אור רציף: <bdi>${f1(ST.Pp)} W</bdi>.`],
           ['15.9', `בצעד 5: הבזק <bdi>${f1(st.zf)} µm</bdi>, בתוך עומק השדה. רציף <bdi>${f1(st.zc)} µm</bdi>, מחוצה לו.`],
-          ['15.10', `בספסל: פולס של <bdi>${SB.pw} µs</bdi> אחרי <bdi>${SB.dl} µs</bdi>, כולו בתוך חלון של <bdi>${SB.exp} µs</bdi>: חפיפה <bdi>${SB.ov} µs</bdi>, duty <bdi>${fmt(SB.duty * 100, 1)}%</bdi>, הספק ממוצע <bdi>${fmt(SB.P, 1)} W</bdi>. הגדילו את ההשהיה ל-<bdi>20 µs</bdi>: התמונה שחורה.`]] }
+          ['15.10', `בספסל: פולס של <bdi>${SB.pw} µs</bdi> אחרי <bdi>${SB.dl} µs</bdi>, כולו בתוך חלון של <bdi>${SB.exp} µs</bdi>: חפיפה <bdi>${SB.ov} µs</bdi>, duty <bdi>${fmt(SB.duty * 100, 1)}%</bdi>, הספק ממוצע <bdi>${fmt(SB.P, 1)} W</bdi>. ${tbSet('c:strobe:bench', { c_strobe_dl: 20 }, 'הגדילו את ההשהיה ל-<bdi>20 µs</bdi>')}: התמונה שחורה.`]] }
     }
   };
 })();
@@ -17731,16 +17754,16 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '16.1': { win: [['sim:scan3d', 'סריקת פאנל בתלת-ממד: רצועות ותפרים'], ['anim:scan', 'פיקסל, קצב שורות וטשטוש'], ['t:cam:math:0', 'גזירה: קצב שורות']],
         look: [['16.2', `בברירת המחדל: שדה של 40 mm, חפיפה של 2 mm ו-250 mm/s: <bdi>${sp.N}</bdi> רצועות, צעד של <bdi>${sp.step.toFixed(2)} mm</bdi>.`],
-          ['16.3', `זמן לפאנל: <bdi>${sp.time.toFixed(1)} s</bdi>. העלו את המהירות ל-400 mm/s: <bdi>${PB1.v2.time.toFixed(1)} s</bdi>, וקצב השורות עולה ל-<bdi>${(PB1.v2.rate / 1000).toFixed(1)} kHz</bdi>.`],
-          ['16.4', `בתפר: פס ברוחב <bdi>${sp.gap.toFixed(2)} mm</bdi> שנראה רק בשוליים. העלו את החפיפה ל-3 mm: התפר נעלם, ועדיין <bdi>${sp3.N}</bdi> רצועות.`],
+          ['16.3', `זמן לפאנל: <bdi>${sp.time.toFixed(1)} s</bdi>. ${tbSet('sim:scan3d', { ssp: 400 }, 'העלו את המהירות ל-400 mm/s')}: <bdi>${PB1.v2.time.toFixed(1)} s</bdi>, וקצב השורות עולה ל-<bdi>${(PB1.v2.rate / 1000).toFixed(1)} kHz</bdi>.`],
+          ['16.4', `בתפר: פס ברוחב <bdi>${sp.gap.toFixed(2)} mm</bdi> שנראה רק בשוליים. ${tbSet('sim:scan3d', { ssp: 250, sov: 3 }, 'העלו את החפיפה ל-3 mm')}: התפר נעלם, ועדיין <bdi>${sp3.N}</bdi> רצועות.`],
           ['16.1', `בגזירה: <bdi>p = FOV/N = 40 mm/8192 = ${sp.pix.toFixed(2)} µm</bdi>. ובהנפשה, בצעד 1: אותו פיקסל, <bdi>${f1(AS.p, 2)} µm</bdi>, לכל פולס אנקודר.`]] },
       '16.2': { win: [['3d:fiducials', 'רישום בשני סימני ייחוס, בתלת-ממד'], ['c:fid:bench', 'הספסל: קנה מידה, סיבוב ותיקון'], ['p:fit/aff', 'התאמה אפינית']],
-        look: [['16.6', 'בתלת-ממד: לחצו "פאנל חדש". המצלמה מודדת את שני הסימנים, ומהווקטור ביניהם מחשבת θ = atan2(Δy, Δx), s = |Δ|/D וההיסט מהאמצע. הפד ב-(150, 120) mm מתוקן מהחטאה של מילימטרים לכמה מיקרונים.'],
-          ['16.8', `רעש של <bdi>${RL.sig} µm</bdi> ומרחק של <bdi>400 mm</bdi>: <bdi>√2·σ/D = ${lf(dth(400) * 1e6, 1)} µrad</bdi>. החליפו ל-100 mm: <bdi>${lf(dth(100) * 1e6, 1)} µrad</bdi>.`],
-          ['16.7', `בספסל, בחרו "ללא": שגיאה מרבית של <bdi>${fmt(FC.none.max, 1)} µm</bdi>, כולל היסט הפאנל. "אפיני מלא": <bdi>${fmt(FC.affine.max, 1)} µm</bdi>, ו-RMS של <bdi>${fmt(FC.affine.rms, 1)} µm</bdi>, רעש המדידה שנשאר.`]] },
+        look: [['16.6', `בתלת-ממד: ${tbSet('3d:fiducials', {}, 'לחצו "פאנל חדש"', { act: 'load' })}. המצלמה מודדת את שני הסימנים, ומהווקטור ביניהם מחשבת θ = atan2(Δy, Δx), s = |Δ|/D וההיסט מהאמצע. הפד ב-(150, 120) mm מתוקן מהחטאה של מילימטרים לכמה מיקרונים.`],
+          ['16.8', `רעש של <bdi>${RL.sig} µm</bdi> ומרחק של <bdi>400 mm</bdi>: <bdi>√2·σ/D = ${lf(dth(400) * 1e6, 1)} µrad</bdi>. ${tbSet('3d:fiducials', { D: 100 }, 'החליפו ל-100 mm')}: <bdi>${lf(dth(100) * 1e6, 1)} µrad</bdi>.`],
+          ['16.7', `בספסל, ${tbSet('c:fid:bench', { c_fid_mode: 'none' }, 'בחרו "ללא"')}: שגיאה מרבית של <bdi>${fmt(FC.none.max, 1)} µm</bdi>, כולל היסט הפאנל. ${tbSet('c:fid:bench', { c_fid_mode: 'affine' }, '"אפיני מלא"')}: <bdi>${fmt(FC.affine.max, 1)} µm</bdi>, ו-RMS של <bdi>${fmt(FC.affine.rms, 1)} µm</bdi>, רעש המדידה שנשאר.`]] },
       '16.3': { win: [['anim:centroid', 'מרכז כובד של כתם: דיוק תת-פיקסל'], ['anim:lsq', 'ריבועים פחותים: הקו שמקטין את ריבועי השאריות'], ['p:img/cent', 'מרכז כובד']],
         look: [['16.9', `בהנפשה, בברירת המחדל: הכתם ב-<bdi>${ac.c.toFixed(2)}</bdi> פיקסלים על רקע של <bdi>${AC_.bg}</bdi>. בצעד 3, בלי החסרת רקע: <bdi>${ac.raw.toFixed(3)}</bdi>.`],
-          ['16.10', `בצעד 4, אחרי החסרת רקע: <bdi>${ac.sub.toFixed(3)}</bdi>. העלו את הרקע ל-40: בלי החסרה <bdi>${ac40.raw.toFixed(3)}</bdi>, עוד יותר קרוב ל-4.`],
+          ['16.10', `בצעד 4, אחרי החסרת רקע: <bdi>${ac.sub.toFixed(3)}</bdi>. ${tbSet('anim:centroid', { bg: 40 }, 'העלו את הרקע ל-40', { step: 2 })}: בלי החסרה <bdi>${ac40.raw.toFixed(3)}</bdi>, עוד יותר קרוב ל-4.`],
           ['16.11', `בהנפשת הקו, צעד 3: <bdi>a = ${al.a.toFixed(3)}</bdi>, <bdi>b = ${al.b.toFixed(3)}</bdi>.`],
           ['16.12', `בצעד 4: <bdi>S = ${al.S.toFixed(2)}</bdi>, ו-<bdi>σ̂ = ${al.sh.toFixed(2)}</bdi>.`]] }
     }
@@ -17842,16 +17865,16 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '17.1': { win: [['anim:crater', 'מכתש הלייזר: מאנרגיה לחיתוך מלא'], ['sim:cr3d', 'המכתש בתלת-ממד'], ['fig:aos', 'תיקון קצר: אנרגיה ופוקוס']],
         look: [['17.2', `בהנפשה, בברירת המחדל: <bdi>E = ${AK.E} µJ</bdi> ו-<bdi>N = ${AK.N}</bdi>. בצעד 2: <bdi>F₀ = ${f1(ak.F0, 2)} J/cm²</bdi>.`],
           ['17.3', `בצעד 3: <bdi>D = ${f1(ak.D)} µm</bdi>. בצעד 4, העומק במרכז: <bdi>${f1(ak.h0)} µm</bdi>.`],
-          ['17.5', `בצעד 5: חיתוך מלא רק ב-<bdi>D_c = ${f1(ak.Dc)} µm</bdi>. בתלת-ממד אותם מספרים, וגשר של 10 µm עדיין מחובר. העלו ל-8 µJ וראו את הקוטר גדל לאט.`]] },
+          ['17.5', `בצעד 5: חיתוך מלא רק ב-<bdi>D_c = ${f1(ak.Dc)} µm</bdi>. בתלת-ממד אותם מספרים, וגשר של 10 µm עדיין מחובר. ${tbSet('anim:crater', { E: 8 }, 'העלו ל-8 µJ', { step: 2 })} וראו את הקוטר גדל לאט.`]] },
       '17.2': { win: [['c:laser:bench', 'הספסל: אנרגיה, פוקוס ותקלות'], ['t:aos:math:1', 'גזירה: צעד וכיסוי'], ['t:aos:math:2', 'גזירה: נזק ללמינציה']],
-        look: [['17.8', `בספסל, בחרו "חלון מגן מלוכלך": אנרגיה בפאנל <bdi>${fmt(Ld.Ee, 2)} µJ</bdi>, <bdi>F₀ = ${fmt(Ld.F0, 2)} J/cm²</bdi>, וקוטר מכתש <bdi>${fmt(Ld.D, 1)} µm</bdi>.`],
-          ['17.6', `בלי תקלה, הזיזו את Δz ל-320 µm: רדיוס קרן <bdi>${fmt(Lz.w, 2)} µm</bdi>, קוטר <bdi>${fmt(Lz.D, 1)} µm</bdi>, ועומק <bdi>${fmt(Lz.depth, 1)} µm</bdi> בלבד.`],
+        look: [['17.8', `בספסל, ${tbSet('c:laser:bench', { c_laser_fault: 'dirty', c_laser_dz: 0 }, 'בחרו "חלון מגן מלוכלך"')}: אנרגיה בפאנל <bdi>${fmt(Ld.Ee, 2)} µJ</bdi>, <bdi>F₀ = ${fmt(Ld.F0, 2)} J/cm²</bdi>, וקוטר מכתש <bdi>${fmt(Ld.D, 1)} µm</bdi>.`],
+          ['17.6', `${tbSet('c:laser:bench', { c_laser_fault: 'none', c_laser_dz: 320 }, 'בלי תקלה, הזיזו את Δz ל-320 µm')}: רדיוס קרן <bdi>${fmt(Lz.w, 2)} µm</bdi>, קוטר <bdi>${fmt(Lz.D, 1)} µm</bdi>, ועומק <bdi>${fmt(Lz.depth, 1)} µm</bdi> בלבד.`],
           ['17.9', `בגזירה של הכיסוי: עם חפיפה של 30%, <bdi>s = ${tbN(PB1.c5.s, 2)} µm</bdi> ו-<bdi>n = ${PB1.c5.n}</bdi> כתמים, ב-5 µJ.`],
           ['17.10', `בגזירה של הנזק: ב-5 µJ, <bdi>${tbN(PB1.dmg5, 1)} µm</bdi> לתוך הלמינציה.`]] },
       '17.3': { win: [['3d:scanhead', 'ראש הסריקה בתלת-ממד'], ['t:aos:math:3', 'גזירה: היסט ו-registration']],
         look: [['17.13', `בכרטיסים: רדיוס הכתם <bdi>${f1(sh.w0, 1)} µm</bdi>, מ-17.13 עם עדשה של ${SH.f} mm וקרן של ${tbN(sh.D, 2)} mm.`],
           ['17.14', `שדה הסריקה: <bdi>${f1(sh.field, 1)} mm</bdi>, מראות של ±${SH.mech}°.`],
-          ['17.12', `הדליקו את הקרן: המראה הראשונה נעה עד <bdi>±${f1(SH.raster, 1)}°</bdi>, והכתם עד <bdi>${f1(tr.mm[0], 1)} mm</bdi>, כלומר <bdi>f · 2θ<sub>m</sub></bdi>.`]] }
+          ['17.12', `${tbSet('3d:scanhead', {}, 'הדליקו את הקרן', { btn: 'קרן: כבויה' })}: המראה הראשונה נעה עד <bdi>±${f1(SH.raster, 1)}°</bdi>, והכתם עד <bdi>${f1(tr.mm[0], 1)} mm</bdi>, כלומר <bdi>f · 2θ<sub>m</sub></bdi>.`]] }
     }
   };
 })();
@@ -17954,19 +17977,19 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     check: { Iss, tau, tpull, tdrop, Pc, tfill, vac3, cyl, v0: { pss: v0.pss, tau: v0.tau, tth: v0.tth, vac: v0.vac, F: v0.F }, v4: { vac: v4.vac, tth: v4.tth }, v3: { vac: v3.vac, reach: v3.reach }, pth, Cmax, vs: { vac: vs.vac, reach: vs.reach, C: vs.C }, vf: { vac: vf.vac }, v2V: v2V.tth, ac, acT, acT0, ven, PB2: { C: PB2.C, vac: PB2.v.vac }, E1, E2, E3: E3.vac },
     side: {
       '18.1': { win: [['3d:valve', 'שסתום סולנואיד בתלת-ממד: מהיציאה ועד הוואקום'], ['c:cyl:bench', 'הספסל: שסתום 5/2 ובוכנה']],
-        look: [['18.1', `בתלת-ממד: לפני ההדלקה, ההודעה כותבת <bdi>τ = L/R = ${lf(tau * 1000, 1)} ms</bdi>. הדליקו את היציאה: בגרף, הזרם בסליל עולה בעקומה ונעצר ב-<bdi>${lf(Iss * 1000, 0)} mA</bdi>.`],
+        look: [['18.1', `בתלת-ממד: לפני ההדלקה, ההודעה כותבת <bdi>τ = L/R = ${lf(tau * 1000, 1)} ms</bdi>. ${tbSet('3d:valve', { out: 'on', fault: 'none', p: 6 }, 'הדליקו את היציאה')}: בגרף, הזרם בסליל עולה בעקומה ונעצר ב-<bdi>${lf(Iss * 1000, 0)} mA</bdi>.`],
           ['18.2', `הקו המקווקו בגרף הזרם הוא זרם המשיכה, <bdi>${V.pin} A</bdi>. הבוכנה מתחילה לזוז רק אחרי שהזרם עובר אותו, כ-${lf(tpull * 1000, 1)} ms אחרי ההדלקה.`],
-          ['18.5', 'בספסל: הלחץ קובע את הכוח, F = p · A, וּוסת הזרימה קובע את המהירות. הורידו את הלחץ מתחת ל-3 bar: הבוכנה לא זזה, ואחרי 3 s מופיעה התראת Timeout.'],
-          ['18.16', `חזרו לתלת-ממד והורידו את לחץ האספקה ל-3 bar: ההודעה כותבת שהוונטורי נותן רק <bdi>${lf(vac3, 0)} kPa</bdi>.`]] },
+          ['18.5', `בספסל: הלחץ קובע את הכוח, F = p · A, וּוסת הזרימה קובע את המהירות. ${tbSet('c:cyl:bench', { c_cyl_P: 2.5 }, 'הורידו את הלחץ מתחת ל-3 bar')}: הבוכנה לא זזה, ואחרי 3 s מופיעה התראת Timeout.`],
+          ['18.16', `${tbSet('3d:valve', { out: 'on', fault: 'none', p: 3 }, 'חזרו לתלת-ממד והורידו את לחץ האספקה ל-3 bar')}: ההודעה כותבת שהוונטורי נותן רק <bdi>${lf(vac3, 0)} kPa</bdi>.`]] },
       '18.2': { win: [['3d:vacuum', 'שולחן הוואקום בתלת-ממד'], ['anim:pump', 'שאיבת ואקום: משוואה, מצב יציב וזמן לסף'], ['s:vac', 'הדמיית אזורי ואקום'], ['t:vac:math:2', 'גזירה: זמן הגעה לסף']],
-        look: [['18.9', `בתלת-ממד: לחצו "הפעל". הלחץ יורד בעקומה, ומתג הלחץ נסגר בסף של <bdi>−${VT.th} kPa</bdi>, אחרי כ-${tbN(v0.tth, 1)} s.`],
-          ['18.10', `בחרו פאנל קטן ומתכון "כל האזורים": שני אזורים פתוחים בלי פאנל מעליהם. הלחץ מתייצב בוואקום של <bdi>${tbN(vs.vac, 1)} kPa</bdi>, מעל הסף, והמכונה מחכה.`],
+        look: [['18.9', `בתלת-ממד: ${tbSet('3d:vacuum', { small: false, recipe: 'all' }, 'לחצו "הפעל"', { btn: 'הפעל' })}. הלחץ יורד בעקומה, ומתג הלחץ נסגר בסף של <bdi>−${VT.th} kPa</bdi>, אחרי כ-${tbN(v0.tth, 1)} s.`],
+          ['18.10', `${tbSet('3d:vacuum', { small: true, recipe: 'all' }, 'בחרו פאנל קטן ומתכון "כל האזורים"', { btn: 'הפעל' })}: שני אזורים פתוחים בלי פאנל מעליהם. הלחץ מתייצב בוואקום של <bdi>${tbN(vs.vac, 1)} kPa</bdi>, מעל הסף, והמכונה מחכה.`],
           ['18.7', `בהנפשה, צעד 2: <bdi>p_ss = ${f1(v0.pss)} kPa</bdi>, ואקום של <bdi>${f1(v0.vac)} kPa</bdi>. בצעד 3: <bdi>τ = ${f1(v0.tau, 2)} s</bdi>. בצעד 4: <bdi>t_th = ${f1(v0.tth, 2)} s</bdi>.`],
           ['18.9', `בגזירה: עם דליפה באטם, <bdi>${tbN(v4.tth, 2)} s</bdi>: אותו סף, זמן אחר.`]] },
       '18.3': { win: [['anim:clamp', 'אחיזת ואקום: האם השולחן מיישר את הפאנל'], ['t:vac:math:3', 'גזירה: כוח ההחזקה']],
         look: [['18.11', `בהנפשה, צעד 2: <bdi>F = ${f1(ac.F / 1000, 1)} kN</bdi>.`],
           ['18.13', `בצעד 3: <bdi>q = ${f1(ac.qreq, 2)} kPa</bdi> לפאנל של ${AC_.h} mm וקשת של ${AC_.z0} mm.`],
-          ['18.14', `קבעו עובי 2 mm, קשת 4 mm ודליפה 3 L/s: בצעד 4 נשארת קשת של <bdi>${f1(acT.resid)} µm</bdi>, ובצעד 5 מחוץ לפוקוס.`]] }
+          ['18.14', `${tbSet('anim:clamp', { h: 2, z0: 4, C: 3 }, 'קבעו עובי 2 mm, קשת 4 mm ודליפה 3 L/s', { step: 3 })}: בצעד 4 נשארת קשת של <bdi>${f1(acT.resid)} µm</bdi>, ובצעד 5 מחוץ לפוקוס.`]] }
     }
   };
 })();
@@ -18066,16 +18089,16 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '19.1': { win: [['3d:interlock', 'interlock של דלת בתלת-ממד'], ['t:safety:math:1', 'גזירה: מרחק עצירה']],
         look: [['19.3', `בתלת-ממד, בכרטיסים: <bdi>זמן עצירה T = ${lf(ik.T * 1000, 0)} ms</bdi>.`],
-          ['19.4', `<bdi>S נדרש = ${lf(ik.S, 0)} mm</bdi>, והיד מגיעה אחרי <bdi>${lf(ik.th * 1000, 0)} ms</bdi>: בטוח. לחצו "פתח את הדלת" וצפו בגרף: מהירות הציר יורדת לאפס לפני שהיד מגיעה.`],
-          ['19.5', `העלו את המהירות ל-1 m/s: <bdi>T = ${lf(ik1.T * 1000, 0)} ms</bdi> ו-<bdi>S = ${lf(ik1.S, 0)} mm</bdi>, לא בטוח. פתחו את הדלת: היד מגיעה כשהציר עוד זז. הדליקו נעילת דלת ונסו שוב.`],
+          ['19.4', `<bdi>S נדרש = ${lf(ik.S, 0)} mm</bdi>, והיד מגיעה אחרי <bdi>${lf(ik.th * 1000, 0)} ms</bdi>: בטוח. ${tbSet('3d:interlock', { v: 0.5, lock: 'no' }, 'לחצו "פתח את הדלת"', { act: 'reset,open' })} וצפו בגרף: מהירות הציר יורדת לאפס לפני שהיד מגיעה.`],
+          ['19.5', `${tbSet('3d:interlock', { v: 1, lock: 'no' }, 'העלו את המהירות ל-1 m/s', { act: 'reset' })}: <bdi>T = ${lf(ik1.T * 1000, 0)} ms</bdi> ו-<bdi>S = ${lf(ik1.S, 0)} mm</bdi>, לא בטוח. ${tbSet('3d:interlock', { v: 1, lock: 'no' }, 'פתחו את הדלת', { act: 'reset,open' })}: היד מגיעה כשהציר עוד זז. ${tbSet('3d:interlock', { v: 1, lock: 'yes' }, 'הדליקו נעילת דלת ונסו שוב', { act: 'reset,open' })}.`],
           ['19.2', `בגזירה: <bdi>s ≈ ${tbN(sc.s * 1000, 0)} mm</bdi>, ${tbN(SAFE.v * sc.tr * 1000, 0)} mm בזמן התגובה ועוד ${tbN(SAFE.v ** 2 / (2 * SAFE.a) * 1000, 0)} mm בבלימה.`]] },
       '19.2': { win: [['3d:chain', 'שרשרת הבטיחות בתלת-ממד: שני ערוצים'], ['s:interlock', 'interlock: מעגל ונקודות מדידה'], ['c:limit:bench', 'הספסל: NC מול NO וכבל קרוע']],
-        look: [['19.8', 'בתלת-ממד: הדליקו "מגע ערוץ B מרותך", פתחו את הדלת: ערוץ A נפתח והממסר מנתק. סגרו ולחצו Reset: הממסר לא מתחיל, כי ערוץ B לא נפתח.'],
+        look: [['19.8', `בתלת-ממד: ${tbSet('3d:chain', {}, 'הדליקו "מגע ערוץ B מרותך", פתחו את הדלת', { btn: 'מגע ערוץ B מרותך|פתח את הדלת' })}: ערוץ A נפתח והממסר מנתק. סגרו ולחצו Reset: הממסר לא מתחיל, כי ערוץ B לא נפתח.`],
           ['19.6', 'במעגל: מדדו במולטימטר בנקודות A עד D מול 0V, פתחו את הדלת, וראו איפה 24 V נעצר. כך מוצאים את החוליה הפתוחה בשרשרת.'],
-          ['19.6', 'בספסל: בחרו NO, עגלה בקצה וכבל קרוע: הבקר רואה "OK" כשהעגלה בקצה. אותו דבר ב-NC: כבל קרוע נראה כמו מתג לחוץ, והמכונה עוצרת.']] },
+          ['19.6', `בספסל: ${tbSet('c:limit:bench', { c_limit_type: 'NO', c_limit_act: 'yes', c_limit_brk: 'brk' }, 'בחרו NO, עגלה בקצה וכבל קרוע')}: הבקר רואה "OK" כשהעגלה בקצה. ${tbSet('c:limit:bench', { c_limit_type: 'NC', c_limit_act: 'no', c_limit_brk: 'brk' }, 'אותו דבר ב-NC')}: כבל קרוע נראה כמו מתג לחוץ, והמכונה עוצרת.`]] },
       '19.3': { win: [['anim:weibull', 'Weibull: ילדות, אקראי ובלאי'], ['p:rel/sys', 'אמינות בטור ובמקביל'], ['p:rel/avail', 'זמינות'], ['f:rel', 'נוסחאות אמינות']],
         look: [['19.13', `בהנפשה, בברירת המחדל: <bdi>β = ${AW.beta}</bdi>. בצעד 3, ב-<bdi>t = ${AW.t} h</bdi>: <bdi>R = ${f1(aw.R, 3)}</bdi>.`],
-          ['19.14', `בצעד 4: <bdi>B10 = ${f1(aw.b10, 0)} h</bdi>. הורידו את β ל-1: B10 יורד, והקצב קבוע.`],
+          ['19.14', `בצעד 4: <bdi>B10 = ${f1(aw.b10, 0)} h</bdi>. ${tbSet('anim:weibull', { beta: 1 }, 'הורידו את β ל-1', { step: 3 })}: B10 יורד, והקצב קבוע.`],
           ['19.12', `בדף של טור ומקביל: ספק, דרייבר ואנקודר, <bdi>λ_s = 10⁻⁵</bdi> ו-<bdi>MTBF = ${tbN(ser.M, 0)} h</bdi>.`],
           ['19.11', 'בדף הזמינות: MTBF של 2000 h ו-MTTR של 4 h, זמינות של 99.8% בנוסחה. ההדמיה מגרילה שנה של תקלות, וקרובה לזה.']] }
     }
@@ -18177,19 +18200,19 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '20.1': { win: [['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['c:loop:bench', 'הספסל: לולאת 4–20 mA'], ['s:card', 'כרטיס I/O: נקודות מדידה']],
         look: [['20.1', `בתלת-ממד, ב-24 V: <bdi>זרם בנורית ${amp(I24)}</bdi>. ההודעה כותבת את החישוב של 20.1.`],
-          ['20.3', 'הורידו את המתח ל-12 V והפעילו רעש: בגרף, המתח חוצה את הסף פעמיים בכל מחזור, והביט אחרי המסנן מקפץ איתו. ב-24 V עם אותו רעש הוא יציב.'],
-          ['20.4', `בספסל, בברירת המחדל: <bdi>זרם בלולאה ${fmt(loop.I, 2)} mA</bdi> ו-<bdi>מתח על הנגד ${fmt(loop.V, 2)} V</bdi>, והבקר מחשב <bdi>${fmt(loop.P, 2)} bar</bdi>. בחרו "חוט קרוע": 0 mA, מתחת ל-4.`]] },
+          ['20.3', `${tbSet('3d:input', { V: 12, noise: 'on', wire: 'ok' }, 'הורידו את המתח ל-12 V והפעילו רעש')}: בגרף, המתח חוצה את הסף פעמיים בכל מחזור, והביט אחרי המסנן מקפץ איתו. ${tbSet('3d:input', { V: 24, noise: 'on', wire: 'ok' }, 'ב-24 V עם אותו רעש')} הוא יציב.`],
+          ['20.4', `בספסל, בברירת המחדל: <bdi>זרם בלולאה ${fmt(loop.I, 2)} mA</bdi> ו-<bdi>מתח על הנגד ${fmt(loop.V, 2)} V</bdi>, והבקר מחשב <bdi>${fmt(loop.P, 2)} bar</bdi>. ${tbSet('c:loop:bench', { c_loop_f: 'brk' }, 'בחרו "חוט קרוע"')}: 0 mA, מתחת ל-4.`]] },
       '20.2': { win: [['anim:baud', 'UART: שגיאת קצב והדגימה שזזה'], ['anim:uartf', 'UART: מסגרת של בייט'], ['anim:i2c', 'I2C: כתובת ו-ACK'], ['anim:spi', 'SPI: שני אוגרים בטבעת'], ['anim:can', 'CAN: בוררות וביטי מילוי'], ['f:serial', 'נוסחאות תקשורת טורית'], ['p:ser/uart', 'UART']],
         look: [['20.8', `בהנפשה, בברירת המחדל: <bdi>Δ = ${AB.err}%</bdi>. בצעד 3, ההזזה בביט ה-<span class="nogl">STOP</span>: <bdi>${f1(ab.shift, 2)}</bdi> ביט. בצעד 4, הגבול: <bdi>${f1(ab.lim, 2)}%</bdi>.`],
-          ['20.8', 'הזיזו את Δ ל-6%: הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט, והמקלט קורא שגיאת framing.'],
+          ['20.8', `${tbSet('anim:baud', { err: 6 }, 'הזיזו את Δ ל-6%', { step: 2 })}: הדגימה של ביט ה-<span class="nogl">STOP</span> יוצאת מהביט, והמקלט קורא שגיאת framing.`],
           ['20.9', `בנוסחאות: <bdi>16 MHz</bdi> ו-<bdi>9600</bdi>, <bdi>${tbN(u96.x, 2)}</bdi> שמעוגל ל-${u96.n}.`],
-          ['20.6', `בהנפשת המסגרת, בצעד 4: <bdi>${uf.n}</bdi> ביטים, <bdi>T = ${uf.T.toFixed(1)} µs</bdi>, יעילות של <bdi>${uf.eff.toFixed(0)}%</bdi>. קבעו זוגיות even: <bdi>${ufe.n}</bdi> ביטים, <bdi>${ufe.eff.toFixed(0)}%</bdi>.`],
+          ['20.6', `בהנפשת המסגרת, בצעד 4: <bdi>${uf.n}</bdi> ביטים, <bdi>T = ${uf.T.toFixed(1)} µs</bdi>, יעילות של <bdi>${uf.eff.toFixed(0)}%</bdi>. ${tbSet('anim:uartf', { par: 1 }, 'קבעו זוגיות even', { step: 3 })}: <bdi>${ufe.n}</bdi> ביטים, <bdi>${ufe.eff.toFixed(0)}%</bdi>.`],
           ['20.7', `בצעד 5 המקלט מרכיב מהנמוך לגבוה ומקבל <bdi>${hx2(uf.back)}</bdi>. מקלט שמרכיב מהגבוה קורא <bdi>${hx2(ufr)}</bdi>: אותה מסגרת, בייט אחר.`],
-          ['20.6', `בהנפשת I2C: הכתובת ${hx2(i2.addr)} עם כתיבה היא הבייט <bdi>${hx2(i2.v.first)}</bdi>, ו-<bdi>${i2.v.clocks}</bdi> פעימות ב-100 kHz, ועם START ו-STOP כ-<bdi>${i2.v.t.toFixed(0)} µs</bdi>. שנו את הכתובת ל-0x50: NACK בפעימה התשיעית.`],
+          ['20.6', `בהנפשת I2C: הכתובת ${hx2(i2.addr)} עם כתיבה היא הבייט <bdi>${hx2(i2.v.first)}</bdi>, ו-<bdi>${i2.v.clocks}</bdi> פעימות ב-100 kHz, ועם START ו-STOP כ-<bdi>${i2.v.t.toFixed(0)} µs</bdi>. ${tbSet('anim:i2c', { addr: 0x50 }, 'שנו את הכתובת ל-0x50', { step: 3 })}: NACK בפעימה התשיעית.`],
           ['20.8', `ב-SPI ובאפיק CAN: ב-SPI השעון בחוט, ואין סבלנות קצב. ב-CAN אין שעון, ולכן ביטי מילוי: במזהה של המנצח, ${hx3(cn.wid)}, <bdi>${cn.nst}</bdi> ביט מילוי אחרי חמישה אפסים.`]] },
       '20.3': { win: [['anim:frame', 'EtherCAT: כמה זמן לוקחת מסגרת אחת'], ['t:ecat:scene', 'EtherCAT: הסצנה'], ['t:ecat:math:2', 'גזירה: Working Counter']],
         look: [['20.10', `בהנפשה, צעד 3: <bdi>t = ${f1(af.tF)} µs</bdi>. בצעד 4: <bdi>${f1(af.util)}%</bdi> מהמחזור.`],
-          ['20.11', `הזיזו את הנתונים ל-10,500 בתים: <bdi>${f1(ecx.tFrame * 1e6, 0)} µs</bdi>, מעל 80%. הגדילו את זמן המחזור ל-2 ms: חוזר מתחת.`],
+          ['20.11', `${tbSet('anim:frame', { bytes: 10500, Tc: 1 }, 'הזיזו את הנתונים ל-10,500 בתים', { step: 3 })}: <bdi>${f1(ecx.tFrame * 1e6, 0)} µs</bdi>, מעל 80%. ${tbSet('anim:frame', { bytes: 10500, Tc: 2 }, 'הגדילו את זמן המחזור ל-2 ms', { step: 3 })}: חוזר מתחת.`],
           ['20.12', 'בגזירה של ה-Working Counter: במודל הפשוט כל סלייב מוסיף 1. בפועל קריאה מוסיפה 1, כתיבה 1, וקריאה-כתיבה 3, והבקר יודע מה הצפוי לכל פקודה.']] }
     }
   };
@@ -18287,16 +18310,16 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '21.1': { win: [['scan:aoi', 'סימולטור סריקת AOI: מהשורה ועד הרשומה'], ['t:aoi:math:2', 'גזירה: קצב השורות']],
         look: [['21.1', `בסימולטור, במצב המאוזן: <bdi>קצב שורות ${s0.f.toFixed(1)} kHz</bdi>.`],
-          ['21.2', `<bdi>טשטוש תנועה ${s0.b.toFixed(2)} µm · ${(s0.frac * 100).toFixed(1)}%</bdi> מפיקסל, בתוך הגבול. בחרו "מהיר מדי לפולס": <bdi>${(sF.frac * 100).toFixed(1)}%</bdi>, ואחרי הסריקה מופיעות קריאות שווא.`],
+          ['21.2', `<bdi>טשטוש תנועה ${s0.b.toFixed(2)} µm · ${(s0.frac * 100).toFixed(1)}%</bdi> מפיקסל, בתוך הגבול. ${tbSet('scan:aoi', {}, 'בחרו "מהיר מדי לפולס"', { click: '[data-pre="1"]' })}: <bdi>${(sF.frac * 100).toFixed(1)}%</bdi>, ואחרי הסריקה מופיעות קריאות שווא.`],
           ['21.3', `<bdi>קצב שטח ${s0.area.toFixed(1)} cm²/s</bdi>, ברצועה של <bdi>${s0.swath.toFixed(1)} mm</bdi>, וזמן לפאנל <bdi>${s0.panelS.toFixed(1)} s</bdi>.`],
-          ['21.5', `<bdi>הפגם הקטן ביותר שנראה ${s0.need.toFixed(1)} µm</bdi>. בחרו "פיקסל גס": <bdi>${sC.need.toFixed(1)} µm</bdi>, והסריקה מחמיצה את הפגמים הקטנים.`]] },
+          ['21.5', `<bdi>הפגם הקטן ביותר שנראה ${s0.need.toFixed(1)} µm</bdi>. ${tbSet('scan:aoi', {}, 'בחרו "פיקסל גס"', { click: '[data-pre="2"]' })}: <bdi>${sC.need.toFixed(1)} µm</bdi>, והסריקה מחמיצה את הפגמים הקטנים.`]] },
       '21.2': { win: [['t:aoi:scene', 'מחזור ה-AOI: מטעינה ועד פריקה'], ['t:aoi:math:3', 'גזירה: זמן מחזור לפאנל'], ['t:aoi:math:0', 'גזירה: כוח ההחזקה']],
         look: [['21.6', 'בסצנה: עברו על שמונת השלבים, מטעינה ועד פריקה. רק שלב 5 הוא סריקה. כל השאר הם זמן ש-21.8 לא מקצר.'],
           ['21.7', `בגזירה: <bdi>T<sub>cycle</sub> ≈ ${tbN(Tc, 1)} s</bdi>, כ-${tbN(3600 / Tc, 0)} פאנלים לשעה, והסריקה היא בערך חצי מהזמן.`],
           ['21.6', 'בגזירה של כוח ההחזקה: הכוח גדול מאוד, ומה שנבדק בשלב הוואקום הוא השטיחות, כמו בפרק 18.']] },
       '21.3': { win: [['t:aos:scene', 'מחזור ה-AOS: מהרשימה ועד הדוח'], ['anim:handoff', 'מסירת פגם מ-AOI ל-AOS'], ['t:aoi:math:1', 'גזירה: רישום מתוך fiducials'], ['p:fit/xfer', 'העברה ל-AOS ותקציב שגיאה']],
         look: [['21.9', 'בסצנה של ה-AOS: שלב 1 הוא הרשימה מה-AOI, ושלב 2 הוא רישום משלה. היא לא יורה על הקואורדינטה שהגיעה.'],
-          ['21.12', `בהנפשת המסירה, בצעד 5: הירי נופל <bdi>${f1(AH.e, 1)} µm</bdi> מהפגם, מול מרווח של <bdi>${ah.margin} µm</bdi>: פגיעה. הגדילו את השארית ל-4 µm: החטאה.`],
+          ['21.12', `בהנפשת המסירה, בצעד 5: הירי נופל <bdi>${f1(AH.e, 1)} µm</bdi> מהפגם, מול מרווח של <bdi>${ah.margin} µm</bdi>: פגיעה. ${tbSet('anim:handoff', { e: 4 }, 'הגדילו את השארית ל-4 µm', { step: 4 })}: החטאה.`],
           ['21.10', `בגזירת הרישום: התרחבות של 50 ppm על 500 mm היא <bdi>${tbN(exp, 0)} µm</bdi>.`],
           ['21.11', `בדף ההעברה: <bdi>RSS = ${tbN(rss, 2)} µm</bdi> ו-<bdi>3σ = ${tbN(3 * rss, 1)} µm</bdi>, מול סכום של <bdi>${sum} µm</bdi>. השולחן הוא האיבר הגדול.`]] }
     }
@@ -18394,7 +18417,7 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     check: { d1, d2, Ipsu, touch, th, wu, ac, ac0, ms, grr, U, nE, PB1, PB2, PB3, E1, E2, E3 },
     side: {
       '22.1': { win: [['3d:bringup', 'הפעלה ראשונה בתלת-ממד: שלב אחר שלב'], ['t:bringup:math:0', 'גזירה: נפילת מתח בכבל'], ['t:bringup:math:2', 'גזירה: גודל ספק כוח']],
-        look: [['22.1', `בתלת-ממד, שלב 1: ${BRING3[0][1]}. זה ה-R<sub>PE</sub> של 22.1. לחצו "דלג על הבדיקה" וקראו מה המחיר.`],
+        look: [['22.1', `בתלת-ממד, שלב 1: ${BRING3[0][1]}. זה ה-R<sub>PE</sub> של 22.1. ${tbSet('3d:bringup', {}, 'לחצו "דלג על הבדיקה"', { act: 'restart,skip' })} וקראו מה המחיר.`],
           ['22.3', `שלב 3: ${BRING3[2][1]}. 24 V נמוך שלא נבדק מכניס כניסות לתחום הלא מוגדר של פרק 20.`],
           ['22.2', `בגזירה: כבל של 10 m ב-0.75 mm², <bdi>ΔV ≈ ${tbN(d1, 2)} V</bdi>, ובקצה <bdi>${tbN(24 - d1, 2)} V</bdi>. כבל של 25 m ב-0.5 mm²: <bdi>${tbN(24 - d2, 1)} V</bdi>.`]] },
       '22.2': { win: [['t:bringup:scene', 'הפעלה ראשונה: שמונת השלבים'], ['t:bringup:math:1', 'גזירה: התארכות תרמית']],
@@ -18402,7 +18425,7 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
           ['22.4', `בגזירה: <bdi>11.7·10⁻⁶ · 500 mm · 2 °C ≈ ${tbN(th.dL, 1)} µm</bdi>, פי שש מהמפרט.`]] },
       '22.3': { win: [['anim:cpk', 'Cp ו-Cpk: כשהתהליך זז או מתרחב'], ['f:stat', 'נוסחאות סטטיסטיקה'], ['p:stat/grr', 'Gage R&R']],
         look: [['22.8', `בהנפשה, צעד 2: <bdi>Cp = ${ac.cp.toFixed(2)}</bdi>.`],
-          ['22.9', `בצעד 3: <bdi>Cpk = ${ac.cpk.toFixed(2)}</bdi>. הזיזו את μ ל-50: Cpk עולה ל-<bdi>${ac0.cpk.toFixed(2)}</bdi>, ו-Cp לא משתנה.`],
+          ['22.9', `בצעד 3: <bdi>Cpk = ${ac.cpk.toFixed(2)}</bdi>. ${tbSet('anim:cpk', { mu: 50 }, 'הזיזו את μ ל-50', { step: 2 })}: Cpk עולה ל-<bdi>${ac0.cpk.toFixed(2)}</bdi>, ו-Cp לא משתנה.`],
           ['22.10', `בצעד 4: <bdi>${Math.round(ac.ppm)} ppm</bdi> מחוץ לדרישה.`],
           ['22.11', `בנוסחאות: <bdi>σ_ms = √(2.56 + 1.44) = ${tbN(ms, 0)} µm</bdi>, ו-<bdi>U = ${tbN(U, 1)} µm</bdi>.`]] }
     }
@@ -18503,10 +18526,10 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '23.1': { win: [['3d:line', 'קו הייצור בתלת-ממד: AOI, חוצץ ועמדת אימות'], ['p:pcb/line', 'מה המכונות עושות בקו']],
         look: [['23.1', `בתלת-ממד, בכרטיסים: <bdi>קצב AOI ${lf(L0.aoi, 1)} /h</bdi>.`],
-          ['23.3', `<bdi>עומס האימות ρ ${Math.round(L0.rho * 100)}%</bdi>. העלו את קריאות השווא ל-8: <bdi>${Math.round(L8.rho * 100)}%</bdi>.`],
+          ['23.3', `<bdi>עומס האימות ρ ${Math.round(L0.rho * 100)}%</bdi>. ${tbSet('3d:line', { fc: 8 }, 'העלו את קריאות השווא ל-8', { see: `${Math.round(L8.rho * 100)}%` })}: <bdi>${Math.round(L8.rho * 100)}%</bdi>.`],
           ['23.2', `ההודעה כותבת מי מגביל את הקו. ב-3 קריאות: ה-AOI, ${lf(L0.aoi, 1)} panels/h. ב-8: עמדת האימות היא צוואר הבקבוק, <bdi>ρ = ${lf(L8.rho, 2)}</bdi>, והקו יורד ל-<bdi>${lf(L8.ver, 1)} panels/h</bdi>.`]] },
       '23.2': { win: [['3d:line', 'קו הייצור בתלת-ממד: AOI, חוצץ ועמדת אימות'], ['p:pcb/prod', 'הייצור']],
-        look: [['23.5', `ב-8 קריאות, לחצו "התחל משמרת" וצפו בכרטיס "תור בחוצץ": הוא עולה עד ${LINE3.cap} / ${LINE3.cap}, בערך אחרי ${tbN(fill8 * 60, 0)} דקות של זמן מכונה.`],
+        look: [['23.5', `${tbSet('3d:line', { fc: 8 }, 'ב-8 קריאות, לחצו "התחל משמרת"', { act: 'reset' })} וצפו בכרטיס "תור בחוצץ": הוא עולה עד ${LINE3.cap} / ${LINE3.cap}, בערך אחרי ${tbN(fill8 * 60, 0)} דקות של זמן מכונה.`],
           ['23.4', 'בגרף, הקו של המפעיל כמעט תמיד עסוק כש-ρ מעל 1, והתור גדל. ב-3 קריאות התור קופץ ויורד, ונשאר קטן.']] },
       '23.3': { win: [['3d:line', 'קו הייצור בתלת-ממד: AOI, חוצץ ועמדת אימות'], ['f:ind', 'נוסחאות הקו'], ['p:pcb/kpi', 'מה הלקוח מודד']],
         look: [['23.6', `בנוסחאות: <bdi>0.98 · 0.99 · 0.995 ≈ ${tbN(fpy, 3)}</bdi>.`],
@@ -18620,12 +18643,12 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
       '24.2': { win: [['3d:screw', 'בורג כדורי בתלת-ממד: פסיעה ו-backlash'], ['c:encoder:bench', 'הספסל: אנקודר ופענוח ×4'], ['c:screw:bench', 'הספסל: בורג, מצמד ו-backlash'], ['3d:axis', 'ציר סרבו בתלת-ממד']],
         look: [['24.5', `בתלת-ממד, backlash של <bdi>${bl} µm</bdi>: בכל היפוך המנוע מסתובב ${bl} µm לפני שהשולחן זז, והשגיאה <bdi>±${bl / 2} µm</bdi> תלויה בכיוון.`],
           ['24.4', `בספסל האנקודר: <bdi>${enc.slots}</bdi> חריצים, <bdi>${enc.cpr}</bdi> ספירות לסיבוב בפענוח ×4. נתקו את המיגון: הספירה מתחילה לטעות, וכיול על אנקודר רועש מכייל את הרעש.`],
-          ['24.6', 'בספסל הבורג: הזיזו קדימה, ואז אחורה. ברגע ההיפוך העגלה מחכה עד שהאום סוגר את הרווח. זה החצי של b שהפיצוי מוסיף.']] },
+          ['24.6', `בספסל הבורג: ${tbSet('c:screw:bench', { c_screw_turns: 4 }, 'הזיזו קדימה')}, ${tbSet('c:screw:bench', { c_screw_turns: -4 }, 'ואז אחורה')}. ברגע ההיפוך העגלה מחכה עד שהאום סוגר את הרווח. זה החצי של b שהפיצוי מוסיף.`]] },
       '24.3': { win: [['3d:fiducials', 'רישום בשני סימני ייחוס, בתלת-ממד'], ['p:fit/cal', 'כיול מצלמה'], ['c:lens:bench', 'הספסל: כתם מול Δz'], ['c:laser:bench', 'הספסל: אנרגיה, פוקוס ותקלות']],
         look: [['24.8', 'בדף כיול המצלמה: מתאימים קו ישר, מיקום בפיקסלים מול מיקום במילימטרים, והשיפוע הוא 1/p.'],
           ['24.9', `שם גם העיוות: <bdi>k₁ = −5</bdi> כפול <bdi>10⁻⁹</bdi> לפיקסל בריבוע, ובקצה <bdi>${tbN(dist, 1)}</bdi> פיקסלים.`],
-          ['24.10', 'בספסל העדשה: הזיזו את Δz משני צדי האפס, והכתם גדל בשני הכיוונים. השיא של החדות הוא בקודקוד, ושלוש מדידות מוצאות אותו.'],
-          ['24.11', `בספסל הלייזר: קבעו 2, 4 ו-8 µJ וקראו את קוטר המכתש: <bdi>${lz.D.map(d => fmt(d, 1)).join(', ')} µm</bdi>.`]] }
+          ['24.10', `בספסל העדשה: הזיזו את Δz משני צדי האפס, ${tbSet('c:lens:bench', { c_lens_dz: -20 }, 'ל-<bdi>−20 µm</bdi>')} ו${tbSet('c:lens:bench', { c_lens_dz: 20 }, 'ל-<bdi>+20 µm</bdi>')}, והכתם גדל בשני הכיוונים. השיא של החדות הוא בקודקוד, ושלוש מדידות מוצאות אותו.`],
+          ['24.11', `בספסל הלייזר: קבעו ${tbSet('c:laser:bench', { c_laser_E: 2, c_laser_dz: 0, c_laser_fault: 'none' }, '2')}, ${tbSet('c:laser:bench', { c_laser_E: 4, c_laser_dz: 0, c_laser_fault: 'none' }, '4')} ו-${tbSet('c:laser:bench', { c_laser_E: 8, c_laser_dz: 0, c_laser_fault: 'none' }, '8 µJ')} וקראו את קוטר המכתש: <bdi>${lz.D.map(d => fmt(d, 1)).join(', ')} µm</bdi>.`]] }
     }
   };
 })();
@@ -18730,7 +18753,7 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
           ['25.5', 'הגדילו את הנגד פי 10: העקומה איטית פי 10, ותדר הקיטעון נמוך פי 10.'],
           ['25.6', 'בספק הממותג: אדוות המתח במוצא, 16.0 mV ב-100 kHz, היא רעש שהקבל במוצא מסנן. הקטינו את התדר: האדווה גדלה.']] },
       '25.3': { win: [['3d:prox', 'חיישן קרבה השראי בתלת-ממד'], ['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['p:lab/s-prox', 'מעבדת חיישן קרבה']],
-        look: [['25.10', `בתלת-ממד: <bdi>מרחק זיהוי Sr ${lf(pr.Sn)} mm</bdi> מול פלדה, במרווח של 2 mm. בחרו אלומיניום: <bdi>${lf(pr.al)} mm</bdi>, והיציאה מפסיקה להתחלף.`],
+        look: [['25.10', `בתלת-ממד: <bdi>מרחק זיהוי Sr ${lf(pr.Sn)} mm</bdi> מול פלדה, במרווח של 2 mm. ${tbSet('3d:prox', { mat: 'al', gap: 2 }, 'בחרו אלומיניום')}: <bdi>${lf(pr.al)} mm</bdi>, והיציאה מפסיקה להתחלף.`],
           ['25.9', 'בכרטיס הקלט: מסנן של 3 ms מתעלם מקפיצות קצרות, אבל ב-12 V עם רעש הוא לא מספיק, כמו בפרק 20. היסטרזיס בסף היה מונע את הקפיצות.'],
           ['25.11', 'בכרטיס הקלט: הזרם בנורית הוא I_F של 25.11. בין הצד של החיישן לצד של הבקר אין חוט, רק אור.']] }
     }
@@ -18827,16 +18850,16 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     check: { m10: P(m10), m4: P(m4), m3: P(m3), Tj10: Tj(m10, 'none'), Tj4: Tj(m4, 'none'), Rds, lin, bk, dif, tau, arr, life, cu, cm, hs, ru, PB2, PB3, P33: P(mosSolve(3.3)), E1, E2, E3 },
     side: {
       '26.1': { win: [['3d:mosfet', 'MOSFET בתלת-ממד: סגור, פתוח ובאמצע'], ['3d:buck', 'ספק ממותג בתלת-ממד'], ['f:mosfet', 'נוסחאות טרנזיסטור']],
-        look: [['26.2', `בתלת-ממד, קבעו <bdi>V<sub>GS</sub></bdi> ל-10 V: <bdi>הספק בטרנזיסטור ${watt(P(m10))}</bdi> ו-<bdi>טמפרטורת צומת ${lf(Tj(m10, 'none'), 0)} °C</bdi>.`],
-          ['26.3', `הורידו ל-4 V: <bdi>${watt(P(m4))}</bdi> ו-<bdi>${lf(Tj(m4, 'none'), 0)} °C</bdi>. ל-3 V: <bdi>${watt(P(m3))}</bdi>, ו-<bdi>> 400 °C</bdi>. הוסיפו גוף קירור: <bdi>${lf(Tj(m3, 'sink'), 0)} °C</bdi>.`],
+        look: [['26.2', `בתלת-ממד, ${tbSet('3d:mosfet', { Vgs: 10, hs: 'none' }, 'קבעו <bdi>V<sub>GS</sub></bdi> ל-10 V')}: <bdi>הספק בטרנזיסטור ${watt(P(m10))}</bdi> ו-<bdi>טמפרטורת צומת ${lf(Tj(m10, 'none'), 0)} °C</bdi>.`],
+          ['26.3', `${tbSet('3d:mosfet', { Vgs: 4, hs: 'none' }, 'הורידו ל-4 V')}: <bdi>${watt(P(m4))}</bdi> ו-<bdi>${lf(Tj(m4, 'none'), 0)} °C</bdi>. ${tbSet('3d:mosfet', { Vgs: 3, hs: 'none' }, 'ל-3 V')}: <bdi>${watt(P(m3))}</bdi>, ו-<bdi>> 400 °C</bdi>. ${tbSet('3d:mosfet', { Vgs: 3, hs: 'sink' }, 'הוסיפו גוף קירור')}: <bdi>${lf(Tj(m3, 'sink'), 0)} °C</bdi>.`],
           ['26.4', 'בספק הממותג: Vo = D·Vin = 12.0 V, בלי לשרוף את ההפרש בנגד. הסליל והמתג מעבירים אנרגיה, לא שורפים אותה.']] },
       '26.2': { win: [['c:thermal:bench', 'הספסל: התפשטות תושבת מול עומק השדה'], ['anim:dof', 'טשטוש מחוץ לפוקוס'], ['c:tilt:bench', 'הספסל: הטיה, שדה ו-NA']],
         look: [['26.5', 'בספסל התרמי: אלומיניום, 100 mm ו-8 °C נותנים ΔL = 18.4 µm, מחוץ לעומק השדה. בפלדה 9.6 µm. מה שזז מול הגשר הוא ההפרש ביניהם.'],
           ['26.6', 'בהנפשת הטשטוש: ההתארכות היא Δz של הפרק, והכתם גדל לפי 14.4. בזמן, הוא גדל לפי הקבוע התרמי של 26.6.'],
           ['26.5', 'בספסל ההטיה: התארכות שונה בשני צדי התושבת היא הטיה, θ = Δz/B. חום מצד אחד מטה את המצלמה.']] },
       '26.3': { win: [['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['s:card', 'כרטיס I/O: נקודות מדידה'], ['p:brd/fa', 'חקר כשל בכרטיס']],
-        look: [['26.10', 'בכרטיס: בחרו "הלחמה סדוקה במחבר". תקלה כזו מופיעה ונעלמת עם החום, והמדידה בלי מתח מוצאת אותה רק כשהסדק פתוח.'],
-          ['26.8', 'בחרו "קבל אלקטרוליטי מזדקן": הוא עדיין קבל, אבל מסנן פחות. חום מאיץ את זה לפי 26.8.'],
+        look: [['26.10', `בכרטיס: ${tbSet('s:card', { c_card_f: 'joint' }, 'בחרו "הלחמה סדוקה במחבר"')}. תקלה כזו מופיעה ונעלמת עם החום, והמדידה בלי מתח מוצאת אותה רק כשהסדק פתוח.`],
+          ['26.8', `${tbSet('s:card', { c_card_f: 'ecap' }, 'בחרו "קבל אלקטרוליטי מזדקן"')}: הוא עדיין קבל, אבל מסנן פחות. חום מאיץ את זה לפי 26.8.`],
           ['26.9', 'בכרטיס הקלט: הזרם בנורית תלוי במתח ובהתנגדות. נגד שהתחמם, או מתח שירד, מקרבים את הכניסה לסף, כמו הסליל החם של 26.9.']] }
     }
   };
@@ -18933,14 +18956,14 @@ const tbOv = x => `<span class="tb-ov">${x}</span>`;   /* a complement, a bar ov
     side: {
       '27.1': { win: [['3d:loading', 'מדידה היא נגיעה: המכשיר מעמיס'], ['f:meas', 'נוסחאות מדידה'], ['p:lab/s-wire', 'מעבדת כבל וחיבור']],
         look: [['27.1', `בתלת-ממד, בברירת המחדל: <bdi>המתח באמת ${lf(l0.Vt, 3)} V</bdi>, <bdi>המכשיר מראה ${lf(l0.Vm, 3)} V</bdi>.`],
-          ['27.2', `<bdi>שגיאה ${(l0.err * 100).toFixed(2)}%</bdi>. בחרו מד מחוגים: <bdi>${lf(lan.Vm, 3)} V</bdi>, <bdi>${(lan.err * 100).toFixed(2)}%</bdi>.`],
-          ['27.1', 'הגדילו את הנגדים ל-1 MΩ ובחרו סקופ ×1: הקריאה צונחת. עברו ל-×10: היא חוזרת לאמת.']] },
+          ['27.2', `<bdi>שגיאה ${(l0.err * 100).toFixed(2)}%</bdi>. ${tbSet('3d:loading', { R: 100000, inst: 'an' }, 'בחרו מד מחוגים', { see: `${lf(lan.Vm, 3)} V` })}: <bdi>${lf(lan.Vm, 3)} V</bdi>, <bdi>${(lan.err * 100).toFixed(2)}%</bdi>.`],
+          ['27.1', `${tbSet('3d:loading', { R: 1e6, inst: 'x1' }, 'הגדילו את הנגדים ל-1 MΩ ובחרו סקופ ×1')}: הקריאה צונחת. ${tbSet('3d:loading', { R: 1e6, inst: 'x10' }, 'עברו ל-×10')}: היא חוזרת לאמת.`]] },
       '27.2': { win: [['s:card', 'כרטיס I/O: נקודות מדידה'], ['3d:input', 'כרטיס קלט 24 V בתלת-ממד'], ['p:brd/fa', 'חקר כשל בכרטיס']],
-        look: [['27.4', 'בכרטיס, בלי מתח: מודדים התנגדות של כל פס הזנה לאדמה, ומשווים לכרטיס תקין. בנקודה TP1 בכרטיס תקין: כ-10 kΩ. הזריקו "טרנזיסטור יציאה בקצר", ומדדו שוב.'],
+        look: [['27.4', `בכרטיס, בלי מתח: מודדים התנגדות של כל פס הזנה לאדמה, ומשווים לכרטיס תקין. בנקודה TP1 בכרטיס תקין: כ-10 kΩ. ${tbSet('s:card', { c_card_f: 'q1' }, 'הזריקו "טרנזיסטור יציאה בקצר"')}, ומדדו שוב.`],
           ['27.5', 'הדליקו ועברו על נקודות המדידה TP1 עד TP4 לפי הסדר, מהכניסה למוצא: הנקודה הראשונה שלא תקינה סוגרת את החיפוש לחלק שלפניה.'],
           ['27.8', 'בכרטיס הקלט: חוט קרוע נותן 0 V, ומתח נמוך נותן ביט שמקפץ. שני תסמינים שונים, ולכל אחד מדידה שמפרידה.']] },
       '27.3': { win: [['3d:bringup', 'הפעלה ראשונה בתלת-ממד: שלב אחר שלב'], ['t:bringup:fault:drop', 'תקלה: נפילת מתח'], ['p:int/field', 'בשטח']],
-        look: [['27.9', 'בתלת-ממד: לחצו "דלג על הבדיקה" בשלב אחד, והמשיכו. התקלה שמופיעה אחר כך היא תסמין עם הרבה סיבות, כי בדיקה אחת חסרה. זה מה שבייס מודד.'],
+        look: [['27.9', `בתלת-ממד: ${tbSet('3d:bringup', {}, 'לחצו "דלג על הבדיקה" בשלב אחד', { act: 'restart,skip' })}, והמשיכו. התקלה שמופיעה אחר כך היא תסמין עם הרבה סיבות, כי בדיקה אחת חסרה. זה מה שבייס מודד.`],
           ['27.10', 'בתקלת נפילת המתח: כל מדידה לאורך השרשרת מפרידה בין "הספק" ל"כבל" ל"עומס". מדידה בקצה, תחת עומס, היא ה-LR הגדול.'],
           ['27.9', 'בדף השטח: מה כותבים בדוח, ובמה משווים. מדידה עם ערך, לא "נראה תקין".']] }
     }
@@ -20690,7 +20713,7 @@ function mountAnat(root) {
   new MutationObserver(() => { if (content.querySelector('.anat:not([data-mounted])')) mountAnat(content); }).observe(content, { childList: true, subtree: true });
 })();
 /* ============ Version and shareable deep links ============ */
-const APP_VERSION = '2.81.0';
+const APP_VERSION = '2.82.0';
 (function () {
   const f = document.querySelector('footer');
   if (f) f.insertAdjacentHTML('beforeend', ` <span class="mono">v${APP_VERSION}</span>`);

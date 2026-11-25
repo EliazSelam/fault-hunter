@@ -99,14 +99,14 @@
         look: [['14.2', `בהנפשה, בברירת המחדל: <bdi>NA = ${NA}</bdi> ו-<bdi>λ = ${AN.lam} µm</bdi>. בצעד 2: <bdi>r = 0.61·λ/NA = ${f1(r, 2)} µm</bdi>.`],
           ['14.5', `בצעד 4: עומק שדה של <bdi>${f1(dof)} µm</bdi>, כלומר <bdi>±${tbN(half, 2)} µm</bdi> של 14.5. בצעד 5: מכפילים NA, והוא קטן פי 4.`],
           ['14.4', `בהנפשת הטשטוש, <bdi>Δz = ${AD.dz} µm</bdi>: <bdi>b ≈ 2·NA·Δz = ${f1(bD)} µm</bdi>, ובצעד 4 הגבול לפי פיקסל, <bdi>${f1(zPix)} µm</bdi>.`],
-          ['14.6', `בספסל, <bdi>Δz = 0</bdi>: קוטר כתם <bdi>${fmt(blur(0), 1)} µm</bdi>, כתם הדיפרקציה. הזיזו ל-<bdi>30 µm</bdi>: <bdi>${fmt(b30, 1)} µm</bdi>, יותר מפיקסל של 7 µm.`]] },
+          ['14.6', `בספסל, <bdi>Δz = 0</bdi>: קוטר כתם <bdi>${fmt(blur(0), 1)} µm</bdi>, כתם הדיפרקציה. ${tbSet('c:lens:bench', { c_lens_dz: 30 }, 'הזיזו ל-<bdi>30 µm</bdi>')}: <bdi>${fmt(b30, 1)} µm</bdi>, יותר מפיקסל של 7 µm.`]] },
       '14.2': { win: [['anim:tilt', 'הטיה: שני שימים ומישור הפוקוס'], ['c:tilt:bench', 'הספסל: הטיה, שדה ו-NA']],
         look: [['14.8', `בברירת המחדל: שימים של <bdi>${AT.zL}</bdi> ו-<bdi>+${AT.zR} µm</bdi> במרחק <bdi>${at.B} mm</bdi>. בצעד 2: <bdi>θ = ${f1(at.theta, 2)} mrad</bdi>.`],
           ['14.9', `בצעד 3, בקצה השדה: <bdi>${f1(at.edge)} µm</bdi>. בצעד 4, מול <bdi>DOF/2 = ${f1(at.half)} µm</bdi>, חדים רק <bdi>${f1(at.frac * 100)}%</bdi> מהשדה.`],
-          ['14.10', `בספסל: <bdi>${tb.th} mrad</bdi>, שדה של <bdi>${tb.fov} mm</bdi> ו-<bdi>NA = ${tb.na}</bdi>. שגיאה בקצה <bdi>${fmt(tb.edge, 1)} µm</bdi> מול <bdi>DOF/2 = ${fmt(tb.half, 1)} µm</bdi>: כל השדה חד. העלו את NA ל-0.25: <bdi>DOF/2 = ${fmt(tb.half25, 1)} µm</bdi>, ורוב השדה יוצא.`]] },
+          ['14.10', `בספסל: <bdi>${tb.th} mrad</bdi>, שדה של <bdi>${tb.fov} mm</bdi> ו-<bdi>NA = ${tb.na}</bdi>. שגיאה בקצה <bdi>${fmt(tb.edge, 1)} µm</bdi> מול <bdi>DOF/2 = ${fmt(tb.half, 1)} µm</bdi>: כל השדה חד. ${tbSet('c:tilt:bench', { c_tilt_na: 0.25 }, 'העלו את NA ל-0.25')}: <bdi>DOF/2 = ${fmt(tb.half25, 1)} µm</bdi>, ורוב השדה יוצא.`]] },
       '14.3': { win: [['c:thermal:bench', 'הספסל: התפשטות תושבת מול עומק השדה'], ['c:thermal:formulas', 'נוסחאות']],
         look: [['14.11', `בברירת המחדל: אלומיניום, <bdi>${th.L} mm</bdi>, <bdi>+${th.dT} °C</bdi>: <bdi>ΔL = ${fmt(th.dL, 1)} µm</bdi>, מחוץ לעומק השדה.`],
-          ['14.13', `החליפו ל-Invar: <bdi>${fmt(th.inv, 1)} µm</bdi>, ונשאר הרבה מרווח. ובפלדה: <bdi>${fmt(th.st, 1)} µm</bdi>.`]] }
+          ['14.13', `${tbSet('c:thermal:bench', { c_thermal_m: 'inv' }, 'החליפו ל-Invar')}: <bdi>${fmt(th.inv, 1)} µm</bdi>, ונשאר הרבה מרווח. ${tbSet('c:thermal:bench', { c_thermal_m: 'st' }, 'ובפלדה')}: <bdi>${fmt(th.st, 1)} µm</bdi>.`]] }
     }
   };
 })();
@@ -207,14 +207,14 @@
       '15.1': { win: [['fig:linescan', 'מצלמת line-scan על מסוע: אנקודר מול שעון'], ['c:linescan:bench', 'הספסל: מהירות, טריגר וחשיפה'], ['c:linescan:formulas', 'נוסחאות']],
         look: [['15.2', 'באיור: הזיזו את העכבר כדי לשנות מהירות, והחליפו לשעון. עם אנקודר העיגול נשאר עגול בכל מהירות. עם שעון הוא נמתח או מתכווץ.'],
           ['15.1', `בספסל, בברירת המחדל: <bdi>${LS.v} mm/s</bdi> ופיקסל של <bdi>${LS.p} µm</bdi>. קצב שורות נדרש <bdi>${fmt(LS.f, 1)} kHz</bdi>, ויחס צורה <bdi>1.00</bdi>.`],
-          ['15.4', `העלו ל-<bdi>${LS.vmax + 20} mm/s</bdi>: הקצב הנדרש עובר את <bdi>${LS.fmax} kHz</bdi> של המצלמה, והתמונה מתכווצת.`]] },
+          ['15.4', `${tbSet('c:linescan:bench', { c_linescan_v: LS.vmax + 20 }, `העלו ל-<bdi>${LS.vmax + 20} mm/s</bdi>`)}: הקצב הנדרש עובר את <bdi>${LS.fmax} kHz</bdi> של המצלמה, והתמונה מתכווצת.`]] },
       '15.2': { win: [['c:linescan:bench', 'הספסל: מריחה מול חשיפה'], ['c:linescan:formulas', 'נוסחאות']],
         look: [['15.5', `בספסל, בברירת המחדל: <bdi>${LS.exp} µs</bdi> ב-<bdi>${LS.v} mm/s</bdi>, מריחת תנועה <bdi>${fmt(LS.blur, 1)} µm = ${fmt(LS.bpx, 2)} px</bdi>.`],
-          ['15.6', `לפי 15.6 החלון המרבי ב-${LS.v} mm/s: <bdi>${LS.p} / (2 · ${LS.v}) = ${tbN(LS.tmax, 0)} µs</bdi>. הגדילו את החשיפה ל-<bdi>${LS.tmax} µs</bdi>: <bdi>${fmt(LS.v * LS.tmax / 1000, 1)} µm = ${fmt(LS.v * LS.tmax / 1000 / LS.p, 2)} px</bdi>, עדיין תקין. ב-<bdi>40 µs</bdi>: <bdi>${fmt(LS.v * 40 / 1000 / LS.p, 2)} px</bdi>, והספסל מסמן חשיפה ארוכה מדי.`]] },
+          ['15.6', `לפי 15.6 החלון המרבי ב-${LS.v} mm/s: <bdi>${LS.p} / (2 · ${LS.v}) = ${tbN(LS.tmax, 0)} µs</bdi>. ${tbSet('c:linescan:bench', { c_linescan_v: LS.v, c_linescan_exp: LS.tmax }, `הגדילו את החשיפה ל-<bdi>${LS.tmax} µs</bdi>`)}: <bdi>${fmt(LS.v * LS.tmax / 1000, 1)} µm = ${fmt(LS.v * LS.tmax / 1000 / LS.p, 2)} px</bdi>, עדיין תקין. ${tbSet('c:linescan:bench', { c_linescan_v: LS.v, c_linescan_exp: 40 }, 'ב-<bdi>40 µs</bdi>')}: <bdi>${fmt(LS.v * 40 / 1000 / LS.p, 2)} px</bdi>, והספסל מסמן חשיפה ארוכה מדי.`]] },
       '15.3': { win: [['anim:strobe', 'הבזק מול אור רציף: אור, חום ופוקוס'], ['c:strobe:bench', 'הספסל: זרם, רוחב פולס והשהיה'], ['c:strobe:formulas', 'נוסחאות']],
         look: [['15.8', `בהנפשה, בצעד 2: <bdi>duty = ${f1(st.duty * 100)}%</bdi>, ו-<bdi>P<sub>avg</sub> = ${f1(st.Pavg)} W</bdi>. בצעד 3, אור רציף: <bdi>${f1(ST.Pp)} W</bdi>.`],
           ['15.9', `בצעד 5: הבזק <bdi>${f1(st.zf)} µm</bdi>, בתוך עומק השדה. רציף <bdi>${f1(st.zc)} µm</bdi>, מחוצה לו.`],
-          ['15.10', `בספסל: פולס של <bdi>${SB.pw} µs</bdi> אחרי <bdi>${SB.dl} µs</bdi>, כולו בתוך חלון של <bdi>${SB.exp} µs</bdi>: חפיפה <bdi>${SB.ov} µs</bdi>, duty <bdi>${fmt(SB.duty * 100, 1)}%</bdi>, הספק ממוצע <bdi>${fmt(SB.P, 1)} W</bdi>. הגדילו את ההשהיה ל-<bdi>20 µs</bdi>: התמונה שחורה.`]] }
+          ['15.10', `בספסל: פולס של <bdi>${SB.pw} µs</bdi> אחרי <bdi>${SB.dl} µs</bdi>, כולו בתוך חלון של <bdi>${SB.exp} µs</bdi>: חפיפה <bdi>${SB.ov} µs</bdi>, duty <bdi>${fmt(SB.duty * 100, 1)}%</bdi>, הספק ממוצע <bdi>${fmt(SB.P, 1)} W</bdi>. ${tbSet('c:strobe:bench', { c_strobe_dl: 20 }, 'הגדילו את ההשהיה ל-<bdi>20 µs</bdi>')}: התמונה שחורה.`]] }
     }
   };
 })();
@@ -315,16 +315,16 @@
     side: {
       '16.1': { win: [['sim:scan3d', 'סריקת פאנל בתלת-ממד: רצועות ותפרים'], ['anim:scan', 'פיקסל, קצב שורות וטשטוש'], ['t:cam:math:0', 'גזירה: קצב שורות']],
         look: [['16.2', `בברירת המחדל: שדה של 40 mm, חפיפה של 2 mm ו-250 mm/s: <bdi>${sp.N}</bdi> רצועות, צעד של <bdi>${sp.step.toFixed(2)} mm</bdi>.`],
-          ['16.3', `זמן לפאנל: <bdi>${sp.time.toFixed(1)} s</bdi>. העלו את המהירות ל-400 mm/s: <bdi>${PB1.v2.time.toFixed(1)} s</bdi>, וקצב השורות עולה ל-<bdi>${(PB1.v2.rate / 1000).toFixed(1)} kHz</bdi>.`],
-          ['16.4', `בתפר: פס ברוחב <bdi>${sp.gap.toFixed(2)} mm</bdi> שנראה רק בשוליים. העלו את החפיפה ל-3 mm: התפר נעלם, ועדיין <bdi>${sp3.N}</bdi> רצועות.`],
+          ['16.3', `זמן לפאנל: <bdi>${sp.time.toFixed(1)} s</bdi>. ${tbSet('sim:scan3d', { ssp: 400 }, 'העלו את המהירות ל-400 mm/s')}: <bdi>${PB1.v2.time.toFixed(1)} s</bdi>, וקצב השורות עולה ל-<bdi>${(PB1.v2.rate / 1000).toFixed(1)} kHz</bdi>.`],
+          ['16.4', `בתפר: פס ברוחב <bdi>${sp.gap.toFixed(2)} mm</bdi> שנראה רק בשוליים. ${tbSet('sim:scan3d', { ssp: 250, sov: 3 }, 'העלו את החפיפה ל-3 mm')}: התפר נעלם, ועדיין <bdi>${sp3.N}</bdi> רצועות.`],
           ['16.1', `בגזירה: <bdi>p = FOV/N = 40 mm/8192 = ${sp.pix.toFixed(2)} µm</bdi>. ובהנפשה, בצעד 1: אותו פיקסל, <bdi>${f1(AS.p, 2)} µm</bdi>, לכל פולס אנקודר.`]] },
       '16.2': { win: [['3d:fiducials', 'רישום בשני סימני ייחוס, בתלת-ממד'], ['c:fid:bench', 'הספסל: קנה מידה, סיבוב ותיקון'], ['p:fit/aff', 'התאמה אפינית']],
-        look: [['16.6', 'בתלת-ממד: לחצו "פאנל חדש". המצלמה מודדת את שני הסימנים, ומהווקטור ביניהם מחשבת θ = atan2(Δy, Δx), s = |Δ|/D וההיסט מהאמצע. הפד ב-(150, 120) mm מתוקן מהחטאה של מילימטרים לכמה מיקרונים.'],
-          ['16.8', `רעש של <bdi>${RL.sig} µm</bdi> ומרחק של <bdi>400 mm</bdi>: <bdi>√2·σ/D = ${lf(dth(400) * 1e6, 1)} µrad</bdi>. החליפו ל-100 mm: <bdi>${lf(dth(100) * 1e6, 1)} µrad</bdi>.`],
-          ['16.7', `בספסל, בחרו "ללא": שגיאה מרבית של <bdi>${fmt(FC.none.max, 1)} µm</bdi>, כולל היסט הפאנל. "אפיני מלא": <bdi>${fmt(FC.affine.max, 1)} µm</bdi>, ו-RMS של <bdi>${fmt(FC.affine.rms, 1)} µm</bdi>, רעש המדידה שנשאר.`]] },
+        look: [['16.6', `בתלת-ממד: ${tbSet('3d:fiducials', {}, 'לחצו "פאנל חדש"', { act: 'load' })}. המצלמה מודדת את שני הסימנים, ומהווקטור ביניהם מחשבת θ = atan2(Δy, Δx), s = |Δ|/D וההיסט מהאמצע. הפד ב-(150, 120) mm מתוקן מהחטאה של מילימטרים לכמה מיקרונים.`],
+          ['16.8', `רעש של <bdi>${RL.sig} µm</bdi> ומרחק של <bdi>400 mm</bdi>: <bdi>√2·σ/D = ${lf(dth(400) * 1e6, 1)} µrad</bdi>. ${tbSet('3d:fiducials', { D: 100 }, 'החליפו ל-100 mm')}: <bdi>${lf(dth(100) * 1e6, 1)} µrad</bdi>.`],
+          ['16.7', `בספסל, ${tbSet('c:fid:bench', { c_fid_mode: 'none' }, 'בחרו "ללא"')}: שגיאה מרבית של <bdi>${fmt(FC.none.max, 1)} µm</bdi>, כולל היסט הפאנל. ${tbSet('c:fid:bench', { c_fid_mode: 'affine' }, '"אפיני מלא"')}: <bdi>${fmt(FC.affine.max, 1)} µm</bdi>, ו-RMS של <bdi>${fmt(FC.affine.rms, 1)} µm</bdi>, רעש המדידה שנשאר.`]] },
       '16.3': { win: [['anim:centroid', 'מרכז כובד של כתם: דיוק תת-פיקסל'], ['anim:lsq', 'ריבועים פחותים: הקו שמקטין את ריבועי השאריות'], ['p:img/cent', 'מרכז כובד']],
         look: [['16.9', `בהנפשה, בברירת המחדל: הכתם ב-<bdi>${ac.c.toFixed(2)}</bdi> פיקסלים על רקע של <bdi>${AC_.bg}</bdi>. בצעד 3, בלי החסרת רקע: <bdi>${ac.raw.toFixed(3)}</bdi>.`],
-          ['16.10', `בצעד 4, אחרי החסרת רקע: <bdi>${ac.sub.toFixed(3)}</bdi>. העלו את הרקע ל-40: בלי החסרה <bdi>${ac40.raw.toFixed(3)}</bdi>, עוד יותר קרוב ל-4.`],
+          ['16.10', `בצעד 4, אחרי החסרת רקע: <bdi>${ac.sub.toFixed(3)}</bdi>. ${tbSet('anim:centroid', { bg: 40 }, 'העלו את הרקע ל-40', { step: 2 })}: בלי החסרה <bdi>${ac40.raw.toFixed(3)}</bdi>, עוד יותר קרוב ל-4.`],
           ['16.11', `בהנפשת הקו, צעד 3: <bdi>a = ${al.a.toFixed(3)}</bdi>, <bdi>b = ${al.b.toFixed(3)}</bdi>.`],
           ['16.12', `בצעד 4: <bdi>S = ${al.S.toFixed(2)}</bdi>, ו-<bdi>σ̂ = ${al.sh.toFixed(2)}</bdi>.`]] }
     }
@@ -426,16 +426,16 @@
       '17.1': { win: [['anim:crater', 'מכתש הלייזר: מאנרגיה לחיתוך מלא'], ['sim:cr3d', 'המכתש בתלת-ממד'], ['fig:aos', 'תיקון קצר: אנרגיה ופוקוס']],
         look: [['17.2', `בהנפשה, בברירת המחדל: <bdi>E = ${AK.E} µJ</bdi> ו-<bdi>N = ${AK.N}</bdi>. בצעד 2: <bdi>F₀ = ${f1(ak.F0, 2)} J/cm²</bdi>.`],
           ['17.3', `בצעד 3: <bdi>D = ${f1(ak.D)} µm</bdi>. בצעד 4, העומק במרכז: <bdi>${f1(ak.h0)} µm</bdi>.`],
-          ['17.5', `בצעד 5: חיתוך מלא רק ב-<bdi>D_c = ${f1(ak.Dc)} µm</bdi>. בתלת-ממד אותם מספרים, וגשר של 10 µm עדיין מחובר. העלו ל-8 µJ וראו את הקוטר גדל לאט.`]] },
+          ['17.5', `בצעד 5: חיתוך מלא רק ב-<bdi>D_c = ${f1(ak.Dc)} µm</bdi>. בתלת-ממד אותם מספרים, וגשר של 10 µm עדיין מחובר. ${tbSet('anim:crater', { E: 8 }, 'העלו ל-8 µJ', { step: 2 })} וראו את הקוטר גדל לאט.`]] },
       '17.2': { win: [['c:laser:bench', 'הספסל: אנרגיה, פוקוס ותקלות'], ['t:aos:math:1', 'גזירה: צעד וכיסוי'], ['t:aos:math:2', 'גזירה: נזק ללמינציה']],
-        look: [['17.8', `בספסל, בחרו "חלון מגן מלוכלך": אנרגיה בפאנל <bdi>${fmt(Ld.Ee, 2)} µJ</bdi>, <bdi>F₀ = ${fmt(Ld.F0, 2)} J/cm²</bdi>, וקוטר מכתש <bdi>${fmt(Ld.D, 1)} µm</bdi>.`],
-          ['17.6', `בלי תקלה, הזיזו את Δz ל-320 µm: רדיוס קרן <bdi>${fmt(Lz.w, 2)} µm</bdi>, קוטר <bdi>${fmt(Lz.D, 1)} µm</bdi>, ועומק <bdi>${fmt(Lz.depth, 1)} µm</bdi> בלבד.`],
+        look: [['17.8', `בספסל, ${tbSet('c:laser:bench', { c_laser_fault: 'dirty', c_laser_dz: 0 }, 'בחרו "חלון מגן מלוכלך"')}: אנרגיה בפאנל <bdi>${fmt(Ld.Ee, 2)} µJ</bdi>, <bdi>F₀ = ${fmt(Ld.F0, 2)} J/cm²</bdi>, וקוטר מכתש <bdi>${fmt(Ld.D, 1)} µm</bdi>.`],
+          ['17.6', `${tbSet('c:laser:bench', { c_laser_fault: 'none', c_laser_dz: 320 }, 'בלי תקלה, הזיזו את Δz ל-320 µm')}: רדיוס קרן <bdi>${fmt(Lz.w, 2)} µm</bdi>, קוטר <bdi>${fmt(Lz.D, 1)} µm</bdi>, ועומק <bdi>${fmt(Lz.depth, 1)} µm</bdi> בלבד.`],
           ['17.9', `בגזירה של הכיסוי: עם חפיפה של 30%, <bdi>s = ${tbN(PB1.c5.s, 2)} µm</bdi> ו-<bdi>n = ${PB1.c5.n}</bdi> כתמים, ב-5 µJ.`],
           ['17.10', `בגזירה של הנזק: ב-5 µJ, <bdi>${tbN(PB1.dmg5, 1)} µm</bdi> לתוך הלמינציה.`]] },
       '17.3': { win: [['3d:scanhead', 'ראש הסריקה בתלת-ממד'], ['t:aos:math:3', 'גזירה: היסט ו-registration']],
         look: [['17.13', `בכרטיסים: רדיוס הכתם <bdi>${f1(sh.w0, 1)} µm</bdi>, מ-17.13 עם עדשה של ${SH.f} mm וקרן של ${tbN(sh.D, 2)} mm.`],
           ['17.14', `שדה הסריקה: <bdi>${f1(sh.field, 1)} mm</bdi>, מראות של ±${SH.mech}°.`],
-          ['17.12', `הדליקו את הקרן: המראה הראשונה נעה עד <bdi>±${f1(SH.raster, 1)}°</bdi>, והכתם עד <bdi>${f1(tr.mm[0], 1)} mm</bdi>, כלומר <bdi>f · 2θ<sub>m</sub></bdi>.`]] }
+          ['17.12', `${tbSet('3d:scanhead', {}, 'הדליקו את הקרן', { btn: 'קרן: כבויה' })}: המראה הראשונה נעה עד <bdi>±${f1(SH.raster, 1)}°</bdi>, והכתם עד <bdi>${f1(tr.mm[0], 1)} mm</bdi>, כלומר <bdi>f · 2θ<sub>m</sub></bdi>.`]] }
     }
   };
 })();

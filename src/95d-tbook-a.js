@@ -116,16 +116,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     check: { I1, P1w, k14, Vd, Vdl, Rth, Vthl, Rw, dVc, Pmax, T1, PB1, PB2, PB3, Rp3 },
     side: {
       '1.1': { win: [['3d:resistor', 'הנגד בתלת-ממד: זרם, הספק וחום'], ['a:נגד', 'נגד: מבנה וקוד צבעים']],
-        look: [['1.2', `קבעו <bdi>${V1} V</bdi> ו-<bdi>${R1} Ω</bdi> וקראו את הזרם: <bdi>${tbN(I1 * 1e3, 1)} mA</bdi>, בדיוק <bdi>${V1}/${R1}</bdi>.`],
-          ['1.4', `הורידו את המתח ל-<bdi>6 V</bdi> והחזירו ל-<bdi>12 V</bdi>: הזרם מוכפל, וההספק גדל פי 4.`],
-          ['1.4', `עם <bdi>${R1} Ω</bdi>, <bdi>${V1} V</bdi> ודירוג <bdi>¼ W</bdi> הנגד ב-<bdi>${tbN(k14 * 100, 0)}%</bdi> מהדירוג, והגוף מתקרב ל-<bdi>${tbN(T1, 0)} °C</bdi>. בחרו <bdi>1 W</bdi> וראו <bdi>${tbN(k1 * 100, 0)}%</bdi>.`],
+        look: [['1.2', `${tbSet('3d:resistor', { V: V1, R: R1 }, `קבעו <bdi>${V1} V</bdi> ו-<bdi>${R1} Ω</bdi>`, { see: `${tbN(I1 * 1e3, 1)} mA` })} וקראו את הזרם: <bdi>${tbN(I1 * 1e3, 1)} mA</bdi>, בדיוק <bdi>${V1}/${R1}</bdi>.`],
+          ['1.4', `${tbSet('3d:resistor', { V: 6 }, 'הורידו את המתח ל-<bdi>6 V</bdi>')} ו${tbSet('3d:resistor', { V: 12 }, 'החזירו ל-<bdi>12 V</bdi>')}: הזרם מוכפל, וההספק גדל פי 4.`],
+          ['1.4', `עם <bdi>${R1} Ω</bdi>, <bdi>${V1} V</bdi> ודירוג <bdi>¼ W</bdi> הנגד ב-<bdi>${tbN(k14 * 100, 0)}%</bdi> מהדירוג, והגוף מתקרב ל-<bdi>${tbN(T1, 0)} °C</bdi>. ${tbSet('3d:resistor', { V: V1, R: R1, Pr: 1 }, 'בחרו <bdi>1 W</bdi>', { see: `${tbN(k1 * 100, 0)}%` })} וראו <bdi>${tbN(k1 * 100, 0)}%</bdi>.`],
           ['1.18', 'הגרף של טמפרטורת הגוף עולה באקספוננט ומתייצב: זו 1.18. הקו החום הוא 155 °C, המותר.']] },
       '1.2': { win: [['3d:source', 'r ו-RL: מחלק מתח'], ['f:resistor', 'דף הנוסחאות']],
         look: [['1.9', `במעבדת המקור, <bdi>r</bdi> ו-<bdi>R<sub>L</sub></bdi> הם מחלק מתח: המתח בהדקים הוא <bdi>E · R<sub>L</sub>/(R<sub>L</sub> + r)</bdi>. עם <bdi>E = ${E} V</bdi>, <bdi>r = ${r} Ω</bdi> ו-<bdi>R<sub>L</sub> = 10 Ω</bdi>: <bdi>${tbN(Vt(10), 2)} V</bdi>.`],
           ['1.7', `<bdi>r</bdi> ו-<bdi>R<sub>L</sub></bdi> בטור: אותו זרם עובר בשניהם, <bdi>${E} / 10.5 = ${tbN(E / 10.5, 2)} A</bdi>. העמודה בלוח מחולקת לשני המתחים, והם מסתכמים ל-E.`]] },
       '1.3': { win: [['3d:source', 'מקור אמיתי: E, r ועומס'], ['a:הארקות ו-0V', 'הארקות ו-0V'], ['a:ספק ומקור מתח', 'ספק ומקור מתח']],
-        look: [['1.10', `הקטינו את <bdi>R<sub>L</sub></bdi> מ-<bdi>1000 Ω</bdi> לכ-<bdi>1 Ω</bdi>: המתח בהדקים יורד מ-<bdi>${tbN(Vt(1000), 2)} V</bdi> לכ-<bdi>${tbN(Vt(1), 1)} V</bdi>. ההפרש הוא <bdi>I·r</bdi>, העמודה החומה.`],
-          ['1.12', `קבעו <bdi>R<sub>L</sub></bdi> שווה ל-<bdi>r</bdi>: הנקודה בגרף בשיא, <bdi>E²/(4r) = ${tbN(Pmax, 0)} W</bdi>, והנצילות 50%.`],
+        look: [['1.10', `הקטינו את <bdi>R<sub>L</sub></bdi> מ-${tbSet('3d:source', { RL: 1000 }, '<bdi>1000 Ω</bdi>')} לכ-${tbSet('3d:source', { RL: 1 }, '<bdi>1 Ω</bdi>', { see: `${lf(Vt(1))} V` })}: המתח בהדקים יורד מ-<bdi>${tbN(Vt(1000), 2)} V</bdi> לכ-<bdi>${tbN(Vt(1), 1)} V</bdi>. ההפרש הוא <bdi>I·r</bdi>, העמודה החומה.`],
+          ['1.12', `${tbSet('3d:source', { RL: r }, 'קבעו <bdi>R<sub>L</sub></bdi> שווה ל-<bdi>r</bdi>', { see: '50%' })}: הנקודה בגרף בשיא, <bdi>E²/(4r) = ${tbN(Pmax, 0)} W</bdi>, והנצילות 50%.`],
           ['1.13', `ב-<bdi>R<sub>L</sub> = 10 Ω</bdi> הנצילות <bdi>${tbN(10 / 10.5 * 100, 0)}%</bdi>, וההספק בעומס רק <bdi>${tbN(PL(10), 2)} W</bdi>: כך ספק עובד.`]] }
     }
   };
@@ -231,17 +231,17 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     side: {
       '2.1': { win: [['3d:switch', 'לחצן: קפיצות, RC ו-Schmitt'], ['a:מתג ולחצן', 'מתג ולחצן']],
         look: [['2.1', 'במעבדה הלחצן הוא NO עם pull-up: לחוץ, הכניסה יורדת ל-0. כך מחברים רוב הכניסות.'],
-          ['2.2', `בחרו "את המגע ישירות" ולחצו "לחיצה": המגע קפץ <bdi>${sw[0].nRaw}</bdi> פעמים, והבקר ספר <bdi>${sw[0].nRaw}</bdi> לחיצות.`],
-          ['2.4', `בחרו "דרך RC ו-Schmitt" עם <bdi>τ = 0.1 ms</bdi>: הבקר עדיין ספר <bdi>${sw[0].nOut}</bdi>. ב-<bdi>0.2 ms</bdi> ספר <bdi>${sw[1].nOut}</bdi>. ב-<bdi>0.5 ms</bdi> ומעלה, מעבר אחד: <bdi>${tbN(tauMin, 2)} ms</bdi> הוא הגבול לפי 2.4.`],
+          ['2.2', `${tbSet('3d:switch', { filt: 'off' }, 'בחרו "את המגע ישירות" ולחצו "לחיצה"', { act: 'press' })}: המגע קפץ <bdi>${sw[0].nRaw}</bdi> פעמים, והבקר ספר <bdi>${sw[0].nRaw}</bdi> לחיצות.`],
+          ['2.4', `${tbSet('3d:switch', { filt: 'on', tau: 0.1 }, 'בחרו "דרך RC ו-Schmitt" עם <bdi>τ = 0.1 ms</bdi>', { act: 'press' })}: הבקר עדיין ספר <bdi>${sw[0].nOut}</bdi>. ${tbSet('3d:switch', { filt: 'on', tau: 0.2 }, 'ב-<bdi>0.2 ms</bdi>', { act: 'press' })} ספר <bdi>${sw[1].nOut}</bdi>. ${tbSet('3d:switch', { filt: 'on', tau: 0.5 }, 'ב-<bdi>0.5 ms</bdi>', { act: 'press' })} ומעלה, מעבר אחד: <bdi>${tbN(tauMin, 2)} ms</bdi> הוא הגבול לפי 2.4.`],
           ['2.3', `ב-<bdi>τ = 1 ms</bdi> המעבדה מודדת השהיה של כ-<bdi>${tbN(sw[3].tOut, 2)} ms</bdi>, יותר מ-<bdi>${tbN(td21, 2)} ms</bdi> של 2.3: בכל קפיצה הקבל נטען קצת חזרה.`]] },
       '2.2': { win: [['3d:fuse', 'פיוז: חום, מהיר מול איטי'], ['a:פיוז', 'פיוז']],
-        look: [['2.6', `קבעו <bdi>1.2×I<sub>n</sub></bdi>: החום עולה ומתייצב ב-<bdi>${tbN(th12 * 100, 0)}%</bdi> מהסף, והפיוז שלם.`],
-          ['2.7', `קבעו <bdi>3×I<sub>n</sub></bdi> בפיוז מהיר: הוא נשרף אחרי <bdi>${tbN(k3F * 1e3, 1)} ms</bdi>. לחצו "החלף פיוז", בחרו איטי: <bdi>${tbN(k3T * 1e3, 0)} ms</bdi>.`],
-          ['2.8', `ב-<bdi>0.8×I<sub>n</sub></bdi> לחצו "זרם התנעה" בפיוז מהיר: נשרף תוך <bdi>${tbN(tblowF * 1e3, 2)} ms</bdi>. החליפו לאיטי ולחצו שוב: החום מגיע רק ל-<bdi>${tbN(thT / F.melt * 100, 0)}%</bdi> מהסף.`]] },
+        look: [['2.6', `${tbSet('3d:fuse', { k: 1.2, type: 'F' }, 'קבעו <bdi>1.2×I<sub>n</sub></bdi>', { act: 'replace' })}: החום עולה ומתייצב ב-<bdi>${tbN(th12 * 100, 0)}%</bdi> מהסף, והפיוז שלם.`],
+          ['2.7', `${tbSet('3d:fuse', { k: 3, type: 'F' }, 'קבעו <bdi>3×I<sub>n</sub></bdi> בפיוז מהיר', { act: 'replace' })}: הוא נשרף אחרי <bdi>${tbN(k3F * 1e3, 1)} ms</bdi>. ${tbSet('3d:fuse', { k: 3, type: 'T' }, 'לחצו "החלף פיוז", בחרו איטי', { act: 'replace' })}: <bdi>${tbN(k3T * 1e3, 0)} ms</bdi>.`],
+          ['2.8', `${tbSet('3d:fuse', { k: 0.8, type: 'F' }, 'ב-<bdi>0.8×I<sub>n</sub></bdi> לחצו "זרם התנעה" בפיוז מהיר', { act: 'replace,inrush' })}: נשרף תוך <bdi>${tbN(tblowF * 1e3, 2)} ms</bdi>. ${tbSet('3d:fuse', { k: 0.8, type: 'T' }, 'החליפו לאיטי ולחצו שוב', { act: 'replace,inrush' })}: החום מגיע רק ל-<bdi>${tbN(thT / F.melt * 100, 0)}%</bdi> מהסף.`]] },
       '2.3': { win: [['3d:terminal', 'הדק: התנגדות מגע וחום'], ['a:הדקים ומחברים', 'הדקים ומחברים']],
         look: [['2.9', `בהתחלה <bdi>${good.I} A</bdi> ו-<bdi>${good.Rc * 1e3} mΩ</bdi>: על המגע <bdi>${tbN(good.V * 1e3, 0)} mV</bdi> ו-<bdi>${tbN(good.P, 2)} W</bdi>.`],
-          ['2.10', `לחצו "שחרר" (<bdi>${loose.Rc * 1e3} mΩ</bdi>): <bdi>${tbN(loose.P, 2)} W</bdi> במגע, והטמפרטורה מטפסת לכיוון <bdi>${tbN(loose.T, 0)} °C</bdi>.`],
-          ['2.11', 'במגע רופף לחצו "נער את הכבל": בכל ניתוק המתח על העומס צונח לאפס. באותו רגע כל 24 V על המגע הפתוח.']] }
+          ['2.10', `${tbSet('3d:terminal', {}, 'לחצו "שחרר"', { act: 'loose' })} (<bdi>${loose.Rc * 1e3} mΩ</bdi>): <bdi>${tbN(loose.P, 2)} W</bdi> במגע, והטמפרטורה מטפסת לכיוון <bdi>${tbN(loose.T, 0)} °C</bdi>.`],
+          ['2.11', `במגע רופף ${tbSet('3d:terminal', {}, 'לחצו "נער את הכבל"', { act: 'loose,wiggle' })}: בכל ניתוק המתח על העומס צונח לאפס. באותו רגע כל 24 V על המגע הפתוח.`]] }
     }
   };
 })();
@@ -342,16 +342,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
       '3.1': { win: [['3d:capacitor', 'קבל: טעינה ופריקה, τ = RC'], ['a:קבל אלקטרוליטי (מקוטב)', 'קבל אלקטרוליטי'], ['a:קבל קרמי (לא מקוטב)', 'קבל קרמי']],
         look: [['3.3', `המעבדה מתחילה בטעינה עם <bdi>E = ${E} V</bdi>, <bdi>R = ${R / 1e3} kΩ</bdi> ו-<bdi>C = ${C * 1e6} µF</bdi>: <bdi>τ = ${tbN(tau, 0)} s</bdi>. אחרי שנייה המד מראה כ-<bdi>${tbN(v1, 2)} V</bdi>, ואחרי חמש כ-<bdi>${tbN(v5, 2)} V</bdi>.`],
           ['3.4', `הגרף החום הוא הזרם: <bdi>${tbN(i0 * 1e3, 0)} mA</bdi> ברגע הראשון, ודועך. העבירו לפריקה: הוא הופך שלילי.`],
-          ['3.5', `קבל מלא ב-<bdi>${E} V</bdi> אוגר <bdi>${tbN(W1 * 1e3, 0)} mJ</bdi>. העלו את E ל-<bdi>20 V</bdi>: <bdi>${tbN(W2 * 1e3, 0)} mJ</bdi>, פי 4.`]] },
+          ['3.5', `קבל מלא ב-<bdi>${E} V</bdi> אוגר <bdi>${tbN(W1 * 1e3, 0)} mJ</bdi>. ${tbSet('3d:capacitor', { E: 20 }, 'העלו את E ל-<bdi>20 V</bdi>')}: <bdi>${tbN(W2 * 1e3, 0)} mJ</bdi>, פי 4.`]] },
       '3.2': { win: [['3d:coil', 'סליל: עלייה, קוץ ודיודת flyback'], ['a:סליל (משרן)', 'סליל']],
-        look: [['3.7', `סגרו את המתג עם <bdi>L = ${L} H</bdi>: הזרם עולה לאט ל-<bdi>${tbN(I0, 1)} A</bdi>, עם <bdi>τ = ${tbN(tauL * 1e3, 1)} ms</bdi>. נסו <bdi>2 H</bdi>: פי שניים לאט.`],
-          ['3.9', `הוציאו את הדיודה, סגרו ופתחו: הקוץ על המגע מגיע לכ-<bdi>${tbN(spike, 0)} V</bdi>, והמגע יורה ניצוץ.`],
-          ['3.10', `החזירו את הדיודה ופתחו שוב: על המגע רק <bdi>${tbN(vd, 1)} V</bdi>, והזרם ממשיך להסתובב ודועך.`],
+        look: [['3.7', `${tbSet('3d:coil', [{ sw: 'off' }, { L: L, sw: 'on' }], `סגרו את המתג עם <bdi>L = ${L} H</bdi>`)}: הזרם עולה לאט ל-<bdi>${tbN(I0, 1)} A</bdi>, עם <bdi>τ = ${tbN(tauL * 1e3, 1)} ms</bdi>. ${tbSet('3d:coil', [{ sw: 'off' }, { L: 2, sw: 'on' }], 'נסו <bdi>2 H</bdi>')}: פי שניים לאט.`],
+          ['3.9', `${tbSet('3d:coil', { diode: 'no' }, 'הוציאו את הדיודה')}, סגרו ופתחו: הקוץ על המגע מגיע לכ-<bdi>${tbN(spike, 0)} V</bdi>, והמגע יורה ניצוץ.`],
+          ['3.10', `${tbSet('3d:coil', { diode: 'yes' }, 'החזירו את הדיודה')} ופתחו שוב: על המגע רק <bdi>${tbN(vd, 1)} V</bdi>, והזרם ממשיך להסתובב ודועך.`],
           ['3.8', `האנרגיה <bdi>½·L·i²</bdi> כשהזרם מלא: <bdi>${tbN(WL * 1e3, 0)} mJ</bdi>. היא שהולכת לניצוץ, או לדיודה.`]] },
       '3.3': { win: [['3d:xfmr', 'שנאי: יחס ליפופים ו-DC'], ['a:שנאי', 'שנאי']],
-        look: [['3.12', `בחרו יחס <bdi>${N} : 1</bdi>: במשני <bdi>${tbN(Vs, 2)} V rms</bdi>. ב-<bdi>19.2 : 1</bdi> חצי מזה.`],
+        look: [['3.12', `${tbSet('3d:xfmr', { N: N, mode: 'ac' }, `בחרו יחס <bdi>${N} : 1</bdi>`)}: במשני <bdi>${tbN(Vs, 2)} V rms</bdi>. ${tbSet('3d:xfmr', { N: 19.2, mode: 'ac' }, 'ב-<bdi>19.2 : 1</bdi>')} חצי מזה.`],
           ['3.13', `עם <bdi>${RLx} Ω</bdi> במשני: <bdi>${tbN(Is, 2)} A</bdi> במשני וכ-<bdi>${tbN(Ip, 2)} A</bdi> בראשוני, ו-<bdi>${tbN(Pw, 1)} W</bdi>.`],
-          ['3.14', `עברו ל-"230 V DC (בטעות)": אחרי כ-<bdi>${tbN(tsat * 1e3, 1)} ms</bdi> הליבה ברוויה, המשני יורד לאפס, והזרם בראשוני קופץ ל-<bdi>${tbN(Isat, 0)} A</bdi>.`]] }
+          ['3.14', `${tbSet('3d:xfmr', { mode: 'dc' }, 'עברו ל-"230 V DC (בטעות)"')}: אחרי כ-<bdi>${tbN(tsat * 1e3, 1)} ms</bdi> הליבה ברוויה, המשני יורד לאפס, והזרם בראשוני קופץ ל-<bdi>${tbN(Isat, 0)} A</bdi>.`]] }
     }
   };
 })();
@@ -451,16 +451,16 @@ function tbSwPress(tauMs) { const h = 2e-6, tau = tauMs / 1000; let v = SW3.Vcc,
     side: {
       '4.1': { win: [['3d:diode', 'דיודה: עקומה וקו עומס'], ['a:דיודה', 'דיודה']],
         look: [['4.1', 'בגרף, העקומה הכחולה היא 4.1: שטוחה עד כ-0.6 V, ואז כמעט אנכית.'],
-          ['4.3', `בחרו "דיודת סיליקון", <bdi>5 V</bdi> ו-<bdi>1 kΩ</bdi>: <bdi>${tbN(s1.I * 1e3, 2)} mA</bdi> ו-<bdi>${tbN(s1.Vd, 3)} V</bdi> על הדיודה.`],
-          ['4.4', `הורידו את הנגד ל-<bdi>100 Ω</bdi>: הזרם גדל ל-<bdi>${tbN(s2.I * 1e3, 1)} mA</bdi>, כמעט פי 10, והמתח עולה רק ל-<bdi>${tbN(s2.Vd, 3)} V</bdi>, <bdi>${tbN((s2.Vd - s1.Vd) * 1e3, 0)} mV</bdi> יותר.`]] },
+          ['4.3', `${tbSet('3d:diode', { type: 'si', Vin: 5, R: 1000 }, 'בחרו "דיודת סיליקון", <bdi>5 V</bdi> ו-<bdi>1 kΩ</bdi>')}: <bdi>${tbN(s1.I * 1e3, 2)} mA</bdi> ו-<bdi>${tbN(s1.Vd, 3)} V</bdi> על הדיודה.`],
+          ['4.4', `${tbSet('3d:diode', { type: 'si', Vin: 5, R: 100 }, 'הורידו את הנגד ל-<bdi>100 Ω</bdi>')}: הזרם גדל ל-<bdi>${tbN(s2.I * 1e3, 1)} mA</bdi>, כמעט פי 10, והמתח עולה רק ל-<bdi>${tbN(s2.Vd, 3)} V</bdi>, <bdi>${tbN((s2.Vd - s1.Vd) * 1e3, 0)} mV</bdi> יותר.`]] },
       '4.2': { win: [['3d:diode', 'דיודה, LED וזנר: קו עומס'], ['a:נורית LED', 'LED'], ['a:זנר / TVS', 'זנר ו-TVS']],
         look: [['4.5', 'הקו החום המקווקו הוא 4.5: הוא מתחיל ב-V<sub>in</sub>/R על הציר האנכי ומגיע לאפס ב-V<sub>in</sub>.'],
-          ['4.6', `בחרו LED, <bdi>5 V</bdi> ו-<bdi>330 Ω</bdi>: הנקודה היא החיתוך, <bdi>${tbN(led.Vd, 2)} V</bdi> ו-<bdi>${tbN(led.I * 1e3, 1)} mA</bdi>.`],
-          ['4.8', `בחרו זנר, <bdi>−12 V</bdi> ו-<bdi>1 kΩ</bdi>: על הזנר <bdi>${tbN(-zen.Vd, 2)} V</bdi>. שנו את המתח ל-<bdi>−9 V</bdi>: המתח על הזנר כמעט לא זז, והזרם קטן.`]] },
+          ['4.6', `${tbSet('3d:diode', { type: 'led', Vin: 5, R: 330 }, 'בחרו LED, <bdi>5 V</bdi> ו-<bdi>330 Ω</bdi>')}: הנקודה היא החיתוך, <bdi>${tbN(led.Vd, 2)} V</bdi> ו-<bdi>${tbN(led.I * 1e3, 1)} mA</bdi>.`],
+          ['4.8', `${tbSet('3d:diode', { type: 'zener', Vin: -12, R: 1000 }, 'בחרו זנר, <bdi>−12 V</bdi> ו-<bdi>1 kΩ</bdi>')}: על הזנר <bdi>${tbN(-zen.Vd, 2)} V</bdi>. ${tbSet('3d:diode', { type: 'zener', Vin: -9, R: 1000 }, 'שנו את המתח ל-<bdi>−9 V</bdi>')}: המתח על הזנר כמעט לא זז, והזרם קטן.`]] },
       '4.3': { win: [['3d:mosfet', 'MOSFET כמתג'], ['a:טרנזיסטור (BJT / MOSFET)', 'טרנזיסטור']],
         look: [['4.9', `מתחת ל-<bdi>${M.Vth} V</bdi> אין תעלה: אין זרם, וכל <bdi>${M.Vdd} V</bdi> על הטרנזיסטור.`],
-          ['4.12', `ב-<bdi>V<sub>gs</sub> = 10 V</bdi>: <bdi>V<sub>ds</sub> ≈ ${tbN(m10.Vds, 2)} V</bdi>, <bdi>R<sub>ds(on)</sub> ≈ ${tbN(m10.Vds / m10.Id * 1e3, 0)} mΩ</bdi>, ובטרנזיסטור רק <bdi>${tbN(P10, 2)} W</bdi>.`],
-          ['4.10', `ב-<bdi>3.3 V</bdi>: <bdi>${tbN(m33.Id, 2)} A</bdi> ו-<bdi>${tbN(m33.Vds, 1)} V</bdi> עליו, <bdi>${tbN(P33, 1)} W</bdi>. בלי קירור הצומת מעבר ל-400 °C; עם קירור כ-<bdi>${tbN(Tj33s, 0)} °C</bdi>.`],
+          ['4.12', `${tbSet('3d:mosfet', { Vgs: 10 }, 'ב-<bdi>V<sub>gs</sub> = 10 V</bdi>')}: <bdi>V<sub>ds</sub> ≈ ${tbN(m10.Vds, 2)} V</bdi>, <bdi>R<sub>ds(on)</sub> ≈ ${tbN(m10.Vds / m10.Id * 1e3, 0)} mΩ</bdi>, ובטרנזיסטור רק <bdi>${tbN(P10, 2)} W</bdi>.`],
+          ['4.10', `${tbSet('3d:mosfet', { Vgs: 3.3 }, 'ב-<bdi>3.3 V</bdi>')}: <bdi>${tbN(m33.Id, 2)} A</bdi> ו-<bdi>${tbN(m33.Vds, 1)} V</bdi> עליו, <bdi>${tbN(P33, 1)} W</bdi>. בלי קירור הצומת מעבר ל-400 °C; עם קירור כ-<bdi>${tbN(Tj33s, 0)} °C</bdi>.`],
           ['4.13', `הזיזו את V<sub>gs</sub> לאט: העקומה החומה (ההספק) מגיעה לשיא של <bdi>${tbN(Pmx, 0)} W</bdi> כש-V<sub>ds</sub> = <bdi>${M.Vdd / 2} V</bdi>.`]] }
     }
   };

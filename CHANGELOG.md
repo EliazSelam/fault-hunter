@@ -2,6 +2,14 @@
 
 Versions follow [Semantic Versioning](https://semver.org/): MAJOR.MINOR.PATCH.
 
+## [2.82.0] — 2026-11-25
+
+The numbers in the panels beside the chapters set their simulations: an instruction such as "set 12 V and 470 Ω" or "raise the load to 0.60 N·m" is now a button, and pressing it puts the simulation in the panel at those values.
+
+- 139 instructions across the chapters' panels became buttons: in 3D labs (through the lab's own parameters and buttons, such as "replace fuse" or "move"), in animations (the parameter, and the step that shows it), in benches and in the system simulations (their own controls and presets).
+- A button opens its window first if the panel shows another one, and stays marked after it is pressed.
+- Tests: the textbook suite presses every such button in every panel and reads the simulation back: it must have opened the right window and hold exactly the parameters the button names, be marked, show the reading it promises where it names one, and name only actions the lab has.
+
 ## [2.81.0] — 2026-11-25
 
 Image processing in depth: six new pages in the image-processing topic, each a derivation with a live figure, chosen from a university image-processing course for what an inspection machine does with its images.

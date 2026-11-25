@@ -39,6 +39,7 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 | [v2.79.0](#v2790) | 25 Nov 2026 | Part H as a textbook: calibration, noise, heat and failure analysis | 4.52 MB |
 | [v2.80.0](#v2800) | 25 Nov 2026 | Serial links animated: UART, I2C, SPI and CAN | 4.54 MB |
 | [v2.81.0](#v2810) | 25 Nov 2026 | Image processing in depth: equalization, sharpening, median, Canny, Harris, k-means | 4.60 MB |
+| [v2.82.0](#v2820) | 25 Nov 2026 | Numbers in the panels set their simulations: 139 buttons | 4.61 MB |
 
 ## v1.0.0
 ![v1.0.0](milestones/v1.0.0.png)
@@ -219,6 +220,11 @@ Each picture is a screenshot of that version's own shipped file (`index.html` at
 ![v2.81.0](milestones/v2.81.0.png)
 
 **What changed:** image processing in depth, from the course material to what the machine does with an image: histogram equalization and the threshold it moves, sharpening in frequency and why it spreads an edge's position, the median against salt and pepper, Canny, Harris corners and the structure tensor, and k-means with its link to Otsu, each derived and with a live figure. In the picture, Canny on a pad whose dull half is kept only by hysteresis.
+
+## v2.82.0
+![v2.82.0](milestones/v2.82.0.png)
+
+**What changed:** an instruction in the panel beside a chapter, such as "set 12 V and 470 Ω", is a button that sets the simulation to those values: 139 of them, in 3D labs, animations, benches and system simulations. In the picture, chapter 1 with the resistor lab, just after pressing "back to 12 V".
 
 ## From the first version to now, in numbers
 
